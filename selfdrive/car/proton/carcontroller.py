@@ -81,7 +81,7 @@ class CarController():
         and ((CS.stock_ldp_left and not CS.out.leftBlinker) or (CS.stock_ldp_right and not CS.out.rightBlinker)) \
         and CS.stock_ldp_cmd > 0:
       steer_dir = -1 if CS.steer_dir else 1
-      ldp_cmd = int(CS.stock_ldp_cmd / 2) &~1 # Ensure LSB 0 for 11-bit cmd and divide by 2
+      ldp_cmd = int(CS.stock_ldp_cmd) &~1 # Ensure LSB 0 for 11-bit cmd
       apply_steer = ldp_cmd * steer_dir
       lat_active, self.steer_rate_limited = True, False
 
