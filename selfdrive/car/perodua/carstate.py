@@ -3,8 +3,9 @@ from opendbc.can.can_define import CANDefine
 from selfdrive.config import Conversions as CV
 from selfdrive.car.interfaces import CarStateBase, CarInterfaceBase
 from opendbc.can.parser import CANParser
-from selfdrive.car.perodua.values import DBC, STEER_THRESHOLD
+from selfdrive.car.perodua.values import DBC
 
+STEER_THRESHOLD = 25
 
 class CarState(CarStateBase):
   def __init__(self, CP):
@@ -40,8 +41,8 @@ class CarState(CarStateBase):
     # steering wheel
     ret.steeringAngle = cp.vl["STEERING_ANGLE_SENSOR"]['STEER_ANGLE']                     # deg
     ret.steeringTorque = cp.vl["STEERING_TORQUE"]['MAIN_TORQUE']                          # no units, as defined by steering interceptor, the sensor
-    ret.steeringTorqueEps = cp.vl["TORQUE_COMMAND"]['INTERCEPTOR_MAIN_TORQUE']            # no units, as defined by steering interceptor, the actuator
-    ret.steeringPressed = abs(ret.steeringTorque) > STEER_THRESHOLD[self.car_fingerprint] # if the user is using the steering wheel
+#    ret.steeringTorqueEps = cp.vl["TORQUE_COMMAND"]['INTERCEPTOR_MAIN_TORQUE']            # no units, as defined by steering interceptor, the actuator
+    ret.steeringPressed = abs(ret.steeringTorque) > STEER_THRESHOLD                       # if the user is using the steering wheel
     ret.steerWarning = False                                                              # since Perodua has no LKAS, make it always no warning
     ret.steerError = False                                                                # since Perodua has no LKAS, make it always no warning
 #    ret.stockAeb = cp.vl["FWD_CAM1"]['AEB_BRAKE'] != 0                                   # is stock AEB giving a braking signal?
@@ -50,7 +51,7 @@ class CarState(CarStateBase):
 
     # cruise state, need to fake it for now, its used for driver monitoring, and controlsd see below
     ret.cruiseState.available = True
-    ret.cruiseState.enable = False   # Make it False so OP calculates the set speed logic, see openpilot/selfdrive/controls/controlsd.py#L277
+#    ret.cruiseState.enable = False   # Make it False so OP calculates the set speed logic, see openpilot/selfdrive/controls/controlsd.py#L277
     ret.cruiseState.standstill = ret.standstill
 
     # gear
@@ -89,7 +90,7 @@ class CarState(CarStateBase):
       ("BRAKE_PRESSURE", "BRAKE_PEDAL", 0),
       ("STEER_ANGLE", "STEERING_ANGLE_SENSOR", 0),
       ("MAIN_TORQUE", "STEERING_TORQUE", 0),
-      ("INTERCEPTOR_MAIN_TORQUE", "TORQUE_COMMAND", 0),
+ #     ("INTERCEPTOR_MAIN_TORQUE", "TORQUE_COMMAND", 0),
  #     ("STATUS", "ESC_CONTROL", 0),
       ("GENERIC_TOGGLE", "RIGHT_STALK", 0),
       ("LEFT_SIGNAL", "METER_CLUSTER", 0),

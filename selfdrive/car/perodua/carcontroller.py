@@ -34,7 +34,7 @@ class CarController():
 
     # Send CAN commands.
     can_sends = []
-
+    """
     ### STEER ###
 
     if (frame % P.STEER_STEP) == 0:
@@ -51,17 +51,17 @@ class CarController():
       if not enabled:
         apply_steer = 0
 
-      can_sends.append(subarucan.create_steering_control(self.packer, apply_steer, frame, P.STEER_STEP))
+      can_sends.append(peroduacan.create_steering_control(self.packer, apply_steer, frame, P.STEER_STEP))
 
       self.apply_steer_last = apply_steer
 
     if self.es_distance_cnt != CS.es_distance_msg["Counter"]:
-      can_sends.append(subarucan.create_es_distance(self.packer, CS.es_distance_msg, pcm_cancel_cmd))
+      can_sends.append(peroduacan.create_es_distance(self.packer, CS.es_distance_msg, pcm_cancel_cmd))
       self.es_distance_cnt = CS.es_distance_msg["Counter"]
 
     if self.es_lkas_cnt != CS.es_lkas_msg["Counter"]:
-      can_sends.append(subarucan.create_es_lkas(self.packer, CS.es_lkas_msg, visual_alert, left_line, right_line))
+      can_sends.append(peroduacan.create_es_lkas(self.packer, CS.es_lkas_msg, visual_alert, left_line, right_line))
       self.es_lkas_cnt = CS.es_lkas_msg["Counter"]
-
+    """
     return can_sends
 

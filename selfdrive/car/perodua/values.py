@@ -14,9 +14,6 @@ FINGERPRINTS = {
   }]
 }
 
-## NOT SURE WHAT IS THIS
-STEER_THRESHOLD = 25
-
 # CAN_ID which identifies the ecu
 ECU_FINGERPRINT = {
   Ecu.fwdCamera: [679, 680, 681, 1267],   # steer torque cmd

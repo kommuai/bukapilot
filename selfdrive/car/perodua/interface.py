@@ -29,7 +29,7 @@ class CarInterface(CarInterfaceBase):
     stop_and_go = False
 
     # force openpilot to fake the stock camera, make it True when we want can to spoof adas cam
-    ret.enableCamera = False
+    ret.enableCamera = True
     # force openpilot to inject gas command through comma pedal
     ret.enableGasInterceptor = True
     # since using gas interceptor means there is no cruise control
