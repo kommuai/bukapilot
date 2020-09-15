@@ -13,13 +13,11 @@ class CarState(CarStateBase):
     # Getting only the powertrain dbc
     can_define = CANDefine(DBC[CP.carFingerprint]['pt'])
     self.shifter_values = can_define.dv["TRANSMISSION"]['GEAR']
-    self.buttonStates = BUTTON_STATES.copy()
 
   def update(self, cp, cp_cam):
     ret = car.CarState.new_message()
 
     # car speed
-    ret.yawRate = self.VM.yaw_rate(ret.steeringAngle * CV.DEG_TO_RAD, ret.vEgo)           # best estimate of yaw rate
     ret.wheelSpeeds.fl = cp.vl["WHEEL_SPEED"]['WHEELSPEED_F'] * CV.KPH_TO_MS
     ret.wheelSpeeds.fr = cp.vl["WHEEL_SPEED"]['WHEELSPEED_F'] * CV.KPH_TO_MS
     ret.wheelSpeeds.rl = cp.vl["WHEEL_SPEED"]['WHEELSPEED_B'] * CV.KPH_TO_MS
@@ -46,9 +44,9 @@ class CarState(CarStateBase):
     ret.steeringPressed = abs(ret.steeringTorque) > STEER_THRESHOLD[self.car_fingerprint] # if the user is using the steering wheel
     ret.steerWarning = False                                                              # since Perodua has no LKAS, make it always no warning
     ret.steerError = False                                                                # since Perodua has no LKAS, make it always no warning
-    ret.stockAeb = cp.vl["FWD_CAM1"]['AEB_BRAKE'] != 0                                   # is stock AEB giving a braking signal?
-    ret.stockFcw = cp.vl["FWD_CAM1"]['AEB_WARNING'] != 0                                   # is stock AEB giving a frontal collision warning?
-    ret.espDisabled = cp.vl["ESC_CONTROL"]['STATUS'] != 0                                # electronic stability control status
+#    ret.stockAeb = cp.vl["FWD_CAM1"]['AEB_BRAKE'] != 0                                   # is stock AEB giving a braking signal?
+#    ret.stockFcw = cp.vl["FWD_CAM1"]['AEB_WARNING'] != 0                                   # is stock AEB giving a frontal collision warning?
+#    ret.espDisabled = cp.vl["ESC_CONTROL"]['STATUS'] != 0                                # electronic stability control status
 
     # cruise state, need to fake it for now, its used for driver monitoring, and controlsd see below
     ret.cruiseState.available = True
@@ -92,7 +90,7 @@ class CarState(CarStateBase):
       ("STEER_ANGLE", "STEERING_ANGLE_SENSOR", 0),
       ("MAIN_TORQUE", "STEERING_TORQUE", 0),
       ("INTERCEPTOR_MAIN_TORQUE", "TORQUE_COMMAND", 0),
-      ("STATUS", "ESC_CONTROL", 0),
+ #     ("STATUS", "ESC_CONTROL", 0),
       ("GENERIC_TOGGLE", "RIGHT_STALK", 0),
       ("LEFT_SIGNAL", "METER_CLUSTER", 0),
       ("RIGHT_SIGNAL", "METER_CLUSTER", 0),
@@ -113,12 +111,12 @@ class CarState(CarStateBase):
       ("BRAKE_PEDAL", 20),
       ("STEERING_ANGLE_SENSOR", 50),
       ("TORQUE_COMMAND", 50),
-      ("ESC_CONTROL", 1),
+  #    ("ESC_CONTROL", 1),
       ("RIGHT_STALK", 10),
     ]
 
     return CANParser(DBC[CP.carFingerprint]['pt'], signals, checks, 0)
-
+"""
   @staticmethod
   def get_cam_can_parser(CP):
     signals = [
@@ -132,3 +130,4 @@ class CarState(CarStateBase):
 
     return CANParser(DBC[CP.carFingerprint]['pt'], signals, checks, 2)
 
+"""
