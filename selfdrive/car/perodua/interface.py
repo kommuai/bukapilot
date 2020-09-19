@@ -1,27 +1,21 @@
 #!/usr/bin/env python3
 from cereal import car
-from selfdrive.car.perodua.values import CAR
-from selfdrive.car import STD_CARGO_KG, scale_rot_inertia, scale_tire_stiffness, gen_empty_fingerprint
 from selfdrive.swaglog import cloudlog
 from selfdrive.config import Conversions as CV
+from selfdrive.car import STD_CARGO_KG, scale_rot_inertia, scale_tire_stiffness, is_ecu_disconnected, gen_empty_fingerprint
 from selfdrive.car.interfaces import CarInterfaceBase
+from selfdrive.car.perodua.values import CAR
 
 class CarInterface(CarInterfaceBase):
 
-  # NEED TO FIND OUT
   @staticmethod
   def compute_gb(accel, speed):
     return float(accel) / 4.0
 
-  # Types of params can be found at openpilot/cereal/car.capnp under CarParams
   @staticmethod
   def get_params(candidate, fingerprint=gen_empty_fingerprint(), has_relay=False, car_fw=None):
     ret = CarInterfaceBase.get_std_params(candidate, fingerprint, has_relay)
-
-    ret.carName = "perodua"
-    ret.radarOffCan = True # True when radar objects aren't visible on CAN
-
-    # ret.safetyModel = car.CarParams.SafetyModel.allOutput
+    ret.carName = "ford"
     ret.safetyModel = car.CarParams.SafetyModel.noOutput
 
     # Perodua port is a community feature
@@ -80,23 +74,27 @@ class CarInterface(CarInterfaceBase):
 
   # returns a car.CarState
   def update(self, c, can_strings):
-#    self.cp.update_strings(can_strings)
-#    self.cp_cam.update_strings(can_strings)
+    # ******************* do can recv *******************
+    self.cp.update_strings(can_strings)
 
-    ret = self.CS.update(self.cp, self.cp_cam)
+    ret = self.CS.update(self.cp)
     ret.yawRate = self.VM.yaw_rate(ret.steeringAngle * CV.DEG_TO_RAD, ret.vEgo)
-    ret.canValid = self.cp.can_valid  #and self.cp_cam.can_valid
-    ret.steeringRateLimited = self.CC.steer_rate_limited if self.CC is not None else False
+    ret.canValid = self.cp.can_valid
 
-    ret.events = self.create_common_events(ret).to_msg()
+    # events
+    events = self.create_common_events(ret)
+
+    ret.events = events.to_msg()
 
     self.CS.out = ret.as_reader()
     return self.CS.out
 
+  # pass in a car.CarControl
+  # to be called @ 100hz
   def apply(self, c):
+
     can_sends = self.CC.update(c.enabled, self.CS, self.frame, c.actuators,
-                               c.cruiseControl.cancel, c.hudControl.visualAlert,
-                               c.hudControl.leftLaneVisible, c.hudControl.rightLaneVisible)
+                               c.hudControl.visualAlert, c.cruiseControl.cancel)
+
     self.frame += 1
     return can_sends
-

@@ -1,31 +1,22 @@
 from cereal import car
-from opendbc.can.can_define import CANDefine
-from selfdrive.config import Conversions as CV
-from selfdrive.car.interfaces import CarStateBase, CarInterfaceBase
 from opendbc.can.parser import CANParser
+from opendbc.can.can_define import CANDefine
+from common.numpy_fast import mean
+from selfdrive.config import Conversions as CV
+from selfdrive.car.interfaces import CarStateBase
 from selfdrive.car.perodua.values import DBC
 
 STEER_THRESHOLD = 25
 
 class CarState(CarStateBase):
-  def __init__(self, CP):
-    super().__init__(CP)
-
-    # Getting only the powertrain dbc
-    can_define = CANDefine(DBC[CP.carFingerprint]['pt'])
-    self.shifter_values = can_define.dv["TRANSMISSION"]['GEAR']
-
-  def update(self, cp, cp_cam):
+  def update(self, cp):
     ret = car.CarState.new_message()
-
-    # car speed
-    ret.wheelSpeeds.fl = cp.vl["WHEEL_SPEED"]['WHEELSPEED_F'] * CV.KPH_TO_MS
-    ret.wheelSpeeds.fr = cp.vl["WHEEL_SPEED"]['WHEELSPEED_F'] * CV.KPH_TO_MS
-    ret.wheelSpeeds.rl = cp.vl["WHEEL_SPEED"]['WHEELSPEED_B'] * CV.KPH_TO_MS
     ret.wheelSpeeds.rr = cp.vl["WHEEL_SPEED"]['WHEELSPEED_B'] * CV.KPH_TO_MS
+    ret.wheelSpeeds.rl = cp.vl["WHEEL_SPEED"]['WHEELSPEED_B'] * CV.KPH_TO_MS
+    ret.wheelSpeeds.fr = cp.vl["WHEEL_SPEED"]['WHEELSPEED_F'] * CV.KPH_TO_MS
+    ret.wheelSpeeds.fl = cp.vl["WHEEL_SPEED"]['WHEELSPEED_F'] * CV.KPH_TO_MS
+    ret.vEgoRaw = mean([ret.wheelSpeeds.rr, ret.wheelSpeeds.rl, ret.wheelSpeeds.fr, ret.wheelSpeeds.fl])
     # unfiltered speed from CAN sensors
-    ret.vEgoRaw = (ret.wheelSpeeds.fl + ret.wheelSpeeds.fr + ret.wheelSpeeds.rl + ret.wheelSpeeds.rr) / 4. 
-    # Kalman filter to get the best estimate of vehicle speed & acceleration
     ret.vEgo, ret.aEgo = self.update_speed_kf(ret.vEgoRaw)
     ret.standstill = ret.vEgoRaw < 0.01
 
@@ -55,8 +46,8 @@ class CarState(CarStateBase):
     ret.cruiseState.standstill = ret.standstill
 
     # gear
-    can_gear = int(cp.vl["TRANSMISSION"]['GEAR'])
-    ret.gearShifter = self.parse_gear_shifter(self.shifter_values.get(can_gear, None))  
+#    can_gear = int(cp.vl["TRANSMISSION"]['GEAR'])
+#    ret.gearShifter = self.parse_gear_shifter(self.shifter_values.get(can_gear, None))  
 
     # button presses
     ret.leftBlinker = bool(cp.vl["METER_CLUSTER"]["LEFT_SIGNAL"])
@@ -66,8 +57,6 @@ class CarState(CarStateBase):
     # blindspot sensors
     ret.leftBlindspot = False                                                              # Is there something blocking the left lane change
     ret.rightBlindspot = False                                                             # Is there something blocking the right lane change
-
-    print("speed front:", ret.wheelSpeeds.fl, "speed rear:", ret.wheelSpeeds.rl, "steering angle:", ret.steeringAngle)
 
     # lock info
     ret.seatbeltUnlatched = cp.vl["METER_CLUSTER"]['SEAT_BELT_WARNING'] == 1
@@ -82,12 +71,11 @@ class CarState(CarStateBase):
 
   @staticmethod
   def get_can_parser(CP):
-    # this function generates lists for signal, messages and initial values
     signals = [
       # sig_name, sig_address, default
       ("WHEELSPEED_F", "WHEEL_SPEED", 0.),
       ("WHEELSPEED_B", "WHEEL_SPEED", 0.),
-      ("GEAR", "TRANSMISSION", 0),
+ #     ("GEAR", "TRANSMISSION", 0),
       ("APPS_1", "GAS_PEDAL_1", 0.),
       ("BRAKE_PRESSURE", "BRAKE_PEDAL", 0.),
       ("STEER_ANGLE", "STEERING_ANGLE_SENSOR", 0.),
@@ -103,34 +91,5 @@ class CarState(CarStateBase):
       ("RIGHT_BACK_DOOR", "METER_CLUSTER", 1),
       ("LEFT_BACK_DOOR", "METER_CLUSTER", 1),
     ]
-
-    checks = [
-      # sig_address, frequency
-  #    ("TRANSMISSION", 10),
-  #    ("STEERING_TORQUE", 20),
-  #    ("WHEEL_SPEED", 50),
-  #    ("GAS_PEDAL_1", 50),
-  #    ("METER_CLUSTER", 5),
-  #    ("BRAKE_PEDAL", 20),
-  #    ("STEERING_ANGLE_SENSOR", 50),
-  #    ("TORQUE_COMMAND", 50),
-  #    ("ESC_CONTROL", 1),
-  #    ("RIGHT_STALK", 10),
-    ]
-
+    checks = []
     return CANParser(DBC[CP.carFingerprint]['pt'], signals, checks, 0)
-"""
-  @staticmethod
-  def get_cam_can_parser(CP):
-    signals = [
-      ("AEB_BRAKE", "FWD_CAM1", 0),
-      ("AEB_WARN", "FWD_CAM1", 0),
-    ]
-
-    checks = [
-      ("FWD_CAM1", 10),
-    ]
-
-    return CANParser(DBC[CP.carFingerprint]['pt'], signals, checks, 2)
-
-"""

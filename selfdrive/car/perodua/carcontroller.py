@@ -1,67 +1,89 @@
-from selfdrive.car import apply_std_steer_torque_limits
-from selfdrive.car.perodua import peroduacan
-from selfdrive.car.perodua.values import DBC
-from opendbc.can.packer import CANPacker
+
 from cereal import car
+from selfdrive.car import make_can_msg
+#from selfdrive.car.ford.fordcan import create_steer_command, create_lkas_ui, spam_cancel_button
+from opendbc.can.packer import CANPacker
 
 
-class CarControllerParams():
-  def __init__(self):
-    self.STEER_MAX = 2047              # max_steer 4095
-    self.STEER_STEP = 2                # how often we update the steer cmd
-    self.STEER_DELTA_UP = 50           # torque increase per refresh, 0.8s to max
-    self.STEER_DELTA_DOWN = 70         # torque decrease per refresh
-    self.STEER_DRIVER_ALLOWANCE = 60   # allowed driver torque before start limiting
-    self.STEER_DRIVER_MULTIPLIER = 10  # weight driver torque heavily
-    self.STEER_DRIVER_FACTOR = 1       # from dbc
-
+MAX_STEER_DELTA = 1
+TOGGLE_DEBUG = False
 
 class CarController():
   def __init__(self, dbc_name, CP, VM):
-    self.lkas_active = False
-    self.apply_steer_last = 0
-    self.es_distance_cnt = -1
-    self.es_lkas_cnt = -1
-    self.steer_rate_limited = False
+    self.packer = CANPacker(dbc_name)
+    self.enable_camera = CP.enableCamera
+    self.enabled_last = False
+    self.main_on_last = False
+    self.vehicle_model = VM
+    self.generic_toggle_last = 0
+    self.steer_alert_last = False
+    self.lkas_action = 0
 
-    self.params = CarControllerParams()
-    self.packer = CANPacker(DBC[CP.carFingerprint]['pt'])
+  def update(self, enabled, CS, frame, actuators, visual_alert, pcm_cancel):
 
-  def update(self, enabled, CS, frame, actuators, pcm_cancel_cmd, visual_alert, left_line, right_line):
-    """ Controls thread """
-
-    P = self.params
-
-    # Send CAN commands.
     can_sends = []
     """
-    ### STEER ###
+    steer_alert = visual_alert == car.CarControl.HUDControl.VisualAlert.steerRequired
 
-    if (frame % P.STEER_STEP) == 0:
+    apply_steer = actuators.steer
 
-      final_steer = actuators.steer if enabled else 0.
-      apply_steer = int(round(final_steer * P.STEER_MAX))
+    if self.enable_camera:
 
-      # limits due to driver torque
+      if pcm_cancel:
+        #print "CANCELING!!!!"
+        can_sends.append(spam_cancel_button(self.packer))
 
-      new_steer = int(round(apply_steer))
-      apply_steer = apply_std_steer_torque_limits(new_steer, self.apply_steer_last, CS.out.steeringTorque, P)
-      self.steer_rate_limited = new_steer != apply_steer
+      if (frame % 3) == 0:
 
-      if not enabled:
-        apply_steer = 0
+        curvature = self.vehicle_model.calc_curvature(actuators.steerAngle*3.1415/180., CS.out.vEgo)
 
-      can_sends.append(peroduacan.create_steering_control(self.packer, apply_steer, frame, P.STEER_STEP))
+        # The use of the toggle below is handy for trying out the various LKAS modes
+        if TOGGLE_DEBUG:
+          self.lkas_action += int(CS.out.genericToggle and not self.generic_toggle_last)
+          self.lkas_action &= 0xf
+        else:
+          self.lkas_action = 5   # 4 and 5 seem the best. 8 and 9 seem to aggressive and laggy
 
-      self.apply_steer_last = apply_steer
+        can_sends.append(create_steer_command(self.packer, apply_steer, enabled,
+                                              CS.lkas_state, CS.out.steeringAngle, curvature, self.lkas_action))
+        self.generic_toggle_last = CS.out.genericToggle
 
-    if self.es_distance_cnt != CS.es_distance_msg["Counter"]:
-      can_sends.append(peroduacan.create_es_distance(self.packer, CS.es_distance_msg, pcm_cancel_cmd))
-      self.es_distance_cnt = CS.es_distance_msg["Counter"]
+      if (frame % 100) == 0:
 
-    if self.es_lkas_cnt != CS.es_lkas_msg["Counter"]:
-      can_sends.append(peroduacan.create_es_lkas(self.packer, CS.es_lkas_msg, visual_alert, left_line, right_line))
-      self.es_lkas_cnt = CS.es_lkas_msg["Counter"]
+        can_sends.append(make_can_msg(973, b'\x00\x00\x00\x00\x00\x00\x00\x00', 0))
+        #can_sends.append(make_can_msg(984, b'\x00\x00\x00\x00\x80\x45\x60\x30', 0))
+
+      if (frame % 100) == 0 or (self.enabled_last != enabled) or (self.main_on_last != CS.out.cruiseState.available) or \
+         (self.steer_alert_last != steer_alert):
+        can_sends.append(create_lkas_ui(self.packer, CS.out.cruiseState.available, enabled, steer_alert))
+
+      if (frame % 200) == 0:
+        can_sends.append(make_can_msg(1875, b'\x80\xb0\x55\x55\x78\x90\x00\x00', 1))
+
+      if (frame % 10) == 0:
+
+        can_sends.append(make_can_msg(1648, b'\x00\x00\x00\x40\x00\x00\x50\x00', 1))
+        can_sends.append(make_can_msg(1649, b'\x10\x10\xf1\x70\x04\x00\x00\x00', 1))
+
+        can_sends.append(make_can_msg(1664, b'\x00\x00\x03\xe8\x00\x01\xa9\xb2', 1))
+        can_sends.append(make_can_msg(1674, b'\x08\x00\x00\xff\x0c\xfb\x6a\x08', 1))
+        can_sends.append(make_can_msg(1675, b'\x00\x00\x3b\x60\x37\x00\x00\x00', 1))
+        can_sends.append(make_can_msg(1690, b'\x70\x00\x00\x55\x86\x1c\xe0\x00', 1))
+
+        can_sends.append(make_can_msg(1910, b'\x06\x4b\x06\x4b\x42\xd3\x11\x30', 1))
+        can_sends.append(make_can_msg(1911, b'\x48\x53\x37\x54\x48\x53\x37\x54', 1))
+        can_sends.append(make_can_msg(1912, b'\x31\x34\x47\x30\x38\x31\x43\x42', 1))
+        can_sends.append(make_can_msg(1913, b'\x31\x34\x47\x30\x38\x32\x43\x42', 1))
+        can_sends.append(make_can_msg(1969, b'\xf4\x40\x00\x00\x00\x00\x00\x00', 1))
+        can_sends.append(make_can_msg(1971, b'\x0b\xc0\x00\x00\x00\x00\x00\x00', 1))
+
+      static_msgs = range(1653, 1658)
+      for addr in static_msgs:
+        cnt = (frame % 10) + 1
+        can_sends.append(make_can_msg(addr, (cnt << 4).to_bytes(1, 'little') + b'\x00\x00\x00\x00\x00\x00\x00', 1))
+
+      self.enabled_last = enabled
+      self.main_on_last = CS.out.cruiseState.available
+      self.steer_alert_last = steer_alert
     """
     return can_sends
-
