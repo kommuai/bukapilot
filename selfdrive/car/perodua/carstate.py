@@ -51,7 +51,7 @@ class CarState(CarStateBase):
 
     # cruise state, need to fake it for now, its used for driver monitoring, and controlsd see below
     ret.cruiseState.available = True
-#    ret.cruiseState.enable = False   # Make it False so OP calculates the set speed logic, see openpilot/selfdrive/controls/controlsd.py#L277
+    ret.cruiseState.enabled = False   # Make it False so OP calculates the set speed logic, see openpilot/selfdrive/controls/controlsd.py#L277
     ret.cruiseState.standstill = ret.standstill
 
     # gear
@@ -66,6 +66,8 @@ class CarState(CarStateBase):
     # blindspot sensors
     ret.leftBlindspot = False                                                              # Is there something blocking the left lane change
     ret.rightBlindspot = False                                                             # Is there something blocking the right lane change
+
+    print("speed front:", ret.wheelSpeeds.fl, "speed rear:", ret.wheelSpeeds.rl, "steering angle:", ret.steeringAngle)
 
     # lock info
     ret.seatbeltUnlatched = cp.vl["METER_CLUSTER"]['SEAT_BELT_WARNING'] == 1
@@ -83,12 +85,12 @@ class CarState(CarStateBase):
     # this function generates lists for signal, messages and initial values
     signals = [
       # sig_name, sig_address, default
-      ("WHEELSPEED_F", "WHEEL_SPEED", 0),
-      ("WHEELSPEED_B", "WHEEL_SPEED", 0),
+      ("WHEELSPEED_F", "WHEEL_SPEED", 0.),
+      ("WHEELSPEED_B", "WHEEL_SPEED", 0.),
       ("GEAR", "TRANSMISSION", 0),
-      ("APPS_1", "GAS_PEDAL_1", 0),
-      ("BRAKE_PRESSURE", "BRAKE_PEDAL", 0),
-      ("STEER_ANGLE", "STEERING_ANGLE_SENSOR", 0),
+      ("APPS_1", "GAS_PEDAL_1", 0.),
+      ("BRAKE_PRESSURE", "BRAKE_PEDAL", 0.),
+      ("STEER_ANGLE", "STEERING_ANGLE_SENSOR", 0.),
       ("MAIN_TORQUE", "STEERING_TORQUE", 0),
  #     ("INTERCEPTOR_MAIN_TORQUE", "TORQUE_COMMAND", 0),
  #     ("STATUS", "ESC_CONTROL", 0),
@@ -104,16 +106,16 @@ class CarState(CarStateBase):
 
     checks = [
       # sig_address, frequency
-      ("TRANSMISSION", 10),
-      ("STEERING_TORQUE", 20),
-      ("WHEEL_SPEED", 50),
-      ("GAS_PEDAL_1", 50),
-      ("METER_CLUSTER", 5),
-      ("BRAKE_PEDAL", 20),
-      ("STEERING_ANGLE_SENSOR", 50),
-      ("TORQUE_COMMAND", 50),
+  #    ("TRANSMISSION", 10),
+  #    ("STEERING_TORQUE", 20),
+  #    ("WHEEL_SPEED", 50),
+  #    ("GAS_PEDAL_1", 50),
+  #    ("METER_CLUSTER", 5),
+  #    ("BRAKE_PEDAL", 20),
+  #    ("STEERING_ANGLE_SENSOR", 50),
+  #    ("TORQUE_COMMAND", 50),
   #    ("ESC_CONTROL", 1),
-      ("RIGHT_STALK", 10),
+  #    ("RIGHT_STALK", 10),
     ]
 
     return CANParser(DBC[CP.carFingerprint]['pt'], signals, checks, 0)
