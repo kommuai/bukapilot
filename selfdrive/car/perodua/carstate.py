@@ -9,6 +9,12 @@ from selfdrive.car.perodua.values import DBC
 STEER_THRESHOLD = 25
 
 class CarState(CarStateBase):
+  def __init__(self, CP):
+    super().__init__(CP)
+    can_define = CANDefine(DBC[CP.carFingerprint]['pt'])
+    self.shifter_values = can_define.dv["TRANSMISSION"]['GEAR']
+
+
   def update(self, cp):
     ret = car.CarState.new_message()
     ret.wheelSpeeds.rr = cp.vl["WHEEL_SPEED"]['WHEELSPEED_B'] * CV.KPH_TO_MS
@@ -26,33 +32,33 @@ class CarState(CarStateBase):
 
     # brake pedal
     ret.brake = cp.vl["BRAKE_PEDAL"]['BRAKE_PRESSURE']                                    # Use for pedal
-    ret.brakePressed = ret.brake > 1e-5           							              # Use for pedal
+    ret.brakePressed = ret.brake > 1e-5                                                   # Use for pedal
     ret.brakeLights = ret.brakePressed
 
     # steering wheel
     ret.steeringAngle = cp.vl["STEERING_ANGLE_SENSOR"]['STEER_ANGLE']                     # deg
     ret.steeringTorque = cp.vl["STEERING_TORQUE"]['MAIN_TORQUE']                          # no units, as defined by steering interceptor, the sensor
-#    ret.steeringTorqueEps = cp.vl["TORQUE_COMMAND"]['INTERCEPTOR_MAIN_TORQUE']            # no units, as defined by steering interceptor, the actuator
+#    ret.steeringTorqueEps = cp.vl["TORQUE_COMMAND"]['INTERCEPTOR_MAIN_TORQUE']           # no units, as defined by steering interceptor, the actuator
     ret.steeringPressed = abs(ret.steeringTorque) > STEER_THRESHOLD                       # if the user is using the steering wheel
     ret.steerWarning = False                                                              # since Perodua has no LKAS, make it always no warning
     ret.steerError = False                                                                # since Perodua has no LKAS, make it always no warning
 #    ret.stockAeb = cp.vl["FWD_CAM1"]['AEB_BRAKE'] != 0                                   # is stock AEB giving a braking signal?
-#    ret.stockFcw = cp.vl["FWD_CAM1"]['AEB_WARNING'] != 0                                   # is stock AEB giving a frontal collision warning?
+#    ret.stockFcw = cp.vl["FWD_CAM1"]['AEB_WARNING'] != 0                                 # is stock AEB giving a frontal collision warning?
 #    ret.espDisabled = cp.vl["ESC_CONTROL"]['STATUS'] != 0                                # electronic stability control status
 
     # cruise state, need to fake it for now, its used for driver monitoring, and controlsd see below
     ret.cruiseState.available = True
-    ret.cruiseState.enabled = False   # Make it False so OP calculates the set speed logic, see openpilot/selfdrive/controls/controlsd.py#L277
+    ret.cruiseState.enabled = bool(cp.vl["RIGHT_STALK"]["GENERIC_TOGGLE"])
     ret.cruiseState.standstill = ret.standstill
 
     # gear
-#    can_gear = int(cp.vl["TRANSMISSION"]['GEAR'])
-#    ret.gearShifter = self.parse_gear_shifter(self.shifter_values.get(can_gear, None))  
+    can_gear = int(cp.vl["TRANSMISSION"]['GEAR'])
+    ret.gearShifter = self.parse_gear_shifter(self.shifter_values.get(can_gear, None))
 
     # button presses
     ret.leftBlinker = bool(cp.vl["METER_CLUSTER"]["LEFT_SIGNAL"])
     ret.rightBlinker = bool(cp.vl["METER_CLUSTER"]["RIGHT_SIGNAL"])
-    ret.genericToggle = bool(cp.vl["RIGHT_STALK"]["GENERIC_TOGGLE"])                              # special function button toggle
+    ret.genericToggle = bool(cp.vl["RIGHT_STALK"]["GENERIC_TOGGLE"])                       # special function button toggle
 
     # blindspot sensors
     ret.leftBlindspot = False                                                              # Is there something blocking the left lane change
@@ -75,7 +81,7 @@ class CarState(CarStateBase):
       # sig_name, sig_address, default
       ("WHEELSPEED_F", "WHEEL_SPEED", 0.),
       ("WHEELSPEED_B", "WHEEL_SPEED", 0.),
- #     ("GEAR", "TRANSMISSION", 0),
+      ("GEAR", "TRANSMISSION", 0),
       ("APPS_1", "GAS_PEDAL_1", 0.),
       ("BRAKE_PRESSURE", "BRAKE_PEDAL", 0.),
       ("STEER_ANGLE", "STEERING_ANGLE_SENSOR", 0.),

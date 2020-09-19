@@ -15,10 +15,10 @@ class CarInterface(CarInterfaceBase):
   @staticmethod
   def get_params(candidate, fingerprint=gen_empty_fingerprint(), has_relay=False, car_fw=None):
     ret = CarInterfaceBase.get_std_params(candidate, fingerprint, has_relay)
-    ret.carName = "ford"
+    ret.carName = "perodua"
     ret.safetyModel = car.CarParams.SafetyModel.noOutput
 
-    # Perodua port is a community feature
+    # perodua port is a community feature
     ret.communityFeature = True
     stop_and_go = False
 
@@ -27,6 +27,7 @@ class CarInterface(CarInterfaceBase):
     # force openpilot to inject gas command through comma pedal
     ret.enableGasInterceptor = True
     # since using gas interceptor means there is no cruise control
+    # Make it False so OP calculates the set speed logic, see openpilot/selfdrive/controls/controlsd.py#L277
     ret.enableCruise = not ret.enableGasInterceptor
     ret.enableDsu = not ret.enableGasInterceptor
     ret.enableApgs = False
@@ -74,7 +75,7 @@ class CarInterface(CarInterfaceBase):
 
   # returns a car.CarState
   def update(self, c, can_strings):
-    # ******************* do can recv *******************
+    # to receive CAN Messages
     self.cp.update_strings(can_strings)
 
     ret = self.CS.update(self.cp)
@@ -89,8 +90,7 @@ class CarInterface(CarInterfaceBase):
     self.CS.out = ret.as_reader()
     return self.CS.out
 
-  # pass in a car.CarControl
-  # to be called @ 100hz
+  # pass in a car.CarControl to be called at 100hz
   def apply(self, c):
 
     can_sends = self.CC.update(c.enabled, self.CS, self.frame, c.actuators,
