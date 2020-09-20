@@ -1,8 +1,9 @@
 
 from cereal import car
 from selfdrive.car import make_can_msg
-from selfdrive.car.perodua.peroduacan import create_steer_command, create_ui_command
+from selfdrive.car.perodua.peroduacan import create_steer_command
 from opendbc.can.packer import CANPacker
+from selfdrive.car.perodua.values import DBC
 
 class CarControllerParams():
   def __init__(self):
@@ -14,7 +15,7 @@ class CarController():
     self.last_steer = 0
     self.steer_rate_limited = False
     self.params = CarControllerParams()
-    self.packer = CANPacker(dbc_name)
+    self.packer = CANPacker(DBC[CP.carFingerprint]['pt'])
 
   def update(self, enabled, CS, frame, actuators, visual_alert, pcm_cancel):
 
@@ -22,13 +23,13 @@ class CarController():
 
     # generate steering command
     if (frame % self.params.STEER_STEP) == 0 and enabled:
-      new_steer = int(round(actuators.steer * self.params.STEER_MAX))                # range from -1.0 - 1.0
+      new_steer = int(round(actuators.steer * self.params.STEER_MAX))                # actuator.steer is from range from -1.0 - 1.0
       apply_steer = apply_perodua_steer_torque_limits(new_steer, self.last_steer, CS.out.steeringTorqueEps, SteerLimitParams)
       self.steer_rate_limited = new_steer != apply_steer
     else:
       apply_steer = 0
 
     self.apply_last_steer = apply_steer
-    can_sends.append(packer, steering_command)
+    can_sends.append(create_steer_command(self.packer, apply_steer, frame))
 
     return can_sends

@@ -3,20 +3,34 @@ from cereal import car
 
 VisualAlert = car.CarControl.HUDControl.VisualAlert
 
-def create_steer_command(packer, command):
+#https://github.com/commaai/openpilot/blob/825821f010db63c3498d3730069f3eac08ace789/selfdrive/car/__init__.py#L87
+def crc8_interceptor(data):
+  crc = 0xFF                                                         # standard init value
+  poly = 0xD5                                                        # standard crc8: x8+x7+x6+x4+x2+1
+  size = len(data)
+  for i in range(size - 1, -1, -1):
+    crc ^= data[i]
+    for _ in range(8):
+      if ((crc & 0x80) != 0):
+        crc = ((crc << 1) ^ poly) & 0xFF
+      else:
+        crc <<= 1
+  return crc
+
+def create_steer_command(packer, command, idx):
   """Creates a CAN message for the steering command."""
 
   values = {
-    "Counter": idx,
-    "LKAS_Output": apply_steer,
-    "LKAS_Request": 1 if apply_steer != 0 else 0,
-    "SET_1": 1
+    "INTERCEPTOR_MAIN_TORQUE": command,
+    "INTERCEPTOR_SUB_TORQUE": command,
+    "ENABLE": 1 if command != 0 else 0,
+    "COUNTER_STEERING": idx & 0xF,
   }
 
-  return packer.make_can_msg("ES_LKAS", 0, values)
+  dat = packer.make_can_msg("TORQUE_COMMAND", 0, values)[2]
 
+  crc = crc8_interceptor(dat[:-1])
+  values["CHECKSUM_STEERING"] = crc
 
-def create_ui_command(packer, main_on, enabled, steer_alert):
-  """Creates a CAN message for the Ford Steer Ui."""
+  return packer.make_can_msg("TORQUE_COMMAND", 0, values)
 
-  return None

@@ -66,7 +66,10 @@ Panda::Panda(){
   err = libusb_claim_interface(dev_handle, 0);
   if (err != 0) { goto fail; }
 
-  hw_type = get_hw_type();
+  //hw_type = get_hw_type();
+  // Temporary spoof panda type
+  hw_type = cereal::HealthData::HwType::BLACK_PANDA;
+
   is_pigeon =
     (hw_type == cereal::HealthData::HwType::GREY_PANDA) ||
     (hw_type == cereal::HealthData::HwType::BLACK_PANDA) ||
