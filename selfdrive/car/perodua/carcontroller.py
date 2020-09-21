@@ -7,8 +7,13 @@ from selfdrive.car.perodua.values import DBC
 
 class CarControllerParams():
   def __init__(self):
-    self.STEER_MAX = 2047              # need to find this out, the max allowable steer analog out
-    self.STEER_STEP = 2                # how often we update the steer cmd
+    self.STEER_MAX = 32               # 
+    self.STEER_STEP = 1               # how often we update the steer cmd
+    self.STEER_DELTA_UP = 1           # torque increase per refresh, 0.8s to max
+    self.STEER_DELTA_DOWN = 3         # torque decrease per refresh
+    self.STEER_DRIVER_ALLOWANCE = 2   # allowed driver torque before start limiting
+    self.STEER_DRIVER_MULTIPLIER = 1  # weight driver torque heavily
+    self.STEER_DRIVER_FACTOR = 1      # from dbc
 
 class CarController():
   def __init__(self, dbc_name, CP, VM):
@@ -29,7 +34,13 @@ class CarController():
     else:
       apply_steer = 0
 
-    self.apply_last_steer = apply_steer
-    can_sends.append(create_steer_command(self.packer, apply_steer, frame))
+    # limit steering
+    if (abs(CS.out.steeringAngle) > 180):
+      apply_steer = 0
+
+    is_enable = (not CS.out.steeringPressed) and enabled
+
+    self.last_steer = apply_steer
+    can_sends.append(create_steer_command(self.packer, apply_steer, is_enable, frame))
 
     return can_sends

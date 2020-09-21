@@ -129,7 +129,7 @@ void update_sockets(UIState *s) {
         s->sound->play(alert_sound);
       }
     }
-    scene.alert_text1 = scene.controls_state.getAlertText1();
+    scene.alert_text1 = "KommuPilot Unavailable";
     scene.alert_text2 = scene.controls_state.getAlertText2();
     scene.alert_size = scene.controls_state.getAlertSize();
     scene.alert_type = scene.controls_state.getAlertType();
@@ -266,7 +266,7 @@ void ui_update(UIState *s) {
   if (s->started && !s->scene.frontview && ((s->sm)->frame - s->started_frame) > 10*UI_FREQ) {
     if ((s->sm)->rcv_frame("controlsState") < s->started_frame) {
       // car is started, but controlsState hasn't been seen at all
-      s->scene.alert_text1 = "BukaPilot Unavailable";
+      s->scene.alert_text1 = "KommuPilot Unavailable";
       s->scene.alert_text2 = "Waiting for controls to start";
       s->scene.alert_size = cereal::ControlsState::AlertSize::MID;
     } else if (((s->sm)->frame - (s->sm)->rcv_frame("controlsState")) > 5*UI_FREQ) {
