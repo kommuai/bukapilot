@@ -81,6 +81,7 @@ class CarInterface(CarInterfaceBase):
     ret = self.CS.update(self.cp)
     ret.yawRate = self.VM.yaw_rate(ret.steeringAngle * CV.DEG_TO_RAD, ret.vEgo)
     ret.canValid = self.cp.can_valid
+    ret.steeringRateLimited = self.CC.steer_rate_limited if self.CC is not None else False
 
     # events
     events = self.create_common_events(ret)
