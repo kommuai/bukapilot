@@ -17,13 +17,13 @@ def crc8_interceptor(data):
         crc <<= 1
   return crc
 
-def create_steer_command(packer, command, enable, idx):
+def create_steer_command(packer, command, direction, enable, idx):
   """Creates a CAN message for the steering command."""
 
   values = {
     "INTERCEPTOR_MAIN_TORQUE": abs(command),
     "INTERCEPTOR_SUB_TORQUE": abs(command),
-    "DIRECTION": 1 if command >= 0 else 0,
+    "DIRECTION": 1 if direction else 0,
     "ENABLE": 1 if enable else 0,
     "COUNTER_STEERING": idx & 0xF,
   }

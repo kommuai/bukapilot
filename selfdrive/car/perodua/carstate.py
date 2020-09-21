@@ -6,7 +6,7 @@ from selfdrive.config import Conversions as CV
 from selfdrive.car.interfaces import CarStateBase
 from selfdrive.car.perodua.values import DBC
 
-STEER_THRESHOLD = 25
+STEER_THRESHOLD = 30
 
 class CarState(CarStateBase):
   def __init__(self, CP):
@@ -28,7 +28,7 @@ class CarState(CarStateBase):
 
     # gas pedal
     ret.gas = cp.vl["GAS_PEDAL_1"]['APPS_1']                                              # gas pedal, 0.0-1.0
-    ret.gasPressed = ret.gas > 1e-5
+    ret.gasPressed = ret.gas > 0.15
 
     # brake pedal
     ret.brake = cp.vl["BRAKE_PEDAL"]['BRAKE_PRESSURE']                                    # Use for pedal

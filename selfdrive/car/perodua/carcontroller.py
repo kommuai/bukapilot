@@ -20,6 +20,7 @@ class CarController():
   def __init__(self, dbc_name, CP, VM):
     self.last_steer = 0
     self.steer_rate_limited = False
+    self.steering_direction = False
     self.params = CarControllerParams()
     self.packer = CANPacker(DBC[CP.carFingerprint]['pt'])
 
@@ -44,7 +45,12 @@ class CarController():
       print("Steering pressed")
 
     self.last_steer = apply_steer
-    can_sends.append(create_steer_command(self.packer, apply_steer, enabled, frame))
+    if apply_steer >= 0:
+      self.steering_direction = True
+    else:
+      self.steering_direction = False
+
+    can_sends.append(create_steer_command(self.packer, apply_steer, self.steering_direction, enabled, frame))
 
     # fake gps
 #    if (frame % 2 == 0) :
