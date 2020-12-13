@@ -1,0 +1,66 @@
+From 5cdb1c268e69d22724b0b4522883ad69940e6149 Mon Sep 17 00:00:00 2001
+From: dheatovwil <tgtay@outlook.com>
+Date: Fri, 13 Nov 2020 22:43:06 +0800
+Subject: [PATCH] Dump received health pkt to file
+
+---
+ selfdrive/boardd/boardd.cc | 17 ++++++++++++++++-
+ 1 file changed, 16 insertions(+), 1 deletion(-)
+
+diff --git a/selfdrive/boardd/boardd.cc b/selfdrive/boardd/boardd.cc
+index 58f994e0..d88eacb6 100644
+--- a/selfdrive/boardd/boardd.cc
++++ b/selfdrive/boardd/boardd.cc
+@@ -38,6 +38,9 @@
+ #define NIBBLE_TO_HEX(n) ((n) < 10 ? (n) + '0' : ((n) - 10) + 'a')
+ #define VOLTAGE_K 0.091  // LPF gain for 5s tau (dt/tau / (dt/tau + 1))
+ 
++int dump_file;
++int sample_count = 0;
++
+ namespace {
+ 
+ volatile sig_atomic_t do_exit = 0;
+@@ -185,7 +188,6 @@ bool usb_connect() {
+ 
+   err = libusb_set_configuration(dev_handle, 1);
+   if (err != 0) { goto fail; }
+-
+   err = libusb_claim_interface(dev_handle, 0);
+   if (err != 0) { goto fail; }
+ 
+@@ -397,6 +399,15 @@ void can_health(PubMaster &pm) {
+     return;
+   }
+ 
++  if (sample_count < 10) {
++      LOGW("[health dump] dumping sample %d of 9", sample_count);
++      write(dump_file, (void*) &health, sizeof(health));
++      write(dump_file, "\n\n\n", 3);
++      sample_count++;
++      if (sample_count == 10)
++        LOGW("[health dump] dump complete");
++  }
++
+   if (spoofing_started) {
+     health.ignition_line = 1;
+   }
+@@ -866,6 +877,8 @@ void *pigeon_thread(void *crap) {
+ }
+ 
+ int main() {
++  dump_file = open("/data/_health_dump", O_CREAT | O_WRONLY);
++
+   int err;
+   LOGW("starting boardd");
+ 
+@@ -940,4 +953,6 @@ int main() {
+   // destruct libusb
+   usb_close(dev_handle);
+   libusb_exit(ctx);
++
++  close(dump_file);
+ }
+-- 
+2.29.2
+

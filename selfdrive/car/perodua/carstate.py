@@ -6,7 +6,11 @@ from selfdrive.config import Conversions as CV
 from selfdrive.car.interfaces import CarStateBase
 from selfdrive.car.perodua.values import DBC
 
-STEER_THRESHOLD = 30
+STEER_THRESHOLD = 28
+pedal_counter = 0
+pedal_press_state = 0
+PEDAL_COUNTER_THRES = 25
+PEDAL_NON_ZERO_THRES = 0.01
 
 class CarState(CarStateBase):
   def __init__(self, CP):
@@ -28,7 +32,7 @@ class CarState(CarStateBase):
 
     # gas pedal
     ret.gas = cp.vl["GAS_PEDAL_1"]['APPS_1']                                              # gas pedal, 0.0-1.0
-    ret.gasPressed = ret.gas > 0.15
+    ret.gasPressed = ret.gas > 0.60
 
     # brake pedal
     ret.brake = cp.vl["BRAKE_PEDAL"]['BRAKE_PRESSURE']                                    # Use for pedal
@@ -48,7 +52,7 @@ class CarState(CarStateBase):
 
     # cruise state, need to fake it for now, its used for driver monitoring, and controlsd see below
     ret.cruiseState.available = True
-    ret.cruiseState.enabled = bool(cp.vl["RIGHT_STALK"]["GENERIC_TOGGLE"])
+    ret.cruiseState.enabled = bool(cp.vl["RIGHT_STALK"]["GENERIC_TOGGLE"]) or self.check_pedal_engage(ret.gas, pedal_press_state)
     ret.cruiseState.standstill = ret.standstill
 
     # gear
@@ -58,7 +62,7 @@ class CarState(CarStateBase):
     # button presses
     ret.leftBlinker = bool(cp.vl["METER_CLUSTER"]["LEFT_SIGNAL"])
     ret.rightBlinker = bool(cp.vl["METER_CLUSTER"]["RIGHT_SIGNAL"])
-    ret.genericToggle = bool(cp.vl["RIGHT_STALK"]["GENERIC_TOGGLE"])                       # special function button toggle
+    ret.genericToggle = bool(cp.vl["RIGHT_STALK"]["GENERIC_TOGGLE"])                       # special toggle
 
     # blindspot sensors
     ret.leftBlindspot = False                                                              # Is there something blocking the left lane change
@@ -74,6 +78,42 @@ class CarState(CarStateBase):
     # NEED TO ADD BUTTON EVENTS FOR CRUISE
 
     return ret
+  @staticmethod
+  def check_pedal_engage(gas,state):
+    global pedal_counter
+    global pedal_press_state
+    if (state == 0):
+      if (gas > PEDAL_NON_ZERO_THRES):
+        pedal_counter += 1
+        if (pedal_counter == PEDAL_COUNTER_THRES):
+          pedal_counter = 0
+          return False
+      if (pedal_counter > 2 and gas <= PEDAL_NON_ZERO_THRES):
+        pedal_press_state = 1
+        pedal_counter = 0
+      return False
+    if (state == 1):
+      pedal_counter += 1
+      if (pedal_counter == PEDAL_COUNTER_THRES):
+        pedal_counter = 0
+        pedal_press_state = 0
+        return False
+      if (gas > PEDAL_NON_ZERO_THRES):
+        pedal_press_state = 2
+        pedal_counter = 0
+      return False
+    if (state == 2):
+      pedal_counter += 1
+      if (pedal_counter == PEDAL_COUNTER_THRES):
+        pedal_counter = 0
+        pedal_press_state = 0
+        return False
+      if (gas <= PEDAL_NON_ZERO_THRES):
+        pedal_counter = 0
+        pedal_press_state = 0
+        return True
+    return False
+
 
   @staticmethod
   def get_can_parser(CP):
@@ -89,6 +129,7 @@ class CarState(CarStateBase):
  #     ("INTERCEPTOR_MAIN_TORQUE", "TORQUE_COMMAND", 0),
  #     ("STATUS", "ESC_CONTROL", 0),
       ("GENERIC_TOGGLE", "RIGHT_STALK", 0),
+      ("FOG_LIGHT", "RIGHT_STALK", 0),
       ("LEFT_SIGNAL", "METER_CLUSTER", 0),
       ("RIGHT_SIGNAL", "METER_CLUSTER", 0),
       ("SEAT_BELT_WARNING", "METER_CLUSTER", 0),

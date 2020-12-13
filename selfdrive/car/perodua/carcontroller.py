@@ -37,11 +37,11 @@ class CarController():
       apply_steer = 0
 
     # limit steering
-    if (abs(CS.out.steeringAngle) > 45):
+    if (abs(CS.out.steeringAngle) > 90):
       apply_steer = 0
 
     if (CS.out.steeringPressed):
-      apply_steer = 0
+      apply_steer = apply_steer / 4
       print("Steering pressed")
 
     self.last_steer = apply_steer
