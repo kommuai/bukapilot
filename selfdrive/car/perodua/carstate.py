@@ -6,7 +6,7 @@ from selfdrive.config import Conversions as CV
 from selfdrive.car.interfaces import CarStateBase
 from selfdrive.car.perodua.values import DBC
 
-STEER_THRESHOLD = 28
+STEER_THRESHOLD = 20
 pedal_counter = 0
 pedal_press_state = 0
 PEDAL_COUNTER_THRES = 25
@@ -17,12 +17,13 @@ class CarState(CarStateBase):
     super().__init__(CP)
     can_define = CANDefine(DBC[CP.carFingerprint]['pt'])
     self.shifter_values = can_define.dv["TRANSMISSION"]['GEAR']
-
+    self.is_cruise_latch = False
 
   def update(self, cp):
     ret = car.CarState.new_message()
-    ret.wheelSpeeds.rr = cp.vl["WHEEL_SPEED"]['WHEELSPEED_B'] * CV.KPH_TO_MS
-    ret.wheelSpeeds.rl = cp.vl["WHEEL_SPEED"]['WHEELSPEED_B'] * CV.KPH_TO_MS
+    # there is a backwheel speed, but it will overflow to 0 when reach 60kmh
+    ret.wheelSpeeds.rr = cp.vl["WHEEL_SPEED"]['WHEELSPEED_F'] * CV.KPH_TO_MS
+    ret.wheelSpeeds.rl = cp.vl["WHEEL_SPEED"]['WHEELSPEED_F'] * CV.KPH_TO_MS
     ret.wheelSpeeds.fr = cp.vl["WHEEL_SPEED"]['WHEELSPEED_F'] * CV.KPH_TO_MS
     ret.wheelSpeeds.fl = cp.vl["WHEEL_SPEED"]['WHEELSPEED_F'] * CV.KPH_TO_MS
     ret.vEgoRaw = mean([ret.wheelSpeeds.rr, ret.wheelSpeeds.rl, ret.wheelSpeeds.fr, ret.wheelSpeeds.fl])
@@ -52,7 +53,14 @@ class CarState(CarStateBase):
 
     # cruise state, need to fake it for now, its used for driver monitoring, and controlsd see below
     ret.cruiseState.available = True
-    ret.cruiseState.enabled = bool(cp.vl["RIGHT_STALK"]["GENERIC_TOGGLE"]) or self.check_pedal_engage(ret.gas, pedal_press_state)
+
+    # latching cruiseState logic
+    if (bool(cp.vl["RIGHT_STALK"]["GENERIC_TOGGLE"]) or self.check_pedal_engage(ret.gas, pedal_press_state)):
+      self.is_cruise_latch = True
+    if (ret.brakePressed):
+      self.is_cruise_latch = False
+    ret.cruiseState.enabled = self.is_cruise_latch
+ #   ret.cruiseState.enabled = bool(cp.vl["RIGHT_STALK"]["GENERIC_TOGGLE"]) or self.check_pedal_engage(ret.gas, pedal_press_state)
     ret.cruiseState.standstill = ret.standstill
 
     # gear

@@ -37,21 +37,20 @@ class CarInterface(CarInterfaceBase):
     ret.minEnableSpeed = -1
 
     ret.steerRateCost = 0.7 # Lateral MPC cost on steering rate
-    ret.steerLimitTimer = 0.4 # time before steerLimitAlert is issued
+    ret.steerLimitTimer = 0.6 # time before steerLimitAlert is issued
     ret.steerControlType = car.CarParams.SteerControlType.torque # or car.CarParams.SteerControlType.angle
     ret.lateralTuning.init('pid')
     ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP = [[0.], [0.]]
     #ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.2], [0.05]]
     ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.23], [0.1]]
-    #ret.lateralTuning.pid.kf = 0.000012   # full torque for 20 deg at 80mph means 0.00007818594
-    ret.lateralTuning.pid.kf = 0.00001
+    ret.lateralTuning.pid.kf = 0.000012   # full torque for 20 deg at 80mph means 0.00007818594
 
     ret.gasMaxBP = [0., 9., 35]
     ret.gasMaxV = [0.2, 0.5, 0.7]
     ret.longitudinalTuning.kpV = [1.2, 0.8, 0.5]
 
     ret.startAccel = 0.2 # Required acceleraton to overcome creep braking
-    ret.steerActuatorDelay = 0.1 # Steering wheel actuator delay in seconds
+    ret.steerActuatorDelay = 0.4 # Steering wheel actuator delay in seconds, it was 0.1
 
 
     # adding support for Perodua Axia 2019
@@ -60,7 +59,7 @@ class CarInterface(CarInterfaceBase):
       # NEED TO FIND OUT
       ret.safetyParam = 1                           # see conversion factor for STEER_TORQUE_EPS in dbc file
       ret.wheelbase = 2.455
-      ret.steerRatio = 18.94                        # 360:degree change
+      ret.steerRatio = 16.94                        # 360:degree change, it was 18.94
       ret.centerToFront = ret.wheelbase * 0.44      # wild guess
       tire_stiffness_factor = 0.6371                # Need to handtune
       ret.mass = 1870. * CV.LB_TO_KG + STD_CARGO_KG # curb weight is given in pounds,lb
