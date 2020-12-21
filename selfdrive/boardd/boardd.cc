@@ -37,10 +37,6 @@
 #define SATURATE_IL 1600
 #define NIBBLE_TO_HEX(n) ((n) < 10 ? (n) + '0' : ((n) - 10) + 'a')
 
-// dump code
-int dump_file;
-int sample_count = 0;
-
 Panda * panda = NULL;
 std::atomic<bool> safety_setter_thread_running(false);
 volatile sig_atomic_t do_exit = 0;
@@ -298,15 +294,6 @@ void can_health_thread() {
 
     health_t health = panda->get_health();
 
-    if (sample_count < 10) {
-      LOGW("[health dump] dumping sample %d of 9", sample_count);
-      write(dump_file, (void*) &health, sizeof(health));
-      write(dump_file, "\n\n\n", 3);
-      sample_count++;
-      if (sample_count == 10)
-        LOGW("[health dump] dump complete");
-    }
-
     if (spoofing_started) {
       health.ignition_line = 1;
     }
@@ -525,9 +512,6 @@ void pigeon_thread() {
 
 
 int main() {
-  // dump code
-  dump_file = open("/data/_health_dump", O_CREAT | O_WRONLY);
-
   int err;
   LOGW("starting boardd");
 
@@ -565,5 +549,4 @@ int main() {
     delete panda;
     panda = NULL;
   }
-  close(dump_file);
 }

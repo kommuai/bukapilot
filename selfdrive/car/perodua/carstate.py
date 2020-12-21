@@ -1,4 +1,5 @@
 from cereal import car
+from collections import deque
 from opendbc.can.parser import CANParser
 from opendbc.can.can_define import CANDefine
 from common.numpy_fast import mean
@@ -6,7 +7,6 @@ from selfdrive.config import Conversions as CV
 from selfdrive.car.interfaces import CarStateBase
 from selfdrive.car.perodua.values import DBC
 
-STEER_THRESHOLD = 20
 pedal_counter = 0
 pedal_press_state = 0
 PEDAL_COUNTER_THRES = 25
@@ -18,6 +18,8 @@ class CarState(CarStateBase):
     can_define = CANDefine(DBC[CP.carFingerprint]['pt'])
     self.shifter_values = can_define.dv["TRANSMISSION"]['GEAR']
     self.is_cruise_latch = False
+    #self.steeringTorqueSamples = deque(TORQUE_SAMPLES*[0], TORQUE_SAMPLES)
+    #self.current_steering_thres = MIN_STEER_THRESHOLD
 
   def update(self, cp):
     ret = car.CarState.new_message()
@@ -44,7 +46,7 @@ class CarState(CarStateBase):
     ret.steeringAngle = cp.vl["STEERING_ANGLE_SENSOR"]['STEER_ANGLE']                     # deg
     ret.steeringTorque = cp.vl["STEERING_TORQUE"]['MAIN_TORQUE']                          # no units, as defined by steering interceptor, the sensor
 #    ret.steeringTorqueEps = cp.vl["TORQUE_COMMAND"]['INTERCEPTOR_MAIN_TORQUE']           # no units, as defined by steering interceptor, the actuator
-    ret.steeringPressed = abs(ret.steeringTorque) > STEER_THRESHOLD                       # if the user is using the steering wheel
+    ret.steeringPressed = bool(abs(ret.steeringTorque) > 34)
     ret.steerWarning = False                                                              # since Perodua has no LKAS, make it always no warning
     ret.steerError = False                                                                # since Perodua has no LKAS, make it always no warning
 #    ret.stockAeb = cp.vl["FWD_CAM1"]['AEB_BRAKE'] != 0                                   # is stock AEB giving a braking signal?
@@ -55,9 +57,9 @@ class CarState(CarStateBase):
     ret.cruiseState.available = True
 
     # latching cruiseState logic
-    if (bool(cp.vl["RIGHT_STALK"]["GENERIC_TOGGLE"]) or self.check_pedal_engage(ret.gas, pedal_press_state)):
+    if self.check_pedal_engage(ret.gas, pedal_press_state):
       self.is_cruise_latch = True
-    if (ret.brakePressed):
+    if ret.brakePressed:
       self.is_cruise_latch = False
     ret.cruiseState.enabled = self.is_cruise_latch
  #   ret.cruiseState.enabled = bool(cp.vl["RIGHT_STALK"]["GENERIC_TOGGLE"]) or self.check_pedal_engage(ret.gas, pedal_press_state)
@@ -88,6 +90,7 @@ class CarState(CarStateBase):
     return ret
   @staticmethod
   def check_pedal_engage(gas,state):
+    ''' Pedal engage logic '''
     global pedal_counter
     global pedal_press_state
     if (state == 0):
