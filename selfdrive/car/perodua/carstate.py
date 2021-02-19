@@ -11,6 +11,7 @@ pedal_counter = 0
 pedal_press_state = 0
 PEDAL_COUNTER_THRES = 25
 PEDAL_NON_ZERO_THRES = 0.01
+STEER_DIFF_THRES = 0.2 # deg
 
 class CarState(CarStateBase):
   def __init__(self, CP):
@@ -18,8 +19,9 @@ class CarState(CarStateBase):
     can_define = CANDefine(DBC[CP.carFingerprint]['pt'])
     self.shifter_values = can_define.dv["TRANSMISSION"]['GEAR']
     self.is_cruise_latch = False
-    #self.steeringTorqueSamples = deque(TORQUE_SAMPLES*[0], TORQUE_SAMPLES)
-    #self.current_steering_thres = MIN_STEER_THRESHOLD
+    self.prev_steer_angle = 0
+    self.base_steer_thres = 0
+    self.steer_boost = 0
 
   def update(self, cp):
     ret = car.CarState.new_message()
@@ -44,9 +46,20 @@ class CarState(CarStateBase):
 
     # steering wheel
     ret.steeringAngle = cp.vl["STEERING_ANGLE_SENSOR"]['STEER_ANGLE']                     # deg
+
+    # perform steeringPressed value boost during actuation from baseline steering threshold
+    if abs(ret.steeringAngle - self.prev_steer_angle) >= STEER_DIFF_THRES:
+      self.steer_boost = 5
+    else:
+      self.steer_boost = 0
+
+    self.prev_steer_angle = ret.steeringAngle
     ret.steeringTorque = cp.vl["STEERING_TORQUE"]['MAIN_TORQUE']                          # no units, as defined by steering interceptor, the sensor
 #    ret.steeringTorqueEps = cp.vl["TORQUE_COMMAND"]['INTERCEPTOR_MAIN_TORQUE']           # no units, as defined by steering interceptor, the actuator
-    ret.steeringPressed = bool(abs(ret.steeringTorque) > 34)
+    # currently value got from the calibration jupyter notebook
+    self.base_steer_thres = 0.00377103618*(ret.vEgo**2)+0.0568116542*ret.vEgo+19.3775297
+    #ret.steeringPressed = bool(abs(ret.steeringTorque) >  + self.base_steer_thres + self.steer_boost)
+    ret.steeringPressed = bool(abs(ret.steeringTorque) > 35)
     ret.steerWarning = False                                                              # since Perodua has no LKAS, make it always no warning
     ret.steerError = False                                                                # since Perodua has no LKAS, make it always no warning
 #    ret.stockAeb = cp.vl["FWD_CAM1"]['AEB_BRAKE'] != 0                                   # is stock AEB giving a braking signal?
@@ -62,7 +75,6 @@ class CarState(CarStateBase):
     if ret.brakePressed:
       self.is_cruise_latch = False
     ret.cruiseState.enabled = self.is_cruise_latch
- #   ret.cruiseState.enabled = bool(cp.vl["RIGHT_STALK"]["GENERIC_TOGGLE"]) or self.check_pedal_engage(ret.gas, pedal_press_state)
     ret.cruiseState.standstill = ret.standstill
 
     # gear

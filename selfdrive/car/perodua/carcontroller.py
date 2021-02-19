@@ -8,7 +8,7 @@ import cereal.messaging as messaging
 
 class CarControllerParams():
   def __init__(self):
-    self.STEER_MAX = 32               # dac write value
+    self.STEER_MAX = 35               # dac write value
     self.STEER_STEP = 1               # how often we update the steer cmd
     self.STEER_DELTA_UP = 1           # torque increase per refresh, 0.8s to max
     self.STEER_DELTA_DOWN = 3         # torque decrease per refresh
