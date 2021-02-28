@@ -8,11 +8,16 @@ import cereal.messaging as messaging
 
 class CarControllerParams():
   def __init__(self):
-    self.STEER_MAX = 35               # dac write value
+    #self.STEER_MAX = 35
+    self.STEER_MAX = 700              # dac write value
     self.STEER_STEP = 1               # how often we update the steer cmd
-    self.STEER_DELTA_UP = 1           # torque increase per refresh, 0.8s to max
-    self.STEER_DELTA_DOWN = 3         # torque decrease per refresh
-    self.STEER_DRIVER_ALLOWANCE = 2   # allowed driver torque before start limiting
+    #self.STEER_DELTA_UP = 1           # torque increase per refresh, 0.8s to max
+    self.STEER_DELTA_UP = 10           # torque increase per refresh, 0.8s to max
+    self.STEER_DELTA_DOWN = 20         # torque decrease per refresh
+    #self.STEER_DELTA_DOWN = 3         # torque decrease per refresh
+    #self.STEER_DRIVER_ALLOWANCE = 2   # allowed driver torque before start limiting
+    
+    self.STEER_DRIVER_ALLOWANCE = 15
     self.STEER_DRIVER_MULTIPLIER = 1  # weight driver torque heavily
     self.STEER_DRIVER_FACTOR = 1      # from dbc
 
@@ -42,7 +47,7 @@ class CarController():
 
     # lower the fighting torque during manual steer
     if (CS.out.steeringPressed):
-      apply_steer = apply_steer / 10
+      apply_steer = apply_steer / 100
       print("Steering pressed")
 
     self.last_steer = apply_steer

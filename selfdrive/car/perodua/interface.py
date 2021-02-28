@@ -40,10 +40,16 @@ class CarInterface(CarInterfaceBase):
     ret.steerRateCost = 0.7 # Lateral MPC cost on steering rate
     ret.steerLimitTimer = 0.6 # time before steerLimitAlert is issued
     ret.steerControlType = car.CarParams.SteerControlType.torque # or car.CarParams.SteerControlType.angle
+    
+    # Tire stiffness factor fictitiously lower if it includes the steering column torsion effect.
+    # For modeling details, see p.198-200 in "The Science of Vehicle Dynamics (2014), M. Guiggiani"
     ret.lateralTuning.init('pid')
     ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP = [[0.], [0.]]
     #ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.2], [0.05]]
+    ## pid using old hardware
+    #ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.23], [0.1]]
     ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.23], [0.1]]
+    
     ret.lateralTuning.pid.kf = 0.0000112   # full torque for 20 deg at 80mph means 0.00007818594
 
     ret.gasMaxBP = [0., 9., 35]
