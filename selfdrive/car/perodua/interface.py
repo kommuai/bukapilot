@@ -38,7 +38,8 @@ class CarInterface(CarInterfaceBase):
     ret.minEnableSpeed = -1
 
     ret.steerRateCost = 0.7 # Lateral MPC cost on steering rate
-    ret.steerLimitTimer = 0.6 # time before steerLimitAlert is issued
+    
+    ret.steerLimitTimer = 0.8 # time before steerLimitAlert is issued
     ret.steerControlType = car.CarParams.SteerControlType.torque # or car.CarParams.SteerControlType.angle
     
     # Tire stiffness factor fictitiously lower if it includes the steering column torsion effect.
@@ -51,14 +52,13 @@ class CarInterface(CarInterfaceBase):
     ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.23], [0.1]]
     
     ret.lateralTuning.pid.kf = 0.0000112   # full torque for 20 deg at 80mph means 0.00007818594
-
+    
     ret.gasMaxBP = [0., 9., 35]
     ret.gasMaxV = [0.2, 0.5, 0.7]
     ret.longitudinalTuning.kpV = [1.2, 0.8, 0.5]
 
     ret.startAccel = 0.2 # Required acceleraton to overcome creep braking
     ret.steerActuatorDelay = 0.4 # Steering wheel actuator delay in seconds, it was 0.1
-
 
     # adding support for Perodua Axia 2019
     if candidate == CAR.PERODUA_AXIA:

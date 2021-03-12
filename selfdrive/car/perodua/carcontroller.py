@@ -1,4 +1,3 @@
-
 from cereal import car
 from selfdrive.car import make_can_msg, apply_std_steer_torque_limits
 from selfdrive.car.perodua.peroduacan import create_steer_command
@@ -6,20 +5,20 @@ from opendbc.can.packer import CANPacker
 from selfdrive.car.perodua.values import DBC
 import cereal.messaging as messaging
 
+# livetuner import
+from selfdrive.livetune_conf import livetune_conf
+livetune = livetune_conf()
+
 class CarControllerParams():
   def __init__(self):
-    #self.STEER_MAX = 35
-    self.STEER_MAX = 700              # dac write value
-    self.STEER_STEP = 1               # how often we update the steer cmd
-    #self.STEER_DELTA_UP = 1           # torque increase per refresh, 0.8s to max
-    self.STEER_DELTA_UP = 10           # torque increase per refresh, 0.8s to max
-    self.STEER_DELTA_DOWN = 20         # torque decrease per refresh
-    #self.STEER_DELTA_DOWN = 3         # torque decrease per refresh
-    #self.STEER_DRIVER_ALLOWANCE = 2   # allowed driver torque before start limiting
-    
-    self.STEER_DRIVER_ALLOWANCE = 15
-    self.STEER_DRIVER_MULTIPLIER = 1  # weight driver torque heavily
-    self.STEER_DRIVER_FACTOR = 1      # from dbc
+
+    self.STEER_MAX = int(livetune.conf['steerMax'])                          # dac write value
+    self.STEER_STEP = 1                                                      # how often we update the steer cmd
+    self.STEER_DELTA_UP = int(livetune.conf['steerDeltaUp'])                 # torque increase per refresh, 0.8s to max
+    self.STEER_DELTA_DOWN = int(livetune.conf['steerDeltaDown'])             # torque decrease per refresh
+    self.STEER_DRIVER_ALLOWANCE = int(livetune.conf['steerDriverAllowance']) # allowed driver torque before start limiting
+    self.STEER_DRIVER_MULTIPLIER = int(livetune.conf['steerDriverMult'])     # weight driver torque heavily
+    self.STEER_DRIVER_FACTOR = 1                                             # from dbc
 
 class CarController():
   def __init__(self, dbc_name, CP, VM):
@@ -40,6 +39,8 @@ class CarController():
       self.steer_rate_limited = ( new_steer != apply_steer ) and (apply_steer != 0)
     else:
       apply_steer = 0
+
+    apply_steer = apply_steer*10
 
     # limit steering based on angle
     if (abs(CS.out.steeringAngle) > 220):
