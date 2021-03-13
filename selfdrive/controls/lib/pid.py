@@ -57,7 +57,7 @@ class PIController():
 
   def update(self, setpoint, measurement, speed=0.0, check_saturation=True, override=False, feedforward=0., deadzone=0., freeze_integrator=False):
     self.speed = speed
-
+    
     error = float(apply_deadzone(setpoint - measurement, deadzone))
     self.p = error * self.k_p
     self.f = feedforward * self.k_f

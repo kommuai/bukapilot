@@ -40,7 +40,7 @@ button_delay = 0.2
 livetune = livetune_conf()
 livetune.conf['tuneGernby'] = "1"
 #livetune.write_config(livetune.conf)
-param = [ "accelerationMode", "Kp", "Ki", "Kf", "steerRatio", "sR_boost", "sR_BP0", \
+param = [ "fakeEngage", "accelerationMode", "Kp", "Ki", "Kf", "steerRatio", "sR_boost", "sR_BP0", \
          "sR_BP1", "sR_time", "slowOnCurves", \
          "1barBP0", "1barBP1", "1barMax", "2barBP0", "2barBP1", \
          "2barMax", "3barBP0", "3barBP1", "3barMax", \

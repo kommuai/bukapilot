@@ -7,6 +7,9 @@ from selfdrive.config import Conversions as CV
 from selfdrive.car.interfaces import CarStateBase
 from selfdrive.car.perodua.values import DBC
 
+# livetuner import
+from selfdrive.livetune_conf import livetune_conf
+
 pedal_counter = 0
 pedal_press_state = 0
 PEDAL_COUNTER_THRES = 25
@@ -24,6 +27,9 @@ class CarState(CarStateBase):
     self.steer_boost = 0
 
   def update(self, cp):
+    livetune = livetune_conf()
+    self.isFakeEngage = bool(round(float((livetune.conf['fakeEngage']))))
+
     ret = car.CarState.new_message()
     # there is a backwheel speed, but it will overflow to 0 when reach 60kmh
     ret.wheelSpeeds.rr = cp.vl["WHEEL_SPEED"]['WHEELSPEED_F'] * CV.KPH_TO_MS
@@ -70,16 +76,27 @@ class CarState(CarStateBase):
     ret.cruiseState.available = True
 
     # latching cruiseState logic
-    if self.check_pedal_engage(ret.gas, pedal_press_state):
+    if self.check_pedal_engage(ret.gas, pedal_press_state) or self.isFakeEngage:
       self.is_cruise_latch = True
-    if ret.brakePressed:
+    if ret.brakePressed or not self.isFakeEngage:
       self.is_cruise_latch = False
     ret.cruiseState.enabled = self.is_cruise_latch
     ret.cruiseState.standstill = ret.standstill
 
     # gear
     can_gear = int(cp.vl["TRANSMISSION"]['GEAR'])
-    ret.gearShifter = self.parse_gear_shifter(self.shifter_values.get(can_gear, None))
+    if (self.isFakeEngage):
+      ret.seatbeltUnlatched = False
+      ret.doorOpen = False
+      ret.gearShifter = 2
+    else:
+      ret.doorOpen = any([cp.vl["METER_CLUSTER"]['MAIN_DOOR'],
+                     cp.vl["METER_CLUSTER"]['LEFT_FRONT_DOOR'],
+                     cp.vl["METER_CLUSTER"]['RIGHT_BACK_DOOR'],
+                     cp.vl["METER_CLUSTER"]['LEFT_BACK_DOOR']])
+
+      ret.seatbeltUnlatched = cp.vl["METER_CLUSTER"]['SEAT_BELT_WARNING'] == 1
+      ret.gearShifter = self.parse_gear_shifter(self.shifter_values.get(can_gear, None))
 
     # button presses
     ret.leftBlinker = bool(cp.vl["METER_CLUSTER"]["LEFT_SIGNAL"])
@@ -89,13 +106,6 @@ class CarState(CarStateBase):
     # blindspot sensors
     ret.leftBlindspot = False                                                              # Is there something blocking the left lane change
     ret.rightBlindspot = False                                                             # Is there something blocking the right lane change
-
-    # lock info
-    ret.seatbeltUnlatched = cp.vl["METER_CLUSTER"]['SEAT_BELT_WARNING'] == 1
-    ret.doorOpen = any([cp.vl["METER_CLUSTER"]['MAIN_DOOR'],
-                        cp.vl["METER_CLUSTER"]['LEFT_FRONT_DOOR'],
-                        cp.vl["METER_CLUSTER"]['RIGHT_BACK_DOOR'],
-                        cp.vl["METER_CLUSTER"]['LEFT_BACK_DOOR']])
 
     # NEED TO ADD BUTTON EVENTS FOR CRUISE
 

@@ -39,7 +39,7 @@ class CarInterface(CarInterfaceBase):
 
     ret.steerRateCost = 0.7 # Lateral MPC cost on steering rate
     
-    ret.steerLimitTimer = 0.8 # time before steerLimitAlert is issued
+    ret.steerLimitTimer = 5 # time before steerLimitAlert is issued
     ret.steerControlType = car.CarParams.SteerControlType.torque # or car.CarParams.SteerControlType.angle
     
     # Tire stiffness factor fictitiously lower if it includes the steering column torsion effect.

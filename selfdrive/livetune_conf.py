@@ -137,7 +137,11 @@ class livetune_conf():
       if "AutoHold" not in self.config:
         self.config.update({"AutoHold":"0"})
         self.element_updated = True
-      
+     
+      if "fakeEngage" not in self.config:
+        self.config.update({"fakeEngage": "0"})
+        self.element_updated = True
+
       if "maxSteer" not in self.config:
         self.config.update({"maxSteer":"0"})
         self.config.update({"steerDeltaUp":"0"})
@@ -161,7 +165,7 @@ class livetune_conf():
                      "sR_boost":"0", "sR_BP0":"0", "sR_BP1":"0", "sR_time":"1", \
                      "ALCnudgeLess":"0", "ALCminSpeed":"20.1168", "ALCtimer":"2.0", "CruiseDelta":"8", \
                      "CruiseEnableMin":"40", "epsModded": "0", "steerMax": "0", "steerDeltaUp" : "0", \
-                     "steerDeltaDown" : "0", "steerDriverAllowance" : "0", "steerDriverMult" : "0"}
+                     "steerDeltaDown" : "0", "steerDriverAllowance" : "0", "steerDriverMult" : "0", "fakeEngage" : "0"}
 
 
       self.write_config(self.config)
