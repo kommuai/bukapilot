@@ -16,7 +16,7 @@
 #include "nanovg_gl_utils.h"
 
 #include "framebuffer.h"
-#include "spinner.h"
+//#include "spinner.h"
 
 #define SPINTEXT_LENGTH 128
 
@@ -67,16 +67,20 @@ int main(int argc, char** argv) {
 
   int font = nvgCreateFontMem(vg, "Bold", (unsigned char*)_binary_opensans_semibold_ttf_start, _binary_opensans_semibold_ttf_end-_binary_opensans_semibold_ttf_start, 0);
   assert(font >= 0);
+  uint64_t* header = (uint64_t*) _binary_img_spinner_track_png_start;
+	uint64_t count = header[0];
+	uint64_t* sizes = &header[1];
+	uint8_t* spdata = (uint8_t*) &header[header[0]+1];
+  int spin_imgs[30];
+  spin_imgs[0] = nvgCreateImageMem(vg, 0, (unsigned char*) spdata, sizes[0]);
 
-  int spinner_img = nvgCreateImageMem(vg, 0, (unsigned char*)_binary_img_spinner_track_png_start, _binary_img_spinner_track_png_end - _binary_img_spinner_track_png_start);
-  assert(spinner_img >= 0);
-  int spinner_img_s = 360;
-  int spinner_img_x = ((fb_w/2)-(spinner_img_s/2));
-  int spinner_img_y = 260;
-  int spinner_img_xc = (fb_w/2);
-  int spinner_img_yc = (fb_h/2)-100;
-  int spinner_comma_img = nvgCreateImageMem(vg, 0, (unsigned char*)_binary_img_spinner_comma_png_start, _binary_img_spinner_comma_png_end - _binary_img_spinner_comma_png_start);
-  assert(spinner_comma_img >= 0);
+  for (int i = 1; i < 30; i++) {
+    uint64_t offset = 0;
+    for (int j  = 0; j < i; j++) {
+      offset += sizes[j];
+    }
+    spin_imgs[i] = nvgCreateImageMem(vg, 0, (unsigned char*) spdata + offset, sizes[i]);
+  }
 
   for (int cnt = 0; ; cnt++) {
     // Check stdin for new text
@@ -117,25 +121,13 @@ int main(int argc, char** argv) {
     nvgRect(vg, 0, 0, fb_w, fb_h);
     nvgFill(vg);
 
-    // spin track
-    nvgSave(vg);
-    nvgTranslate(vg, spinner_img_xc, spinner_img_yc);
-    nvgRotate(vg, (3.75*M_PI * cnt/120.0));
-    nvgTranslate(vg, -spinner_img_xc, -spinner_img_yc);
-    NVGpaint spinner_imgPaint = nvgImagePattern(vg, spinner_img_x, spinner_img_y,
-      spinner_img_s, spinner_img_s, 0, spinner_img, 0.6f);
+    // kommu spinner
+    int adjcnt = (cnt/2) % 30;
+    NVGpaint kommu_imgPaint = nvgImagePattern(vg, 0, 0,
+          fb_w, fb_h, 0, spin_imgs[adjcnt], 1.0f);
     nvgBeginPath(vg);
-    nvgFillPaint(vg, spinner_imgPaint);
-    nvgRect(vg, spinner_img_x, spinner_img_y, spinner_img_s, spinner_img_s);
-    nvgFill(vg);
-    nvgRestore(vg);
-
-    // comma
-    NVGpaint comma_imgPaint = nvgImagePattern(vg, spinner_img_x, spinner_img_y,
-      spinner_img_s, spinner_img_s, 0, spinner_comma_img, 1.0f);
-    nvgBeginPath(vg);
-    nvgFillPaint(vg, comma_imgPaint);
-    nvgRect(vg, spinner_img_x, spinner_img_y, spinner_img_s, spinner_img_s);
+    nvgFillPaint(vg, kommu_imgPaint);
+    nvgRect(vg, 0, 0, fb_w, fb_h);
     nvgFill(vg);
 
     if (draw_progress){

@@ -2,7 +2,8 @@ CC = clang
 CXX = clang++
 
 ROOT_DIR = ../../..
-PHONELIBS = $(ROOT_DIR)/phonelibs
+ROOT=$(ROOT_DIR)/..
+PHONELIBS = $(ROOT)/phonelibs
 COMMON = $(ROOT)/selfdrive/common
 
 WARN_FLAGS = -Werror=implicit-function-declaration \
@@ -14,7 +15,7 @@ WARN_FLAGS = -Werror=implicit-function-declaration \
 CFLAGS = -std=gnu11 -fPIC -O2 $(WARN_FLAGS)
 CXXFLAGS = -std=c++1z -fPIC -O2 $(WARN_FLAGS)
 
-NANOVG_FLAGS = -I$(PHONELIBS)/nanovg
+NANOVG_FLAGS = -I$(PHONELIBS)/nanovg -I$(COMMON)
 
 OPENGL_LIBS = -lGLESv3
 
@@ -24,10 +25,10 @@ OBJS = spinner.o \
        $(COMMON)/framebuffer.o \
        $(COMMON)/util.o \
        $(PHONELIBS)/nanovg/nanovg.o \
-       $(COMMON)/spinner.o \
        opensans_semibold.o \
        img_spinner_track.o \
        img_spinner_comma.o
+#			 $(COMMON)/spinner.o
 
 DEPS := $(OBJS:.o=.d)
 
@@ -42,6 +43,8 @@ spinner: $(OBJS)
         -L/system/vendor/lib64 \
         $(OPENGL_LIBS) \
         -lm -llog
+$(COMMON)/spinner.o: spinner.o
+	cp spinner.o $(COMMON)/
 
 $(COMMON)/framebuffer.o: $(COMMON)/framebuffer.cc
 	@echo "[ CXX ] $@"
@@ -51,15 +54,15 @@ $(COMMON)/framebuffer.o: $(COMMON)/framebuffer.cc
            -I$(PHONELIBS)/android_hardware_libhardware/include \
            -c -o '$@' '$<'
 
-opensans_semibold.o: $(ROOT_DIR)/selfdrive/assets/fonts/opensans_semibold.ttf
+opensans_semibold.o: $(ROOT)/selfdrive/assets/fonts/opensans_semibold.ttf
 	@echo "[ bin2o ] $@"
 	cd '$(dir $<)' && ld -r -b binary '$(notdir $<)' -o '$(abspath $@)'
 
-img_spinner_track.o: $(ROOT_DIR)/selfdrive/assets/img_spinner_track.png
+img_spinner_track.o: $(ROOT)/selfdrive/assets/img_spinner_track.png
 	@echo "[ bin2o ] $@"
 	cd '$(dir $<)' && ld -r -b binary '$(notdir $<)' -o '$(abspath $@)'
 
-img_spinner_comma.o: $(ROOT_DIR)/selfdrive/assets/img_spinner_comma.png
+img_spinner_comma.o: $(ROOT)/selfdrive/assets/img_spinner_comma.png
 	@echo "[ bin2o ] $@"
 	cd '$(dir $<)' && ld -r -b binary '$(notdir $<)' -o '$(abspath $@)'
 
