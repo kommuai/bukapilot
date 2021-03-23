@@ -74,6 +74,7 @@ class CarState(CarStateBase):
 
     # cruise state, need to fake it for now, its used for driver monitoring, and controlsd see below
     ret.cruiseState.available = True
+    ret.cruiseState.speed = 50 * CV.KPH_TO_MS
 
     # latching cruiseState logic
     if self.check_pedal_engage(ret.gas, pedal_press_state) or self.isFakeEngage:
