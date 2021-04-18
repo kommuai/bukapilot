@@ -23,7 +23,7 @@ def create_steer_command(packer, command, direction, enable, idx):
   values = {
     "INTERCEPTOR_MAIN_TORQUE": abs(command),
     "INTERCEPTOR_SUB_TORQUE": abs(command),
-    "DIRECTION": 1 if direction else 0,
+    "DIRECTION": 0 if direction else 1,
     "ENABLE": 1 if enable else 0,
     "COUNTER_STEERING": idx & 0xF,
   }
@@ -35,3 +35,43 @@ def create_steer_command(packer, command, direction, enable, idx):
 
   return packer.make_can_msg("TORQUE_COMMAND", 0, values)
 
+def perodua_create_gas_command(packer, gas_amount, enable, idx):
+
+  values = {
+    "ENABLE": enable,
+    "COUNTER_PEDAL": idx & 0xF,
+  }
+
+  if enable:
+    # the value 3000 is a limiting constant, allow an addition of 
+    # 2500/4095 * 3.3 = 2.01V.
+    values["GAS_COMMAND"] = gas_amount
+    values["GAS_COMMAND2"] = gas_amount
+  
+  dat = packer.make_can_msg("GAS_COMMAND", 0, values)[2]
+
+  checksum = crc8_interceptor(dat[:-1])
+  values["CHECKSUM_PEDAL"] = checksum
+
+  return packer.make_can_msg("GAS_COMMAND", 0, values)
+
+# Not used
+def perodua_create_brake_command(packer, apply_brake):
+
+  values = {
+    "COMPUTER_BRAKE": apply_brake,
+    "BRAKE_PUMP_REQUEST": pump_on,
+    "CRUISE_OVERRIDE": pcm_override,
+    "CRUISE_FAULT_CMD": pcm_fault_cmd,
+    "CRUISE_CANCEL_CMD": pcm_cancel_cmd,
+    "COMPUTER_BRAKE_REQUEST": brake_rq,
+    "SET_ME_1": 1,
+    "BRAKE_LIGHTS": brakelights,
+    "CHIME": stock_brake["CHIME"] if fcw else 0,  # send the chime for stock fcw
+    "FCW": fcw << 1,  # TODO: Why are there two bits for fcw?
+    "AEB_REQ_1": 0,
+    "AEB_REQ_2": 0,
+    "AEB_STATUS": 0,
+  }
+
+  return packer.make_can_msg("BRAKE_COMMAND", 0, values)

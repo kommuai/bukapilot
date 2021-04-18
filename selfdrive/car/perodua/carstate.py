@@ -13,7 +13,7 @@ from selfdrive.livetune_conf import livetune_conf
 pedal_counter = 0
 pedal_press_state = 0
 PEDAL_COUNTER_THRES = 25
-PEDAL_NON_ZERO_THRES = 0.01
+PEDAL_NON_ZERO_THRES = 0.001 #was 0.01
 STEER_DIFF_THRES = 0.2 # deg
 
 class CarState(CarStateBase):
@@ -25,6 +25,7 @@ class CarState(CarStateBase):
     self.prev_steer_angle = 0
     self.base_steer_thres = 0
     self.steer_boost = 0
+    self.cruise_speed = 0
 
   def update(self, cp):
     livetune = livetune_conf()
@@ -74,13 +75,20 @@ class CarState(CarStateBase):
 
     # cruise state, need to fake it for now, its used for driver monitoring, and controlsd see below
     ret.cruiseState.available = True
-    ret.cruiseState.speed = 50 * CV.KPH_TO_MS
+    ret.cruiseState.nonAdaptive = False
+    ret.cruiseState.speed = self.cruise_speed
 
     # latching cruiseState logic
-    if self.check_pedal_engage(ret.gas, pedal_press_state) or self.isFakeEngage:
+    #if self.check_pedal_engage(ret.gas, pedal_press_state) or self.isFakeEngage:
+    if self.check_pedal_engage(ret.gas, pedal_press_state):
+      if not self.is_cruise_latch: 
+        self.cruise_speed = ret.vEgo + (5 * CV.KPH_TO_MS)
+        #self.cruise_speed = round(float((livetune.conf['cruiseSetSpeed']))) * CV.KPH_TO_MS
       self.is_cruise_latch = True
-    if ret.brakePressed or not self.isFakeEngage:
+    #if ret.brakePressed or not self.isFakeEngage:
+    if ret.brakePressed:
       self.is_cruise_latch = False
+    
     ret.cruiseState.enabled = self.is_cruise_latch
     ret.cruiseState.standstill = ret.standstill
 

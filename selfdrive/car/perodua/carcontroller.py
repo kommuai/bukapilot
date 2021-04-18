@@ -1,6 +1,6 @@
 from cereal import car
 from selfdrive.car import make_can_msg, apply_std_steer_torque_limits, create_gas_command
-from selfdrive.car.perodua.peroduacan import create_steer_command
+from selfdrive.car.perodua.peroduacan import create_steer_command, perodua_create_gas_command
 from opendbc.can.packer import CANPacker
 from selfdrive.car.perodua.values import DBC
 import cereal.messaging as messaging
@@ -73,11 +73,11 @@ class CarController():
     if (frame % FRAME_DIVIDER) == 0:
       idx = frame // FRAME_DIVIDER
       apply_gas = clip(actuators.gas, 0., 1.)
-      print(apply_gas)
+      apply_gas = abs(apply_gas * round(float(livetune.conf['maxGas']))) 
       if CS.CP.enableGasInterceptor:
         # create_gas_command inherited from car
-        can_sends.append(create_gas_command(self.packer, apply_gas, idx))
-        
+          can_sends.append(perodua_create_gas_command(self.packer, apply_gas, enabled, idx))
+    
     # fake gps
 #    if (frame % 2 == 0) :
 #      pm = messaging.PubMaster(['gpsLocationExternal'])

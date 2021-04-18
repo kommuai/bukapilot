@@ -37,7 +37,7 @@ class CarInterface(CarInterfaceBase):
     ret.gasMaxBP = [0., 9., 35]
     ret.gasMaxV = [0.2, 0.5, 0.7]
     ret.longitudinalTuning.kpV = [1.2, 0.8, 0.5]
-    ret.startAccel = 0.2 # Required acceleraton to overcome creep braking
+    ret.startAccel = 0.1 # Required acceleraton to overcome creep braking
 
     # adding support for Perodua Axia 2019
     if candidate == CAR.PERODUA_AXIA:
@@ -46,10 +46,10 @@ class CarInterface(CarInterfaceBase):
       ret.enableCamera = True
  
       # force openpilot to inject gas command through gas interceptor
-      ret.enableGasInterceptor = 0x201 in fingerprint[0]
+      ret.enableGasInterceptor = True
       # since using gas interceptor means there is no cruise control
       # Make it False so OP calculates the set speed logic, see openpilot/selfdrive/controls/controlsd.py#L277
-      ret.enableCruise = not ret.enableGasInterceptor
+      ret.enableCruise = ret.enableGasInterceptor
       ret.enableDsu = not ret.enableGasInterceptor
       ret.enableApgs = False
       
@@ -73,7 +73,7 @@ class CarInterface(CarInterfaceBase):
     # min speed to enable ACC. if car can do stop and go or has gas interceptor,
     # then set enabling speed to a negative value, so it won't matter.
     ret.minEnableSpeed = -1. if (stop_and_go or ret.enableGasInterceptor) else 25.5 * CV.MPH_TO_MS
-
+    
     ret.rotationalInertia = scale_rot_inertia(ret.mass, ret.wheelbase)
     ret.tireStiffnessFront, ret.tireStiffnessRear = scale_tire_stiffness(ret.mass, ret.wheelbase, ret.centerToFront, tire_stiffness_factor=tire_stiffness_factor)
 
