@@ -154,7 +154,7 @@ from selfdrive.hardware.eon.apk import update_apks, pm_apply_packages, start_off
 # comment out anything you don't want to run
 managed_processes = {
   "thermald": "selfdrive.thermald.thermald",
-#  "uploader": "selfdrive.loggerd.uploader",
+  "uploader": "selfdrive.loggerd.uploader_kommu",
   "deleter": "selfdrive.loggerd.deleter",
   "controlsd": "selfdrive.controls.controlsd",
   "plannerd": "selfdrive.controls.plannerd",
