@@ -141,6 +141,7 @@ def thermald_thread():
   pandaState_sock = messaging.sub_sock('pandaState', timeout=pandaState_timeout)
   location_sock = messaging.sub_sock('gpsLocationExternal')
   managerState_sock = messaging.sub_sock('managerState', conflate=True)
+  gpsd_sock = messaging.sub_sock('gpsNMEA', timeout=5000)
 
   fan_speed = 0
   count = 0
@@ -322,6 +323,20 @@ def thermald_thread():
     now = datetime.datetime.utcnow()
 
     # show invalid date/time alert
+    if (now.year < 2000):
+      for tries in range(10):
+        gpsd = messaging.recv_sock(gpsd_sock, wait=True)
+        try:
+          if (gpsd.gpsNMEA.nmea[3:6] == "RMC"):
+            rmc_list = gpsd.gpsNMEA.nmea.split(",")
+            rmc_date_cmd = f"date -s \"20{rmc_list[9][4:6]}-{rmc_list[9][2:4]}-{rmc_list[9][0:2]}\""
+            rmc_time_cmd = f"date +%T -s \"{rmc_list[1][0:2]}:{rmc_list[1][2:4]}:{rmc_list[1][4:6]}\""
+            os.system(f"{rmc_date_cmd} && {rmc_time_cmd}")
+            break
+        except AttributeError:
+          cloudlog.info("RMC not found, datetime not set, retying in awhile")
+          break
+
     startup_conditions["time_valid"] = (now.year > 2020) or (now.year == 2020 and now.month >= 10)
     set_offroad_alert_if_changed("Offroad_InvalidTime", (not startup_conditions["time_valid"]))
 
@@ -359,7 +374,7 @@ def thermald_thread():
       set_offroad_alert_if_changed("Offroad_ConnectivityNeeded", False)
       set_offroad_alert_if_changed("Offroad_ConnectivityNeededPrompt", False)
 
-    startup_conditions["up_to_date"] = params.get("Offroad_ConnectivityNeeded") is None or params.get_bool("DisableUpdates")
+    #startup_conditions["up_to_date"] = params.get("Offroad_ConnectivityNeeded") is None or params.get_bool("DisableUpdates")
     startup_conditions["not_uninstalling"] = not params.get_bool("DoUninstall")
     startup_conditions["accepted_terms"] = params.get("HasAcceptedTerms") == terms_version
 
