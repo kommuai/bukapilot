@@ -56,22 +56,23 @@ def perodua_create_gas_command(packer, gas_amount, enable, idx):
   return packer.make_can_msg("GAS_COMMAND", 0, values)
 
 # Not used
-def perodua_create_brake_command(packer, apply_brake):
+def perodua_aeb_brake(packer, brake_amount):
 
   values = {
-    "COMPUTER_BRAKE": apply_brake,
-    "BRAKE_PUMP_REQUEST": pump_on,
-    "CRUISE_OVERRIDE": pcm_override,
-    "CRUISE_FAULT_CMD": pcm_fault_cmd,
-    "CRUISE_CANCEL_CMD": pcm_cancel_cmd,
-    "COMPUTER_BRAKE_REQUEST": brake_rq,
-    "SET_ME_1": 1,
-    "BRAKE_LIGHTS": brakelights,
-    "CHIME": stock_brake["CHIME"] if fcw else 0,  # send the chime for stock fcw
-    "FCW": fcw << 1,  # TODO: Why are there two bits for fcw?
-    "AEB_REQ_1": 0,
-    "AEB_REQ_2": 0,
-    "AEB_STATUS": 0,
+    "AEB_ALARM": 1 if (brake_amount > 0.5) else 0,
+    #"COMPUTER_BRAKE": apply_brake,
+    #"BRAKE_PUMP_REQUEST": pump_on,
+    #"CRUISE_OVERRIDE": pcm_override,
+    #"CRUISE_FAULT_CMD": pcm_fault_cmd,
+    #"CRUISE_CANCEL_CMD": pcm_cancel_cmd,
+    #"COMPUTER_BRAKE_REQUEST": brake_rq,
+    #"SET_ME_1": 1,
+    #"BRAKE_LIGHTS": brakelights,
+    #"CHIME": stock_brake["CHIME"] if fcw else 0,  # send the chime for stock fcw
+    #"FCW": fcw << 1,  # TODO: Why are there two bits for fcw?
+    #"AEB_REQ_1": 0,
+    #"AEB_REQ_2": 0,
+    #"AEB_STATUS": 0,
   }
 
-  return packer.make_can_msg("BRAKE_COMMAND", 0, values)
+  return packer.make_can_msg("FWD_CAM3", 0, values)

@@ -13,6 +13,7 @@ from selfdrive.livetune_conf import livetune_conf
 pedal_counter = 0
 pedal_press_state = 0
 PEDAL_COUNTER_THRES = 25
+PEDAL_UPPER_TRIG_THRES = 0.125
 PEDAL_NON_ZERO_THRES = 0.001 #was 0.01
 STEER_DIFF_THRES = 0.2 # deg
 
@@ -45,6 +46,7 @@ class CarState(CarStateBase):
     # gas pedal
     ret.gas = cp.vl["GAS_PEDAL_1"]['APPS_1']                                              # gas pedal, 0.0-1.0
     ret.gasPressed = ret.gas > 0.60
+#    self.acttrGas = cp.v1["GAS_SENSOR"]['INTERCEPTOR_GAS']
 
     # brake pedal
     ret.brake = cp.vl["BRAKE_PEDAL"]['BRAKE_PRESSURE']                                    # Use for pedal
@@ -77,6 +79,11 @@ class CarState(CarStateBase):
     ret.cruiseState.available = True
     ret.cruiseState.nonAdaptive = False
     ret.cruiseState.speed = self.cruise_speed
+
+    # Increase cruise_speed using pedal when engage
+ #   if self.is_cruise_latch:
+ #     if self.check_pedal_engage(ret.acttrGas, press_pedal_state):
+ #       ret.cruiseState.speed += (5 * CV.KPH_TO_MS)
 
     # latching cruiseState logic
     #if self.check_pedal_engage(ret.gas, pedal_press_state) or self.isFakeEngage:
@@ -125,7 +132,7 @@ class CarState(CarStateBase):
     global pedal_counter
     global pedal_press_state
     if (state == 0):
-      if (gas > PEDAL_NON_ZERO_THRES):
+      if (gas > PEDAL_UPPER_TRIG_THRES):
         pedal_counter += 1
         if (pedal_counter == PEDAL_COUNTER_THRES):
           pedal_counter = 0
@@ -140,7 +147,7 @@ class CarState(CarStateBase):
         pedal_counter = 0
         pedal_press_state = 0
         return False
-      if (gas > PEDAL_NON_ZERO_THRES):
+      if (gas > PEDAL_UPPER_TRIG_THRES):
         pedal_press_state = 2
         pedal_counter = 0
       return False
@@ -167,6 +174,7 @@ class CarState(CarStateBase):
       ("APPS_1", "GAS_PEDAL_1", 0.),
       ("BRAKE_PRESSURE", "BRAKE_PEDAL", 0.),
       ("STEER_ANGLE", "STEERING_ANGLE_SENSOR", 0.),
+ #     ("INTERCEPTOR_GAS", "GAS_SENSOR", 0),
       ("MAIN_TORQUE", "STEERING_TORQUE", 0),
  #     ("INTERCEPTOR_MAIN_TORQUE", "TORQUE_COMMAND", 0),
  #     ("STATUS", "ESC_CONTROL", 0),

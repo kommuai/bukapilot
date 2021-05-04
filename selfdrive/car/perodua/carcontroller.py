@@ -1,6 +1,6 @@
 from cereal import car
 from selfdrive.car import make_can_msg, apply_std_steer_torque_limits, create_gas_command
-from selfdrive.car.perodua.peroduacan import create_steer_command, perodua_create_gas_command
+from selfdrive.car.perodua.peroduacan import create_steer_command, perodua_create_gas_command, perodua_aeb_brake
 from opendbc.can.packer import CANPacker
 from selfdrive.car.perodua.values import DBC
 import cereal.messaging as messaging
@@ -56,7 +56,6 @@ class CarController():
     # lower the fighting torque during manual steer
     if (CS.out.steeringPressed):
       apply_steer = apply_steer / 100
-      print("Steering pressed")
     
     self.last_steer = apply_steer
     if apply_steer >= 0:
@@ -73,15 +72,17 @@ class CarController():
     if (frame % FRAME_DIVIDER) == 0:
       idx = frame // FRAME_DIVIDER
       apply_gas = clip(actuators.gas, 0., 1.)
-      apply_gas = abs(apply_gas * round(float(livetune.conf['maxGas']))) 
+      apply_brake = clip(actuators.brake, 0., 1.)
+      apply_gas = abs(apply_gas * round(float(livetune.conf['maxGas'])))
+
+      # gas
       if CS.CP.enableGasInterceptor:
         # create_gas_command inherited from car
-          can_sends.append(perodua_create_gas_command(self.packer, apply_gas, enabled, idx))
-    
-    # fake gps
-#    if (frame % 2 == 0) :
-#      pm = messaging.PubMaster(['gpsLocationExternal'])
-#      dat = messaging.new_message('gpsLocationExternal')
-#      pm.send('gpsLocationExternal', dat)
+        can_sends.append(perodua_create_gas_command(self.packer, apply_gas, enabled, idx))
+
+      # brakes
+      if apply_brake > 0.5:
+        can_send.append(perodua_aeb_brake(self.packer, apply_brake))
+
 
     return can_sends

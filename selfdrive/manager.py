@@ -516,14 +516,15 @@ def main():
   params = Params()
   params.manager_start()
 
+  # TODO: change for production
   default_params = [
-    ("CommunityFeaturesToggle", "0"),
-    ("CompletedTrainingVersion", "0"),
-    ("IsRHD", "0"),
-    ("IsMetric", "0"),
-    ("RecordFront", "0"),
-    ("HasAcceptedTerms", "0"),
-    ("HasCompletedSetup", "0"),
+    ("CommunityFeaturesToggle", "1"),
+    ("CompletedTrainingVersion", "1"),
+    ("IsRHD", "1"),
+    ("IsMetric", "1"),
+    ("RecordFront", "1"),
+    ("HasAcceptedTerms", "1"),
+    ("HasCompletedSetup", "1"),
     ("IsUploadRawEnabled", "1"),
     ("IsLdwEnabled", "1"),
     ("LastUpdateTime", datetime.datetime.utcnow().isoformat().encode('utf8')),
@@ -536,6 +537,8 @@ def main():
   for k, v in default_params:
     if params.get(k) is None:
       params.put(k, v)
+
+  params.put("IsMetric", "1")
 
   # is this dashcam?
   if os.getenv("PASSIVE") is not None:
