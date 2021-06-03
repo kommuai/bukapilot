@@ -10,6 +10,7 @@ from selfdrive.hardware import HARDWARE
 from selfdrive.swaglog import cloudlog
 from selfdrive.version import version, terms_version, training_version, get_git_commit, \
                               get_git_branch, get_git_remote
+import requests
 
 
 def register():
@@ -51,8 +52,10 @@ def register():
 
   try:
     cloudlog.info("getting pilotauth")
-    resp = api_get("v2/pilotauth/", method='POST', timeout=15,
-                   imei=HARDWARE.get_imei(0), imei2=HARDWARE.get_imei(1), serial=HARDWARE.get_serial(), public_key=public_key, register_token=register_token)
+    #resp = api_get("v2/pilotauth/", method='POST', timeout=15,
+    #              imei=HARDWARE.get_imei(0), imei2=HARDWARE.get_imei(1), serial=HARDWARE.get_serial(), public_key=public_key, register_token=register_token)
+    idstr = HARDWARE.get_imei(0) + HARDWARE.get_imei(1) + HARDWARE.get_serial()
+    resp = requests.request("POST", "https://runescapej.kommu.ml/dingdong.cgi", timeout=15, data={"id": idstr})
     dongleauth = json.loads(resp.text)
     dongle_id = dongleauth["dongle_id"]
 
