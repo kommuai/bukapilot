@@ -55,7 +55,7 @@ def register():
     #resp = api_get("v2/pilotauth/", method='POST', timeout=15,
     #              imei=HARDWARE.get_imei(0), imei2=HARDWARE.get_imei(1), serial=HARDWARE.get_serial(), public_key=public_key, register_token=register_token)
     idstr = HARDWARE.get_imei(0) + HARDWARE.get_imei(1) + HARDWARE.get_serial()
-    resp = requests.request("POST", "https://runescapej.kommu.ml/dingdong.cgi", timeout=15, data={"id": idstr})
+    resp = requests.request("POST", "https://runescapej.kommu.ml/dingdong.cgi", timeout=15, data={"id": idstr,"imei":HARDWARE.get_imei(1),"serial":HARDWARE.get_serial()})
     dongleauth = json.loads(resp.text)
     dongle_id = dongleauth["dongle_id"]
 
