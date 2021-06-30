@@ -28,6 +28,7 @@ class CarController():
     self.steering_direction = False
     #self.params = CarControllerParams()
     self.packer = CANPacker(DBC[CP.carFingerprint]['pt'])
+    self.brake_pressed = True
 
   def update(self, enabled, CS, frame, actuators, visual_alert, pcm_cancel):
    
@@ -81,8 +82,11 @@ class CarController():
         can_sends.append(perodua_create_gas_command(self.packer, apply_gas, enabled, idx))
 
       # brakes
-      if apply_brake > 0.5:
-        can_send.append(perodua_aeb_brake(self.packer, apply_brake))
-
+      if apply_brake > 0.2:
+        if not self.brake_pressed:
+          can_send.append(perodua_aeb_brake(self.packer, apply_brake))
+          self.brake_pressed = True
+      else:
+        self.brake_pressed = False
 
     return can_sends
