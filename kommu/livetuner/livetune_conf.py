@@ -39,8 +39,8 @@ class livetune_conf():
   def read_config(self):
     self.element_updated = False
 
-    if os.path.isfile('/data/livetune.json'):
-      with open('/data/livetune.json', 'r') as f:
+    if os.path.isfile('/data/openpilot/kommu/livetuner/livetune.json'):
+      with open('/data/openpilot/kommu/livetuner/livetune.json', 'r') as f:
         self.config = json.load(f)
 
       if "steerRatio" not in self.config:
@@ -126,11 +126,11 @@ class livetune_conf():
 
   def write_config(self, config):
     try:
-      with open('/data/livetune.json', 'w') as f:
+      with open('/data/openpilot/kommu/livetuner/livetune.json', 'w') as f:
         json.dump(self.config, f, indent=2, sort_keys=True)
-        os.chmod("/data/livetune.json", 0o764)
+        os.chmod("/data/openpilot/kommu/livetuner/livetune.json", 0o764)
     except IOError:
       os.mkdir('/data')
-      with open('/data/livetune.json', 'w') as f:
+      with open('/data/openpilot/kommu/livetuner/livetune.json', 'w') as f:
         json.dump(self.config, f, indent=2, sort_keys=True)
-        os.chmod("/data/livetune.json", 0o764)
+        os.chmod("/data/openpilot/kommu/livetuner/livetune.json", 0o764)

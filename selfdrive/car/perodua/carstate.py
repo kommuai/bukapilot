@@ -8,7 +8,7 @@ from selfdrive.car.interfaces import CarStateBase
 from selfdrive.car.perodua.values import DBC
 
 # livetuner import
-from selfdrive.livetune_conf import livetune_conf
+from kommu.livetuner.livetune_conf import livetune_conf
 
 pedal_counter = 0
 pedal_press_state = 0

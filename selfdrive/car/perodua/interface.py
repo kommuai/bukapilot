@@ -38,7 +38,7 @@ class CarInterface(CarInterfaceBase):
     ret.gasMaxV = [0.2, 0.5, 0.7]
     ret.longitudinalTuning.kpV = [1.2, 0.8, 0.8]
     #ret.longitudinalTuning.kpV = [1.2, 0.8, 0.5]
-    ret.startAccel = 0.1 # Required acceleraton to overcome creep braking
+    ret.startAccel = 0.3 # Required acceleraton to overcome creep braking
 
     # adding support for Perodua Axia 2019
     if candidate == CAR.PERODUA_AXIA:
