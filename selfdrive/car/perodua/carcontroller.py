@@ -31,11 +31,11 @@ class CarController():
     self.brake_pressed = True
 
   def update(self, enabled, CS, frame, actuators, visual_alert, pcm_cancel):
-   
+
     can_sends = []
 
     livetune = livetune_conf()
-    
+
     # generate steering command
     if (frame % self.params.STEER_STEP) == 0 and enabled:
       new_steer = int(round(actuators.steer * self.params.STEER_MAX))                # actuator.steer is from range from -1.0 - 1.0
@@ -50,15 +50,14 @@ class CarController():
     # lower the fighting torque during manual steer
     if (CS.out.steeringPressed):
       apply_steer = apply_steer / 100
-    
+
     self.last_steer = apply_steer
     if apply_steer >= 0:
       self.steering_direction = True
     else:
       self.steering_direction = False
-    
+
     if (frame % self.params.STEER_STEP) == 0:
-      print(apply_steer)
       can_sends.append(create_steer_command(self.packer, apply_steer, self.steering_direction, enabled, frame))
 
     FRAME_DIVIDER = 2

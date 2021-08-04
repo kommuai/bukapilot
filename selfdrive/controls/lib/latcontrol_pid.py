@@ -4,7 +4,7 @@ from cereal import car
 from cereal import log
 
 # livetune import
-from selfdrive.livetune_conf import livetune_conf
+from kommu.livetuner.livetune_conf import livetune_conf
 
 class LatControlPID():
   def __init__(self, CP):
