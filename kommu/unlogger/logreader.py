@@ -13,8 +13,8 @@ class LogReader(object):
   def __init__(self, fn, canonicalize=True, only_union_types=False):
     data_version = None
 
-    # check if its a file or directory
-    if os.path.isdir(fn):
+    # check if its a file or directory or a list
+    if isinstance(fn, list) or os.path.isdir(fn):
       cum_data = b''
       for log in fn:
           _, ext = os.path.splitext(urllib.parse.urlparse(log).path)
