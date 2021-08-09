@@ -12,10 +12,12 @@ def spam_random_can_cereal():
 
   while 1:
     counter += 1
-    if counter % 2 == 0:
-      can_list = [[0x4f3, 0, (5).to_bytes(1,byteorder="big"), 0]]
+    if counter % 200 == 0:
+      can_list = [[0x4f3, 0, (15).to_bytes(1,byteorder="big"), 0]]
+    elif counter % 2 == 0:
+      can_list = [[0x4f3, 0, (0).to_bytes(1,byteorder="big"), 0]]
     else:
-      can_list = [[0x4f3, 0, (3).to_bytes(1,byteorder="big"), 0]]
+      can_list = [[0x4f3, 0, (2).to_bytes(1,byteorder="big"), 0]]
     m = boardd.can_list_to_can_capnp(can_list, 'can')
     pm.send('can',m)
     time.sleep(0.1)

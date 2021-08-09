@@ -38,16 +38,17 @@ def can_printer(bus=0, wait_time = 10):
           changes = None
           if (i | l_h) != l_h:
             low_to_high[y.address] = i | l_h
-            output_lh = p & (~i & 2**64-1)
+            output_lh = i & (~p & 2**64-1)
             changes = True
 
           if (~i | h_l) != h_l:
             high_to_low[y.address] = ~i | h_l
-            output_hl = i & (~p & 2**64-1)
+            output_hl = p & (~i & 2**64-1)
             changes = True
 
           if changes:
             last_known = sec_since_boot()
+
             if started:
               found[last_known] = [static_msgs[msg_c-1], y.address, output_lh, output_hl]
               print(f"{sec_since_boot():.2f}\t{hex(y.address)} ({y.address})\t-{bin(output_hl)} +{bin(output_lh)}")
