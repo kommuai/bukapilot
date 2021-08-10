@@ -2,12 +2,12 @@
 import binascii
 import sys
 from collections import defaultdict
-
+import numpy as np
 import cereal.messaging as messaging
 from common.realtime import sec_since_boot
 
 
-def can_printer(bus=0, wait_time = 10):
+def identify_bit_flip(bus=0, wait_time = 8):
   """Collects messages and prints when a new bit transition is observed.
   This is very useful to find signals based on user triggered actions, such as blinkers and seatbelt.
   """
@@ -64,6 +64,7 @@ def can_printer(bus=0, wait_time = 10):
 
           if msg_c == len(static_msgs):
             print(found)
+            np.save('bitfield.npy', np.array(dict(found)))
             return
 
           prev[y.address] = i
@@ -73,6 +74,6 @@ if __name__ == "__main__":
   print("Waiting for CAN Bus to get stable")
 
   if len(sys.argv) > 1:
-    can_printer(int(sys.argv[1]))
+    identify_bit_flip(int(sys.argv[1]))
   else:
-    can_printer()
+    identify_bit_flip()
