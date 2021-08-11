@@ -12,8 +12,8 @@ def identify_bit_flip(bus=0, wait_time = 8):
   This is very useful to find signals based on user triggered actions, such as blinkers and seatbelt.
   """
 
-  static_msgs = ["handbrake","driver door","passenger door","back left door","back right door", \
-      "seatbelt","left signal","right signal","brake","gas","generic toggle","steering"]
+  static_msgs = ["handbrake","driver door","seatbelt","left signal","right signal","brake","gas", \
+      "generic toggle","steering turn 90 degree clockwise","gear R","gear N","gear D","wheelspeed"]
   msg_c = 0
   started = False
 
@@ -26,6 +26,7 @@ def identify_bit_flip(bus=0, wait_time = 8):
   last_known = None
 
   while 1:
+    current_wait_time = wait_time
     can_recv = messaging.drain_sock(logcan, wait_for_one=True)
     for x in can_recv:
       for y in x.can:
@@ -55,8 +56,10 @@ def identify_bit_flip(bus=0, wait_time = 8):
 
           # to make sure ignition on so there is the first message coming in
           if last_known:
+            if static_msgs[msg_c] == "wheelspeed":
+              current_wait_time = 30
             # time related logic
-            if sec_since_boot() - last_known > wait_time:
+            if sec_since_boot() - last_known > current_wait_time:
               last_known = sec_since_boot()
               started = True
               print(f"Please engage then release the {static_msgs[msg_c]} within {wait_time}s.")
