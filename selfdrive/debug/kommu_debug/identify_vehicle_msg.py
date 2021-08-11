@@ -7,7 +7,7 @@ import cereal.messaging as messaging
 from common.realtime import sec_since_boot
 
 
-def identify_bit_flip(bus=0, wait_time = 8):
+def identify_bit_flip(bus=0, wait_time = 10):
   """Collects messages and prints when a new bit transition is observed.
   This is very useful to find signals based on user triggered actions, such as blinkers and seatbelt.
   """
@@ -56,16 +56,14 @@ def identify_bit_flip(bus=0, wait_time = 8):
 
           # to make sure ignition on so there is the first message coming in
           if last_known:
-            if static_msgs[msg_c] == "wheelspeed":
-              current_wait_time = 30
             # time related logic
             if sec_since_boot() - last_known > current_wait_time:
               last_known = sec_since_boot()
               started = True
-              print(f"Please engage then release the {static_msgs[msg_c]} within {wait_time}s.")
+              print(f"Toggle {static_msgs[msg_c]} within {wait_time}s.")
               msg_c += 1
 
-          if msg_c == len(static_msgs):
+          if msg_c == len(static_msgs) + 1:
             print(found)
             np.save('bitfield.npy', np.array(dict(found)))
             return

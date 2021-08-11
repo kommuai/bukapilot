@@ -3,6 +3,7 @@
 from selfdrive.car import dbc_dict
 from cereal import car
 Ecu = car.CarParams.Ecu
+
 class CAR:
   PROTON_SAGA = "PROTON SAGA 2019"
 
@@ -12,11 +13,6 @@ FINGERPRINTS = {
   }],
 }
 
-ECU_FINGERPRINT = {
-
-
-}
-
 DBC = {
-  CAR.PROTON_SAGA: dbc_dict('general_proton',None)
+  CAR.PROTON_SAGA: dbc_dict('proton_general_pt',None)
 }
