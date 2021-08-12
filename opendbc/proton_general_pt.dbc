@@ -35,27 +35,21 @@ BS_:
 
 BU_: XXX +
 
+BO_ 528 WHEELSPEED: 8 XXX
+ SG_ WHEELSPEED_FRONT : 7|16@0+ (0.0088,-0.0704) [0|16777215] "" XXX
+ SG_ WHEELSPEED_BACK : 23|16@0+ (0.0011,-0.0704) [0|65535] "" XXX
 
 BO_ 277 TRANSMISSION: 8 XXX
  SG_ GEAR : 49|2@0+ (1,0) [0|1] "" XXX
- SG_ Gas : 38|7@0+ (1,0) [0|1] "" XXX
+ SG_ GAS : 38|7@0+ (0.00999,-0.08) [0|1] "" XXX
 
 BO_ 1296 METER_CLUSTER: 8 XXX
- SG_ Door : 41|1@0+ (1,0) [0|1] "" XXX
- SG_ Light : 42|1@0+ (1,0) [0|1] "" XXX
- SG_ Handbrake : 40|1@0+ (1,0) [0|1] "" XXX
- SG_ Seatbelt : 48|1@0+ (1,0) [0|1] "" XXX
- SG_ INV_HANDBRAKE_TING : 16|1@0+ (1,0) [0|1] "" XXX
- SG_ SEATBELT_TING : 8|1@0+ (1,0) [0|1] "" XXX
- SG_ GENERIC_TOGGLE_TING : 18|1@0+ (1,0) [0|1] "" XXX
- SG_ DOOR_OPEN_TING : 17|1@0+ (1,0) [0|1] "" XXX
+ SG_ DOOR : 41|1@0+ (1,0) [0|1] "" XXX
+ SG_ LIGHT : 42|1@0+ (1,0) [0|1] "" XXX
+ SG_ HANDBRAKE : 40|1@0+ (1,0) [0|1] "" XXX
+ SG_ SEATBELT : 48|1@0+ (1,0) [0|1] "" XXX
 
 BO_ 257 BRAKE_PEDAL: 8 XXX
- SG_ BRAKE_ENGAGE_TING : 0|1@0+ (1,0) [0|1] "" XXX
- SG_ BrakePressure : 56|1@0+ (1,0) [0|1] "" XXX
+ SG_ BRAKE_ENGAGE : 56|1@0+ (1,0) [0|1] "" XXX
 
-BO_ 625 MAYBE_GAS_PEDAL1: 8 XXX
-BO_ 626 MAYBE_GAS_PEDAL3: 8 XXX
-BO_ 257 MAYBE_GAS_PEDAL2: 8 XXX
-
-VAL_ 277 GEAR 3 "N" 2 "D" 1 "R" 0 "P"
+VAL_ 277 GEAR 1 "N" 2 "D" 3 "S" 0 "P"
