@@ -54,7 +54,7 @@ if __name__ == "__main__":
     if toggle_enabled:
       dat_to_save = np.vstack([vel_arr, angle_arr, torque_arr])
       print("Number of messages: " + str(msg_cnt))
-      print("Saving data to steering_calib_data.npy...")
-      np.save("steering_calib_dat", dat_to_save)
+      print("Saving data to /data/steering_calib_data.npy...")
+      np.save("/data/steering_calib_dat", dat_to_save)
       print("Exiting...")
       exit(0)

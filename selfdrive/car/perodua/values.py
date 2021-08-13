@@ -19,5 +19,5 @@ ECU_FINGERPRINT = {
 }
 
 DBC = {
-  CAR.PERODUA_AXIA: dbc_dict('perodua_general__pt', None),
+  CAR.PERODUA_AXIA: dbc_dict('perodua_general_pt', None),
 }
