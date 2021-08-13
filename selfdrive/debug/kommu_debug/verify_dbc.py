@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
-import binascii
 import sys
-from collections import defaultdict
 import numpy as np
 from opendbc.can.dbc import dbc
 
@@ -29,8 +27,6 @@ def verify(f1,f2):
         dat_hl_bit = i[3]
         if dat_lh_bit & (1 << dbc_start_bit) or dat_hl_bit & (1 << dbc_start_bit):
           print(f"[MATCH] {dbc_sig_name} matches {can_sig_name} at address {can_addr}")
-#        else:
-#          print(f"[FAILED] {can_addr} +{bin(dat_lh_bit)}, -{bin(dat_hl_bit)}")
     except KeyError:
       print(f"[NOISE] Address: {can_addr}, Triggering signal: {can_sig_name}")
 
