@@ -35,7 +35,7 @@ def create_steer_command(packer, command, direction, enable, idx):
 
   return packer.make_can_msg("TORQUE_COMMAND", 0, values)
 
-def perodua_create_gas_command(packer, gas_amount, enable, idx):
+def proton_create_gas_command(packer, gas_amount, enable, idx):
 
   values = {
     "ENABLE": enable,
@@ -56,7 +56,7 @@ def perodua_create_gas_command(packer, gas_amount, enable, idx):
   return packer.make_can_msg("GAS_COMMAND", 0, values)
 
 # Not used
-def perodua_aeb_brake(packer, brake_amount):
+def proton_aeb_brake(packer, brake_amount):
 
   values = {
     "AEB_ALARM": 1 if (brake_amount > 0.5) else 0,
