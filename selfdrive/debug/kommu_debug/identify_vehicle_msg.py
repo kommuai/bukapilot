@@ -5,15 +5,13 @@ from collections import defaultdict
 import numpy as np
 import cereal.messaging as messaging
 from common.realtime import sec_since_boot
+from sig_definitions import msgs
 
-
-def identify_bit_flip(bus=0, wait_time = 5):
+def identify_bit_flip(bus=0, wait_time = 6):
   """Collects messages and prints when a new bit transition is observed.
   This is very useful to find signals based on user triggered actions, such as blinkers and seatbelt.
   """
 
-  static_msgs = ["handbrake","driver door","seatbelt","left signal","right signal","brake","gas", \
-      "generic toggle","steering turn 90 degree clockwise","gear R","gear N","gear D","wheelspeed"]
   msg_c = 0
   started = False
 
@@ -51,7 +49,7 @@ def identify_bit_flip(bus=0, wait_time = 5):
             last_known = sec_since_boot()
 
             if started:
-              found[last_known] = [static_msgs[msg_c-1], y.address, output_lh, output_hl]
+              found[last_known] = [msgs[msg_c-1], y.address, output_lh, output_hl]
               print(f"{sec_since_boot():.2f}\t{hex(y.address)} ({y.address})\t-{bin(output_hl)} +{bin(output_lh)}")
 
           # to make sure ignition on so there is the first message coming in
@@ -60,11 +58,11 @@ def identify_bit_flip(bus=0, wait_time = 5):
             if sec_since_boot() - last_known > current_wait_time:
               last_known = sec_since_boot()
               started = True
-              if msg_c < len(static_msgs):
-                 print(f"Toggle {static_msgs[msg_c]} within {wait_time}s.")
+              if msg_c < len(msgs):
+                 print(f"Toggle {msgs[msg_c]} within {wait_time}s.")
               msg_c += 1
 
-          if msg_c == len(static_msgs) + 1:
+          if msg_c == len(msgs) + 1:
             print(found)
             print("Saved the data to /data/bitfield.npy ...")
             np.save('/data/bitfield.npy', np.array(dict(found)))
