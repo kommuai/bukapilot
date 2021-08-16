@@ -64,6 +64,30 @@ class CarInterface(CarInterfaceBase):
       ret.openpilotLongitudinalControl = True
       ret.transmissionType = car.CarParams.TransmissionType.automatic
 
+    # adding support for Perodua Bezza 2016
+    if candidate == CAR.PERODUA_BEZZA:
+      stop_and_go = False
+      # force openpilot to fake the stock camera, make it True when we want can to spoof adas cam
+      ret.enableCamera = True
+ 
+      # force openpilot to inject gas command through gas interceptor
+      ret.enableGasInterceptor = True
+      # since using gas interceptor means there is no cruise control
+      # Make it False so OP calculates the set speed logic, see openpilot/selfdrive/controls/controlsd.py#L277
+      ret.enableCruise = ret.enableGasInterceptor
+      ret.enableDsu = not ret.enableGasInterceptor
+      ret.enableApgs = False
+      
+      # NEED TO FIND OUT
+      ret.safetyParam = 1                           # see conversion factor for STEER_TORQUE_EPS in dbc file
+      ret.wheelbase = 2.455
+      ret.steerRatio = 16                           # 360:degree change, it was 22.5
+      ret.centerToFront = ret.wheelbase * 0.61      # wild guess
+      tire_stiffness_factor = 0.6371                # Need to handtune
+      ret.mass = 925 + STD_CARGO_KG                 # curb weight is given in kg
+      ret.openpilotLongitudinalControl = True
+      ret.transmissionType = car.CarParams.TransmissionType.automatic
+
     else:
       ret.dashcamOnly = True
       ret.safetyModel = car.CarParams.SafetyModel.noOutput
