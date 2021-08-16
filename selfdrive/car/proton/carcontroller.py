@@ -1,8 +1,8 @@
 from cereal import car
 from selfdrive.car import make_can_msg, apply_std_steer_torque_limits, create_gas_command
-from selfdrive.car.perodua.peroduacan import create_steer_command, perodua_create_gas_command, perodua_aeb_brake
+from selfdrive.car.proton.protoncan import create_steer_command, proton_create_gas_command, proton_aeb_brake
 from opendbc.can.packer import CANPacker
-from selfdrive.car.perodua.values import DBC
+from selfdrive.car.proton.values import DBC
 import cereal.messaging as messaging
 from common.numpy_fast import clip, interp
 
@@ -72,12 +72,12 @@ class CarController():
       # gas
       if CS.CP.enableGasInterceptor:
         # create_gas_command inherited from car
-        can_sends.append(perodua_create_gas_command(self.packer, apply_gas, enabled, idx))
+        can_sends.append(proton_create_gas_command(self.packer, apply_gas, enabled, idx))
 
       # brakes
       if apply_brake > 0.2:
         if not self.brake_pressed:
-          can_sends.append(perodua_aeb_brake(self.packer, apply_brake))
+          can_sends.append(proton_aeb_brake(self.packer, apply_brake))
           self.brake_pressed = True
       else:
         self.brake_pressed = False

@@ -5,7 +5,7 @@ from opendbc.can.can_define import CANDefine
 from common.numpy_fast import mean
 from selfdrive.config import Conversions as CV
 from selfdrive.car.interfaces import CarStateBase
-from selfdrive.car.perodua.values import DBC
+from selfdrive.car.proton.values import DBC
 
 # livetuner import
 from kommu.livetuner.livetune_conf import livetune_conf

@@ -4,7 +4,7 @@ from selfdrive.swaglog import cloudlog
 from selfdrive.config import Conversions as CV
 from selfdrive.car import STD_CARGO_KG, scale_rot_inertia, scale_tire_stiffness, is_ecu_disconnected, gen_empty_fingerprint
 from selfdrive.car.interfaces import CarInterfaceBase
-from selfdrive.car.perodua.values import CAR
+from selfdrive.car.proton.values import CAR
 
 class CarInterface(CarInterfaceBase):
 
@@ -15,11 +15,11 @@ class CarInterface(CarInterfaceBase):
   @staticmethod
   def get_params(candidate, fingerprint=gen_empty_fingerprint(), has_relay=False, car_fw=None):
     ret = CarInterfaceBase.get_std_params(candidate, fingerprint)
-    ret.carName = "perodua"
-    ret.safetyModel = car.CarParams.SafetyModel.perodua
+    ret.carName = "proton"
+    ret.safetyModel = car.CarParams.SafetyModel.proton
     #ret.safetyModel = car.CarParams.SafetyModel.allOutput
 
-    # perodua port is a community feature
+    # proton port is a community feature
     ret.communityFeature = True
 
     ret.steerRateCost = 0.7 # Lateral MPC cost on steering rate, higher value = sharper turn
@@ -56,11 +56,11 @@ class CarInterface(CarInterfaceBase):
       
       # NEED TO FIND OUT
       ret.safetyParam = 1                           # see conversion factor for STEER_TORQUE_EPS in dbc file
-      ret.wheelbase = 2.455
-      ret.steerRatio = 16.54                        # 360:degree change, it was 18.94
+      ret.wheelbase =2.465
+      ret.steerRatio = 16                        # 360:degree change, it was 18.94
       ret.centerToFront = ret.wheelbase * 0.44      # wild guess
       tire_stiffness_factor = 0.6371                # Need to handtune
-      ret.mass = 1870. * CV.LB_TO_KG + STD_CARGO_KG # curb weight is given in pounds,lb
+      ret.mass = 1080 # curb weight is given in kg
       ret.openpilotLongitudinalControl = True
       ret.transmissionType = car.CarParams.TransmissionType.automatic
 
