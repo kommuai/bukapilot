@@ -7,7 +7,7 @@ import cereal.messaging as messaging
 from common.realtime import sec_since_boot
 from sig_definitions import msgs
 
-def identify_bit_flip(bus=0, wait_time = 6):
+def identify_bit_flip(bus=0, wait_time = 10):
   """Collects messages and prints when a new bit transition is observed.
   This is very useful to find signals based on user triggered actions, such as blinkers and seatbelt.
   """

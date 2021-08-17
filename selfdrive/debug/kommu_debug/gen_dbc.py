@@ -19,9 +19,9 @@ def get_bit_positions(val):
   v = val
   pos = []
   for i in range(64):
-    v >>= 1
     if v & 1:
       pos.append(i)
+    v >>= 1
   return pos
 
 
@@ -64,7 +64,7 @@ def gen_dbc(obj, fn):
       ordinal = defaultdict(int)
       for signal in sig[addr]:
         sig_name = signal[0]
-        bit_pos = get_bit_positions(signal[1])
+        bit_pos = get_bit_positions(signal[1] | signal[2])
 
         if sig_name in ORDINAL:
           ordinal[sig_name] |= signal[1]
@@ -77,7 +77,6 @@ def gen_dbc(obj, fn):
         for ordi in ordinal:
           lh = ordinal[ordi]
           bit_pos = get_bit_positions(lh)
-          print(bit_pos)
           start_bit, sig_size = get_sig_start_end(bit_pos)
           if start_bit != None:
             sig_tmax = 2**sig_size

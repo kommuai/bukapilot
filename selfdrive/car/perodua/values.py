@@ -5,7 +5,8 @@ from cereal import car
 Ecu = car.CarParams.Ecu
 
 class CAR:
-  PERODUA_AXIA= "PERODUA AXIA 2019"
+  PERODUA_AXIA = "PERODUA AXIA 2019"
+  PERODUA_BEZZA = "PERODUA BEZZA 2019"
 
 FINGERPRINTS = {
   CAR.PERODUA_AXIA: [{
