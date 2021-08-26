@@ -65,7 +65,7 @@ class CarInterface(CarInterfaceBase):
       ret.transmissionType = car.CarParams.TransmissionType.automatic
 
     # adding support for Perodua Bezza 2016
-    if candidate == CAR.PERODUA_BEZZA:
+    elif candidate == CAR.PERODUA_BEZZA:
       stop_and_go = False
       # force openpilot to fake the stock camera, make it True when we want can to spoof adas cam
       ret.enableCamera = True
