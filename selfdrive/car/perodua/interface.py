@@ -56,11 +56,11 @@ class CarInterface(CarInterfaceBase):
       
       # NEED TO FIND OUT
       ret.safetyParam = 1                           # see conversion factor for STEER_TORQUE_EPS in dbc file
-      ret.wheelbase = 2.455
+      ret.wheelbase = 2.5                           #meter
       ret.steerRatio = 16.54                        # 360:degree change, it was 18.94
       ret.centerToFront = ret.wheelbase * 0.44      # wild guess
       tire_stiffness_factor = 0.6371                # Need to handtune
-      ret.mass = 1870. * CV.LB_TO_KG + STD_CARGO_KG # curb weight is given in pounds,lb
+      ret.mass = 1015                               # curb weight is given in kg
       ret.openpilotLongitudinalControl = True
       ret.transmissionType = car.CarParams.TransmissionType.automatic
 
