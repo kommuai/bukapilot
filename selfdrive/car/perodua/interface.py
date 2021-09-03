@@ -31,14 +31,14 @@ class CarInterface(CarInterfaceBase):
     # For modeling details, see p.198-200 in "The Science of Vehicle Dynamics (2014), M. Guiggiani"
     ret.lateralTuning.init('pid')
     ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP = [[0.], [0.]]
-    ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.23], [0.1]]
-    ret.lateralTuning.pid.kf = 0.0000112   # full torque for 20 deg at 80mph means 0.00007818594
+    ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.10], [0.08]]
+    ret.lateralTuning.pid.kf = 0.0000212   # full torque for 20 deg at 80mph means 0.00007818594
     
     ret.gasMaxBP = [0., 9., 35]
     ret.gasMaxV = [0.2, 0.5, 0.7]
     ret.longitudinalTuning.kpV = [1.2, 0.8, 0.8]
     #ret.longitudinalTuning.kpV = [1.2, 0.8, 0.5]
-    ret.startAccel = 0.3 # Required acceleraton to overcome creep braking
+    ret.startAccel = 0.8 # Required acceleraton to overcome creep braking
 
     # adding support for Perodua Axia 2019
     if candidate == CAR.PERODUA_AXIA:
@@ -56,7 +56,7 @@ class CarInterface(CarInterfaceBase):
       
       # NEED TO FIND OUT
       ret.safetyParam = 1                           # see conversion factor for STEER_TORQUE_EPS in dbc file
-      ret.wheelbase = 2.455                           #meter
+      ret.wheelbase = 2.455                         # meter
       ret.steerRatio = 16.54                        # 360:degree change, it was 18.94
       ret.centerToFront = ret.wheelbase * 0.44      # wild guess
       tire_stiffness_factor = 0.6371                # Need to handtune
@@ -64,7 +64,6 @@ class CarInterface(CarInterfaceBase):
       ret.openpilotLongitudinalControl = True
       ret.transmissionType = car.CarParams.TransmissionType.automatic
  
-
     elif candidate == CAR.PERODUA_MYVI_AV:
         stop_and_go = False
         # force openpilot to fake the stock camera, make it True when we want can to spoof adas cam
@@ -80,17 +79,14 @@ class CarInterface(CarInterfaceBase):
  
         # NEED TO FIND OUT
         ret.safetyParam = 1                           # see conversion factor for STEER_TORQUE_EPS in dbc file
-        ret.wheelbase = 2.5                           #meter
+        ret.wheelbase = 2.5                           # meter
         ret.steerRatio = 16.54                        # 360:degree change, it was 18.94
         ret.centerToFront = ret.wheelbase * 0.44      # wild guess
         tire_stiffness_factor = 0.6371                # Need to handtune
-        ret.mass = 1015 + STD_CARGO_KG                               # curb weight is given in kg
+        ret.mass = 1015 + STD_CARGO_KG                # curb weight is given in kg
         ret.openpilotLongitudinalControl = True
         ret.transmissionType = car.CarParams.TransmissionType.automatic
 
-
-
-    # adding support for Perodua Bezza 2016
     elif candidate == CAR.PERODUA_BEZZA:
       stop_and_go = False
       # force openpilot to fake the stock camera, make it True when we want can to spoof adas cam
