@@ -60,7 +60,7 @@ class CarInterface(CarInterfaceBase):
       ret.steerRatio = 16.54                        # 360:degree change, it was 18.94
       ret.centerToFront = ret.wheelbase * 0.44      # wild guess
       tire_stiffness_factor = 0.6371                # Need to handtune
-      ret.mass = 1870. * CV.LB_TO_KG + STD_CARGO_KG                                # curb weight is given in kg
+      ret.mass = 1870. * CV.LB_TO_KG + STD_CARGO_KG # curb weight is given in pound,lb
       ret.openpilotLongitudinalControl = True
       ret.transmissionType = car.CarParams.TransmissionType.automatic
  
