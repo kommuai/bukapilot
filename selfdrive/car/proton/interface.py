@@ -41,7 +41,7 @@ class CarInterface(CarInterfaceBase):
     ret.startAccel = 0.3 # Required acceleraton to overcome creep braking
 
     # adding support for Perodua Axia 2019
-    if candidate == CAR.PERODUA_AXIA:
+    if candidate == CAR.PROTON_SAGA:
       stop_and_go = False
       # force openpilot to fake the stock camera, make it True when we want can to spoof adas cam
       ret.enableCamera = True
