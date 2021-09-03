@@ -36,42 +36,42 @@ class CarState(CarStateBase):
 
     ret = car.CarState.new_message()
     # there is a backwheel speed, but it will overflow to 0 when reach 60kmh
-    ret.wheelSpeeds.rr = cp.vl["WHEEL_SPEED"]['WHEELSPEED_F'] * CV.KPH_TO_MS
-    ret.wheelSpeeds.rl = cp.vl["WHEEL_SPEED"]['WHEELSPEED_F'] * CV.KPH_TO_MS
-    ret.wheelSpeeds.fr = cp.vl["WHEEL_SPEED"]['WHEELSPEED_F'] * CV.KPH_TO_MS
-    ret.wheelSpeeds.fl = cp.vl["WHEEL_SPEED"]['WHEELSPEED_F'] * CV.KPH_TO_MS
+    ret.wheelSpeeds.rr = cp.vl["WHEELSPEED"]['WHEELSPEED_BACK'] * CV.KPH_TO_MS
+    ret.wheelSpeeds.rl = cp.vl["WHEELSPEED"]['WHEELSPEED_BACK'] * CV.KPH_TO_MS
+    ret.wheelSpeeds.fr = cp.vl["WHEELSPEED"]['WHEELSPEED_FRONT'] * CV.KPH_TO_MS
+    ret.wheelSpeeds.fl = cp.vl["WHEELSPEED"]['WHEELSPEED_FRONT'] * CV.KPH_TO_MS
     ret.vEgoRaw = mean([ret.wheelSpeeds.rr, ret.wheelSpeeds.rl, ret.wheelSpeeds.fr, ret.wheelSpeeds.fl])
     # unfiltered speed from CAN sensors
     ret.vEgo, ret.aEgo = self.update_speed_kf(ret.vEgoRaw)
     ret.standstill = ret.vEgoRaw < 0.01
 
     # gas pedal
-    ret.gas = cp.vl["GAS_PEDAL_1"]['APPS_1']                                              # gas pedal, 0.0-1.0
+    ret.gas = cp.vl["TRANSMISSION"]['GAS']                                              # gas pedal, 0.0-1.0
     ret.gasPressed = ret.gas > 0.60
-    self.acttrGas = (cp.vl["GAS_SENSOR"]['INTERCEPTOR_GAS']) /1800
+#  self.acttrGas = (cp.vl["GAS_SENSOR"]['INTERCEPTOR_GAS']) /1800
 
     # brake pedal
-    ret.brake = cp.vl["BRAKE_PEDAL"]['BRAKE_PRESSURE']                                    # Use for pedal
+    ret.brake = cp.vl["BRAKE_PEDAL"]['BRAKE_ENGAGE']                                    # Use for pedal
     ret.brakePressed = ret.brake > 1e-5                                                   # Use for pedal
     ret.brakeLights = ret.brakePressed
 
     # steering wheel
-    ret.steeringAngle = cp.vl["STEERING_ANGLE_SENSOR"]['STEER_ANGLE']                     # deg
+#  ret.steeringAngle = cp.vl["STEERING_ANGLE_SENSOR"]['STEER_ANGLE']                     # deg
 
     # perform steeringPressed value boost during actuation from baseline steering threshold
-    if abs(ret.steeringAngle - self.prev_steer_angle) >= STEER_DIFF_THRES:
-      self.steer_boost = 5
-    else:
-      self.steer_boost = 0
+#  if abs(ret.steeringAngle - self.prev_steer_angle) >= STEER_DIFF_THRES:
+#    self.steer_boost = 5
+#  else:
+#    self.steer_boost = 0
 
-    self.prev_steer_angle = ret.steeringAngle
-    ret.steeringTorque = cp.vl["STEERING_TORQUE"]['MAIN_TORQUE']                          # no units, as defined by steering interceptor, the sensor
+#  self.prev_steer_angle = ret.steeringAngle
+#  ret.steeringTorque = cp.vl["STEERING_TORQUE"]['MAIN_TORQUE']                          # no units, as defined by steering interceptor, the sensor
 #    ret.steeringTorqueEps = cp.vl["TORQUE_COMMAND"]['INTERCEPTOR_MAIN_TORQUE']           # no units, as defined by steering interceptor, the actuator
     # currently value got from the calibration jupyter notebook
-    self.base_steer_thres = 0.00377103618*(ret.vEgo**2)+0.0568116542*ret.vEgo+19.3775297
+#  self.base_steer_thres = 0.00377103618*(ret.vEgo**2)+0.0568116542*ret.vEgo+19.3775297
     #ret.steeringPressed = bool(abs(ret.steeringTorque) >  + self.base_steer_thres + self.steer_boost)
-    ret.steeringPressed = bool(abs(ret.steeringTorque) > 35)
-    ret.steerWarning = False                                                              # since Perodua has no LKAS, make it always no warning
+#  ret.steeringPressed = bool(abs(ret.steeringTorque) > 35)
+#    ret.steerWarning = False                                                              # since Perodua has no LKAS, make it always no warning
     ret.steerError = False                                                                # since Perodua has no LKAS, make it always no warning
 #    ret.stockAeb = cp.vl["FWD_CAM1"]['AEB_BRAKE'] != 0                                   # is stock AEB giving a braking signal?
 #    ret.stockFcw = cp.vl["FWD_CAM1"]['AEB_WARNING'] != 0                                 # is stock AEB giving a frontal collision warning?
@@ -112,18 +112,18 @@ class CarState(CarStateBase):
       ret.doorOpen = False
       ret.gearShifter = 2
     else:
-      ret.doorOpen = any([cp.vl["METER_CLUSTER"]['MAIN_DOOR'],
-                     cp.vl["METER_CLUSTER"]['LEFT_FRONT_DOOR'],
-                     cp.vl["METER_CLUSTER"]['RIGHT_BACK_DOOR'],
-                     cp.vl["METER_CLUSTER"]['LEFT_BACK_DOOR']])
+      ret.doorOpen = any([cp.vl["METER_CLUSTER"]['DOOR'],
+                     cp.vl["METER_CLUSTER"]['DOOR'],
+                     cp.vl["METER_CLUSTER"]['DOOR'],
+                     cp.vl["METER_CLUSTER"]['DOOR']])
 
-      ret.seatbeltUnlatched = cp.vl["METER_CLUSTER"]['SEAT_BELT_WARNING'] == 1
+      ret.seatbeltUnlatched = cp.vl["METER_CLUSTER"]['SEATBELT'] == 1
       ret.gearShifter = self.parse_gear_shifter(self.shifter_values.get(can_gear, None))
 
     # button presses
-    ret.leftBlinker = bool(cp.vl["METER_CLUSTER"]["LEFT_SIGNAL"])
-    ret.rightBlinker = bool(cp.vl["METER_CLUSTER"]["RIGHT_SIGNAL"])
-    ret.genericToggle = bool(cp.vl["RIGHT_STALK"]["GENERIC_TOGGLE"])                       # special toggle
+#    ret.leftBlinker = bool(cp.vl["METER_CLUSTER"]["LEFT_SIGNAL"])
+#    ret.rightBlinker = bool(cp.vl["METER_CLUSTER"]["RIGHT_SIGNAL"])
+#    ret.genericToggle = bool(cp.vl["RIGHT_STALK"]["GENERIC_TOGGLE"])                       # special toggle
 
     # blindspot sensors
     ret.leftBlindspot = False                                                              # Is there something blocking the left lane change
@@ -174,11 +174,11 @@ class CarState(CarStateBase):
   def get_can_parser(CP):
     signals = [
       # sig_name, sig_address, default
-      ("WHEELSPEED_F", "WHEEL_SPEED", 0.),
-      ("WHEELSPEED_B", "WHEEL_SPEED", 0.),
+      ("WHEELSPEED_FRONT", "WHEELSPEED", 0.),
+      ("WHEELSPEED_BACK", "WHEELSPEED", 0.),
       ("GEAR", "TRANSMISSION", 0),
-      ("APPS_1", "GAS_PEDAL_1", 0.),
-      ("BRAKE_PRESSURE", "BRAKE_PEDAL", 0.),
+      ("GAS", "TRANSMISSION", 0.),
+      ("BRAKE_ENGAGE", "BRAKE_PEDAL", 0.),
       ("STEER_ANGLE", "STEERING_ANGLE_SENSOR", 0.),
       ("INTERCEPTOR_GAS", "GAS_SENSOR", 0),
       ("MAIN_TORQUE", "STEERING_TORQUE", 0),
@@ -186,8 +186,8 @@ class CarState(CarStateBase):
       ("FOG_LIGHT", "RIGHT_STALK", 0),
       ("LEFT_SIGNAL", "METER_CLUSTER", 0),
       ("RIGHT_SIGNAL", "METER_CLUSTER", 0),
-      ("SEAT_BELT_WARNING", "METER_CLUSTER", 0),
-      ("MAIN_DOOR", "METER_CLUSTER", 1),
+      ("SEATBELT", "METER_CLUSTER", 0),
+      ("DOOR", "METER_CLUSTER", 1),
       ("LEFT_FRONT_DOOR", "METER_CLUSTER", 1),
       ("RIGHT_BACK_DOOR", "METER_CLUSTER", 1),
       ("LEFT_BACK_DOOR", "METER_CLUSTER", 1),
