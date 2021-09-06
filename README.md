@@ -1,12 +1,15 @@
 What is bukapilot?
 ------
+***Todo: Add some images
 
-[bukapilot](http://github.com/kommuai/bukapilot) is a fork of an open source driver assistance system from [openpilot](http://github.com/commaai/openpilot). Currently, bukapilot performs the functions of Adaptive Cruise Control (ACC), Automated Lane Centering (ALC), Forward Collision Warning (FCW) and Lane Departure Warning (LDW) for a growing variety of supported [car makes, models and model years](#supported-cars). In addition, while bukapilot is engaged, a camera based Driver Monitoring (DM) feature alerts distracted and asleep drivers.
+[bukapilot](http://github.com/kommuai/bukapilot) is an open source software for advanced driver's assistant system (ADAS). It a fork of an open source driver assistance system from [openpilot](http://github.com/commaai/openpilot). Currently, bukapilot aims to support all Malaysian vehicles especially for Perodua and Proton while adding complete right hand drive support on top of the existing capability from openpilot.
+
+bukapilot performs the functions of Adaptive Cruise Control (ACC), Lane Keep Assist (LKA), Forward Collision Warning (FCW) and Lane Departure Warning (LDW) for a growing variety of supported [car makes, models and model years](#supported-cars). In addition, while bukapilot is engaged, a camera based Driver Monitoring (DM) feature alerts distracted and asleep drivers.
 
 Integration with Stock Features
 ------
 All supported vehicles:
-* Stock Lane Keep Assist (LKA) and stock ALC are replaced by bukapilot ALC, which only functions when bukapilot is engaged by the user.
+* Stock LKA is replaced by bukapilot LKA, which only functions when bukapilot is engaged by the user.
 * Stock LDW is replaced by bukapilot LDW.
 
 Additionally, on specific supported cars (see ACC column in [supported cars](#supported-cars)):
@@ -18,28 +21,28 @@ bukapilot should preserve all other vehicle's stock features, including, but are
 Supported Cars
 ------
 
-| Make      | Model                         | Supported Package | LKAS          | Gas            | Brake         |
-| ----------| ------------------------------| ------------------| --------------| ---------------| --------------|
-| Perodua   | Axia Advanced 2019            | ASA2.0            | KommuActuator | KommuActuator  | None          |
+| Make      | Model                         | ADAS     | LKAS                      | Gas                        | Brake         |
+| ----------| ------------------------------| ---------| --------------------------| ---------------------------| --------------|
+| Perodua   | Axia Advanced 2019            | ASA2.0   | KommuActuator<sup>1</sup> | KommuActuator<sup>1</sup>  | None          |
 
+<sup>1</sup>KommuActuator is a hardware used to provide steering control and stop-and-go capability to some of the bukapilot-supported cars that don't currently support CAN-enabled controls.
 
 KommuAssist Installation Instructions
 ------
+Install bukapilot on a supported device by entering ``https://s4.kommu.ml/upload/bp/installer_openpilot`` during the installer setup.
 
 Follow these [video instructions](https://youtu.be/FktYvHD1PD0) to properly mount the device on the windshield. Note: bukapilot features an automatic pose calibration routine and bukapilot performance should not be affected by small pitch and yaw misalignments caused by imprecise device mounting.
 
-Before placing the device on your windshield, check the state and local laws and ordinances where you drive. Some state laws prohibit or restrict the placement of objects on the windshield of a motor vehicle.
-
 You will be able to engage bukapilot after reviewing the onboarding screens and finishing the calibration procedure.
 
-Limitations of bukapilot ALC and LDW
+Limitations of bukapilot LKA and LDW
 ------
 
-bukapilot ALC and bukapilot LDW do not automatically drive the vehicle or reduce the amount of attention that must be paid to operate your vehicle. The driver must always keep control of the steering wheel and be ready to correct the bukapilot ALC action at all times.
+bukapilot LKA and bukapilot LDW do not automatically drive the vehicle or reduce the amount of attention that must be paid to operate your vehicle. The driver must always keep control of the steering wheel and be ready to correct the bukapilot LKA action at all times.
 
 While changing lanes, bukapilot is not capable of looking next to you or checking your blind spot. Only nudge the wheel to initiate a lane change after you have confirmed it's safe to do so.
 
-Many factors can impact the performance of bukapilot ALC and bukapilot LDW, causing them to be unable to function as intended. These include, but are not limited to:
+Many factors can impact the performance of bukapilot LKA and bukapilot LDW, causing them to be unable to function as intended. These include, but are not limited to:
 
 * Poor visibility (heavy rain, snow, fog, etc.) or weather conditions that may interfere with sensor operation.
 * The road facing camera is obstructed, covered or damaged by mud, ice, snow, etc.
@@ -93,7 +96,7 @@ Many factors can impact the performance of bukapilot DM, causing it to be unable
 
 The list above does not represent an exhaustive list of situations that may interfere with proper operation of bukapilot components. A driver should not rely on bukapilot DM to assess their level of attention.
 
-User Data and comma Account
+User Data and Kommu Account
 ------
 
 By default, bukapilot uploads the driving data to our servers. You can also access your data by pairing with the Kommu app ([iOS](https://apps.apple.com/us/app/comma-connect/id1456551889), [Android](https://play.google.com/store/apps/details?id=ai.comma.connect&hl=en_US)). We use your data to train better models and improve bukapilot for everyone.
@@ -105,15 +108,10 @@ By using bukapilot, you agree to [our Privacy Policy](https://kommu.ai/privacy/)
 
 Safety and Testing
 ----
-DISCLAIMER: bukapilot is still under development by a limited number of members. Duty of care will be taken to ensure the safety of both the hardware and the software.
+DISCLAIMER: bukapilot is still under development by a limited number of members. Duty of care will be taken to ensure the safety of both the hardware and the software. 
 
-* bukapilot observes ISO26262 guidelines, see [SAFETY.md](SAFETY.md) for more detail.
-* bukapilot has software in the loop [tests](.github/workflows/test.yaml) that run on every commit.
-* The safety model code lives in panda and is written in C, see [code rigor](https://github.com/commaai/panda#code-rigor) for more details.
-* KommuSafety has software in the loop [safety tests](https://github.com/commaai/panda/tree/master/tests/safety).
-* Internally, we have a hardware in the loop Jenkins test suite that builds and unit tests the various processes.
-* panda has additional hardware in the loop [tests](https://github.com/commaai/panda/blob/master/Jenkinsfile).
-* We run the latest bukapilot in a testing closet containing 10 EONs continuously replaying routes.
+bukapilot currently follows the safety model from openpilot, see [SAFETY.md](SAFETY.md) for more detail. bukapilot code development is isolated from release version of openpilot whereby isolation unit test is performed based on the induction that openpilot release version has been safety tested.
+
 
 Community and Contributing
 ------
@@ -158,7 +156,7 @@ Licensing
 
 bukapilot is released under the MIT license. Some parts of the software are released under other licenses as specified.
 
-Any user of this software shall indemnify and hold harmless comma.ai, Inc. and its directors, officers, employees, agents, stockholders, affiliates, subcontractors and customers from and against all allegations, claims, actions, suits, demands, damages, liabilities, obligations, losses, settlements, judgments, costs and expenses (including without limitation attorneys’ fees and costs) which arise out of, relate to or result from any use of this software by user.
+Any user of this software shall indemnify and hold harmless against Kommu Sdn Bhd. and its directors, officers, employees, agents, stockholders, affiliates, subcontractors and customers from and against all allegations, claims, actions, suits, demands, damages, liabilities, obligations, losses, settlements, judgments, costs and expenses (including without limitation attorneys’ fees and costs) which arise out of, relate to or result from any use of this software by user.
 
 **THIS IS ALPHA QUALITY SOFTWARE FOR RESEARCH PURPOSES ONLY. THIS IS NOT A PRODUCT.
 YOU ARE RESPONSIBLE FOR COMPLYING WITH LOCAL LAWS AND REGULATIONS.
