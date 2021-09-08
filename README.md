@@ -99,7 +99,7 @@ The list above does not represent an exhaustive list of situations that may inte
 User Data and Kommu Account
 ------
 
-By default, bukapilot uploads the driving data to our servers. You can also access your data by pairing with the Kommu app ([iOS](https://apps.apple.com/us/app/comma-connect/id1456551889), [Android](https://play.google.com/store/apps/details?id=ai.comma.connect&hl=en_US)). We use your data to train better models and improve bukapilot for everyone.
+By default, bukapilot uploads the driving data to our servers. You can also access your data by pairing with the KommuApp ([iOS](https://apps.apple.com/us/app/comma-connect/id1456551889), [Android](https://play.google.com/store/apps/details?id=ai.comma.connect&hl=en_US)). We use your data to train better models and improve bukapilot for everyone.
 
 bukapilot logs the road facing camera, CAN, GPS, IMU, magnetometer, thermal sensors, crashes, and operating system logs.
 The driver facing camera is logged by default but you can explicitly opt-out in settings. The microphone is not recorded.
