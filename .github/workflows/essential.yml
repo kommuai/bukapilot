@@ -1,0 +1,32 @@
+name: essential tests
+
+on:
+  push:
+  pull_request:
+
+env:
+  BASE_IMAGE: openpilot-base
+  DOCKER_REGISTRY: ghcr.io/commaai
+
+  BUILD: |
+      docker pull $(grep -iohP '(?<=^from)\s+\S+' Dockerfile.openpilot_base) || true
+      docker pull $DOCKER_REGISTRY/$BASE_IMAGE:latest || true
+      docker build --cache-from $DOCKER_REGISTRY/$BASE_IMAGE:latest -t $DOCKER_REGISTRY/$BASE_IMAGE:latest -t $BASE_IMAGE:latest -f Dockerfile.openpilot_base .
+      
+  RUN: docker run --shm-size 1G -v $PWD:/tmp/openpilot -w /tmp/openpilot -e PYTHONPATH=/tmp/openpilot -e GITHUB_ACTION -e GITHUB_REF -e GITHUB_HEAD_REF -e GITHUB_SHA -e GITHUB_REPOSITORY -e GITHUB_RUN_ID -v /tmp/scons_cache:/tmp/scons_cache -v /tmp/comma_download_cache:/tmp/comma_download_cache $BASE_IMAGE /bin/sh -c
+  UNIT_TEST: coverage run --append -m unittest discover
+  
+jobs:
+  unit_tests:
+    name: unit tests
+    runs-on: ubuntu-20.04
+    timeout-minutes: 50
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: true
+    - name: Build Docker image
+      run: eval "$BUILD"
+    - name: Run unit tests
+      run: |
+        ${{ env.RUN }} "coverage run selfdrive/test/test_fingerprints.py"

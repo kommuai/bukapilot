@@ -71,10 +71,10 @@ def eliminate_incompatible_cars(msg, candidate_cars):
         compatible_cars.append(car_name)
         break
 
-  #return compatible_cars
+  return compatible_cars
 
   # return the first shortest match. TODO: remove this code 
-  return [compatible_cars[0]]
+  #return [compatible_cars[0]]
 
 
 def all_known_cars():

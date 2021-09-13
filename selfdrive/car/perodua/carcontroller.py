@@ -49,7 +49,7 @@ class CarController():
 
     # lower the fighting torque during manual steer
     if (CS.out.steeringPressed):
-      apply_steer = apply_steer / 100
+      apply_steer = apply_steer / 1000
 
     self.last_steer = apply_steer
     if apply_steer >= 0:
