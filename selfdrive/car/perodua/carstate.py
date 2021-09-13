@@ -10,6 +10,7 @@ from selfdrive.car.perodua.values import DBC
 # livetuner import
 from kommu.livetuner.livetune_conf import livetune_conf
 
+# todo: clean this part up
 pedal_counter = 0
 pedal_press_state = 0
 PEDAL_COUNTER_THRES = 25
@@ -37,9 +38,9 @@ class CarState(CarStateBase):
     ret = car.CarState.new_message()
     # there is a backwheel speed, but it will overflow to 0 when reach 60kmh
     ret.wheelSpeeds.rr = cp.vl["WHEEL_SPEED"]['WHEELSPEED_F'] * CV.KPH_TO_MS
-    ret.wheelSpeeds.rl = cp.vl["WHEEL_SPEED"]['WHEELSPEED_F'] * CV.KPH_TO_MS
-    ret.wheelSpeeds.fr = cp.vl["WHEEL_SPEED"]['WHEELSPEED_F'] * CV.KPH_TO_MS
-    ret.wheelSpeeds.fl = cp.vl["WHEEL_SPEED"]['WHEELSPEED_F'] * CV.KPH_TO_MS
+    ret.wheelSpeeds.rl = ret.wheelSpeeds.rr
+    ret.wheelSpeeds.fr = ret.wheelSpeeds.rr
+    ret.wheelSpeeds.fl = ret.wheelSpeeds.rr
     ret.vEgoRaw = mean([ret.wheelSpeeds.rr, ret.wheelSpeeds.rl, ret.wheelSpeeds.fr, ret.wheelSpeeds.fl])
     # unfiltered speed from CAN sensors
     ret.vEgo, ret.aEgo = self.update_speed_kf(ret.vEgoRaw)
@@ -48,11 +49,11 @@ class CarState(CarStateBase):
     # gas pedal
     ret.gas = cp.vl["GAS_PEDAL_1"]['APPS_1']                                              # gas pedal, 0.0-1.0
     ret.gasPressed = ret.gas > 0.60
-    self.acttrGas = (cp.vl["GAS_SENSOR"]['INTERCEPTOR_GAS']) /1800
+    self.acttrGas = (cp.vl["GAS_SENSOR"]['INTERCEPTOR_GAS']) /1800                        # KommuActuator gas, read when stock peedal is being intercepted
 
     # brake pedal
     ret.brake = cp.vl["BRAKE_PEDAL"]['BRAKE_PRESSURE']                                    # Use for pedal
-    ret.brakePressed = ret.brake > 1e-5                                                   # Use for pedal
+    ret.brakePressed = ret.brake > 1e-5
     ret.brakeLights = ret.brakePressed
 
     # steering wheel
@@ -66,18 +67,26 @@ class CarState(CarStateBase):
 
     self.prev_steer_angle = ret.steeringAngle
     ret.steeringTorque = cp.vl["STEERING_TORQUE"]['MAIN_TORQUE']                          # no units, as defined by steering interceptor, the sensor
-#    ret.steeringTorqueEps = cp.vl["TORQUE_COMMAND"]['INTERCEPTOR_MAIN_TORQUE']           # no units, as defined by steering interceptor, the actuator
+    # ret.steeringTorqueEps = cp.vl["TORQUE_COMMAND"]['INTERCEPTOR_MAIN_TORQUE']          # no units, as defined by steering interceptor, the actuator
+
     # currently value got from the calibration jupyter notebook
     self.base_steer_thres = 0.00377103618*(ret.vEgo**2)+0.0568116542*ret.vEgo+19.3775297
     #ret.steeringPressed = bool(abs(ret.steeringTorque) >  + self.base_steer_thres + self.steer_boost)
-    ret.steeringPressed = bool(abs(ret.steeringTorque) > 35)
+
+    if self.CP.carFingerprint == CAR.PERODUA_MYVI:
+      ret.steeringPressed = bool(abs(ret.steeringTorque) > 50)
+    else:
+      ret.steeringPressed = bool(abs(ret.steeringTorque) > 35)
+
     ret.steerWarning = False                                                              # since Perodua has no LKAS, make it always no warning
     ret.steerError = False                                                                # since Perodua has no LKAS, make it always no warning
+
+    # todo: find this out and add it in
 #    ret.stockAeb = cp.vl["FWD_CAM1"]['AEB_BRAKE'] != 0                                   # is stock AEB giving a braking signal?
 #    ret.stockFcw = cp.vl["FWD_CAM1"]['AEB_WARNING'] != 0                                 # is stock AEB giving a frontal collision warning?
 #    ret.espDisabled = cp.vl["ESC_CONTROL"]['STATUS'] != 0                                # electronic stability control status
 
-    # cruise state, need to fake it for now, its used for driver monitoring, and controlsd see below
+    # cruise state, its used for driver monitoring, and controlsd see below
     ret.cruiseState.available = True
     ret.cruiseState.nonAdaptive = False
     ret.cruiseState.speed = self.cruise_speed
@@ -85,40 +94,32 @@ class CarState(CarStateBase):
     # Increase cruise_speed using pedal when engage
     if self.is_cruise_latch:
       self.cruise_speed_counter += 1
-      if self.cruise_speed_counter % 120 == 0 and self.acttrGas > 0.4 and self.acttrGas <= 0.8:
+      if self.cruise_speed_counter % 120 == 0 and self.acttrGas > 0.4:
         self.cruise_speed += (5 * CV.KPH_TO_MS)
-        self.cruise_speed_counter = 0
-      elif self.cruise_speed_counter % 120 == 0 and self.acttrGas > 0.8:
-        self.cruise_speed -= (5 * CV.KPH_TO_MS)
         self.cruise_speed_counter = 0
 
     # latching cruiseState logic
     #if self.check_pedal_engage(ret.gas, pedal_press_state) or self.isFakeEngage:
     if self.check_pedal_engage(ret.gas, pedal_press_state):
-      if not self.is_cruise_latch: 
+      if not self.is_cruise_latch:
         self.cruise_speed = ret.vEgo + (5 * CV.KPH_TO_MS)
       self.is_cruise_latch = True
     #if ret.brakePressed or not self.isFakeEngage:
     if ret.brakePressed:
       self.is_cruise_latch = False
-    
+
     ret.cruiseState.enabled = self.is_cruise_latch
     ret.cruiseState.standstill = ret.standstill
 
-    # gear
+    # safety checks to engage
     can_gear = int(cp.vl["TRANSMISSION"]['GEAR'])
-    if (self.isFakeEngage):
-      ret.seatbeltUnlatched = False
-      ret.doorOpen = False
-      ret.gearShifter = 2
-    else:
-      ret.doorOpen = any([cp.vl["METER_CLUSTER"]['MAIN_DOOR'],
+    ret.doorOpen = any([cp.vl["METER_CLUSTER"]['MAIN_DOOR'],
                      cp.vl["METER_CLUSTER"]['LEFT_FRONT_DOOR'],
                      cp.vl["METER_CLUSTER"]['RIGHT_BACK_DOOR'],
                      cp.vl["METER_CLUSTER"]['LEFT_BACK_DOOR']])
 
-      ret.seatbeltUnlatched = cp.vl["METER_CLUSTER"]['SEAT_BELT_WARNING'] == 1
-      ret.gearShifter = self.parse_gear_shifter(self.shifter_values.get(can_gear, None))
+    ret.seatbeltUnlatched = cp.vl["METER_CLUSTER"]['SEAT_BELT_WARNING'] == 1
+    ret.gearShifter = self.parse_gear_shifter(self.shifter_values.get(can_gear, None))
 
     # button presses
     ret.leftBlinker = bool(cp.vl["METER_CLUSTER"]["LEFT_SIGNAL"])
@@ -128,8 +129,6 @@ class CarState(CarStateBase):
     # blindspot sensors
     ret.leftBlindspot = False                                                              # Is there something blocking the left lane change
     ret.rightBlindspot = False                                                             # Is there something blocking the right lane change
-
-    # NEED TO ADD BUTTON EVENTS FOR CRUISE
 
     return ret
   @staticmethod
