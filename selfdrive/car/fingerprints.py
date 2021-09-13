@@ -73,6 +73,9 @@ def eliminate_incompatible_cars(msg, candidate_cars):
 
   return compatible_cars
 
+  # return the first shortest match. TODO: remove this code 
+  #return [compatible_cars[0]]
+
 
 def all_known_cars():
   """Returns a list of all known car strings."""
