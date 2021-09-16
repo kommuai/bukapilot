@@ -70,12 +70,14 @@ class CarInterface(CarInterfaceBase):
       tire_stiffness_factor = 0.6371
       ret.mass = 925. + STD_CARGO_KG                # kg
 
-    elif canditate == CAR.PERODUA_ARUZ:
+    elif candidate == CAR.PERODUA_ARUZ:
       ret.wheelbase = 2.685
       ret.steerRatio = 16.54
       ret.centerToFront = ret.wheelbase * 0.61
       tire_stiffness_factor = 0.6371
       ret.mass = 1310. + STD_CARGO_KG               # kg
+      ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.19], [0.08]]
+      ret.longitudinalTuning.kpV = [1.6, 1.1, 1.1]
 
     else:
       ret.dashcamOnly = True

@@ -75,6 +75,8 @@ class CarState(CarStateBase):
 
     if self.CP.carFingerprint == CAR.PERODUA_MYVI:
       ret.steeringPressed = bool(abs(ret.steeringTorque) > 50)
+    elif self.CP.carFingerprint == CAR.PERODUA_ARUZ:
+      ret.steeringPressed = bool(abs(ret.steeringTorque) > 125)
     else:
       ret.steeringPressed = bool(abs(ret.steeringTorque) > 35)
 
