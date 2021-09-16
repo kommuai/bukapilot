@@ -29,7 +29,7 @@ class LatControlPID():
                              sat_limit=CP.steerLimitTimer)
 
   def update(self, active, CS, CP, path_plan):
-    self.livetune_update(CP)
+    #self.livetune_update(CP)
 
     pid_log = log.ControlsState.LateralPIDState.new_message()
     pid_log.steerAngle = float(CS.steeringAngle)
