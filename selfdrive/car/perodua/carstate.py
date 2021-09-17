@@ -73,12 +73,10 @@ class CarState(CarStateBase):
     self.base_steer_thres = 0.00377103618*(ret.vEgo**2)+0.0568116542*ret.vEgo+19.3775297
     #ret.steeringPressed = bool(abs(ret.steeringTorque) >  + self.base_steer_thres + self.steer_boost)
 
-    if self.CP.carFingerprint == CAR.PERODUA_MYVI:
-      ret.steeringPressed = bool(abs(ret.steeringTorque) > 50)
-    elif self.CP.carFingerprint == CAR.PERODUA_ARUZ:
-      ret.steeringPressed = bool(abs(ret.steeringTorque) > 125)
-    else:
+    if self.CP.carFingerprint == CAR.PERODUA_AXIA:
       ret.steeringPressed = bool(abs(ret.steeringTorque) > 35)
+    else:
+      ret.steeringPressed = bool(abs(ret.steeringTorque) > 130)
 
     ret.steerWarning = False                                                              # since Perodua has no LKAS, make it always no warning
     ret.steerError = False                                                                # since Perodua has no LKAS, make it always no warning
