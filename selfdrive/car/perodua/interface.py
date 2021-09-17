@@ -36,7 +36,7 @@ class CarInterface(CarInterfaceBase):
 
     ret.gasMaxBP = [0., 9., 35]
     ret.gasMaxV = [0.2, 0.5, 0.7]
-    ret.longitudinalTuning.kpV = [1.2, 0.8, 0.8]
+    ret.longitudinalTuning.kpV = [1.4, 0.9, 0.9]
     ret.startAccel = 1                     # Required acceleraton to overcome creep braking
 
     # common interfaces
@@ -54,7 +54,6 @@ class CarInterface(CarInterfaceBase):
       ret.centerToFront = ret.wheelbase * 0.44      # wild guess
       tire_stiffness_factor = 0.6371                # Need to handtune
       ret.mass = 1870. * CV.LB_TO_KG + STD_CARGO_KG # curb weight is given in pound,lb
-      ret.transmissionType = car.CarParams.TransmissionType.automatic
 
     elif candidate == CAR.PERODUA_MYVI:
       ret.wheelbase = 2.5
@@ -62,6 +61,7 @@ class CarInterface(CarInterfaceBase):
       ret.centerToFront = ret.wheelbase * 0.44
       tire_stiffness_factor = 0.6371
       ret.mass = 1015. + STD_CARGO_KG               # kg
+      ret.longitudinalTuning.kpV = [1.5, 1.0, 1.0]
 
     elif candidate == CAR.PERODUA_BEZZA:
       ret.wheelbase = 2.455
@@ -69,6 +69,7 @@ class CarInterface(CarInterfaceBase):
       ret.centerToFront = ret.wheelbase * 0.61
       tire_stiffness_factor = 0.6371
       ret.mass = 925. + STD_CARGO_KG                # kg
+      ret.longitudinalTuning.kpV = [1.5, 1.0, 1.0]
 
     elif candidate == CAR.PERODUA_ARUZ:
       ret.wheelbase = 2.685
