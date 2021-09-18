@@ -53,7 +53,12 @@ class CarState(CarStateBase):
 
     # brake pedal
     ret.brake = cp.vl["BRAKE_PEDAL"]['BRAKE_PRESSURE']                                    # Use for pedal
-    ret.brakePressed = ret.brake > 1e-5
+    
+    if self.CP.carFingerprint == CAR.PERODUA_BEZZA:
+      ret.brakePressed = ret.brake > 1.2
+    else:
+      ret.brakePressed = ret.brake > 1e-5
+      
     ret.brakeLights = ret.brakePressed
 
     # steering wheel
