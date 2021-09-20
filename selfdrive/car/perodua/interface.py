@@ -64,11 +64,13 @@ class CarInterface(CarInterfaceBase):
       ret.longitudinalTuning.kpV = [1.5, 1.0, 1.0]
 
     elif candidate == CAR.PERODUA_BEZZA:
+      ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.18], [0.04]]
+      ret.lateralTuning.pid.kf = 0.000106
       ret.wheelbase = 2.455
-      ret.steerRatio = 16
-      ret.centerToFront = ret.wheelbase * 0.61
+      ret.steerRatio = 16.54
+      ret.centerToFront = ret.wheelbase * 0.55
       tire_stiffness_factor = 0.6371
-      ret.mass = 925. + STD_CARGO_KG                # kg
+      ret.mass = 940. + STD_CARGO_KG                # kg
       ret.longitudinalTuning.kpV = [1.5, 1.0, 1.0]
 
     elif candidate == CAR.PERODUA_ARUZ:
