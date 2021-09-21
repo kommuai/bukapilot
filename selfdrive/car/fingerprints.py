@@ -71,11 +71,8 @@ def eliminate_incompatible_cars(msg, candidate_cars):
         compatible_cars.append(car_name)
         break
 
-  # to return shortest match
-  if(len(compatible_cars) == 1 or len(compatible_cars) == 0):
-    return compatible_cars
-  else:
-    return [compatible_cars[0]]
+  return compatible_cars
+
 
 
 def all_known_cars():
