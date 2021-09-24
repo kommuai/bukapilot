@@ -40,6 +40,7 @@ def manager_init():
     ("IsRHD", "1"),
     ("OpenpilotEnabledToggle", "1"),
     ("RecordFront", "1"),
+    ("UploadRaw", "1"),
   ]
   if not PC:
     default_params.append(("LastUpdateTime", datetime.datetime.utcnow().isoformat().encode('utf8')))
