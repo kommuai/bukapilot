@@ -56,10 +56,10 @@ class CarInterface(CarInterfaceBase):
       ret.mass = 1870. * CV.LB_TO_KG + STD_CARGO_KG # curb weight is given in pound,lb
 
     elif candidate == CAR.PERODUA_MYVI:
-      ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.22], [0.06]]
-      ret.lateralTuning.pid.kf = 0.000196
+      ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.18], [0.06]]
+      ret.lateralTuning.pid.kf = 0.000126
       ret.wheelbase = 2.5
-      ret.steerRatio = 16.
+      ret.steerRatio = 16.54
       ret.centerToFront = ret.wheelbase * 0.44
       tire_stiffness_factor = 0.6371
       ret.mass = 1015. + STD_CARGO_KG               # kg
@@ -78,7 +78,7 @@ class CarInterface(CarInterfaceBase):
     elif candidate == CAR.PERODUA_ARUZ:
       ret.lateralTuning.pid.kf = 0.000166
       ret.wheelbase = 2.685
-      ret.steerRatio = 16.
+      ret.steerRatio = 16.54
       ret.centerToFront = ret.wheelbase * 0.55
       tire_stiffness_factor = 0.6371
       ret.mass = 1310. + STD_CARGO_KG               # kg
