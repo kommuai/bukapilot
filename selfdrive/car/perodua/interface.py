@@ -31,7 +31,7 @@ class CarInterface(CarInterfaceBase):
     # For modeling details, see p.198-200 in "The Science of Vehicle Dynamics (2014), M. Guiggiani"
     ret.lateralTuning.init('pid')
     ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP = [[0.], [0.]]
-    ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.18], [0.06]]
+    ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.18], [0.06]]
     ret.lateralTuning.pid.kf = 0.000126   # full torque for 20 deg at 80mph means 0.00007818594
 
     ret.gasMaxBP = [0., 9., 35]
@@ -56,7 +56,7 @@ class CarInterface(CarInterfaceBase):
       ret.mass = 1870. * CV.LB_TO_KG + STD_CARGO_KG # curb weight is given in pound,lb
 
     elif candidate == CAR.PERODUA_MYVI:
-      ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.18], [0.06]]
+      ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.18], [0.06]]
       ret.lateralTuning.pid.kf = 0.000126
       ret.wheelbase = 2.5
       ret.steerRatio = 16.54
@@ -66,7 +66,7 @@ class CarInterface(CarInterfaceBase):
       ret.longitudinalTuning.kpV = [1.5, 1.0, 1.0]
 
     elif candidate == CAR.PERODUA_BEZZA:
-      ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.18], [0.04]]
+      ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.20], [0.04]]
       ret.lateralTuning.pid.kf = 0.000106
       ret.wheelbase = 2.455
       ret.steerRatio = 16.54
@@ -82,7 +82,7 @@ class CarInterface(CarInterfaceBase):
       ret.centerToFront = ret.wheelbase * 0.55
       tire_stiffness_factor = 0.6371
       ret.mass = 1310. + STD_CARGO_KG               # kg
-      ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.22], [0.06]]
+      ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.22], [0.06]]
       ret.longitudinalTuning.kpV = [1.6, 1.1, 1.1]
 
     else:
