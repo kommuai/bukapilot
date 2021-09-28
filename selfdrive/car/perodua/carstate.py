@@ -127,8 +127,11 @@ class CarState(CarStateBase):
     ret.gearShifter = self.parse_gear_shifter(self.shifter_values.get(can_gear, None))
 
     # button presses
-    ret.leftBlinker = bool(cp.vl["METER_CLUSTER"]["LEFT_SIGNAL"])
-    ret.rightBlinker = bool(cp.vl["METER_CLUSTER"]["RIGHT_SIGNAL"])
+    #ret.leftBlinker = bool(cp.vl["METER_CLUSTER"]["LEFT_SIGNAL"])
+    #ret.rightBlinker = bool(cp.vl["METER_CLUSTER"]["RIGHT_SIGNAL"])
+
+    ret.leftBlinker, ret.rightBlinker = self.update_blinker_from_lamp(
+      50, cp.vl["METER_CLUSTER"]["LEFT_SIGNAL"], cp.vl["METER_CLUSTER"]["RIGHT_SIGNAL"])
     ret.genericToggle = bool(cp.vl["RIGHT_STALK"]["GENERIC_TOGGLE"])                       # special toggle
 
     # blindspot sensors

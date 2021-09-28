@@ -21,6 +21,7 @@ class CarInterface(CarInterfaceBase):
 
     # perodua port is a community feature
     ret.communityFeature = True
+    ret.radarOffCan = True
 
     ret.steerRateCost = 0.7                # Lateral MPC cost on steering rate, higher value = sharper turn
     ret.steerLimitTimer = 0.9              # time before steerLimitAlert is issued
@@ -31,11 +32,11 @@ class CarInterface(CarInterfaceBase):
     # For modeling details, see p.198-200 in "The Science of Vehicle Dynamics (2014), M. Guiggiani"
     ret.lateralTuning.init('pid')
     ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP = [[0.], [0.]]
-    ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.18], [0.06]]
+    ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.08], [0.23]]
     ret.lateralTuning.pid.kf = 0.000126   # full torque for 20 deg at 80mph means 0.00007818594
 
     ret.gasMaxBP = [0., 9., 35]
-    ret.gasMaxV = [0.2, 0.5, 0.7]
+    ret.gasMaxV = [0.4, 0.5, 0.9]
     ret.longitudinalTuning.kpV = [1.4, 0.9, 0.9]
     ret.startAccel = 1                     # Required acceleraton to overcome creep braking
 
@@ -44,13 +45,14 @@ class CarInterface(CarInterfaceBase):
     ret.transmissionType = car.CarParams.TransmissionType.automatic
     ret.enableApgs = False                 # advanced parking guidance system
     ret.safetyParam = 1
+    ret.enableGasInterceptor = True
     ret.openpilotLongitudinalControl = True
 
     if candidate == CAR.PERODUA_AXIA:
       ret.wheelbase = 2.455                         # meter
       ret.steerRatio = 16.54                        # 360:degree change, it was 18.94
       ret.centerToFront = ret.wheelbase * 0.44      # wild guess
-      tire_stiffness_factor = 0.6371                # Need to handtune
+      tire_stiffness_factor = 0.8371                # Need to handtune
       ret.mass = 1870. * CV.LB_TO_KG + STD_CARGO_KG # curb weight is given in pound,lb
 
     elif candidate == CAR.PERODUA_MYVI:
@@ -62,7 +64,7 @@ class CarInterface(CarInterfaceBase):
       ret.longitudinalTuning.kpV = [1.5, 1.0, 1.0]
 
     elif candidate == CAR.PERODUA_BEZZA:
-      ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.18], [0.04]]
+      ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.08], [0.18]]
       ret.lateralTuning.pid.kf = 0.000106
       ret.wheelbase = 2.455
       ret.steerRatio = 16.54
@@ -77,7 +79,7 @@ class CarInterface(CarInterfaceBase):
       ret.centerToFront = ret.wheelbase * 0.61
       tire_stiffness_factor = 0.6371
       ret.mass = 1310. + STD_CARGO_KG               # kg
-      ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.19], [0.08]]
+      ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.09], [0.18]]
       ret.longitudinalTuning.kpV = [1.6, 1.1, 1.1]
 
     else:
