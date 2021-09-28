@@ -56,7 +56,7 @@ CameraInfo cameras_supported[CAMERA_ID_MAX] = {
     .frame_height = 1224,
     .frame_stride = 2040, // seems right
     .bayer = true,
-    .bayer_flip = 0,
+    .bayer_flip = 3,
     .hdr = false
   },
   // this exists to get the kernel to build for the LeEco in release
