@@ -1,85 +1,78 @@
 from cereal import car
-from selfdrive.car import make_can_msg, apply_std_steer_torque_limits, create_gas_command
-from selfdrive.car.perodua.peroduacan import create_steer_command, perodua_create_gas_command, perodua_aeb_brake
+from selfdrive.car import make_can_msg, apply_std_steer_torque_limits
+from selfdrive.car.perodua.peroduacan import create_steer_command, perodua_create_gas_command, perodua_aeb_brake, perodua_aeb1_brake, perodua_aeb2_brake
+from selfdrive.car.perodua.values import DBC, NOT_CAN_CONTROLLED
+from selfdrive.controls.lib.lateral_planner import LANE_CHANGE_SPEED_MIN
 from opendbc.can.packer import CANPacker
-from selfdrive.car.perodua.values import DBC
+from common.numpy_fast import clip
 import cereal.messaging as messaging
-from common.numpy_fast import clip, interp
-
-# livetuner import
-from kommu.livetuner.livetune_conf import livetune_conf
 
 class CarControllerParams():
   def __init__(self):
 
-    self.STEER_MAX = 750                           # KommuActuator dac write value
-    self.STEER_STEP = 1                            # how often we update the steer cmd
-    self.STEER_DELTA_UP = 10                       # torque increase per refresh, 0.8s to max
-    self.STEER_DELTA_DOWN = 30                     # torque decrease per refresh
-    self.STEER_DRIVER_ALLOWANCE = 1                # allowed driver torque before start limiting
-    self.STEER_DRIVER_MULTIPLIER = 1               # weight driver torque heavily
-    self.STEER_DRIVER_FACTOR = 1                   # from dbc
-    self.GAS_MAX = 1700                            # KommuActuator dac gas value
+    self.STEER_MAX = 700                   # KommuActuator dac steering value
+    self.STEER_DELTA_UP = 10               # torque increase per refresh, 0.8s to max
+    self.STEER_DELTA_DOWN = 30             # torque decrease per refresh
+    self.STEER_DRIVER_ALLOWANCE = 1        # allowed driver torque before start limiting
+    self.STEER_DRIVER_MULTIPLIER = 1       # weight driver torque heavily
+    self.STEER_DRIVER_FACTOR = 1           # from dbc
+    self.STEER_REDUCE_FACTOR = 1000        # how much to divide the steer when reducing fighting torque
+    self.GAS_MAX = 1700                    # KommuActuator dac gas value
+    self.LONGITUDINAL_STEP = 2             # how often we update the longitudinal cmd
+    self.BRAKE_ALERT_PERCENT = 20          # percentage of brake to sound stock AEB alert
+    self.ADAS_STEP = 7                     # 100/7 approx ASA frequency of 15 hz
 
 class CarController():
   def __init__(self, dbc_name, CP, VM):
     self.last_steer = 0
     self.steer_rate_limited = False
     self.steering_direction = False
+    self.brake_pressed = True
     self.params = CarControllerParams()
     self.packer = CANPacker(DBC[CP.carFingerprint]['pt'])
-    self.brake_pressed = True
 
   def update(self, enabled, CS, frame, actuators, visual_alert, pcm_cancel):
-
     can_sends = []
 
-    livetune = livetune_conf()
-
     # generate steering command
-    if (frame % self.params.STEER_STEP) == 0 and enabled:
-      new_steer = int(round(actuators.steer * self.params.STEER_MAX))                # actuator.steer is from range from -1.0 - 1.0
-      apply_steer = apply_std_steer_torque_limits(new_steer, self.last_steer, CS.out.steeringTorqueEps, self.params)
-      self.steer_rate_limited = ( new_steer != apply_steer ) and (apply_steer != 0)
-    else:
-      apply_steer = 0
-    # limit steering based on angle
-    if (abs(CS.out.steeringAngleDeg) > 220):
-      apply_steer = 0
+    steer_max_interp = self.params.STEER_MAX
+    if CS.out.vEgo > 20:
+      steer_max_interp = self.params.STEER_MAX + 50
+    new_steer = int(round(actuators.steer * steer_max_interp))
+    apply_steer = apply_std_steer_torque_limits(new_steer, self.last_steer, CS.out.steeringTorqueEps, self.params)
+    self.steer_rate_limited = ( new_steer != apply_steer ) and (apply_steer != 0)
 
-    # lower the fighting torque during manual steer
-    if (CS.out.steeringPressed):
-      apply_steer = apply_steer / 1000
+    reduce_fighting_torque = ((CS.out.vEgo < LANE_CHANGE_SPEED_MIN) and (CS.out.leftBlinker != CS.out.rightBlinker))
+    if reduce_fighting_torque:
+      apply_steer = apply_steer / self.params.STEER_REDUCE_FACTOR
+
+    self.steering_direction = True if (apply_steer >= 0) else False
+    can_sends.append(create_steer_command(self.packer, apply_steer, self.steering_direction, enabled, frame))
 
     self.last_steer = apply_steer
-    if apply_steer >= 0:
-      self.steering_direction = True
-    else:
-      self.steering_direction = False
 
-    if (frame % self.params.STEER_STEP) == 0:
-      can_sends.append(create_steer_command(self.packer, apply_steer, self.steering_direction, enabled, frame))
-
-    FRAME_DIVIDER = 2
-
-    # Gas Command Interceptor
-    if (frame % FRAME_DIVIDER) == 0:
-      idx = frame // FRAME_DIVIDER
+    # gas
+    if (frame % self.params.LONGITUDINAL_STEP) == 0:
+      idx = frame // self.params.LONGITUDINAL_STEP
       apply_gas = clip(actuators.gas, 0., 1.)
       apply_brake = clip(actuators.brake, 0., 1.)
       apply_gas = abs(apply_gas * self.params.GAS_MAX)
 
-      # gas
+      # interceptor gas
       if CS.CP.enableGasInterceptor:
-        # create_gas_command inherited from car
         can_sends.append(perodua_create_gas_command(self.packer, apply_gas, enabled, idx))
 
-      # brakes
-      if apply_brake > 0.2:
+      # AEB alert for non-braking cars
+      if CS.CP.carFingerprint in NOT_CAN_CONTROLLED and apply_brake > (self.params.BRAKE_ALERT_PERCENT / 100):
         if not self.brake_pressed:
           can_sends.append(perodua_aeb_brake(self.packer, apply_brake))
           self.brake_pressed = True
       else:
         self.brake_pressed = False
+
+    # fake adas
+#    if (frame % self.params.ADAS_STEP) == 0:
+#      can_sends.append(perodua_aeb1_brake(self.packer))
+#      can_sends.append(perodua_aeb2_brake(self.packer))
 
     return can_sends

@@ -8,7 +8,6 @@ from selfdrive.car.perodua.values import CAR
 
 class CarInterface(CarInterfaceBase):
 
-  # todo: remove?
   @staticmethod
   def compute_gb(accel, speed):
     return float(accel) / 4.0
@@ -24,19 +23,19 @@ class CarInterface(CarInterfaceBase):
     ret.radarOffCan = True
 
     ret.steerRateCost = 0.7                # Lateral MPC cost on steering rate, higher value = sharper turn
-    ret.steerLimitTimer = 0.9              # time before steerLimitAlert is issued
+    ret.steerLimitTimer = 0.4              # time before steerLimitAlert is issued
     ret.steerControlType = car.CarParams.SteerControlType.torque # or car.CarParams.SteerControlType.angle
     ret.steerActuatorDelay = 0.4           # Steering wheel actuator delay in seconds, it was 0.1
 
     # Tire stiffness factor fictitiously lower if it includes the steering column torsion effect.
     # For modeling details, see p.198-200 in "The Science of Vehicle Dynamics (2014), M. Guiggiani"
     ret.lateralTuning.init('pid')
-    ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP = [[0.], [0.]]
-    ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.08], [0.23]]
-    ret.lateralTuning.pid.kf = 0.000126   # full torque for 20 deg at 80mph means 0.00007818594
+    ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP = [[0., 20, 30], [0., 20, 30]]
+    ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.06, 0.07, 0.12], [0.25, 0.26, 0.30]]
+    ret.lateralTuning.pid.kf = 0.000166
 
     ret.gasMaxBP = [0., 9., 35]
-    ret.gasMaxV = [0.4, 0.5, 0.9]
+    ret.gasMaxV = [0.4, 0.5, 1.0]
     ret.longitudinalTuning.kpV = [1.4, 0.9, 0.9]
     ret.startAccel = 1                     # Required acceleraton to overcome creep braking
 
@@ -49,48 +48,44 @@ class CarInterface(CarInterfaceBase):
     ret.openpilotLongitudinalControl = True
 
     if candidate == CAR.PERODUA_AXIA:
-      ret.wheelbase = 2.455                         # meter
-      ret.steerRatio = 16.54                        # 360:degree change, it was 18.94
-      ret.centerToFront = ret.wheelbase * 0.44      # wild guess
-      tire_stiffness_factor = 0.8371                # Need to handtune
-      ret.mass = 1870. * CV.LB_TO_KG + STD_CARGO_KG # curb weight is given in pound,lb
+      ret.wheelbase = 2.455                # meter
+      ret.steerRatio = 16.54
+      ret.centerToFront = ret.wheelbase * 0.44
+      tire_stiffness_factor = 0.8371
+      ret.mass = 850. + STD_CARGO_KG
 
     elif candidate == CAR.PERODUA_MYVI:
       ret.wheelbase = 2.5
       ret.steerRatio = 16.54
       ret.centerToFront = ret.wheelbase * 0.44
       tire_stiffness_factor = 0.6371
-      ret.mass = 1015. + STD_CARGO_KG               # kg
-      ret.longitudinalTuning.kpV = [1.5, 1.0, 1.0]
+      ret.mass = 1015. + STD_CARGO_KG
 
     elif candidate == CAR.PERODUA_BEZZA:
-      ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.08], [0.18]]
-      ret.lateralTuning.pid.kf = 0.000106
       ret.wheelbase = 2.455
       ret.steerRatio = 16.54
       ret.centerToFront = ret.wheelbase * 0.55
       tire_stiffness_factor = 0.6371
-      ret.mass = 940. + STD_CARGO_KG                # kg
-      ret.longitudinalTuning.kpV = [1.5, 1.0, 1.0]
+      ret.mass = 940. + STD_CARGO_KG
 
     elif candidate == CAR.PERODUA_ARUZ:
       ret.wheelbase = 2.685
       ret.steerRatio = 16.54
       ret.centerToFront = ret.wheelbase * 0.61
       tire_stiffness_factor = 0.6371
-      ret.mass = 1310. + STD_CARGO_KG               # kg
-      ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.09], [0.18]]
+      ret.mass = 1310. + STD_CARGO_KG
       ret.longitudinalTuning.kpV = [1.6, 1.1, 1.1]
+
+    elif candidate == CAR.PERODUA_ATIVA:
+      # min speed to enable ACC. if car can do stop and go or has gas interceptor,
+      # then set enabling speed to a negative value, so it won't matter.
+      ret.minEnableSpeed = 30 * CV.KPH_TO_MS
 
     else:
       ret.dashcamOnly = True
       ret.safetyModel = car.CarParams.SafetyModel.noOutput
 
     ret.enableDsu = False
-
-    # min speed to enable ACC. if car can do stop and go or has gas interceptor,
-    # then set enabling speed to a negative value, so it won't matter.
-    ret.minEnableSpeed = -1.
 
     ret.rotationalInertia = scale_rot_inertia(ret.mass, ret.wheelbase)
     ret.tireStiffnessFront, ret.tireStiffnessRear = scale_tire_stiffness(ret.mass, ret.wheelbase, ret.centerToFront, tire_stiffness_factor=tire_stiffness_factor)
@@ -109,7 +104,6 @@ class CarInterface(CarInterfaceBase):
 
     # events
     events = self.create_common_events(ret)
-
     ret.events = events.to_msg()
 
     self.CS.out = ret.as_reader()
