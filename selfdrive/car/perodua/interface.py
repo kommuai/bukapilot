@@ -30,12 +30,14 @@ class CarInterface(CarInterfaceBase):
     # Tire stiffness factor fictitiously lower if it includes the steering column torsion effect.
     # For modeling details, see p.198-200 in "The Science of Vehicle Dynamics (2014), M. Guiggiani"
     ret.lateralTuning.init('pid')
+
     ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP = [[0., 20, 30], [0., 20, 30]]
     ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.06, 0.07, 0.12], [0.25, 0.26, 0.30]]
     ret.lateralTuning.pid.kf = 0.000166
 
     ret.gasMaxBP = [0., 9., 35]
     ret.gasMaxV = [0.4, 0.5, 1.0]
+
     ret.longitudinalTuning.kpV = [1.4, 0.9, 0.9]
     ret.startAccel = 1                     # Required acceleraton to overcome creep braking
 
