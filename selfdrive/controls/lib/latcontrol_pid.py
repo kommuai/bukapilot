@@ -4,9 +4,6 @@ from selfdrive.controls.lib.pid import PIController
 from selfdrive.controls.lib.drive_helpers import get_steer_max
 from cereal import log
 
-# livetune import
-from kommu.livetuner.livetune_conf import livetune_conf
-
 class LatControlPID():
   def __init__(self, CP):
     self.pid = PIController((CP.lateralTuning.pid.kpBP, CP.lateralTuning.pid.kpV),
@@ -17,20 +14,7 @@ class LatControlPID():
   def reset(self):
     self.pid.reset()
 
-  # livetune
-  def livetune_update(self, CP):
-    self.livetune = livetune_conf()
-    self.steerKpV = [float(self.livetune.conf['Kp'])]
-    self.steerKiV = [float(self.livetune.conf['Ki'])]
-    self.steerKf = float(self.livetune.conf['Kf'])
-    self.pid = PIController((CP.lateralTuning.pid.kpBP, self.steerKpV),
-                            (CP.lateralTuning.pid.kiBP, self.steerKiV),
-                             k_f=self.steerKf, pos_limit=1.0, neg_limit=-1.0,
-                             sat_limit=CP.steerLimitTimer)
-
   def update(self, active, CS, CP, VM, params, desired_curvature, desired_curvature_rate):
-    self.livetune_update(CP)
-
     pid_log = log.ControlsState.LateralPIDState.new_message()
     pid_log.steeringAngleDeg = float(CS.steeringAngleDeg)
     pid_log.steeringRateDeg = float(CS.steeringRateDeg)
