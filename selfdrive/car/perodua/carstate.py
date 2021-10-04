@@ -109,6 +109,7 @@ class CarState(CarStateBase):
     ret.rightBlinker = bool(cp.vl["METER_CLUSTER"]["RIGHT_SIGNAL"])
     ret.genericToggle = bool(cp.vl["RIGHT_STALK"]["GENERIC_TOGGLE"])
     
+
     # blindspot sensors
     ret.leftBlindspot = False
     ret.rightBlindspot = False
