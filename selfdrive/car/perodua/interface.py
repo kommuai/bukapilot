@@ -2,13 +2,12 @@
 from cereal import car
 from selfdrive.swaglog import cloudlog
 from selfdrive.config import Conversions as CV
-from selfdrive.car import STD_CARGO_KG, scale_rot_inertia, scale_tire_stiffness, is_ecu_disconnected, gen_empty_fingerprint
+from selfdrive.car import STD_CARGO_KG, scale_rot_inertia, scale_tire_stiffness, gen_empty_fingerprint
 from selfdrive.car.interfaces import CarInterfaceBase
 from selfdrive.car.perodua.values import CAR
 
 class CarInterface(CarInterfaceBase):
 
-  # todo: remove?
   @staticmethod
   def compute_gb(accel, speed):
     return float(accel) / 4.0
@@ -21,85 +20,78 @@ class CarInterface(CarInterfaceBase):
 
     # perodua port is a community feature
     ret.communityFeature = True
+    ret.radarOffCan = True
 
     ret.steerRateCost = 0.7                # Lateral MPC cost on steering rate, higher value = sharper turn
-    ret.steerLimitTimer = 0.9              # time before steerLimitAlert is issued
+    ret.steerLimitTimer = 0.4              # time before steerLimitAlert is issued
     ret.steerControlType = car.CarParams.SteerControlType.torque # or car.CarParams.SteerControlType.angle
-    ret.steerActuatorDelay = 0.4           # Steering wheel actuator delay in seconds, it was 0.1
+    ret.steerActuatorDelay = 0.48           # Steering wheel actuator delay in seconds, it was 0.1
 
     # Tire stiffness factor fictitiously lower if it includes the steering column torsion effect.
     # For modeling details, see p.198-200 in "The Science of Vehicle Dynamics (2014), M. Guiggiani"
     ret.lateralTuning.init('pid')
-    ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP = [[0.], [0.]]
-    ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.18], [0.06]]
-    ret.lateralTuning.pid.kf = 0.000126   # full torque for 20 deg at 80mph means 0.00007818594
+
+    ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP = [[0., 20, 30], [0., 20, 30]]
+    ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.01, 0.02, 0.04], [0.08, 0.10, 0.18]]
+    ret.lateralTuning.pid.kf = 0.000150
 
     ret.gasMaxBP = [0., 9., 35]
-    ret.gasMaxV = [0.2, 0.5, 0.7]
-    ret.longitudinalTuning.kpV = [1.4, 0.9, 0.9]
+    ret.gasMaxV = [0.3, 0.5, 0.7]
+
+    #ret.longitudinalTuning.kpV = [1.3, 0.9, 0.9]
+    ret.longitudinalTuning.kpV = [1.3]
     ret.startAccel = 1                     # Required acceleraton to overcome creep braking
 
     # common interfaces
     stop_and_go = False
-    ret.enableGasInterceptor = True        # force openpilot to inject gas command through gas interceptor
-    ret.enableCamera = True                # fake the stock camera, True when we want can to spoof adas cam
     ret.transmissionType = car.CarParams.TransmissionType.automatic
+    ret.enableCamera = True
     ret.enableApgs = False                 # advanced parking guidance system
     ret.safetyParam = 1
+    ret.enableGasInterceptor = True
     ret.openpilotLongitudinalControl = True
 
     if candidate == CAR.PERODUA_AXIA:
-      ret.wheelbase = 2.455                         # meter
-      ret.steerRatio = 16.54                        # 360:degree change, it was 18.94
-      ret.centerToFront = ret.wheelbase * 0.44      # wild guess
-      tire_stiffness_factor = 0.6371                # Need to handtune
-      ret.mass = 1870. * CV.LB_TO_KG + STD_CARGO_KG # curb weight is given in pound,lb
+      ret.wheelbase = 2.455                # meter
+      ret.steerRatio = 16.54
+      ret.centerToFront = ret.wheelbase * 0.44
+      tire_stiffness_factor = 0.8371
+      ret.mass = 850. + STD_CARGO_KG
 
     elif candidate == CAR.PERODUA_MYVI:
-      ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.18], [0.06]]
-      ret.lateralTuning.pid.kf = 0.000126
+      ret.longitudinalTuning.kpV = [1.5]
+
       ret.wheelbase = 2.5
       ret.steerRatio = 16.54
       ret.centerToFront = ret.wheelbase * 0.44
       tire_stiffness_factor = 0.6371
-      ret.mass = 1015. + STD_CARGO_KG               # kg
-      ret.longitudinalTuning.kpV = [1.5, 1.0, 1.0]
+      ret.mass = 1015. + STD_CARGO_KG
 
     elif candidate == CAR.PERODUA_BEZZA:
-      ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.20], [0.04]]
-      ret.lateralTuning.pid.kf = 0.000106
       ret.wheelbase = 2.455
       ret.steerRatio = 16.54
       ret.centerToFront = ret.wheelbase * 0.55
       tire_stiffness_factor = 0.6371
-      ret.mass = 940. + STD_CARGO_KG                # kg
-      ret.longitudinalTuning.kpV = [1.5, 1.0, 1.0]
+      ret.mass = 940. + STD_CARGO_KG
 
     elif candidate == CAR.PERODUA_ARUZ:
-      ret.lateralTuning.pid.kf = 0.000166
+      ret.longitudinalTuning.kpV = [1.6]
       ret.wheelbase = 2.685
       ret.steerRatio = 16.54
       ret.centerToFront = ret.wheelbase * 0.55
       tire_stiffness_factor = 0.6371
-      ret.mass = 1310. + STD_CARGO_KG               # kg
-      ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.22], [0.06]]
-      ret.longitudinalTuning.kpV = [1.6, 1.1, 1.1]
+      ret.mass = 1310. + STD_CARGO_KG
+
+    elif candidate == CAR.PERODUA_ATIVA:
+      # min speed to enable ACC. if car can do stop and go or has gas interceptor,
+      # then set enabling speed to a negative value, so it won't matter.
+      ret.minEnableSpeed = 30 * CV.KPH_TO_MS
 
     else:
       ret.dashcamOnly = True
       ret.safetyModel = car.CarParams.SafetyModel.noOutput
 
-    cloudlog.warning("Gas Interceptor: %r", ret.enableGasInterceptor)
-    cloudlog.warning("Camera Simulated: %r", ret.enableCamera)
-
-    # since using gas interceptor means there is no cruise control
-    # Make it False so OP calculates the set speed logic, see openpilot/selfdrive/controls/controlsd.py#L277
-    ret.enableCruise = ret.enableGasInterceptor
-    ret.enableDsu = not ret.enableGasInterceptor
-
-    # min speed to enable ACC. if car can do stop and go or has gas interceptor,
-    # then set enabling speed to a negative value, so it won't matter.
-    ret.minEnableSpeed = -1. if (stop_and_go or ret.enableGasInterceptor) else 25.5 * CV.MPH_TO_MS
+    ret.enableDsu = False
 
     ret.rotationalInertia = scale_rot_inertia(ret.mass, ret.wheelbase)
     ret.tireStiffnessFront, ret.tireStiffnessRear = scale_tire_stiffness(ret.mass, ret.wheelbase, ret.centerToFront, tire_stiffness_factor=tire_stiffness_factor)
@@ -118,7 +110,6 @@ class CarInterface(CarInterfaceBase):
 
     # events
     events = self.create_common_events(ret)
-
     ret.events = events.to_msg()
 
     self.CS.out = ret.as_reader()
