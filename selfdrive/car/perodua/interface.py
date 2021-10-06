@@ -25,20 +25,21 @@ class CarInterface(CarInterfaceBase):
     ret.steerRateCost = 0.7                # Lateral MPC cost on steering rate, higher value = sharper turn
     ret.steerLimitTimer = 0.4              # time before steerLimitAlert is issued
     ret.steerControlType = car.CarParams.SteerControlType.torque # or car.CarParams.SteerControlType.angle
-    ret.steerActuatorDelay = 0.4           # Steering wheel actuator delay in seconds, it was 0.1
+    ret.steerActuatorDelay = 0.48           # Steering wheel actuator delay in seconds, it was 0.1
 
     # Tire stiffness factor fictitiously lower if it includes the steering column torsion effect.
     # For modeling details, see p.198-200 in "The Science of Vehicle Dynamics (2014), M. Guiggiani"
     ret.lateralTuning.init('pid')
 
     ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP = [[0., 20, 30], [0., 20, 30]]
-    ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.01, 0.02, 0.04], [0.08, 0.10, 0.15]]
-    ret.lateralTuning.pid.kf = 0.000146
+    ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.01, 0.02, 0.04], [0.08, 0.10, 0.18]]
+    ret.lateralTuning.pid.kf = 0.000150
 
     ret.gasMaxBP = [0., 9., 35]
-    ret.gasMaxV = [0.4, 0.5, 1.0]
+    ret.gasMaxV = [0.3, 0.5, 0.7]
 
-    ret.longitudinalTuning.kpV = [1.4, 0.9, 0.9]
+    #ret.longitudinalTuning.kpV = [1.3, 0.9, 0.9]
+    ret.longitudinalTuning.kpV = [1.3]
     ret.startAccel = 1                     # Required acceleraton to overcome creep braking
 
     # common interfaces
@@ -52,12 +53,14 @@ class CarInterface(CarInterfaceBase):
 
     if candidate == CAR.PERODUA_AXIA:
       ret.wheelbase = 2.455                # meter
-      ret.steerRatio = 15.4
+      ret.steerRatio = 16.54
       ret.centerToFront = ret.wheelbase * 0.44
       tire_stiffness_factor = 0.8371
       ret.mass = 850. + STD_CARGO_KG
 
     elif candidate == CAR.PERODUA_MYVI:
+      ret.longitudinalTuning.kpV = [1.5]
+
       ret.wheelbase = 2.5
       ret.steerRatio = 16.54
       ret.centerToFront = ret.wheelbase * 0.44
@@ -72,12 +75,13 @@ class CarInterface(CarInterfaceBase):
       ret.mass = 940. + STD_CARGO_KG
 
     elif candidate == CAR.PERODUA_ARUZ:
+      ret.longitudinalTuning.kpV = [1.6]
+
       ret.wheelbase = 2.685
       ret.steerRatio = 16.54
       ret.centerToFront = ret.wheelbase * 0.61
       tire_stiffness_factor = 0.6371
       ret.mass = 1310. + STD_CARGO_KG
-      ret.longitudinalTuning.kpV = [1.6, 1.1, 1.1]
 
     elif candidate == CAR.PERODUA_ATIVA:
       # min speed to enable ACC. if car can do stop and go or has gas interceptor,
