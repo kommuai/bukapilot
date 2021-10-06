@@ -4,7 +4,6 @@ from cereal import log
 
 CAMERA_OFFSET = 0.03  # m from center car to camera
 
-
 def compute_path_pinv(length=50):
   deg = 3
   x = np.arange(length*1.0)
