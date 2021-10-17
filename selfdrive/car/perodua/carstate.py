@@ -46,6 +46,7 @@ class CarState(CarStateBase):
     # brake pedal
     ret.brake = cp.vl["BRAKE_PEDAL"]['BRAKE_PRESSURE']
 
+
     # perodua bezza and aruz has a lower resolution brake pressure sensor
     if self.CP.carFingerprint == CAR.PERODUA_BEZZA and self.CP.carFingerprint == CAR.PERODUA_ARUZ:
       ret.brakePressed = ret.brake > 1.2
@@ -54,7 +55,6 @@ class CarState(CarStateBase):
 
     # steering wheel
     ret.steeringAngle = cp.vl["STEERING_ANGLE_SENSOR"]['STEER_ANGLE']
-
     # Todo: Remove this temporary code for beta
     if self.CP.carFingerprint == CAR.PERODUA_BEZZA:
       ret.steeringAngle = ret.steeringAngle + 3.5
