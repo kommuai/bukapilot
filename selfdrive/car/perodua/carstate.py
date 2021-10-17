@@ -46,14 +46,19 @@ class CarState(CarStateBase):
     # brake pedal
     ret.brake = cp.vl["BRAKE_PEDAL"]['BRAKE_PRESSURE']
 
-    # perodua bezza has a lower resolution brake pressure sensor
-    if self.CP.carFingerprint == CAR.PERODUA_BEZZA:
+    # perodua bezza and aruz has a lower resolution brake pressure sensor
+    if self.CP.carFingerprint == CAR.PERODUA_BEZZA and self.CP.carFingerprint == CAR.PERODUA_ARUZ:
       ret.brakePressed = ret.brake > 1.2
     else:
       ret.brakePressed = ret.brake > 1e-5
 
     # steering wheel
     ret.steeringAngle = cp.vl["STEERING_ANGLE_SENSOR"]['STEER_ANGLE']
+
+    # Todo: Remove this temporary code for beta
+    if self.CP.carFingerprint == CAR.PERODUA_BEZZA:
+      ret.steeringAngle = ret.steeringAngle + 3.5
+
     steer_dir = 1 if (ret.steeringAngle >= 0) else -1
     ret.steeringTorque = cp.vl["STEERING_TORQUE"]['MAIN_TORQUE'] * steer_dir
     ret.steeringTorqueEps = ret.steeringTorque/1000
@@ -61,7 +66,7 @@ class CarState(CarStateBase):
     if self.CP.carFingerprint == CAR.PERODUA_AXIA:
       ret.steeringPressed = bool(abs(ret.steeringTorque) > 15)
     else:
-      ret.steeringPressed = bool(abs(ret.steeringTorque) > 150)
+      ret.steeringPressed = bool(abs(ret.steeringTorque) > 50)
 
     ret.steerWarning = False                                                # since Perodua has no LKAS, make it always no warning
     ret.steerError = False                                                  # since Perodua has no LKAS, make it always no warning

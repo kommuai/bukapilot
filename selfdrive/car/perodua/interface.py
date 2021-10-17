@@ -39,7 +39,7 @@ class CarInterface(CarInterfaceBase):
     ret.gasMaxV = [0.3, 0.5, 0.7]
 
     #ret.longitudinalTuning.kpV = [1.3, 0.9, 0.9]
-    ret.longitudinalTuning.kpV = [1.3]
+    ret.longitudinalTuning.kpV = [1.4]
     ret.startAccel = 1                     # Required acceleraton to overcome creep braking
 
     # common interfaces
@@ -60,6 +60,7 @@ class CarInterface(CarInterfaceBase):
 
     elif candidate == CAR.PERODUA_MYVI:
       ret.longitudinalTuning.kpV = [1.5]
+      ret.gasMaxV = [0.4, 0.7, 0.9]
 
       ret.wheelbase = 2.5
       ret.steerRatio = 16.54
@@ -68,6 +69,12 @@ class CarInterface(CarInterfaceBase):
       ret.mass = 1015. + STD_CARGO_KG
 
     elif candidate == CAR.PERODUA_BEZZA:
+      ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.01, 0.02, 0.03], [0.03, 0.06, 0.08]]
+      ret.lateralTuning.pid.kf = 0.000155
+
+      ret.longitudinalTuning.kpV = [1.5]
+      ret.gasMaxV = [0.4, 0.7, 0.9]
+
       ret.wheelbase = 2.455
       ret.steerRatio = 16.54
       ret.centerToFront = ret.wheelbase * 0.55
