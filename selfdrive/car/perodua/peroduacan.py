@@ -63,26 +63,3 @@ def perodua_aeb_brake(packer, brake_amount):
 
   return packer.make_can_msg("FWD_CAM3", 0, values)
 
-def perodua_aeb1_brake(packer):
-
-  values = {
-    "SET_ME_X40": 0x40,
-    "SET_ME_X1A_1": 0x1A,
-    "SET_ME_XFF_1": 0xFF,
-    "SET_ME_XFF_2": 0xFF,
-    "SET_ME_XFF_3": 0xFF,
-    "SET_ME_XFF_4": 0xFF,
-    "SET_ME_X1A_2": 0x1A,
-    "SET_ME_X21": 0x21,
-  }
-
-  return packer.make_can_msg("FWD_CAM1", 0, values)
-
-def perodua_aeb2_brake(packer):
-
-  values = {
-    "SET_ME_X00": 0,
-    "SET_ME_XB2": 0xB2,
-  }
-
-  return packer.make_can_msg("FWD_CAM2", 0, values)

@@ -1,6 +1,6 @@
 from cereal import car
 from selfdrive.car import make_can_msg, apply_std_steer_torque_limits
-from selfdrive.car.perodua.peroduacan import create_steer_command, perodua_create_gas_command, perodua_aeb_brake, perodua_aeb1_brake, perodua_aeb2_brake
+from selfdrive.car.perodua.peroduacan import create_steer_command, perodua_create_gas_command, perodua_aeb_brake
 from selfdrive.car.perodua.values import DBC, NOT_CAN_CONTROLLED
 from selfdrive.controls.lib.lateral_planner import LANE_CHANGE_SPEED_MIN
 from opendbc.can.packer import CANPacker
@@ -18,9 +18,9 @@ class CarControllerParams():
     self.STEER_DRIVER_FACTOR = 1           # from dbc
     self.STEER_REDUCE_FACTOR = 1000        # how much to divide the steer when reducing fighting torque
     self.GAS_MAX = 1700                    # KommuActuator dac gas value
-    self.LONGITUDINAL_STEP = 2             # how often we update the longitudinal cmd
+    self.GAS_STEP = 2                      # how often we update the longitudinal cmd
     self.BRAKE_ALERT_PERCENT = 20          # percentage of brake to sound stock AEB alert
-    self.ADAS_STEP = 7                     # 100/7 approx ASA frequency of 15 hz
+    self.ADAS_STEP = 5                     # 100/5 approx ASA frequency of 20 hz
 
 class CarController():
   def __init__(self, dbc_name, CP, VM):
@@ -52,15 +52,18 @@ class CarController():
     self.last_steer = apply_steer
 
     # gas
-    if (frame % self.params.LONGITUDINAL_STEP) == 0:
-      idx = frame // self.params.LONGITUDINAL_STEP
+    if (frame % self.params.GAS_STEP) == 0:
+      idx = frame // self.params.GAS_STEP
       apply_gas = clip(actuators.gas, 0., 1.)
-      apply_brake = clip(actuators.brake, 0., 1.)
       apply_gas = abs(apply_gas * self.params.GAS_MAX)
 
       # interceptor gas
       if CS.CP.enableGasInterceptor:
         can_sends.append(perodua_create_gas_command(self.packer, apply_gas, enabled, idx))
+
+    # brakes
+    if (frame % self.params.ADAS_STEP) == 0:
+      apply_brake = clip(actuators.brake, 0., 1.)
 
       # AEB alert for non-braking cars
       if CS.CP.carFingerprint in NOT_CAN_CONTROLLED and apply_brake > (self.params.BRAKE_ALERT_PERCENT / 100):
@@ -69,10 +72,6 @@ class CarController():
           self.brake_pressed = True
       else:
         self.brake_pressed = False
-
-    # fake adas
-#    if (frame % self.params.ADAS_STEP) == 0:
-#      can_sends.append(perodua_aeb1_brake(self.packer))
-#      can_sends.append(perodua_aeb2_brake(self.packer))
+        can_sends.append(perodua_aeb_brake(self.packer, apply_brake))
 
     return can_sends
