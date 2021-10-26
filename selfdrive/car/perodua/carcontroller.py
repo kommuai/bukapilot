@@ -1,6 +1,7 @@
 from cereal import car
 from selfdrive.car import make_can_msg, apply_std_steer_torque_limits
-from selfdrive.car.perodua.peroduacan import create_steer_command, perodua_create_gas_command, perodua_aeb_brake
+from selfdrive.car.perodua.peroduacan import create_steer_command, perodua_create_gas_command, \
+                                             perodua_aeb_brake, create_can_steer_command
 from selfdrive.car.perodua.values import DBC, NOT_CAN_CONTROLLED
 from selfdrive.controls.lib.lateral_planner import LANE_CHANGE_SPEED_MIN
 from opendbc.can.packer import CANPacker
@@ -47,7 +48,11 @@ class CarController():
       apply_steer = apply_steer / self.params.STEER_REDUCE_FACTOR
 
     self.steering_direction = True if (apply_steer >= 0) else False
-    can_sends.append(create_steer_command(self.packer, apply_steer, self.steering_direction, enabled, frame))
+
+    if CS.CP.carFingerprint in NOT_CAN_CONTROLLED:
+      can_sends.append(create_steer_command(self.packer, apply_steer, self.steering_direction, enabled, frame))
+    else:
+      can_sends.append(create_can_steer_command(self.packer, apply_steer, enabled, frame))
 
     self.last_steer = apply_steer
 

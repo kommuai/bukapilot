@@ -3,6 +3,22 @@ from cereal import car
 
 VisualAlert = car.CarControl.HUDControl.VisualAlert
 
+def create_can_steer_command(packer, steer, steer_req, raw_cnt):
+  """Creates a CAN message for the Perodua LKA Steer Command."""
+
+  values = {
+    "STEER_REQ": steer_req,
+    "STEER_CMD": steer,
+    "COUNTER": raw_cnt,
+    "SET_ME_1": 1,
+  }
+
+  dat = packer.make_can_msg("STEERING_LKA", 0, values)[2]
+  crc = crc8_interceptor(dat[:-1])
+  values["CHECKSUM"] = crc
+
+  return packer.make_can_msg("STEERING_LKA", 0, values)
+
 def crc8_interceptor(data):
   crc = 0xFF                                                         # standard init value
   poly = 0xD5                                                        # standard crc8: x8+x7+x6+x4+x2+1

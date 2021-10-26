@@ -44,7 +44,7 @@ class CarInterface(CarInterfaceBase):
     ret.transmissionType = car.CarParams.TransmissionType.automatic
     ret.enableApgs = False                 # advanced parking guidance system
     ret.safetyParam = 1
-    ret.enableGasInterceptor = True
+    ret.enableGasInterceptor = 0x201 in fingerprint[0]
     ret.openpilotLongitudinalControl = True
 
     if candidate == CAR.AXIA:
