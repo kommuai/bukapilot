@@ -47,28 +47,28 @@ class CarInterface(CarInterfaceBase):
     ret.enableGasInterceptor = True
     ret.openpilotLongitudinalControl = True
 
-    if candidate == CAR.PERODUA_AXIA:
+    if candidate == CAR.AXIA:
       ret.wheelbase = 2.455                # meter
       ret.steerRatio = 16.54
       ret.centerToFront = ret.wheelbase * 0.44
       tire_stiffness_factor = 0.8371
       ret.mass = 850. + STD_CARGO_KG
 
-    elif candidate == CAR.PERODUA_MYVI:
+    elif candidate == CAR.MYVI:
       ret.wheelbase = 2.5
       ret.steerRatio = 16.54
       ret.centerToFront = ret.wheelbase * 0.44
       tire_stiffness_factor = 0.6371
       ret.mass = 1015. + STD_CARGO_KG
 
-    elif candidate == CAR.PERODUA_BEZZA:
+    elif candidate == CAR.BEZZA:
       ret.wheelbase = 2.455
       ret.steerRatio = 16.54
       ret.centerToFront = ret.wheelbase * 0.55
       tire_stiffness_factor = 0.6371
       ret.mass = 940. + STD_CARGO_KG
 
-    elif candidate == CAR.PERODUA_ARUZ:
+    elif candidate == CAR.ARUZ:
       ret.wheelbase = 2.685
       ret.steerRatio = 16.54
       ret.centerToFront = ret.wheelbase * 0.61
@@ -76,7 +76,7 @@ class CarInterface(CarInterfaceBase):
       ret.mass = 1310. + STD_CARGO_KG
       ret.longitudinalTuning.kpV = [1.6, 1.1, 1.1]
 
-    elif candidate == CAR.PERODUA_ATIVA:
+    elif candidate == CAR.ATIVA:
       # min speed to enable ACC. if car can do stop and go or has gas interceptor,
       # then set enabling speed to a negative value, so it won't matter.
       ret.minEnableSpeed = 30 * CV.KPH_TO_MS

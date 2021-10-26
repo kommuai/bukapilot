@@ -38,16 +38,16 @@ class CarState(CarStateBase):
     ret.standstill = ret.vEgoRaw < 0.01
 
     # gas pedal
-    ret.gas = cp.vl["GAS_PEDAL_1"]['APPS_1']
+    ret.gas = cp.vl["GAS_PEDAL"]['APPS_1']
     # todo: let gas pressed legit
     ret.gasPressed = ret.gas > 0.6
     self.acttrGas = (cp.vl["GAS_SENSOR"]['INTERCEPTOR_GAS']) /1800          # KommuActuator gas, read when stock pedal is being intercepted
 
     # brake pedal
-    ret.brake = cp.vl["BRAKE_PEDAL"]['BRAKE_PRESSURE']
+    ret.brake = cp.vl["BRAKE"]['BRAKE_PRESSURE']
 
     # perodua bezza has a lower resolution brake pressure sensor
-    if self.CP.carFingerprint == CAR.PERODUA_BEZZA:
+    if self.CP.carFingerprint == CAR.BEZZA:
       ret.brakePressed = ret.brake > 1.2
     else:
       ret.brakePressed = ret.brake > 1e-5
@@ -58,7 +58,7 @@ class CarState(CarStateBase):
     ret.steeringTorque = cp.vl["STEERING_TORQUE"]['MAIN_TORQUE'] * steer_dir
     ret.steeringTorqueEps = ret.steeringTorque/1000
 
-    if self.CP.carFingerprint == CAR.PERODUA_AXIA:
+    if self.CP.carFingerprint == CAR.AXIA:
       ret.steeringPressed = bool(abs(ret.steeringTorque) > 15)
     else:
       ret.steeringPressed = bool(abs(ret.steeringTorque) > 150)
@@ -160,8 +160,8 @@ class CarState(CarStateBase):
       ("WHEELSPEED_F", "WHEEL_SPEED", 0.),
       ("WHEELSPEED_B", "WHEEL_SPEED", 0.),
       ("GEAR", "TRANSMISSION", 0),
-      ("APPS_1", "GAS_PEDAL_1", 0.),
-      ("BRAKE_PRESSURE", "BRAKE_PEDAL", 0.),
+      ("APPS_1", "GAS_PEDAL", 0.),
+      ("BRAKE_PRESSURE", "BRAKE", 0.),
       ("STEER_ANGLE", "STEERING_ANGLE_SENSOR", 0.),
       ("INTERCEPTOR_GAS", "GAS_SENSOR", 0),
       ("MAIN_TORQUE", "STEERING_TORQUE", 0),
