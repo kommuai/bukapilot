@@ -53,13 +53,20 @@ class CarState(CarStateBase):
       ret.brakePressed = ret.brake > 1e-5
 
     # steering wheel
-    ret.steeringAngleDeg = cp.vl["STEERING_ANGLE_SENSOR"]['STEER_ANGLE']
-    steer_dir = 1 if (ret.steeringAngleDeg >= 0) else -1
-    ret.steeringTorque = cp.vl["STEERING_TORQUE"]['MAIN_TORQUE'] * steer_dir
+    if self.CP.carFingerprint == CAR.ATIVA:
+      ret.steeringAngleDeg = cp.vl["STEERING_MODULE"]['STEER_ANGLE']
+      ret.steeringTorque = cp.vl["STEERING_MODULE"]['MAIN_TORQUE']
+    else:
+      ret.steeringAngleDeg = cp.vl["STEERING_ANGLE_SENSOR"]['STEER_ANGLE']
+      steer_dir = 1 if (ret.steeringAngleDeg >= 0) else -1
+      ret.steeringTorque = cp.vl["STEERING_TORQUE"]['MAIN_TORQUE'] * steer_dir
+
     ret.steeringTorqueEps = ret.steeringTorque/1000
 
     if self.CP.carFingerprint == CAR.AXIA:
-      ret.steeringPressed = bool(abs(ret.steeringTorque) > 15)
+      ret.steeringPressed = bool(abs(ret.steeringTorque) > 16)
+    elif self.CP.carFingerprint == CAR.ATIVA:
+      ret.steeringPressed = bool(abs(ret.steeringTorque) > 25)
     else:
       ret.steeringPressed = bool(abs(ret.steeringTorque) > 150)
 
@@ -163,6 +170,8 @@ class CarState(CarStateBase):
       ("APPS_1", "GAS_PEDAL", 0.),
       ("BRAKE_PRESSURE", "BRAKE", 0.),
       ("STEER_ANGLE", "STEERING_ANGLE_SENSOR", 0.),
+      ("STEER_ANGLE", "STEERING_MODULE", 0.),
+      ("MAIN_TORQUE", "STEERING_MODULE", 0.),
       ("INTERCEPTOR_GAS", "GAS_SENSOR", 0),
       ("MAIN_TORQUE", "STEERING_TORQUE", 0),
       ("GENERIC_TOGGLE", "RIGHT_STALK", 0),

@@ -64,14 +64,14 @@ class CarInterface(CarInterfaceBase):
     elif candidate == CAR.BEZZA:
       ret.wheelbase = 2.455
       ret.steerRatio = 16.54
-      ret.centerToFront = ret.wheelbase * 0.55
+      ret.centerToFront = ret.wheelbase * 0.44
       tire_stiffness_factor = 0.6371
       ret.mass = 940. + STD_CARGO_KG
 
     elif candidate == CAR.ARUZ:
       ret.wheelbase = 2.685
       ret.steerRatio = 16.54
-      ret.centerToFront = ret.wheelbase * 0.61
+      ret.centerToFront = ret.wheelbase * 0.44
       tire_stiffness_factor = 0.6371
       ret.mass = 1310. + STD_CARGO_KG
       ret.longitudinalTuning.kpV = [1.6, 1.1, 1.1]
@@ -80,6 +80,12 @@ class CarInterface(CarInterfaceBase):
       # min speed to enable ACC. if car can do stop and go or has gas interceptor,
       # then set enabling speed to a negative value, so it won't matter.
       ret.minEnableSpeed = 30 * CV.KPH_TO_MS
+      ret.wheelbase = 2.525
+      ret.steerRatio = 14.54
+      ret.centerToFront = ret.wheelbase * 0.44
+      tire_stiffness_factor = 0.6371
+      ret.mass = 1035. + STD_CARGO_KG
+      ret.longitudinalTuning.kpV = [1.6, 1.1, 1.1]
 
     else:
       ret.dashcamOnly = True
