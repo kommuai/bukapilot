@@ -176,7 +176,9 @@ void OffroadHome::refresh() {
 
   // pop-up new notification
   int idx = center_layout->currentIndex();
-  if (!updateAvailable && !alerts) {
+  // Kommu Edits:
+  //if (!updateAvailable && !alerts) {
+  if (!updateAvailable){
     idx = 0;
   } else if (updateAvailable && (!update_notif->isVisible() || (!alerts && idx == 2))) {
     idx = 1;

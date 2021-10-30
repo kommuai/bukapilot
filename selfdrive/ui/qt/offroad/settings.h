@@ -42,6 +42,7 @@ private:
   LabelControl *osVersionLbl;
   LabelControl *versionLbl;
   LabelControl *lastUpdateLbl;
+  LabelControl *remainingUploadsLbl;
   ButtonControl *updateBtn;
 
   Params params;

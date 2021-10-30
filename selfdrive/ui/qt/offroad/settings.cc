@@ -30,7 +30,7 @@ TogglesPanel::TogglesPanel(QWidget *parent) : QWidget(parent) {
   QList<ParamControl*> toggles;
 
   toggles.append(new ParamControl("OpenpilotEnabledToggle",
-                                  "Enable openpilot",
+                                  "Enable bukapilot",
                                   "Use the openpilot system for adaptive cruise control and lane keep driver assistance. Your attention is required at all times to use this feature. Changing this setting takes effect when the car is powered off.",
                                   "../assets/offroad/icon_openpilot.png",
                                   this));
@@ -206,6 +206,8 @@ SoftwarePanel::SoftwarePanel(QWidget* parent) : QWidget(parent) {
   osVersionLbl = new LabelControl("OS Version");
   versionLbl = new LabelControl("Version", "", QString::fromStdString(params.get("ReleaseNotes")).trimmed());
   lastUpdateLbl = new LabelControl("Last Update Check", "", "The last time openpilot successfully checked for an update. The updater only runs while the car is off.");
+  remainingUploadsLbl = new LabelControl("Remaining Uploads");
+
   updateBtn = new ButtonControl("Check for Update", "");
   connect(updateBtn, &ButtonControl::released, [=]() {
     if (params.getBool("IsOffroad")) {
@@ -219,7 +221,7 @@ SoftwarePanel::SoftwarePanel(QWidget* parent) : QWidget(parent) {
   });
 
   QVBoxLayout *main_layout = new QVBoxLayout(this);
-  QWidget *widgets[] = {versionLbl, lastUpdateLbl, updateBtn, gitBranchLbl, gitCommitLbl, osVersionLbl};
+  QWidget *widgets[] = {versionLbl, lastUpdateLbl, updateBtn, gitBranchLbl, gitCommitLbl, osVersionLbl, remainingUploadsLbl};
   for (int i = 0; i < std::size(widgets); ++i) {
     main_layout->addWidget(widgets[i]);
     if (i < std::size(widgets) - 1) {
@@ -260,6 +262,7 @@ void SoftwarePanel::updateLabels() {
   gitBranchLbl->setText(QString::fromStdString(params.get("GitBranch")));
   gitCommitLbl->setText(QString::fromStdString(params.get("GitCommit")).left(10));
   osVersionLbl->setText(QString::fromStdString(Hardware::get_os_version()).trimmed());
+  remainingUploadsLbl->setText(QString::fromStdString(params.get("RemainingUploadSize")));
 }
 
 QWidget * network_panel(QWidget * parent) {
