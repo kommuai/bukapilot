@@ -18,7 +18,7 @@ from .isotp import isotp_send, isotp_recv  # pylint: disable=import-error
 __version__ = '0.0.9'
 
 BASEDIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), "../")
-DEFAULT_FW_FN = os.path.join(BASEDIR, "board", "obj", "panda.bin.signed")
+DEFAULT_FW_FN = os.path.join(BASEDIR, "board", "obj", "icptr.bin.signed")
 
 DEBUG = os.getenv("PANDADEBUG") is not None
 
@@ -161,9 +161,7 @@ class Panda(object):
       self.close()
 
     if self._serial == "WIFI":
-      self._handle = WifiHandle()
-      print("opening WIFI device")
-      self.wifi = True
+      raise NotImplementedError("EINVALID: NO WIFI PANDA")
     else:
       context = usb1.USBContext()
       self._handle = None
@@ -180,7 +178,6 @@ class Panda(object):
               if self._serial is None or this_serial == self._serial:
                 self._serial = this_serial
                 print("opening device", self._serial, hex(device.getProductID()))
-                self.bootstub = device.getProductID() == 0xddee
                 self._handle = device.open()
                 if sys.platform not in ["win32", "cygwin", "msys", "darwin"]:
                   self._handle.setAutoDetachKernelDriver(True)
@@ -195,122 +192,85 @@ class Panda(object):
           break
         context = usb1.USBContext()  # New context needed so new devices show up
     assert(self._handle is not None)
+    resp = self._handle.controlRead(Panda.REQUEST_IN, 0xa0, 0, 0, 8).decode()
+    self.bootstub = resp == "BOOT"
     print("connected")
 
   def reset(self, enter_bootstub=False, enter_bootloader=False):
     # reset
-    try:
-      if enter_bootloader:
-        self._handle.controlWrite(Panda.REQUEST_IN, 0xd1, 0, 0, b'')
-      else:
-        if enter_bootstub:
-          self._handle.controlWrite(Panda.REQUEST_IN, 0xd1, 1, 0, b'')
-        else:
-          self._handle.controlWrite(Panda.REQUEST_IN, 0xd8, 0, 0, b'')
-    except Exception:
-      pass
-    if not enter_bootloader:
+    print("SAFETY RESET")
+    if enter_bootloader:
+      raise NotImplementedError("EARG: RESET TO BOOTLOADER")
+    if enter_bootstub == self.bootstub:
+      print("WARNING! NOT DOING SAME STATE RESETTING!")
+      return
+
+    if enter_bootstub:
+      assert not self.bootstub
+      self._handle.controlRead(Panda.REQUEST_IN, 0xd1, 0, 0, 8)
       self.reconnect()
+      self._handle.controlRead(Panda.REQUEST_IN, 0xc1, 0, 0, 8)
+      assert self.bootstub
+    else:
+      assert self.bootstub
+      # actually a jump instead of reset
+      try:
+        self._handle.controlRead(Panda.REQUEST_IN, 0xa3, 0, 0, 8)
+      except: # jumping might breaks usb pipe, raising exception
+        pass
+      # wait and reconnect
+      time.sleep(0.5)
+      self.reconnect()
+      assert not self.bootstub
 
   def reconnect(self):
-    self.close()
-    time.sleep(1.0)
-    success = False
-    # wait up to 15 seconds
-    for i in range(0, 15):
-      try:
-        self.connect()
-        success = True
-        break
-      except Exception:
-        print("reconnecting is taking %d seconds..." % (i + 1))
-        try:
-          dfu = PandaDFU(PandaDFU.st_serial_to_dfu_serial(self._serial))
-          dfu.recover()
-        except Exception:
-          pass
-        time.sleep(1.0)
-    if not success:
-      raise Exception("reconnect failed")
+    print("SAFETY RECONNECT")
+    self._handle.close()
+    time.sleep(1)
+    self.connect(wait=True)
 
   @staticmethod
   def flash_static(handle, code):
-    # confirm flasher is present
-    fr = handle.controlRead(Panda.REQUEST_IN, 0xb0, 0, 0, 0xc)
-    assert fr[4:8] == b"\xde\xad\xd0\x0d"
+    print("========== KOMMUSAFETY  FLASHER ==========")
+    print("==========         START        ==========")
 
-    # unlock flash
-    print("flash: unlocking")
-    handle.controlWrite(Panda.REQUEST_IN, 0xb1, 0, 0, b'')
+    assert handle.controlRead(Panda.REQUEST_IN, 0xa0, 0, 0, 8) == b"BOOT"
+    # TODO: is unlocked by default when resetting into bootstub, let's not do that
+    print("STATE: UNLOCKED")
 
-    # erase sectors 1 through 3
-    print("flash: erasing")
-    for i in range(1, 4):
-      handle.controlWrite(Panda.REQUEST_IN, 0xb2, i, 0, b'')
+    # erase
+    assert handle.controlRead(Panda.REQUEST_IN, 0xc2, 0, 0, 8) == b"ERASE"
+    print("STATE: ERASED")
 
-    # flash over EP2
-    STEP = 0x10
-    print("flash: flashing")
-    for i in range(0, len(code), STEP):
-      handle.bulkWrite(2, code[i:i + STEP])
+    # flash
+    for i in range(0, len(code), 512):
+        handle.bulkWrite(2, code[i:i+512])
+        print("FLASHED: BYTE", i)
 
-    # reset
-    print("flash: resetting")
-    try:
-      handle.controlWrite(Panda.REQUEST_IN, 0xd8, 0, 0, b'')
-    except Exception:
-      pass
+    print("==========          END         ==========")
+    print("========== KOMMUSAFETY  FLASHER ==========")
 
   def flash(self, fn=DEFAULT_FW_FN, code=None, reconnect=True):
-    print("flash: main version is " + self.get_version())
-    if not self.bootstub:
-      self.reset(enter_bootstub=True)
-    assert(self.bootstub)
-
+    print("SAFETY FLASH")
+    if not reconnect:
+      raise NotImplementedError("EARG: FLASH WITH NO RECONNECT")
+    self.reset(enter_bootstub=True)
     if code is None:
       with open(fn, "rb") as f:
         code = f.read()
-
-    # get version
-    print("flash: bootstub version is " + self.get_version())
-
-    # do flash
     Panda.flash_static(self._handle, code)
-
-    # reconnect
-    if reconnect:
-      self.reconnect()
+    self.reset()
 
   def recover(self, timeout=None):
-    self.reset(enter_bootstub=True)
-    self.reset(enter_bootloader=True)
-    t_start = time.time()
-    while len(PandaDFU.list()) == 0:
-      print("waiting for DFU...")
-      time.sleep(0.1)
-      if timeout is not None and (time.time() - t_start) > timeout:
-        return False
-
-    dfu = PandaDFU(PandaDFU.st_serial_to_dfu_serial(self._serial))
-    dfu.recover()
-
-    # reflash after recover
-    self.connect(True, True)
-    self.flash()
-    return True
+    raise NotImplementedError("EKOMMU: WIP RECOVER")
 
   @staticmethod
   def flash_ota_st():
-    ret = os.system("cd %s && make clean && make ota" % (os.path.join(BASEDIR, "board")))
-    time.sleep(1)
-    return ret == 0
+    raise NotImplementedError("EKOMMU: WIP FLASH_OTA_ST")
 
   @staticmethod
   def flash_ota_wifi(release=False):
-    release_str = "RELEASE=1" if release else ""
-    ret = os.system("cd {} && make clean && {} make ota".format(os.path.join(BASEDIR, "boardesp"), release_str))
-    time.sleep(1)
-    return ret == 0
+    raise NotImplementedError("EKOMMU: NO WIFI PANDA (IN FLASH_OTA_WIFI)")
 
   @staticmethod
   def list():

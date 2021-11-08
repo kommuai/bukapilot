@@ -7,7 +7,7 @@ from panda import BASEDIR as PANDA_BASEDIR, Panda, PandaDFU
 from common.basedir import BASEDIR
 from selfdrive.swaglog import cloudlog
 
-PANDA_FW_FN = os.path.join(PANDA_BASEDIR, "board", "obj", "panda.bin.signed")
+PANDA_FW_FN = os.path.join(PANDA_BASEDIR, "board", "obj", "icptr.bin.signed")
 
 
 def get_expected_signature() -> bytes:
@@ -28,7 +28,8 @@ def update_panda() -> Panda:
     # break on normal mode Panda
     panda_list = Panda.list()
     if len(panda_list) > 0:
-      cloudlog.info("Panda found, connecting")
+      cloudlog.info("Panda found, wait for 4 secs before connecting")
+      time.sleep(4)
       panda = Panda(panda_list[0])
       break
 
@@ -57,16 +58,10 @@ def update_panda() -> Panda:
     fw_signature.hex(),
   ))
 
-  if panda.bootstub or panda_signature != fw_signature:
+  if panda_signature != fw_signature:
     cloudlog.info("Panda firmware out of date, update required")
     panda.flash()
     cloudlog.info("Done flashing")
-
-  if panda.bootstub:
-    bootstub_version = panda.get_version()
-    cloudlog.info(f"Flashed firmware not booting, flashing development bootloader. Bootstub version: {bootstub_version}")
-    panda.recover()
-    cloudlog.info("Done flashing bootloader")
 
   if panda.bootstub:
     cloudlog.info("Panda still not booting, exiting")
@@ -88,7 +83,6 @@ def main() -> None:
   if health["heartbeat_lost"]:
     cloudlog.event("heartbeat lost", deviceState=health)
 
-  cloudlog.info("Resetting panda")
   panda.reset()
 
   os.chdir(os.path.join(BASEDIR, "selfdrive/boardd"))
