@@ -75,8 +75,8 @@ class CarController():
         if not self.brake_pressed:
           can_sends.append(perodua_aeb_brake(self.packer, apply_brake))
           self.brake_pressed = True
-      else:
-        self.brake_pressed = False
-        can_sends.append(perodua_aeb_brake(self.packer, apply_brake))
+        else:
+          self.brake_pressed = False
+          can_sends.append(perodua_aeb_brake(self.packer, apply_brake))
 
     return can_sends

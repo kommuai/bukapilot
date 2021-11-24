@@ -13,11 +13,11 @@ def create_can_steer_command(packer, steer, steer_req, raw_cnt):
     "SET_ME_1": 1,
   }
 
-  dat = packer.make_can_msg("STEERING_LKA", 0, values)[2]
+  dat = packer.make_can_msg("STEERING_LKAS", 0, values)[2]
   crc = crc8_interceptor(dat[:-1])
   values["CHECKSUM"] = crc
 
-  return packer.make_can_msg("STEERING_LKA", 0, values)
+  return packer.make_can_msg("STEERING_LKAS", 0, values)
 
 def crc8_interceptor(data):
   crc = 0xFF                                                         # standard init value
