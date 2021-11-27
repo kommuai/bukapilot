@@ -114,7 +114,7 @@ def handle_fan_eon(max_cpu_temp, bat_temp, fan_speed, ignition):
 
 
 def handle_fan_uno(max_cpu_temp, bat_temp, fan_speed, ignition):
-  new_speed = int(interp(max_cpu_temp, [40.0, 80.0], [0, 80]))
+  new_speed = int(interp(max_cpu_temp, [40.0, 70.0], [0, 100]))
 
   if not ignition:
     new_speed = min(30, new_speed)
@@ -360,7 +360,7 @@ def thermald_thread():
     startup_conditions["accepted_terms"] = params.get("HasAcceptedTerms") == terms_version
 
     panda_signature = params.get("PandaFirmware")
-    startup_conditions["fw_version_match"] = (panda_signature is None) or (panda_signature == FW_SIGNATURE)   # don't show alert is no panda is connected (None)
+    startup_conditions["fw_version_match"] = True   # don't show alert is no panda is connected (None)
     set_offroad_alert_if_changed("Offroad_PandaFirmwareMismatch", (not startup_conditions["fw_version_match"]))
 
     # with 2% left, we killall, otherwise the phone will take a long time to boot
