@@ -116,11 +116,7 @@ class CarState(CarStateBase):
     # safety checks to engage
     can_gear = int(cp.vl["TRANSMISSION"]['GEAR'])
 
-    # TODO: find out all the door signals for ativa
-    if self.CP.carFingerprint == CAR.ATIVA:
-      ret.doorOpen = bool(cp.vl["METER_CLUSTER"]['MAIN_DOOR'])
-    else:
-      ret.doorOpen = any([cp.vl["METER_CLUSTER"]['MAIN_DOOR'],
+    ret.doorOpen = any([cp.vl["METER_CLUSTER"]['MAIN_DOOR'],
                      cp.vl["METER_CLUSTER"]['LEFT_FRONT_DOOR'],
                      cp.vl["METER_CLUSTER"]['RIGHT_BACK_DOOR'],
                      cp.vl["METER_CLUSTER"]['LEFT_BACK_DOOR']])
