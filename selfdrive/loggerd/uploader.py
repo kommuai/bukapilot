@@ -151,7 +151,7 @@ class Uploader():
       key = key.replace("/","---")
       ext = "qcam" if lfn == "qcamera.ts" else "rlog"
 
-      url = "https://s4.kommu.ml/upload.cgi"
+      url = "https://s4.kommu.ai/upload.cgi"
       headers = {"X-Filename": self.dongle_id + "---" + key, "X-Filetype": ext}
       cloudlog.info("upload_kommu s4-v0 %s %s", url, str(headers))
 
