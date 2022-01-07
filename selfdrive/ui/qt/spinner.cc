@@ -20,15 +20,15 @@ TrackWidget::TrackWidget(QWidget *parent) : QWidget(parent) {
   setPalette(Qt::black);
 
   // pre-compute all the track imgs. make this a gif instead?
-  QPixmap comma_img = QPixmap("../assets/img_spinner_comma.png").scaled(spinner_size, Qt::KeepAspectRatio, Qt::SmoothTransformation);
   QTransform transform(1, 0, 0, 1, width() / 2, height() / 2);
-  QPixmap track_img = QPixmap("../assets/img_spinner_track.png").scaled(spinner_size, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+  int img_count=0;
   for (QPixmap &img : track_imgs) {
-    img = comma_img;
-    QPainter p(&img);
-    p.setRenderHint(QPainter::SmoothPixmapTransform);
-    p.setTransform(transform.rotate(360 / spinner_fps));
-    p.drawPixmap(-width() / 2, -height() / 2, track_img);
+    QString img_dir = "../assets/spinner/img_kommu_";
+    std::string s_img_count = std::to_string(img_count);
+    img_dir.append(s_img_count.c_str());
+    img_dir.append(".jpg");
+    img = QPixmap(img_dir).scaled(spinner_size, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+    img_count++;
   }
 
   m_anim.setDuration(1000);
