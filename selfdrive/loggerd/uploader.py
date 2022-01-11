@@ -12,7 +12,9 @@ from cereal import log
 import cereal.messaging as messaging
 from common.api import Api
 from common.params import Params
+from common.kommu import *
 from selfdrive.hardware import TICI
+from selfdrive.loggerd.kommu import fia_upload
 from selfdrive.loggerd.xattr_cache import getxattr, setxattr
 from selfdrive.loggerd.config import ROOT
 from selfdrive.swaglog import cloudlog
@@ -147,13 +149,12 @@ class Uploader():
 
   def do_upload(self, key, fn):
     try:
-      lfn = os.path.basename(fn)
-      key = key.replace("/","---")
-      ext = "qcam" if lfn == "qcamera.ts" else "rlog"
-
-      url = "https://s4.kommu.ml/upload.cgi"
-      headers = {"X-Filename": self.dongle_id + "---" + key, "X-Filetype": ext}
-      cloudlog.info("upload_kommu s4-v0 %s %s", url, str(headers))
+      key, ext = os.path.splitext(key.replace("/","---"))
+      if "boot" in key or "crash" in key:
+        key = "---".join([self.dongle_id] + list(reversed(key.split("---")))) + ext
+      else:
+        key = self.dongle_id + "---" + key + ext
+      cloudlog.info("upload_kommu s4-v1 %s, %s", key, fn)
 
       if fake_upload:
         cloudlog.debug("*** WARNING, THIS IS A FAKE UPLOAD TO %s ***" % url)
@@ -164,8 +165,7 @@ class Uploader():
 
         self.last_resp = FakeResponse()
       else:
-        with open(fn, "rb") as f:
-          self.last_resp = requests.post(url, data=f, headers=headers, timeout=10)
+        self.last_resp = fia_upload(key, fn)
     except Exception as e:
       self.last_exc = (e, traceback.format_exc())
       raise
