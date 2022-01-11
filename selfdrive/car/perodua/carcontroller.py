@@ -2,7 +2,7 @@ from cereal import car
 from selfdrive.car import make_can_msg, apply_std_steer_torque_limits
 from selfdrive.car.perodua.peroduacan import create_steer_command, perodua_create_gas_command, \
                                              perodua_aeb_brake, create_can_steer_command
-from selfdrive.car.perodua.values import DBC, NOT_CAN_CONTROLLED
+from selfdrive.car.perodua.values import CAR, DBC, NOT_CAN_CONTROLLED
 from selfdrive.controls.lib.lateral_planner import LANE_CHANGE_SPEED_MIN
 from opendbc.can.packer import CANPacker
 from common.numpy_fast import clip
@@ -18,7 +18,7 @@ class CarControllerParams():
     self.STEER_DRIVER_MULTIPLIER = 1       # weight driver torque heavily
     self.STEER_DRIVER_FACTOR = 1           # from dbc
     self.STEER_REDUCE_FACTOR = 1000        # how much to divide the steer when reducing fighting torque
-    self.GAS_MAX = 1700                    # KommuActuator dac gas value
+    self.GAS_MAX = 2600                    # KommuActuator dac gas value
     self.GAS_STEP = 2                      # how often we update the longitudinal cmd
     self.BRAKE_ALERT_PERCENT = 20          # percentage of brake to sound stock AEB alert
     self.ADAS_STEP = 5                     # 100/5 approx ASA frequency of 20 hz
@@ -37,8 +37,12 @@ class CarController():
 
     # generate steering command
     steer_max_interp = self.params.STEER_MAX
-    if CS.out.vEgo > 20:
-      steer_max_interp = self.params.STEER_MAX + 50
+    if CS.out.vEgo > 20 and CS.CP.carFingerprint == CAR.AXIA:
+      steer_max_interp = self.params.STEER_MAX + 150
+    # myvi has a more reactive EPS
+    if CS.CP.carFingerprint == CAR.MYVI:
+      steer_max_interp = self.params.STEER_MAX - 150
+
     new_steer = int(round(actuators.steer * steer_max_interp))
     apply_steer = apply_std_steer_torque_limits(new_steer, self.last_steer, CS.out.steeringTorqueEps, self.params)
     self.steer_rate_limited = ( new_steer != apply_steer ) and (apply_steer != 0)
