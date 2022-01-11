@@ -60,7 +60,7 @@ commit = get_git_commit()
 if (origin is not None) and (branch is not None):
   try:
     comma_remote = origin.startswith('git@github.com:kommuai') or origin.startswith('https://github.com/kommuai')
-    tested_branch = get_git_branch() in ['snapshot']
+    tested_branch = get_git_branch() in ['release']
 
     dirty = False
 
