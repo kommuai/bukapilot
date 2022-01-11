@@ -37,7 +37,7 @@ Panda::Panda() {
 
   //hw_type = get_hw_type();
   // Temporary spoof panda type
-  hw_type = cereal::PandaState::PandaType::BLACK_PANDA;
+  hw_type = cereal::HealthData::HwType::BLACK_PANDA;
 
   assert((hw_type != cereal::PandaState::PandaType::WHITE_PANDA) &&
          (hw_type != cereal::PandaState::PandaType::GREY_PANDA));
