@@ -11,9 +11,11 @@ from common.params import Params
 from common.spinner import Spinner
 from common.file_helpers import mkdirs_exists_ok
 from common.basedir import PERSIST
+from selfdrive.athena import runescapej
 from selfdrive.controls.lib.alertmanager import set_offroad_alert
 from selfdrive.hardware import HARDWARE
 from selfdrive.swaglog import cloudlog
+
 
 
 UNREGISTERED_DONGLE_ID = "UnregisteredDevice"
@@ -66,17 +68,13 @@ def register(show_spinner=False) -> str:
     backoff = 0
     while True:
       try:
-        register_token = jwt.encode({'register': True, 'exp': datetime.utcnow() + timedelta(hours=1)}, private_key, algorithm='RS256')
         cloudlog.info("getting pilotauth")
-        resp = requests.request("POST", "https://runescapej.kommu.ml/dingdong.cgi", timeout=15, data={"id": dongle_id,"imei": HARDWARE.get_imei(1),"serial": HARDWARE.get_serial()})
-        dongleauth = json.loads(resp.text)
-
-        if resp.status_code in (402, 403):
+        resp = runescapej.register_user(HARDWARE.get_imei(1), HARDWARE.get_serial())
+        if resp is None:
           cloudlog.info(f"Unable to register device, got {resp.status_code}")
           dongle_id = UNREGISTERED_DONGLE_ID
         else:
-          dongleauth = json.loads(resp.text)
-          dongle_id = dongleauth["dongle_id"]
+          dongle_id = resp
         break
       except Exception:
         cloudlog.exception("failed to authenticate")
