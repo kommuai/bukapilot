@@ -25,18 +25,15 @@ class CarInterface(CarInterfaceBase):
     ret.steerRateCost = 0.7                # Lateral MPC cost on steering rate, higher value = sharper turn
     ret.steerLimitTimer = 0.4              # time before steerLimitAlert is issued
     ret.steerControlType = car.CarParams.SteerControlType.torque # or car.CarParams.SteerControlType.angle
-    ret.steerActuatorDelay = 0.4           # Steering wheel actuator delay in seconds, it was 0.1
+    ret.steerActuatorDelay = 0.48           # Steering wheel actuator delay in seconds, it was 0.1
 
     # Tire stiffness factor fictitiously lower if it includes the steering column torsion effect.
     # For modeling details, see p.198-200 in "The Science of Vehicle Dynamics (2014), M. Guiggiani"
     ret.lateralTuning.init('pid')
-    ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP = [[0., 20, 30], [0., 20, 30]]
-    ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.06, 0.07, 0.12], [0.25, 0.26, 0.30]]
-    ret.lateralTuning.pid.kf = 0.000166
-
+    ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP = [[0.], [0.]]
     ret.gasMaxBP = [0., 9., 35]
-    ret.gasMaxV = [0.4, 0.5, 1.0]
-    ret.longitudinalTuning.kpV = [1.4, 0.9, 0.9]
+    ret.gasMaxV = [0.4, 0.4, 0.55]
+    ret.longitudinalTuning.kpV = [0.9, 0.8, 0.8]
     ret.startAccel = 1                     # Required acceleraton to overcome creep braking
 
     # common interfaces
@@ -54,12 +51,17 @@ class CarInterface(CarInterfaceBase):
       tire_stiffness_factor = 0.8371
       ret.mass = 850. + STD_CARGO_KG
 
+      ret.lateralTuning.pid.kf = 0.000102
+      ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.098], [0.135]]
+
     elif candidate == CAR.MYVI:
       ret.wheelbase = 2.5
       ret.steerRatio = 16.54
       ret.centerToFront = ret.wheelbase * 0.44
       tire_stiffness_factor = 0.6371
       ret.mass = 1015. + STD_CARGO_KG
+
+      ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.098], [0.135]]
 
     elif candidate == CAR.BEZZA:
       ret.wheelbase = 2.455
@@ -68,12 +70,16 @@ class CarInterface(CarInterfaceBase):
       tire_stiffness_factor = 0.6371
       ret.mass = 940. + STD_CARGO_KG
 
+      ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.098], [0.135]]
+
     elif candidate == CAR.ARUZ:
       ret.wheelbase = 2.685
       ret.steerRatio = 16.54
       ret.centerToFront = ret.wheelbase * 0.44
       tire_stiffness_factor = 0.6371
       ret.mass = 1310. + STD_CARGO_KG
+
+      ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.098], [0.135]]
       ret.longitudinalTuning.kpV = [1.6, 1.1, 1.1]
 
     elif candidate == CAR.ATIVA:
@@ -85,6 +91,9 @@ class CarInterface(CarInterfaceBase):
       ret.centerToFront = ret.wheelbase * 0.44
       tire_stiffness_factor = 0.6371
       ret.mass = 1035. + STD_CARGO_KG
+
+
+      ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.098], [0.135]]
       ret.longitudinalTuning.kpV = [1.6, 1.1, 1.1]
 
     else:

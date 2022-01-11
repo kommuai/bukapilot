@@ -12,7 +12,7 @@ pedal_counter = 0
 pedal_press_state = 0
 PEDAL_COUNTER_THRES = 25
 PEDAL_UPPER_TRIG_THRES = 0.125
-PEDAL_NON_ZERO_THRES = 0.001
+PEDAL_NON_ZERO_THRES = 0.01
 
 class CarState(CarStateBase):
   def __init__(self, CP):
@@ -26,7 +26,7 @@ class CarState(CarStateBase):
 
   def update(self, cp):
     ret = car.CarState.new_message()
-    
+
     # there is a backwheel speed, but it will overflow to 0 when reach 60kmh
     ret.wheelSpeeds.rr = cp.vl["WHEEL_SPEED"]['WHEELSPEED_F'] * CV.KPH_TO_MS
     ret.wheelSpeeds.rl = ret.wheelSpeeds.rr
@@ -37,11 +37,27 @@ class CarState(CarStateBase):
     ret.vEgo, ret.aEgo = self.update_speed_kf(ret.vEgoRaw)
     ret.standstill = ret.vEgoRaw < 0.01
 
+    # safety checks to engage
+    can_gear = int(cp.vl["TRANSMISSION"]['GEAR'])
+
+    ret.doorOpen = any([cp.vl["METER_CLUSTER"]['MAIN_DOOR'],
+                     cp.vl["METER_CLUSTER"]['LEFT_FRONT_DOOR'],
+                     cp.vl["METER_CLUSTER"]['RIGHT_BACK_DOOR'],
+                     cp.vl["METER_CLUSTER"]['LEFT_BACK_DOOR']])
+
+    ret.seatbeltUnlatched = cp.vl["METER_CLUSTER"]['SEAT_BELT_WARNING'] == 1
+    ret.gearShifter = self.parse_gear_shifter(self.shifter_values.get(can_gear, None))
+    disengage = ret.doorOpen or ret.seatbeltUnlatched
+    if disengage:
+      self.is_cruise_latch = False
+
     # gas pedal
     ret.gas = cp.vl["GAS_PEDAL"]['APPS_1']
     # todo: let gas pressed legit
-    ret.gasPressed = ret.gas > 0.6
-    self.acttrGas = (cp.vl["GAS_SENSOR"]['INTERCEPTOR_GAS']) /1800          # KommuActuator gas, read when stock pedal is being intercepted
+    ret.gasPressed = ret.gas > 1.0
+    self.acttrGas = (cp.vl["GAS_SENSOR"]['INTERCEPTOR_GAS']) # KommuActuator gas, read when stock pedal is being intercepted
+    if self.acttrGas < 0:
+      self.acttrGas = 0
 
     # brake pedal
     ret.brake = cp.vl["BRAKE"]['BRAKE_PRESSURE']
@@ -68,10 +84,10 @@ class CarState(CarStateBase):
     elif self.CP.carFingerprint == CAR.ATIVA:
       ret.steeringPressed = bool(abs(ret.steeringTorque) > 25)
     else:
-      ret.steeringPressed = bool(abs(ret.steeringTorque) > 150)
+      ret.steeringPressed = bool(abs(ret.steeringTorque) > 110)
 
-    ret.steerWarning = False                                                # since Perodua has no LKAS, make it always no warning
-    ret.steerError = False                                                  # since Perodua has no LKAS, make it always no warning
+    ret.steerWarning = False      # since Perodua has no LKAS, make it always no warning
+    ret.steerError = False        # since Perodua has no LKAS, make it always no warning
 
     # todo: find this out and add it in
 #    ret.stockAeb = cp.vl["FWD_CAM1"]['AEB_BRAKE'] != 0                     # is stock AEB giving a braking signal?
@@ -84,18 +100,22 @@ class CarState(CarStateBase):
       ret.cruiseState.nonAdaptive = False
       ret.cruiseState.speed = self.cruise_speed
 
-      # increase cruise_speed using pedal when engage
       if self.is_cruise_latch:
+        # pedal disengage
+        if self.check_pedal_engage(self.acttrGas, pedal_press_state):
+          self.is_cruise_latch = False
+
+        # increase cruise_speed using pedal when engage
         self.cruise_speed_counter += 1
-        if self.cruise_speed_counter % 120 == 0 and self.acttrGas > 0.3:
+        if self.cruise_speed_counter % 100 == 0 and self.acttrGas > 0.2:
           self.cruise_speed += (5 * CV.KPH_TO_MS)
           self.cruise_speed_counter = 0
 
-    # latching cruiseState logic
-      if self.check_pedal_engage(ret.gas, pedal_press_state):
-        if not self.is_cruise_latch:
+      # latching cruiseState logic
+      if not self.is_cruise_latch:
+        if self.check_pedal_engage(ret.gas, pedal_press_state):
           self.cruise_speed = ret.vEgo + (5 * CV.KPH_TO_MS)
-        self.is_cruise_latch = True
+          self.is_cruise_latch = True
       if ret.brakePressed:
         self.is_cruise_latch = False
 
@@ -112,17 +132,6 @@ class CarState(CarStateBase):
       ret.cruiseState.enabled = self.is_cruise_latch
 
     ret.cruiseState.standstill = ret.standstill
-
-    # safety checks to engage
-    can_gear = int(cp.vl["TRANSMISSION"]['GEAR'])
-
-    ret.doorOpen = any([cp.vl["METER_CLUSTER"]['MAIN_DOOR'],
-                     cp.vl["METER_CLUSTER"]['LEFT_FRONT_DOOR'],
-                     cp.vl["METER_CLUSTER"]['RIGHT_BACK_DOOR'],
-                     cp.vl["METER_CLUSTER"]['LEFT_BACK_DOOR']])
-
-    ret.seatbeltUnlatched = cp.vl["METER_CLUSTER"]['SEAT_BELT_WARNING'] == 1
-    ret.gearShifter = self.parse_gear_shifter(self.shifter_values.get(can_gear, None))
 
     # button presses
     ret.leftBlinker = bool(cp.vl["METER_CLUSTER"]["LEFT_SIGNAL"])
