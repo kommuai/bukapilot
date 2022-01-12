@@ -70,4 +70,6 @@ private:
   QWidget *sidebar_widget;
   QButtonGroup *nav_btns;
   QStackedWidget *panel_widget;
+  QWidget *panel_header;
+  QLabel *header_label;
 };

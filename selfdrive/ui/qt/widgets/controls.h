@@ -40,7 +40,7 @@ protected:
 
   QSize minimumSizeHint() const override {
     QSize size = QFrame::minimumSizeHint();
-    size.setHeight(120);
+    size.setHeight(200);
     return size;
   };
 
