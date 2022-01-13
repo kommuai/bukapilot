@@ -3,7 +3,7 @@
 
 NavButton::NavButton( const QString &text, const QPixmap &newIcon, QWidget *parent) : QPushButton(text,parent){
     update();
-    int size = 40;
+    int size = 60;
     icon = newIcon.scaled(size,size,Qt::KeepAspectRatio);
 
 }
@@ -12,7 +12,7 @@ NavButton::NavButton( const QString &text, const QPixmap &newIcon, QWidget *pare
 void NavButton::paintEvent(QPaintEvent *e) {
   QPushButton::paintEvent(e);
   QPainter p(this);
-  p.drawPixmap(50,(height()-40/2)/2, icon);
+  p.drawPixmap(25,(height()-60/2)/2, icon);
 
 }
 

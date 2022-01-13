@@ -36,7 +36,7 @@ AbstractControl::AbstractControl(const QString &title, const QString &desc, cons
 
   // title
   title_label = new QPushButton(title);
-  title_label->setStyleSheet("font-size: 30px; font-weight: 500; text-align: left;");
+  title_label->setStyleSheet("font-size: 50px; font-weight: 500; text-align: left;");
   hlayout->addWidget(title_label);
 
   main_layout->addLayout(hlayout);
@@ -45,7 +45,7 @@ AbstractControl::AbstractControl(const QString &title, const QString &desc, cons
   if (!desc.isEmpty()) {
     description = new QLabel(desc);
     description->setContentsMargins(40, 20, 40, 20);
-    description->setStyleSheet("font-size: 20px; color:grey");
+    description->setStyleSheet("font-size: 40px; color:grey");
     description->setWordWrap(true);
     description->setVisible(false);
     main_layout->addWidget(description);
@@ -73,7 +73,7 @@ ButtonControl::ButtonControl(const QString &title, const QString &text, const QS
     QPushButton {
       padding: 0;
       border-radius: 50px;
-      font-size: 30px;
+      font-size: 50px;
       font-weight: 500;
       color: #E4E4E4;
       background-color: #393939;
@@ -82,7 +82,7 @@ ButtonControl::ButtonControl(const QString &title, const QString &text, const QS
       color: #33E4E4E4;
     }
   )");
-  btn.setFixedSize(200, 100);
+  btn.setFixedSize(300, 150);
   QObject::connect(&btn, &QPushButton::released, this, &ButtonControl::released);
   hlayout->addWidget(&btn);
 }

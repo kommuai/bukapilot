@@ -99,7 +99,7 @@ Sidebar::Sidebar(QWidget *parent) : QFrame(parent) {
 
   connect(this, &Sidebar::valueChanged, [=] { update(); });
 
-  setFixedWidth(225);
+  setFixedWidth(250);
   setMinimumHeight(vwp_h-225*3);
   setStyleSheet("background-color: rgb(0, 0, 0);");
 }

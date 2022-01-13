@@ -310,12 +310,13 @@ SettingsWindow::SettingsWindow(QWidget *parent) : QFrame(parent) {
     border-radius: 1px;
     background-color: #202020;
   )");
-  
+
   //setup panel header
   header_label = new QLabel;
   header_label -> setStyleSheet(R"(
     border-radius: 0.1px;
-    font-size: 50px;
+    font-size: 70px;
+    font-weight:500;
     padding-left: 40px;
     background-color: #303030;
     margin-bottom:-50px;
@@ -327,7 +328,7 @@ SettingsWindow::SettingsWindow(QWidget *parent) : QFrame(parent) {
     font-size: 90px;
     font-family: Calibri;
     border 0px black solid;
-    border-radius: 50px;
+    border-radius: 75px;
     background-color: #000000;
   )");
   close_btn->setFixedSize(100, 100);
@@ -367,13 +368,13 @@ SettingsWindow::SettingsWindow(QWidget *parent) : QFrame(parent) {
     NavButton *btn = new NavButton(name,pixmap);
     btn->setCheckable(true);
     btn->setChecked(nav_btns->buttons().size() == 0);
-    btn->setFixedHeight(200);
+    btn->setFixedHeight(300);
     btn->setStyleSheet(QString(R"(
       QPushButton {
         color: grey;
         border: none;
         background: none;
-        font-size: 35px;
+        font-size: 50px;
         font-weight: 500;
         padding-top: 50px;
         padding-left: 150px;
@@ -412,7 +413,7 @@ SettingsWindow::SettingsWindow(QWidget *parent) : QFrame(parent) {
   setStyleSheet(R"(
     * {
       color: white;
-      font-size: 30px;
+      font-size: 50px;
     }
     SettingsWindow {
       background-color: black;

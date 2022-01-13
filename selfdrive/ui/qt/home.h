@@ -38,7 +38,7 @@ class StatusWidget: public QWidget {
     Q_OBJECT
     public slots:
       void updateState(const UIState &s);
-    
+
     public:
       explicit StatusWidget(QWidget* parent = 0);
 
@@ -84,6 +84,7 @@ class OffroadHome : public QFrame {
 public:
 
   explicit OffroadHome(QWidget* parent = 0);
+  StatusWidget* status;
 
 private:
   void showEvent(QShowEvent *event) override;
@@ -94,7 +95,6 @@ private:
   QLabel* date;
   QStackedLayout* center_layout;
 
-  StatusWidget* status;
   UpdatesWidget* updates;
   QrWidget* qr;
   DriveWidget* drive;

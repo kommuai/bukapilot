@@ -23,13 +23,13 @@ QFrame *home_horizontal_line(QWidget *parent) {
   QFrame *line = new QFrame(parent);
   line->setFrameShape(QFrame::StyledPanel);
   line->setStyleSheet(R"(
-    margin-left: 100px;
+    margin-left: 90px;
     margin-right: 100px;
     border-width: 1px;
     border-bottom-style: solid;
     border-color: gray;
   )");
-  line->setFixedHeight(1);
+  line->setFixedHeight(2);
   return line;
 }
 
@@ -63,15 +63,15 @@ void StatusLabel::paintEvent(QPaintEvent *e) {
   QTextOption option (Qt::AlignCenter);
   option.setWrapMode(QTextOption:: WordWrap);
   QPainter p(this);
-  p.drawPixmap(width()*0.2,width()*0.05,width()*0.6,width()*0.6, icon);
+  p.drawPixmap(width()*0.11,0,width()*0.78,width()*0.78, icon);
   QFont font=p.font() ;
-  int font_size = 25;
-  font.setPointSize(font_size);
+  int font_size = 40;
+  font.setPixelSize(font_size);
   p.setFont(font);
   font.setWeight(QFont::DemiBold);
 //  p.drawText(QPoint(width()/2,(height()/2)),button_text);
  // p.drawText(QRect(width()/2 - button_text.size()*font_size/2.75,height()/2+icon.height()/1.5),Qt::AlignCenter,button_text);
-  p.drawText(QRect(width()*0.32,width()*0.16,width()*0.37,width()*0.38), text, option);
+  p.drawText(QRect(width()*0.26,width()*0.2,width()*0.5,width()*0.38), text, option);
 
 }
 
@@ -86,7 +86,6 @@ HomeWindow::HomeWindow(QWidget* parent) : QWidget(parent) {
 
   sidebar = new Sidebar(this);
   main_layout->addWidget(sidebar);
-  QObject::connect(this, &HomeWindow::update, sidebar, &Sidebar::updateState);
   QObject::connect(sidebar, &Sidebar::openSettings, this, &HomeWindow::openSettings);
 
   slayout = new QStackedLayout();
@@ -98,6 +97,7 @@ HomeWindow::HomeWindow(QWidget* parent) : QWidget(parent) {
   onroad = new OnroadWindow(this);
   slayout->addWidget(onroad);
 
+  QObject::connect(this, &HomeWindow::update, home->status, &StatusWidget::updateState);
   QObject::connect(this, &HomeWindow::update, onroad, &OnroadWindow::update);
   QObject::connect(this, &HomeWindow::offroadTransitionSignal, onroad, &OnroadWindow::offroadTransitionSignal);
 
@@ -116,9 +116,9 @@ void HomeWindow::offroadTransition(bool offroad) {
   if (offroad) {
 
     slayout->setCurrentWidget(home);
- 
+
   } else {
-    
+
     slayout->setCurrentWidget(onroad);
   }
   sidebar->setVisible(offroad);
@@ -193,7 +193,7 @@ OffroadHome::OffroadHome(QWidget* parent) : QFrame(parent) {
 
 
   //main_layout->addLayout(center_layout, 1);
-  
+
   // set up refresh timer
   timer = new QTimer(this);
   timer->callOnTimeout(this, &OffroadHome::refresh);
@@ -251,7 +251,7 @@ void StatusWidget::updateState(const UIState &s) {
   // setProperty("tempStatus", tempStatus);
   // setProperty("tempVal", (int)deviceState.getAmbientTempC());
   temp_txt -> setIcon(temp_pixmap);
-  temp_txt -> setText((QString)((int)deviceState.getAmbientTempC()) + " °C");
+  temp_txt -> setText(QString::number((int)deviceState.getAmbientTempC()) + " °C");
   // QString pandaStr = "VEHICLE\nONLINE";
   // QColor pandaStatus = good_color;
   // if (s.scene.pandaType == cereal::PandaState::PandaType::UNKNOWN) {
@@ -313,12 +313,12 @@ StatusWidget::StatusWidget(QWidget *parent) : QWidget(parent){
     QLabel *device_temp_label = new QLabel("DEVICE TEMPERATURE");
     device_temp_label -> setWordWrap(true);
     device_temp_label -> setAlignment( Qt::AlignCenter);
-    device_temp_label->setStyleSheet("padding-left:75px;padding-right:100px");
+    //device_temp_label->setStyleSheet("padding-left:5px;");
     QFont label_font;
-    label_font.setPointSize(25);
+    label_font.setPixelSize(50);
     device_temp_label -> setFont(label_font);
-    device_temp_label->setFixedWidth(450);
-    device_temp_label->setFixedHeight(75);
+    device_temp_label->setFixedWidth(375);
+    device_temp_label->setFixedHeight(100);
 
     QString temp_img_dir = "../assets/kommu/red_circle.png";
     QPixmap temp_pixmap(temp_img_dir);
@@ -342,12 +342,12 @@ StatusWidget::StatusWidget(QWidget *parent) : QWidget(parent){
 
 
 QrWidget::QrWidget(QWidget *parent) : QWidget(parent){
-    
+
     qr_layout = new QHBoxLayout(this);
     setStyleSheet("background-color: rgb(0, 0, 0);");
     QLabel *qr_desc = new QLabel("Pair your device with KommuApp by scanning the QR Code to view drive data.");
     QLabel *qr_code = new QLabel;
-    qr_desc->setStyleSheet("font-size: 40px;padding: 15px");
+    qr_desc->setStyleSheet("font-size: 50px;padding: 15px");
     qr_desc->setWordWrap(true);
 
     Params params = Params();
@@ -398,8 +398,8 @@ DriveWidget::DriveWidget(QWidget *parent) : QWidget(parent){
 
     QFont header_font;
     QFont content_font;
-    content_font.setPointSize(20);
-    header_font.setPointSize(25);
+    content_font.setPixelSize(40);
+    header_font.setPixelSize(50);
 
     drive_header -> setFont(content_font);
     rem_upl_txt -> setFont(content_font);
@@ -418,14 +418,14 @@ UpdatesWidget::UpdatesWidget(QWidget *parent) : QWidget(parent){
     update_layout = new QVBoxLayout(this);
     setStyleSheet("background-color: rgb(40, 40, 40);border-radius: 25px;");
     QLabel *updates_header = new QLabel("bukapilot 1.0.0");
-    QLabel *updates_content = new QLabel("bukapilot 1.0.0\n-To be added in the future");
+    QLabel *updates_content = new QLabel("bukapilot 1.0.0\n-First Release Version");
 
 
     QFont header_font;
     QFont content_font;
 
-    content_font.setPointSize(15);
-    header_font.setPointSize(25);
+    content_font.setPixelSize(40);
+    header_font.setPixelSize(50);
    // header_font.thin()
 
     updates_header->setFont(header_font);

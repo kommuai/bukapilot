@@ -17,8 +17,8 @@ void MainSidebarButton::paintEvent(QPaintEvent *e) {
   QPainter p(this);
   p.drawPixmap(width()/2-icon.width()/2,height()/2-icon.height(), icon);
   QFont font=p.font() ;
-  int font_size = 22;
-  font.setPointSize(font_size);
+  int font_size = 40;
+  font.setPixelSize(font_size);
   p.setFont(font);
   font.setWeight(QFont::DemiBold);
 //  p.drawText(QPoint(width()/2,(height()/2)),button_text);
