@@ -100,6 +100,7 @@ HomeWindow::HomeWindow(QWidget* parent) : QWidget(parent) {
   QObject::connect(this, &HomeWindow::update, home->status, &StatusWidget::updateState);
   QObject::connect(this, &HomeWindow::update, onroad, &OnroadWindow::update);
   QObject::connect(this, &HomeWindow::offroadTransitionSignal, onroad, &OnroadWindow::offroadTransitionSignal);
+  QObject::connect(onroad, &OnroadWindow::openSettings, this, &HomeWindow::openSettings);
 
   driver_view = new DriverViewWindow(this);
   connect(driver_view, &DriverViewWindow::done, [=] {
@@ -114,13 +115,13 @@ void HomeWindow::showSidebar(bool show) {
 
 void HomeWindow::offroadTransition(bool offroad) {
   if (offroad) {
-
     slayout->setCurrentWidget(home);
 
   } else {
 
     slayout->setCurrentWidget(onroad);
   }
+
   sidebar->setVisible(offroad);
   emit offroadTransitionSignal(offroad);
 }
