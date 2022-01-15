@@ -13,8 +13,6 @@
 
 #include "selfdrive/common/params.h"
 #include "selfdrive/ui/qt/util.h"
-#include "selfdrive/ui/qt/widgets/drive_stats.h"
-#include "selfdrive/ui/qt/widgets/setup.h"
 
 using qrcodegen::QrCode;
 
@@ -33,9 +31,9 @@ QFrame *home_horizontal_line(QWidget *parent) {
   return line;
 }
 
-StatusLabel::StatusLabel( const QString &text, const QPixmap &icon, QWidget *parent) : QWidget( parent){
+StatusLabel::StatusLabel( const QString &text, const QString &icon_dir, QWidget *parent) : QWidget( parent){
 
-    this->icon = icon;
+    this->icon_dir = icon_dir;
     this->text = text;
 
     update();
@@ -49,11 +47,11 @@ void StatusLabel::setText(const QString &text)
     update();
 }
 
-void StatusLabel::setIcon(const QPixmap &icon)
+void StatusLabel::setIconDir(const QString &icon_dir)
 {
-    if (this->icon == icon)
+    if (this->icon_dir == icon_dir)
         return;
-    this->icon = icon;
+    this->icon_dir = icon_dir;
     update();
 }
 
@@ -63,14 +61,13 @@ void StatusLabel::paintEvent(QPaintEvent *e) {
   QTextOption option (Qt::AlignCenter);
   option.setWrapMode(QTextOption:: WordWrap);
   QPainter p(this);
+  QPixmap icon(icon_dir);
   p.drawPixmap(width()*0.11,0,width()*0.78,width()*0.78, icon);
   QFont font=p.font() ;
   int font_size = 40;
   font.setPixelSize(font_size);
   p.setFont(font);
   font.setWeight(QFont::DemiBold);
-//  p.drawText(QPoint(width()/2,(height()/2)),button_text);
- // p.drawText(QRect(width()/2 - button_text.size()*font_size/2.75,height()/2+icon.height()/1.5),Qt::AlignCenter,button_text);
   p.drawText(QRect(width()*0.26,width()*0.2,width()*0.5,width()*0.38), text, option);
 
 }
@@ -116,9 +113,7 @@ void HomeWindow::showSidebar(bool show) {
 void HomeWindow::offroadTransition(bool offroad) {
   if (offroad) {
     slayout->setCurrentWidget(home);
-
   } else {
-
     slayout->setCurrentWidget(onroad);
   }
 
@@ -136,24 +131,6 @@ void HomeWindow::showDriverView(bool show) {
   sidebar->setVisible(show == false);
 }
 
-void HomeWindow::mousePressEvent(QMouseEvent* e) {
-  // Handle sidebar collapsing
-  // if (onroad->isVisible() && (!sidebar->isVisible() || e->x() > sidebar->width())) {
-
-  //   // TODO: Handle this without exposing pointer to map widget
-  //   // Hide map first if visible, then hide sidebar
-  //   if (onroad->map != nullptr && onroad->map->isVisible()) {
-  //     onroad->map->setVisible(false);
-  //   } else if (!sidebar->isVisible()) {
-  //     sidebar->setVisible(true);
-  //   } else {
-  //     sidebar->setVisible(false);
-
-  //     if (onroad->map != nullptr) onroad->map->setVisible(true);
-  //   }
-  // }
-}
-
 // OffroadHome: the offroad home page
 
 OffroadHome::OffroadHome(QWidget* parent) : QFrame(parent) {
@@ -161,17 +138,10 @@ OffroadHome::OffroadHome(QWidget* parent) : QFrame(parent) {
   QGridLayout* main_layout = new QGridLayout(this);
   main_layout->setMargin(50);
 
-  // top header
-  QHBoxLayout* header_layout = new QHBoxLayout();
-  header_layout->setSpacing(10);
-
-  date = new QLabel();
   status = new StatusWidget();
   updates = new UpdatesWidget();
   qr = new QrWidget();
   drive = new DriveWidget();
-  header_layout->addWidget(date, 1, Qt::AlignHCenter | Qt::AlignLeft);
-  // main_layout->addLayout(header_layout);
   status->setMaximumWidth(450);
 
   main_layout->addWidget(status,0,0,2,1);
@@ -180,25 +150,8 @@ OffroadHome::OffroadHome(QWidget* parent) : QFrame(parent) {
   main_layout->addWidget(drive,1,2);
   main_layout->setHorizontalSpacing(15);
 
-
-  // main content
-  // main_layout->addSpacing(25);
-  center_layout = new QStackedLayout();
-
-  QWidget* statsAndSetupWidget = new QWidget(this);
-  QHBoxLayout* statsAndSetup = new QHBoxLayout(statsAndSetupWidget);
-  statsAndSetup->setMargin(0);
-
-  center_layout->addWidget(statsAndSetupWidget);
-
-
-
-  //main_layout->addLayout(center_layout, 1);
-
   // set up refresh timer
   timer = new QTimer(this);
-  timer->callOnTimeout(this, &OffroadHome::refresh);
-
   setStyleSheet(R"(
     * {
      color: white;
@@ -217,7 +170,6 @@ OffroadHome::OffroadHome(QWidget* parent) : QFrame(parent) {
     }
   )");
 
-  refresh();
 }
 
 
@@ -227,43 +179,17 @@ void StatusWidget::updateState(const UIState &s) {
   auto &sm = *(s.sm);
 
   auto deviceState = sm["deviceState"].getDeviceState();
-  // setProperty("netType", network_type[deviceState.getNetworkType()]);
-  // int strength = (int)deviceState.getNetworkStrength();
-  // setProperty("netStrength", strength > 0 ? strength + 1 : 0);
-
-  // auto last_ping = deviceState.getLastAthenaPingTime();
-  // if (last_ping == 0) {
-  //   setProperty("connectStr", "OFFLINE");
-  //   setProperty("connectStatus", warning_color);
-  // } else {
-  //   bool online = nanos_since_boot() - last_ping < 80e9;
-  //   setProperty("connectStr",  online ? "ONLINE" : "ERROR");
-  //   setProperty("connectStatus", online ? good_color : danger_color);
-  // }
-
   QString temp_pixmap_dir = "../assets/kommu/red_circle.png";
   auto ts = deviceState.getThermalStatus();
+
   if (ts == cereal::DeviceState::ThermalStatus::GREEN) {
     temp_pixmap_dir = "../assets/kommu/blue_circle.png";
   } else if (ts == cereal::DeviceState::ThermalStatus::YELLOW) {
     temp_pixmap_dir = "../assets/kommu/green_circle.png";
   }
-  QPixmap temp_pixmap(temp_pixmap_dir);
-  // setProperty("tempStatus", tempStatus);
-  // setProperty("tempVal", (int)deviceState.getAmbientTempC());
-  temp_txt -> setIcon(temp_pixmap);
+
+  temp_txt -> setIconDir(temp_pixmap_dir);
   temp_txt -> setText(QString::number((int)deviceState.getAmbientTempC()) + " °C");
-  // QString pandaStr = "VEHICLE\nONLINE";
-  // QColor pandaStatus = good_color;
-  // if (s.scene.pandaType == cereal::PandaState::PandaType::UNKNOWN) {
-  //   pandaStatus = danger_color;
-  //   pandaStr = "NO\nPANDA";
-  // } else if (s.scene.started && !sm["liveLocationKalman"].getLiveLocationKalman().getGpsOK()) {
-  //   pandaStatus = warning_color;
-  //   pandaStr = "GPS\nSEARCHING";
-  // }
-  // setProperty("pandaStr", pandaStr);
-  // setProperty("pandaStatus", pandaStatus);
 }
 
 
@@ -275,46 +201,14 @@ void OffroadHome::hideEvent(QHideEvent *event) {
   timer->stop();
 }
 
-void OffroadHome::refresh() {
-  date->setText(QDateTime::currentDateTime().toString("dddd, MMMM d"));
-
-  // bool updateAvailable = update_widget->refresh();
-  // int alerts = alerts_widget->refresh();
-
-  // // pop-up new notification
-  // int idx = center_layout->currentIndex();
-  // // Kommu Edits:
-  // //if (!updateAvailable && !alerts) {
-  // if (!updateAvailable){
-  //   idx = 0;
-  // } else if (updateAvailable && (!update_notif->isVisible() || (!alerts && idx == 2))) {
-  //   idx = 1;
-  // } else if (alerts && (!alert_notif->isVisible() || (!updateAvailable && idx == 1))) {
-  //   idx = 2;
-  // }
-  // center_layout->setCurrentIndex(idx);
-
-  // update_notif->setVisible(updateAvailable);
-  // alert_notif->setVisible(alerts);
-  // if (alerts) {
-  //   alert_notif->setText(QString::number(alerts) + " ALERT" + (alerts > 1 ? "S" : ""));
-  // }
-}
-
-
 StatusWidget::StatusWidget(QWidget *parent) : QWidget(parent){
     status_layout = new QVBoxLayout(this);
     QString device_img_dir = "../assets/kommu/green_circle.png";
-    QPixmap device_pixmap(device_img_dir);
-    // device_img = new QLabel("SYSTEM READY");
-    // device_img -> setPixmap(device_pixmap);
-    // QString *asdf = new QString("test");
-    device_txt = new StatusLabel("SYSTEM READY",device_pixmap);
+    device_txt = new StatusLabel("SYSTEM READY",device_img_dir);
 
     QLabel *device_temp_label = new QLabel("DEVICE TEMPERATURE");
     device_temp_label -> setWordWrap(true);
     device_temp_label -> setAlignment( Qt::AlignCenter);
-    //device_temp_label->setStyleSheet("padding-left:5px;");
     QFont label_font;
     label_font.setPixelSize(50);
     device_temp_label -> setFont(label_font);
@@ -322,23 +216,16 @@ StatusWidget::StatusWidget(QWidget *parent) : QWidget(parent){
     device_temp_label->setFixedHeight(100);
 
     QString temp_img_dir = "../assets/kommu/red_circle.png";
-    QPixmap temp_pixmap(temp_img_dir);
-//    temp_img = new QLabel();
-//    temp_img -> setPixmap(temp_img_dir);
+    temp_txt = new StatusLabel("0 °C",temp_img_dir);
 
-    temp_txt = new StatusLabel("0 °C",temp_pixmap);
-
-    //status_layout -> addWidget(device_img);
     status_layout->addSpacing(50);
     status_layout -> addWidget(device_txt);
     device_txt->setStyleSheet("padding-top:300px;");
     device_txt -> setMinimumHeight(250);
     status_layout -> addWidget(home_horizontal_line());
     status_layout -> addWidget(device_temp_label);
-    //status_layout -> addWidget(device_img);
     status_layout -> addWidget(temp_txt);
     status_layout -> setSpacing(50);
-   // setStyleSheet(R"(*{background-color: rgb(40, 40, 40);border-radius: 25px})");
 }
 
 

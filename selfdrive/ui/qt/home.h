@@ -21,15 +21,14 @@ class StatusLabel: public QWidget {
 
     Q_OBJECT
     public:
-      explicit StatusLabel(const QString &text, const QPixmap &newIcon, QWidget* parent = 0);
+      explicit StatusLabel(const QString &text, const QString &icon_dir, QWidget* parent = 0);
 
       void setText(const QString &text);
-      void setIcon(const QPixmap &icon);
-
+      void setIconDir(const QString &icon_dir);
 
     private:
       QString text;
-      QPixmap icon;
+      QString icon_dir;
       void paintEvent(QPaintEvent*) override;
 };
 
@@ -43,13 +42,11 @@ class StatusWidget: public QWidget {
       explicit StatusWidget(QWidget* parent = 0);
 
     private:
-        QVBoxLayout *status_layout;
-        // QLabel *device_img;
-        StatusLabel *device_txt;
-        // QLabel *temp_img;
-        StatusLabel *temp_txt;
-
-
+      QVBoxLayout *status_layout;
+      // QLabel *device_img;
+      StatusLabel *device_txt;
+      // QLabel *temp_img;
+      StatusLabel *temp_txt;
 };
 
 class UpdatesWidget: public QWidget {
@@ -72,9 +69,9 @@ class QrWidget: public QWidget {
 class DriveWidget: public QWidget {
     public:
       explicit DriveWidget(QWidget* parent = 0);
+
     private:
         QVBoxLayout *drive_layout;
-
 };
 
 
@@ -82,18 +79,15 @@ class OffroadHome : public QFrame {
   Q_OBJECT
 
 public:
-
   explicit OffroadHome(QWidget* parent = 0);
+
   StatusWidget* status;
 
 private:
   void showEvent(QShowEvent *event) override;
   void hideEvent(QHideEvent *event) override;
-  void refresh();
 
   QTimer* timer;
-  QLabel* date;
-  QStackedLayout* center_layout;
 
   UpdatesWidget* updates;
   QrWidget* qr;
@@ -103,7 +97,6 @@ private:
 
 class HomeWindow : public QWidget {
   Q_OBJECT
-
 
 public:
   explicit HomeWindow(QWidget* parent = 0);
@@ -122,15 +115,11 @@ public slots:
   void showDriverView(bool show);
   void showSidebar(bool show);
 
-protected:
-  void mousePressEvent(QMouseEvent* e) override;
-
 private:
   Sidebar *sidebar;
   OffroadHome *home;
   OnroadWindow *onroad;
   DriverViewWindow *driver_view;
   QStackedLayout *slayout;
-
 };
 
