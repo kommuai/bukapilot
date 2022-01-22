@@ -84,7 +84,7 @@ class CarState(CarStateBase):
     elif self.CP.carFingerprint == CAR.ATIVA:
       ret.steeringPressed = bool(abs(ret.steeringTorque) > 25)
     else:
-      ret.steeringPressed = bool(abs(ret.steeringTorque) > 110)
+      ret.steeringPressed = bool(abs(ret.steeringTorque) > 70)
 
     ret.steerWarning = False      # since Perodua has no LKAS, make it always no warning
     ret.steerError = False        # since Perodua has no LKAS, make it always no warning
