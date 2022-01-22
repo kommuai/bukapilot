@@ -5,13 +5,13 @@ from selfdrive.car.perodua.peroduacan import create_steer_command, perodua_creat
 from selfdrive.car.perodua.values import CAR, DBC, NOT_CAN_CONTROLLED
 from selfdrive.controls.lib.lateral_planner import LANE_CHANGE_SPEED_MIN
 from opendbc.can.packer import CANPacker
-from common.numpy_fast import clip
+from common.numpy_fast import clip, interp
 import cereal.messaging as messaging
 
 class CarControllerParams():
   def __init__(self):
 
-    self.STEER_MAX = 700                   # KommuActuator dac steering value
+    self.STEER_MAX = 600                   # KommuActuator dac steering value
     self.STEER_DELTA_UP = 10               # torque increase per refresh, 0.8s to max
     self.STEER_DELTA_DOWN = 30             # torque decrease per refresh
     self.STEER_DRIVER_ALLOWANCE = 1        # allowed driver torque before start limiting
@@ -37,11 +37,12 @@ class CarController():
 
     # generate steering command
     steer_max_interp = self.params.STEER_MAX
-    if CS.out.vEgo > 20 and CS.CP.carFingerprint == CAR.AXIA:
-      steer_max_interp = self.params.STEER_MAX + 150
+
     # myvi has a more reactive EPS
-    if CS.CP.carFingerprint == CAR.MYVI:
-      steer_max_interp = self.params.STEER_MAX - 150
+    if CS.CP.carFingerprint == CAR.MYVI or CS.CP.carFingerprint == CAR.BEZZA:
+      steer_max_interp = interp(CS.out.vEgo, [11, 22], [380, self.params.STEER_MAX])
+    if CS.CP.carFingerprint == CAR.AXIA:
+      steer_max_interp = interp(CS.out.vEgo, [11, 22], [450, self.params.STEER_MAX + 200])
 
     new_steer = int(round(actuators.steer * steer_max_interp))
     apply_steer = apply_std_steer_torque_limits(new_steer, self.last_steer, CS.out.steeringTorqueEps, self.params)
