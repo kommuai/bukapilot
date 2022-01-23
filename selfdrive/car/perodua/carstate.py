@@ -10,7 +10,7 @@ from selfdrive.car.perodua.values import DBC, CAR
 # todo: clean this part up
 pedal_counter = 0
 pedal_press_state = 0
-PEDAL_COUNTER_THRES = 25
+PEDAL_COUNTER_THRES = 35
 PEDAL_UPPER_TRIG_THRES = 0.125
 PEDAL_NON_ZERO_THRES = 0.01
 
@@ -80,7 +80,7 @@ class CarState(CarStateBase):
       ret.steeringTorqueEps = ret.steeringTorque/1000
 
     if self.CP.carFingerprint == CAR.AXIA:
-      ret.steeringPressed = bool(abs(ret.steeringTorque) > 16)
+      ret.steeringPressed = bool(abs(ret.steeringTorque) > 18)
     elif self.CP.carFingerprint == CAR.ATIVA:
       ret.steeringPressed = bool(abs(ret.steeringTorque) > 25)
     else:

@@ -11,7 +11,7 @@ import cereal.messaging as messaging
 class CarControllerParams():
   def __init__(self):
 
-    self.STEER_MAX = 800                   # KommuActuator dac steering value
+    self.STEER_MAX = 830                   # KommuActuator dac steering value
     self.STEER_DELTA_UP = 10               # torque increase per refresh, 0.8s to max
     self.STEER_DELTA_DOWN = 30             # torque decrease per refresh
     self.STEER_DRIVER_ALLOWANCE = 1        # allowed driver torque before start limiting
@@ -39,10 +39,14 @@ class CarController():
     steer_max_interp = self.params.STEER_MAX
 
     # myvi has a more reactive EPS
-    if CS.CP.carFingerprint == CAR.MYVI or CS.CP.carFingerprint == CAR.BEZZA:
-      steer_max_interp = interp(CS.out.vEgo, [11, 22], [380, self.params.STEER_MAX])
+    if CS.CP.carFingerprint == CAR.MYVI:
+      steer_max_interp = interp(CA.out.vEgo, [11, 22], [390, self.params.STEER_MAX - 220])
+    if CS.CP.carFingerprint == CAR.BEZZA:
+      steer_max_interp = interp(CS.out.vEgo, [11, 22], [400, self.params.STEER_MAX - 200])
+    if CS.CP.carFingerprint == CAR.ARUZ:
+      steer_max_interp = interp(CS.out.vEgo, [11, 22], [380, self.params.STEER_MAX - 230])
     if CS.CP.carFingerprint == CAR.AXIA:
-      steer_max_interp = interp(CS.out.vEgo, [11, 26], [450, self.params.STEER_MAX])
+      steer_max_interp = interp(CS.out.vEgo, [11, 26], [490, self.params.STEER_MAX])
 
     new_steer = int(round(actuators.steer * steer_max_interp))
     apply_steer = apply_std_steer_torque_limits(new_steer, self.last_steer, CS.out.steeringTorqueEps, self.params)

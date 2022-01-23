@@ -23,7 +23,7 @@ class CarInterface(CarInterfaceBase):
     ret.radarOffCan = True
 
     ret.steerRateCost = 0.7                # Lateral MPC cost on steering rate, higher value = sharper turn
-    ret.steerLimitTimer = 0.2              # time before steerLimitAlert is issued
+    ret.steerLimitTimer = 0.1              # time before steerLimitAlert is issued
     ret.steerControlType = car.CarParams.SteerControlType.torque # or car.CarParams.SteerControlType.angle
     ret.steerActuatorDelay = 0.48           # Steering wheel actuator delay in seconds, it was 0.1
 
@@ -51,8 +51,8 @@ class CarInterface(CarInterfaceBase):
       tire_stiffness_factor = 0.8371
       ret.mass = 850. + STD_CARGO_KG
 
-      ret.lateralTuning.pid.kf = 0.000106
-      ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.14], [0.32]]
+      ret.lateralTuning.pid.kf = 0.0000715
+      ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.06], [0.32]]
       ret.longitudinalTuning.kpV = [0.8, 0.9, 1.0]
 
     elif candidate == CAR.MYVI:
@@ -63,25 +63,26 @@ class CarInterface(CarInterfaceBase):
       ret.mass = 1015. + STD_CARGO_KG
 
       ret.lateralTuning.pid.kf = 0.0000917
-      ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.16], [0.41]]
+      ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.13], [0.28]]
 
     elif candidate == CAR.BEZZA:
       ret.wheelbase = 2.455
-      ret.steerRatio = 16.54
+      ret.steerRatio = 12.14
       ret.centerToFront = ret.wheelbase * 0.44
       tire_stiffness_factor = 0.8371
       ret.mass = 940. + STD_CARGO_KG
 
-      ret.lateralTuning.pid.kf = 0.0000917
-      ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.16], [0.41]]
+      ret.lateralTuning.pid.kf = 0.0000918
+      ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.05], [0.45]]
 
     elif candidate == CAR.ARUZ:
       ret.wheelbase = 2.685
-      ret.steerRatio = 16.54
+      ret.steerRatio = 16.14
       ret.centerToFront = ret.wheelbase * 0.44
-      tire_stiffness_factor = 0.6371
+      tire_stiffness_factor = 0.68371
       ret.mass = 1310. + STD_CARGO_KG
 
+      ret.lateralTuning.pid.kf = 0.0000917
       ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.098], [0.135]]
       ret.longitudinalTuning.kpV = [1.6, 1.1, 1.1]
 
