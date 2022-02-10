@@ -178,6 +178,9 @@ void StatusWidget::updateState(const UIState &s) {
 
   auto &sm = *(s.sm);
 
+  QString status_pixmap_dir = "../assets/kommu/green_circle.png";
+  QString status_text = "SYSTEM READY";
+
   auto deviceState = sm["deviceState"].getDeviceState();
   QString temp_pixmap_dir = "../assets/kommu/red_circle.png";
   auto ts = deviceState.getThermalStatus();
@@ -187,7 +190,14 @@ void StatusWidget::updateState(const UIState &s) {
   } else if (ts == cereal::DeviceState::ThermalStatus::YELLOW) {
     temp_pixmap_dir = "../assets/kommu/green_circle.png";
   }
+  
+  if (s.scene.pandaType == cereal::PandaState::PandaType::UNKNOWN) {
+    status_pixmap_dir = "../assets/kommu/red_circle.png";
+    status_text = "DEVICE ERROR";
+  }
 
+  device_txt -> setIconDir(status_pixmap_dir);
+  device_txt -> setText(status_text);
   temp_txt -> setIconDir(temp_pixmap_dir);
   temp_txt -> setText(QString::number((int)deviceState.getAmbientTempC()) + " °C");
 }

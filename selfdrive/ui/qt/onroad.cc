@@ -36,12 +36,9 @@ OnroadWindow::OnroadWindow(QWidget *parent) : QWidget(parent) {
   addons = new OnroadAddons(this);
   main_layout->addWidget(addons);
 
-
-
   alerts = new OnroadAlerts(this);
   alerts->setAttribute(Qt::WA_TransparentForMouseEvents, true);
   QObject::connect(this, &OnroadWindow::update, alerts, &OnroadAlerts::updateState);
-  QObject::connect(this, &OnroadWindow::update, addons, &OnroadAddons::updateState);
   QObject::connect(this, &OnroadWindow::offroadTransitionSignal, alerts, &OnroadAlerts::offroadTransition);
   QObject::connect(this, &OnroadWindow::offroadTransitionSignal, this, &OnroadWindow::offroadTransition);
   QObject::connect(addons, &OnroadAddons::openSettings,this,&OnroadWindow::openSettings);
@@ -112,7 +109,7 @@ void OnroadAlerts::updateState(const UIState &s) {
       // Handle controls timeout
       if (sm.rcv_frame("controlsState") < s.scene.started_frame) {
         // car is started, but controlsState hasn't been seen at all
-        updateAlert("openpilot Unavailable", "Waiting for controls to start", 0,
+        updateAlert("bukapilot Unavailable", "Waiting for controls to start", 0,
                     "controlsWaiting", cereal::ControlsState::AlertSize::MID, AudibleAlert::NONE);
       } else if ((sm.frame - sm.rcv_frame("controlsState")) > 5 * UI_FREQ) {
         // car is started, but controls is lagging or died
@@ -273,32 +270,13 @@ void NvgWindow::paintGL() {
 
 OnroadAddons::OnroadAddons(QWidget *parent) : QWidget(parent) {
 
+  invi_btn = new QPushButton(parent);
+  invi_btn -> setStyleSheet("QPushButton { background-color: rgba(10, 0, 0, 0); }");;
+  invi_btn -> move(70,785);
+  invi_btn -> resize(200,200);
 
-  QPixmap onroad_settings_pix("../assets/kommu/Settings.png");
-  onroad_settings_btn = new QPushButton(QIcon(onroad_settings_pix),"",parent);
-  onroad_settings_btn -> move(50, 550);
-  onroad_settings_btn -> resize(200,200);
-  onroad_settings_btn -> setIconSize(QSize(200,200));
-  onroad_settings_btn -> setStyleSheet("background:transparent");
-  connect(onroad_settings_btn, &QPushButton::released, [=](){
+  connect(invi_btn, &QPushButton::released, [=](){
       emit openSettings();
   });
-
-  onroad_temp_label = new QLabel("... °C",parent);
-  onroad_temp_label -> move(1550,50);
-  onroad_temp_label -> resize(400,250);
-  onroad_temp_label -> setStyleSheet("background:transparent;color:white;");
-
-  QFont onroad_temp_font = onroad_temp_label ->font();
-  onroad_temp_font.setPixelSize(120);
-  // onroad_temp_font.setBold(true);
-  onroad_temp_label -> setFont(onroad_temp_font);
-}
-
-void OnroadAddons::updateState(const UIState &s){
-  auto &sm = *(s.sm);
-
-  auto deviceState = sm["deviceState"].getDeviceState();
-  onroad_temp_label -> setText(QString::number((int)(deviceState.getAmbientTempC())) + "°C");
 
 }

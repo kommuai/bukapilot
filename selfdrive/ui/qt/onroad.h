@@ -68,7 +68,7 @@ public slots:
   void update(const UIState &s);
 };
 
-//widget for settings and temperature
+//widget for settings invisible button
 class OnroadAddons : public QWidget {
   Q_OBJECT
 
@@ -79,11 +79,7 @@ signals:
   void openSettings();
 
 private:
-  QPushButton *onroad_settings_btn;
-  QLabel *onroad_temp_label;
-
-public slots:
-  void updateState(const UIState &s);
+  QPushButton *invi_btn;
 
 };
 
