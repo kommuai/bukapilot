@@ -112,7 +112,7 @@ void OnroadAlerts::updateState(const UIState &s) {
       // Handle controls timeout
       if (sm.rcv_frame("controlsState") < s.scene.started_frame) {
         // car is started, but controlsState hasn't been seen at all
-        updateAlert("openpilot Unavailable", "Waiting for controls to start", 0,
+        updateAlert("bukapilot Unavailable", "Waiting for controls to start", 0,
                     "controlsWaiting", cereal::ControlsState::AlertSize::MID, AudibleAlert::NONE);
       } else if ((sm.frame - sm.rcv_frame("controlsState")) > 5 * UI_FREQ) {
         // car is started, but controls is lagging or died
@@ -276,7 +276,7 @@ OnroadAddons::OnroadAddons(QWidget *parent) : QWidget(parent) {
 
   QPixmap onroad_settings_pix("../assets/kommu/Settings.png");
   onroad_settings_btn = new QPushButton(QIcon(onroad_settings_pix),"",parent);
-  onroad_settings_btn -> move(50, 550);
+  onroad_settings_btn -> move(70, 260);
   onroad_settings_btn -> resize(200,200);
   onroad_settings_btn -> setIconSize(QSize(200,200));
   onroad_settings_btn -> setStyleSheet("background:transparent");
@@ -285,7 +285,7 @@ OnroadAddons::OnroadAddons(QWidget *parent) : QWidget(parent) {
   });
 
   onroad_temp_label = new QLabel("... °C",parent);
-  onroad_temp_label -> move(1550,50);
+  onroad_temp_label -> move(1600,235);
   onroad_temp_label -> resize(400,250);
   onroad_temp_label -> setStyleSheet("background:transparent;color:white;");
 
