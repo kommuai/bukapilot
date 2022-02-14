@@ -209,23 +209,48 @@ static void ui_draw_vision_speed(UIState *s) {
   ui_draw_text(s, s->viz_rect.centerX(), 320, s->scene.is_metric ? "km/h" : "mph", 36 * 2.5, COLOR_WHITE_ALPHA(200), "sans-regular");
 }
 
-static void ui_draw_vision_event(UIState *s) {
-  if (s->scene.engageable) {
-    // draw steering wheel
-    const int radius = 96;
-    const int center_x = s->viz_rect.right() - radius - bdr_s * 2;
-    const int center_y = s->viz_rect.y + radius  + (bdr_s * 1.5);
-    const QColor &color = bg_colors[s->status];
-    NVGcolor nvg_color = nvgRGBA(color.red(), color.green(), color.blue(), color.alpha());
-    ui_draw_circle_image(s, center_x, center_y, radius, "wheel", nvg_color, 1.0f);
-  }
+static void ui_draw_device_temp(UIState *s) {
+  const int width = 184;
+  const Rect rect = {s->viz_rect.right() - (bdr_s * 2) - width, int(s->viz_rect.y + (bdr_s * 1.5)), width, 202};
+  ui_fill_rect(s->vg, rect, COLOR_BLACK_ALPHA(100), 30.);
+  ui_draw_rect(s->vg, rect, COLOR_WHITE_ALPHA(100), 10, 20.);
+
+  float temp = (*s->sm)["deviceState"].getDeviceState().getAmbientTempC() * (s->scene.is_metric ? 1 : 1.8);
+  temp += s->scene.is_metric ? 0 : 32;
+  const std::string temp_str = std::to_string((int)std::nearbyint(temp));
+  const std::string unit = s->scene.is_metric ? "C" : "F";
+
+  ui_draw_text(s, rect.centerX(), 148, "TEMP", 26 * 2.5, COLOR_WHITE_ALPHA(100), "sans-regular");
+
+  const int offset = (temp > 100) ? 0 : 10;
+  ui_draw_text(s, rect.centerX() - 25 - (offset * 0.75), 232, temp_str.c_str(), 32 * 2.5, COLOR_WHITE_ALPHA(100), "sans-bold");
+  ui_draw_text(s, rect.centerX() + 52 - offset, 232, unit.c_str(), 32 * 2.5, COLOR_WHITE_ALPHA(100), "sans-bold");
 }
+
+//static void ui_draw_vision_event(UIState *s) {
+//  if (s->scene.engageable) {
+//    // draw steering wheel
+//    const int radius = 96;
+//    const int center_x = s->viz_rect.right() - radius - bdr_s * 2;
+//    const int center_y = s->viz_rect.y + radius  + (bdr_s * 1.5);
+//    const QColor &color = bg_colors[s->status];
+//    NVGcolor nvg_color = nvgRGBA(color.red(), color.green(), color.blue(), color.alpha());
+//    ui_draw_circle_image(s, center_x, center_y, radius, "wheel", nvg_color, 1.0f);
+//  }
+//}
 
 static void ui_draw_vision_face(UIState *s) {
   const int radius = 96;
-  const int center_x = s->viz_rect.x + radius + (bdr_s * 2);
+  const int center_x = s->viz_rect.right() - radius - (bdr_s * 2);
   const int center_y = s->viz_rect.bottom() - footer_h / 2;
   ui_draw_circle_image(s, center_x, center_y, radius, "driver_face", s->scene.dm_active);
+}
+
+static void ui_draw_settings(UIState *s) {
+  const int radius = 96;
+  const int center_x = s->viz_rect.x + radius + (bdr_s * 2);
+  const int center_y = s->viz_rect.bottom() - footer_h / 2;
+  ui_draw_circle_image(s, center_x, center_y, radius, "settings", s->scene.engageable);
 }
 
 static void ui_draw_vision_header(UIState *s) {
@@ -237,8 +262,10 @@ static void ui_draw_vision_header(UIState *s) {
   ui_fill_rect(s->vg, {s->viz_rect.x, s->viz_rect.y, s->viz_rect.w, header_h}, gradient);
 
   ui_draw_vision_maxspeed(s);
+  ui_draw_device_temp(s);
   ui_draw_vision_speed(s);
-  ui_draw_vision_event(s);
+  ui_draw_settings(s);
+  //ui_draw_vision_event(s);
 }
 
 static void ui_draw_vision_frame(UIState *s) {
@@ -388,6 +415,7 @@ void ui_nvg_init(UIState *s) {
   std::vector<std::pair<const char *, const char *>> images = {
     {"wheel", "../assets/img_chffr_wheel.png"},
     {"driver_face", "../assets/img_driver_face.png"},
+    {"settings", "../assets/kommu/Settings.png"},
   };
   for (auto [name, file] : images) {
     s->images[name] = nvgCreateImage(s->vg, file, 1);
