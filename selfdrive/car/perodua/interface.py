@@ -51,8 +51,8 @@ class CarInterface(CarInterfaceBase):
       tire_stiffness_factor = 0.8371
       ret.mass = 850. + STD_CARGO_KG
 
-      ret.lateralTuning.pid.kf = 0.000126
-      ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.16], [0.41]]
+      ret.lateralTuning.pid.kf = 0.000106
+      ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.14], [0.32]]
       ret.longitudinalTuning.kpV = [0.8, 0.9, 1.0]
 
     elif candidate == CAR.MYVI:
