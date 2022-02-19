@@ -151,17 +151,6 @@ DevicePanel::DevicePanel(QWidget* parent) : QWidget(parent) {
     resetCalibBtn->setDescription(desc);
   });
 
-  ButtonControl *retrainingBtn = nullptr;
-  if (!params.getBool("Passive")) {
-    retrainingBtn = new ButtonControl("Review Training Guide", "REVIEW", "Review the rules, features, and limitations of openpilot");
-    connect(retrainingBtn, &ButtonControl::released, [=]() {
-      if (ConfirmationDialog::confirm("Are you sure you want to review the training guide?", this)) {
-        Params().remove("CompletedTrainingVersion");
-        emit reviewTrainingGuide();
-      }
-    });
-  }
-
   auto uninstallBtn = new ButtonControl("Uninstall " + getBrand(), "UNINSTALL");
   connect(uninstallBtn, &ButtonControl::released, [=]() {
     if (ConfirmationDialog::confirm("Are you sure you want to uninstall?", this)) {
@@ -169,7 +158,7 @@ DevicePanel::DevicePanel(QWidget* parent) : QWidget(parent) {
     }
   });
 
-  for (auto btn : {dcamBtn, resetCalibBtn, retrainingBtn, uninstallBtn}) {
+  for (auto btn : {dcamBtn, resetCalibBtn, uninstallBtn}) {
     if (btn) {
       main_layout->addWidget(horizontal_line());
       connect(parent, SIGNAL(offroadTransition(bool)), btn, SLOT(setEnabled(bool)));
@@ -208,7 +197,6 @@ SoftwarePanel::SoftwarePanel(QWidget* parent) : QWidget(parent) {
   osVersionLbl = new LabelControl("OS Version");
   versionLbl = new LabelControl("Version", "", QString::fromStdString(params.get("ReleaseNotes")).trimmed());
   lastUpdateLbl = new LabelControl("Last Update Check", "", "The last time openpilot successfully checked for an update. The updater only runs while the car is off.");
-  remainingUploadsLbl = new LabelControl("Remaining Uploads");
 
   updateBtn = new ButtonControl("Check for Update", "");
   connect(updateBtn, &ButtonControl::released, [=]() {
@@ -223,7 +211,7 @@ SoftwarePanel::SoftwarePanel(QWidget* parent) : QWidget(parent) {
   });
 
   QVBoxLayout *main_layout = new QVBoxLayout(this);
-  QWidget *widgets[] = {versionLbl, lastUpdateLbl, updateBtn, gitBranchLbl, gitCommitLbl, osVersionLbl, remainingUploadsLbl};
+  QWidget *widgets[] = {versionLbl, lastUpdateLbl, updateBtn, gitBranchLbl, gitCommitLbl, osVersionLbl};
   for (int i = 0; i < std::size(widgets); ++i) {
     main_layout->addWidget(widgets[i]);
     if (i < std::size(widgets) - 1) {
@@ -262,7 +250,6 @@ void SoftwarePanel::updateLabels() {
   gitBranchLbl->setText(QString::fromStdString(params.get("GitBranch")));
   gitCommitLbl->setText(QString::fromStdString(params.get("GitCommit")).left(10));
   osVersionLbl->setText(QString::fromStdString(Hardware::get_os_version()).trimmed());
-  remainingUploadsLbl->setText(QString::fromStdString(params.get("RemainingUploadSize")));
 }
 
 QWidget * network_panel(QWidget * parent) {
@@ -337,7 +324,6 @@ SettingsWindow::SettingsWindow(QWidget *parent) : QFrame(parent) {
 
   // setup panels
   DevicePanel *device = new DevicePanel(this);
-  QObject::connect(device, &DevicePanel::reviewTrainingGuide, this, &SettingsWindow::reviewTrainingGuide);
   QObject::connect(device, &DevicePanel::showDriverView, this, &SettingsWindow::showDriverView);
 
   QList<QPair<QString, QWidget *>> panels = {
@@ -368,7 +354,7 @@ SettingsWindow::SettingsWindow(QWidget *parent) : QFrame(parent) {
     NavButton *btn = new NavButton(name,pixmap);
     btn->setCheckable(true);
     btn->setChecked(nav_btns->buttons().size() == 0);
-    btn->setFixedHeight(300);
+    btn->setFixedHeight(175);
     btn->setStyleSheet(QString(R"(
       QPushButton {
         color: grey;
@@ -399,7 +385,8 @@ SettingsWindow::SettingsWindow(QWidget *parent) : QFrame(parent) {
       header_label->setText(n);
     });
   }
-  sidebar_layout->setContentsMargins(25, 25, 100, 200);
+  sidebar_layout-> setSpacing(75);
+  sidebar_layout->setContentsMargins(25, 25, 100, 100);
 
   // main settings layout, sidebar + main panel
   QGridLayout *main_layout = new QGridLayout(this);

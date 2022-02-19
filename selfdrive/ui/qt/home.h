@@ -50,6 +50,7 @@ class StatusWidget: public QWidget {
 };
 
 class UpdatesWidget: public QWidget {
+
     public:
       explicit UpdatesWidget(QWidget* parent = 0);
 
@@ -59,6 +60,7 @@ class UpdatesWidget: public QWidget {
 };
 
 class QrWidget: public QWidget {
+
     public:
       explicit QrWidget(QWidget* parent = 0);
 
@@ -67,11 +69,18 @@ class QrWidget: public QWidget {
 };
 
 class DriveWidget: public QWidget {
+
+    Q_OBJECT
+    public slots:
+      void updateState(const UIState &s);
+
     public:
       explicit DriveWidget(QWidget* parent = 0);
 
     private:
         QVBoxLayout *drive_layout;
+        QLabel *rem_upl_val;
+        QLabel *upl_spd_val;
 };
 
 
@@ -82,6 +91,7 @@ public:
   explicit OffroadHome(QWidget* parent = 0);
 
   StatusWidget* status;
+  DriveWidget* drive;
 
 private:
   void showEvent(QShowEvent *event) override;
@@ -91,7 +101,6 @@ private:
 
   UpdatesWidget* updates;
   QrWidget* qr;
-  DriveWidget* drive;
 
 };
 
@@ -104,6 +113,8 @@ public:
 signals:
   void openSettings();
   void closeSettings();
+  void openTraining();
+  void openTerms();
 
   // forwarded signals
   void displayPowerChanged(bool on);

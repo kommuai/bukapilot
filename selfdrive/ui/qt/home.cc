@@ -83,6 +83,9 @@ HomeWindow::HomeWindow(QWidget* parent) : QWidget(parent) {
 
   sidebar = new Sidebar(this);
   main_layout->addWidget(sidebar);
+
+  QObject::connect(sidebar, &Sidebar::openTerms, this, &HomeWindow::openTerms);
+  QObject::connect(sidebar, &Sidebar::openTraining, this, &HomeWindow::openTraining);
   QObject::connect(sidebar, &Sidebar::openSettings, this, &HomeWindow::openSettings);
 
   slayout = new QStackedLayout();
@@ -95,6 +98,7 @@ HomeWindow::HomeWindow(QWidget* parent) : QWidget(parent) {
   slayout->addWidget(onroad);
 
   QObject::connect(this, &HomeWindow::update, home->status, &StatusWidget::updateState);
+  QObject::connect(this, &HomeWindow::update, home->drive, &DriveWidget::updateState);
   QObject::connect(this, &HomeWindow::update, onroad, &OnroadWindow::update);
   QObject::connect(this, &HomeWindow::offroadTransitionSignal, onroad, &OnroadWindow::offroadTransitionSignal);
   QObject::connect(onroad, &OnroadWindow::openSettings, this, &HomeWindow::openSettings);
@@ -144,6 +148,8 @@ OffroadHome::OffroadHome(QWidget* parent) : QFrame(parent) {
   drive = new DriveWidget();
   status->setMaximumWidth(450);
 
+  drive -> setAttribute(Qt::WA_StyledBackground);
+
   main_layout->addWidget(status,0,0,2,1);
   main_layout->addWidget(qr,0,1,1,2);
   main_layout->addWidget(updates,1,1);
@@ -186,11 +192,11 @@ void StatusWidget::updateState(const UIState &s) {
   auto ts = deviceState.getThermalStatus();
 
   if (ts == cereal::DeviceState::ThermalStatus::GREEN) {
-    temp_pixmap_dir = "../assets/kommu/blue_circle.png";
-  } else if (ts == cereal::DeviceState::ThermalStatus::YELLOW) {
     temp_pixmap_dir = "../assets/kommu/green_circle.png";
+  } else if (ts == cereal::DeviceState::ThermalStatus::YELLOW) {
+    temp_pixmap_dir = "../assets/kommu/yellow_circle.png";
   }
-  
+
   if (s.scene.pandaType == cereal::PandaState::PandaType::UNKNOWN) {
     status_pixmap_dir = "../assets/kommu/red_circle.png";
     status_text = "DEVICE ERROR";
@@ -200,6 +206,24 @@ void StatusWidget::updateState(const UIState &s) {
   device_txt -> setText(status_text);
   temp_txt -> setIconDir(temp_pixmap_dir);
   temp_txt -> setText(QString::number((int)deviceState.getAmbientTempC()) + " °C");
+}
+
+void DriveWidget::updateState(const UIState &s) {
+
+  auto &sm = *(s.sm);
+  auto uploaderState = sm["uploaderState"].getUploaderState();
+  uint32_t remainingUploadSize = uploaderState.getImmediateQueueSize() + uploaderState.getRawQueueSize();
+  uint32_t remainingUploadCount = uploaderState.getImmediateQueueCount() + uploaderState.getRawQueueCount();
+  float uploadSpeed = uploaderState.getLastSpeed();
+
+  if (remainingUploadCount == 0) {
+    rem_upl_val -> setText("0 MB");
+    upl_spd_val -> setText("0 MB/s");
+  } else {
+    rem_upl_val -> setText(QString::number(remainingUploadSize) + " MB");
+    upl_spd_val -> setText(QString::number((int)uploadSpeed) + " MB/s");
+  }
+
 }
 
 
@@ -249,7 +273,9 @@ QrWidget::QrWidget(QWidget *parent) : QWidget(parent){
     qr_desc->setWordWrap(true);
 
     Params params = Params();
-    QString qr_text = QString::fromStdString(params.get("DongleId", false));
+    QString qr_link = "https://linktree.kommu.ai/";
+    QString qr_dongle = QString::fromStdString(params.get("DongleId", false));
+    QString qr_text = qr_link + qr_dongle;
     QrCode qr = QrCode::encodeText(qr_text.toUtf8().data(), QrCode::Ecc::LOW);
     qint32 sz = qr.getSize();
     // make the image larger so we can have a white border
@@ -283,9 +309,9 @@ DriveWidget::DriveWidget(QWidget *parent) : QWidget(parent){
     drive_layout = new QVBoxLayout(this);
     QLabel *drive_header = new QLabel("Drive Data");
     QLabel *rem_upl_txt = new QLabel("Remaining Upload");
-    QLabel *rem_upl_val = new QLabel("0 MB");
+    rem_upl_val = new QLabel("Loading...");
     QLabel *upl_spd_txt = new QLabel("Upload Speed");
-    QLabel *upl_spd_val = new QLabel("0 kB/s");
+    upl_spd_val = new QLabel("Loading...");
 
     drive_layout->addWidget(drive_header);
     drive_layout->addWidget(rem_upl_txt);

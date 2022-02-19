@@ -18,7 +18,6 @@ class DevicePanel : public QWidget {
 public:
   explicit DevicePanel(QWidget* parent = nullptr);
 signals:
-  void reviewTrainingGuide();
   void showDriverView();
 };
 
@@ -42,7 +41,6 @@ private:
   LabelControl *osVersionLbl;
   LabelControl *versionLbl;
   LabelControl *lastUpdateLbl;
-  LabelControl *remainingUploadsLbl;
   ButtonControl *updateBtn;
 
   Params params;
@@ -62,7 +60,6 @@ protected:
 signals:
   void closeSettings();
   void offroadTransition(bool offroad);
-  void reviewTrainingGuide();
   void showDriverView();
 
 private:

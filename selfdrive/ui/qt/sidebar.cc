@@ -89,6 +89,12 @@ Sidebar::Sidebar(QWidget *parent) : QFrame(parent) {
 
 
     sidebar_btns->addButton(main_sidebar_btn);
+    connect(sidebar_btns->button(-3),  &MainSidebarButton::released, [=]() {
+        emit openTraining();
+    });
+    connect(sidebar_btns->button(-4),  &MainSidebarButton::released, [=]() {
+        emit openTerms();
+    });
     connect(sidebar_btns->button(-5),  &MainSidebarButton::released, [=]() {
         emit openSettings();
     });
@@ -111,6 +117,6 @@ void Sidebar::mousePressEvent(QMouseEvent *event) {
 }
 
 void Sidebar::updateState(const UIState &s) {
-  
+
 }
 

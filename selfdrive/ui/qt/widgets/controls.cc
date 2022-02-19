@@ -82,6 +82,23 @@ ButtonControl::ButtonControl(const QString &title, const QString &text, const QS
       color: #33E4E4E4;
     }
   )");
+  if (text.length() >=8) {
+  btn.setStyleSheet(R"(
+      QPushButton {
+        padding: 0;
+        border-radius: 50px;
+        font-size: 40px;
+        font-weight: 500;
+        color: #E4E4E4;
+        background-color: #393939;
+      }
+      QPushButton:disabled {
+        color: #33E4E4E4;
+      }
+    )");
+
+  }
+
   btn.setFixedSize(300, 150);
   QObject::connect(&btn, &QPushButton::released, this, &ButtonControl::released);
   hlayout->addWidget(&btn);

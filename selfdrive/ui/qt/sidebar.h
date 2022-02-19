@@ -25,6 +25,8 @@ public:
 
 signals:
   void openSettings();
+  void openTerms();
+  void openTraining();
   void valueChanged();
 
 public slots:

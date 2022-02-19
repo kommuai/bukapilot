@@ -262,7 +262,6 @@ def uploader_fn(exit_event):
     allow_raw_upload = params.get_bool("UploadRaw")
 
     d = uploader.next_file_to_upload(with_raw=allow_raw_upload and on_wifi and offroad)
-    params.put("RemainingUploadSize",str(int((uploader.immediate_size + uploader.raw_size)/1000000)) + " MB")
     if d is None:  # Nothing to upload
       if allow_sleep:
         time.sleep(60 if offroad else 5)
