@@ -21,9 +21,9 @@ void TermsWindow::showEvent(QShowEvent *event) {
   main_layout->setSpacing(0);
 
   QLabel *title = new QLabel("Terms & Conditions");
-  title->setStyleSheet("font-size: 90px; font-weight: 600;");
+  title->setStyleSheet("color: white; font-size: 90px; font-weight: 600;");
   main_layout->addWidget(title);
-
+  this ->setStyleSheet("background-color:black");
   main_layout->addSpacing(30);
 
   QQuickWidget *text = new QQuickWidget(this);
@@ -52,7 +52,8 @@ void TermsWindow::showEvent(QShowEvent *event) {
   accept_btn->setEnabled(false);
   accept_btn->setStyleSheet(R"(
     QPushButton {
-      background-color: #465BEA;
+      border-radius: 5px;
+      background-color: #00FA9A;
     }
     QPushButton:disabled {
       background-color: #4F4F4F;
