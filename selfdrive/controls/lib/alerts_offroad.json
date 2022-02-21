@@ -14,7 +14,7 @@
   },
   "Offroad_ConnectivityNeeded": {
     "text": "Connect to internet to check for updates. openpilot won't start until it connects to internet to check for updates.",
-    "severity": 1
+    "severity": 0
   },
   "Offroad_UpdateFailed": {
     "text": "Unable to download updates\n",
@@ -27,7 +27,7 @@
   },
   "Offroad_InvalidTime": {
     "text": "Invalid date and time settings, system won't start. Connect to internet to set time.",
-    "severity": 1
+    "severity": 0
   },
   "Offroad_IsTakingSnapshot": {
     "text": "Taking camera snapshots. System won't start until finished.",
@@ -42,7 +42,7 @@
     "severity": 0
   },
   "Offroad_UnofficialHardware": {
-    "text": "Device failed to register. It will not connect to or upload to comma.ai servers, and receives no support from comma.ai. If this is an official device, contact support@comma.ai.",
+    "text": "Device failed to register. It will not connect to or upload to kommu.ai servers, and receives no support from kommu.ai. If this is an official device, contact support@kommu.ai.",
     "severity": 1
   },
   "Offroad_NvmeMissing": {
