@@ -324,8 +324,7 @@ DriveWidget::DriveWidget(QWidget *parent) : QWidget(parent){
     QFont content_font;
     content_font.setPixelSize(40);
     header_font.setPixelSize(50);
-
-    drive_header -> setFont(content_font);
+    drive_header -> setFont(header_font);
     rem_upl_txt -> setFont(content_font);
     rem_upl_val -> setFont(content_font);
     upl_spd_txt -> setFont(content_font);
@@ -341,8 +340,8 @@ DriveWidget::DriveWidget(QWidget *parent) : QWidget(parent){
 UpdatesWidget::UpdatesWidget(QWidget *parent) : QWidget(parent){
     update_layout = new QVBoxLayout(this);
     setStyleSheet("background-color: rgb(40, 40, 40);border-radius: 25px;");
-    QLabel *updates_header = new QLabel("bukapilot 1.0.0");
-    QLabel *updates_content = new QLabel("bukapilot 1.0.0\n-First Release Version");
+    QLabel *updates_header = new QLabel("Bukapilot v1.0.0");
+    QLabel *updates_content = new QLabel("-Update UI \n-Add Support for Axia, Ativa, Alza, Aruz, Bezza and Proton Cars");
 
 
     QFont header_font;
@@ -350,19 +349,20 @@ UpdatesWidget::UpdatesWidget(QWidget *parent) : QWidget(parent){
 
     content_font.setPixelSize(40);
     header_font.setPixelSize(50);
-   // header_font.thin()
 
     updates_header->setFont(header_font);
     updates_header->setAlignment(Qt::AlignTop);
-    updates_header->setFixedHeight(50);
-    updates_content -> setAlignment(Qt::AlignTop|Qt::AlignLeft);
+    updates_header->setWordWrap(true);
+    updates_header->setFixedHeight(65);
+    updates_content->setAlignment(Qt::AlignTop|Qt::AlignLeft);
     updates_content->setFont(content_font);
-    updates_content->setFixedHeight(250);
+    updates_content->setWordWrap(true);
+    updates_content->setFixedHeight(200);
 
     update_button = new QPushButton("UPDATE");
-    update_button -> setFixedSize(QSize(300,100));
-    update_button -> setStyleSheet("background-color: rgb(100, 100, 100);font-size:40px;border-radius: 50px");
-    update_layout->setContentsMargins(50,35,15,15);
+    update_button->setFixedSize(QSize(300,100));
+    update_button->setStyleSheet("background-color: rgb(100, 100, 100);font-size:40px;border-radius: 50px;");
+    update_layout->setContentsMargins(50,50,50,50);
     update_layout->addWidget(updates_header);
     update_layout->addWidget(updates_content);
     update_layout->addWidget(update_button,0,Qt::AlignRight|Qt::AlignBottom);

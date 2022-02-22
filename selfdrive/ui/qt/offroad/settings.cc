@@ -34,17 +34,17 @@ TogglesPanel::TogglesPanel(QWidget *parent) : QWidget(parent) {
   toggles.append(new ParamControl("OpenpilotEnabledToggle",
                                   "Enable Bukapilot",
                                   "Use the bukapilot system for adaptive cruise control and lane keep driver assistance. Your attention is required at all times to use this feature. Changing this setting takes effect when the car is powered off.",
-                                  "../assets/offroad/icon_openpilot.png",
+                                  "../assets/kommu/settings/kommu_steering_wheel_icon.png",
                                   this));
   toggles.append(new ParamControl("IsLdwEnabled",
                                   "Enable Lane Departure Warnings",
                                   "Receive alerts to steer back into the lane when your vehicle drifts over a detected lane line without a turn signal activated while driving over 31mph (50kph).",
-                                  "../assets/offroad/icon_warning.png",
+                                  "../assets/kommu/settings/kommu_alert_sign.png",
                                   this));
   toggles.append(new ParamControl("IsRHD",
                                   "Enable Right-Hand Drive",
                                   "Allow bukapilot to obey left-hand traffic conventions and perform driver monitoring on right driver seat.",
-                                  "../assets/offroad/icon_openpilot_mirrored.png",
+                                  "../assets/kommu/settings/kommu_steering_wheel_icon_inverted.png",
                                   this));
   toggles.append(new ParamControl("IsMetric",
                                   "Use Metric System",
@@ -54,13 +54,13 @@ TogglesPanel::TogglesPanel(QWidget *parent) : QWidget(parent) {
   toggles.append(new ParamControl("CommunityFeaturesToggle",
                                   "Enable Community Features",
                                   "Use features from the open source community that are not maintained or supported by kommu.ai and have not been confirmed to meet the standard safety model. These features include community supported cars and community supported hardware. Be extra cautious when using these features",
-                                  "../assets/offroad/icon_shell.png",
+                                  "../assets/kommu/settings/kommu_developer_icon.png",
                                   this));
 
   toggles.append(new ParamControl("UploadRaw",
                                   "Upload Raw Logs",
                                   "Upload full logs and full resolution video by default while on WiFi. If not enabled, individual logs can be marked for upload at my.comma.ai/useradmin.",
-                                  "../assets/offroad/icon_network.png",
+                                  "../assets/kommu/settings/kommu_upload_icon.png",
                                   this));
 
   ParamControl *record_toggle = new ParamControl("RecordFront",

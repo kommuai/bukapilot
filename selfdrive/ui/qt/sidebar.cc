@@ -42,18 +42,17 @@ void Sidebar::drawMetric(QPainter &p, const QString &label, const QString &val, 
 }
 
 Sidebar::Sidebar(QWidget *parent) : QFrame(parent) {
-   
+
   QVBoxLayout *new_sidebar_layout = new QVBoxLayout(this);
   QPixmap logo_pix("../assets/kommu/Logo.png");
   QLabel *logo_lbl = new QLabel();
-  
-  logo_lbl->resize(225,225);
+
+  logo_lbl->resize(200,200);
   logo_pix = logo_pix.scaled(logo_lbl->size(),Qt::KeepAspectRatio);
   logo_lbl->setPixmap(logo_pix);
   new_sidebar_layout->addWidget(logo_lbl);
   new_sidebar_layout->setAlignment(logo_lbl,Qt::AlignHCenter);
   QList<QString> btns = {
-    "Home",
     "Tutorial",
     "T&C",
     "Settings",
@@ -65,12 +64,12 @@ Sidebar::Sidebar(QWidget *parent) : QFrame(parent) {
       QString img_dir = "../assets/kommu/";
       img_dir.append(btn_name);
       img_dir.append(".png");
-      const int padding = 55;
+      const int padding = 75;
       QPixmap pixmap(img_dir);
       MainSidebarButton *main_sidebar_btn = new MainSidebarButton(btn_name,pixmap);
       main_sidebar_btn->setCheckable(false);
       main_sidebar_btn->setChecked(sidebar_btns->buttons().size() == 0);
-      main_sidebar_btn->setFixedHeight(225);
+      main_sidebar_btn->setFixedHeight(250);
       main_sidebar_btn->setStyleSheet(QString(R"(
         QPushButton {
           color: white;
@@ -89,13 +88,13 @@ Sidebar::Sidebar(QWidget *parent) : QFrame(parent) {
 
 
     sidebar_btns->addButton(main_sidebar_btn);
-    connect(sidebar_btns->button(-3),  &MainSidebarButton::released, [=]() {
+    connect(sidebar_btns->button(-2),  &MainSidebarButton::released, [=]() {
         emit openTraining();
     });
-    connect(sidebar_btns->button(-4),  &MainSidebarButton::released, [=]() {
+    connect(sidebar_btns->button(-3),  &MainSidebarButton::released, [=]() {
         emit openTerms();
     });
-    connect(sidebar_btns->button(-5),  &MainSidebarButton::released, [=]() {
+    connect(sidebar_btns->button(-4),  &MainSidebarButton::released, [=]() {
         emit openSettings();
     });
     new_sidebar_layout->addWidget(main_sidebar_btn);
