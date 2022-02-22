@@ -140,7 +140,7 @@ void HomeWindow::showDriverView(bool show) {
 OffroadHome::OffroadHome(QWidget* parent) : QFrame(parent) {
 
   QGridLayout* main_layout = new QGridLayout(this);
-  main_layout->setMargin(50);
+  main_layout->setContentsMargins(0,25,25,25);
 
   status = new StatusWidget();
   updates = new UpdatesWidget();
@@ -155,7 +155,7 @@ OffroadHome::OffroadHome(QWidget* parent) : QFrame(parent) {
   main_layout->addWidget(qr,0,1,1,2);
   main_layout->addWidget(updates,1,1);
   main_layout->addWidget(drive,1,2);
-  main_layout->setHorizontalSpacing(15);
+  main_layout->setHorizontalSpacing(35);
 
   // set up refresh timer
   timer = new QTimer(this);
@@ -261,7 +261,7 @@ StatusWidget::StatusWidget(QWidget *parent) : QWidget(parent){
     status_layout -> addWidget(device_temp_label);
     status_layout -> addWidget(temp_txt);
     status_layout -> setSpacing(50);
-    setStyleSheet("background-color: rgb(40, 40, 40);border-radius: 25px;");
+    setStyleSheet("background-color: rgb(32, 32, 32);border-radius: 25px;");
 }
 
 QrWidget::QrWidget(QWidget *parent) : QWidget(parent){
@@ -335,12 +335,12 @@ DriveWidget::DriveWidget(QWidget *parent) : QWidget(parent){
     upl_spd_val -> setAlignment(Qt::AlignRight);
     drive_layout->setContentsMargins(50,50,50,50);
 
-    setStyleSheet("background-color: rgb(40, 40, 40);border-radius: 25px;");
+    setStyleSheet("background-color: rgb(32, 32, 32);border-radius: 25px;");
 }
 
 UpdatesWidget::UpdatesWidget(QWidget *parent) : QWidget(parent){
     update_layout = new QVBoxLayout(this);
-    setStyleSheet("background-color: rgb(40, 40, 40);border-radius: 25px;");
+    setStyleSheet("background-color: rgb(32, 32, 32);border-radius: 25px;");
     QLabel *updates_header = new QLabel("Bukapilot v1.0.0");
     QLabel *updates_content = new QLabel("-Update UI \n-Add Support for Axia, Ativa, Alza, Aruz, Bezza and Proton Cars");
 
@@ -362,7 +362,7 @@ UpdatesWidget::UpdatesWidget(QWidget *parent) : QWidget(parent){
 
     update_button = new QPushButton("UPDATE");
     update_button->setFixedSize(QSize(300,100));
-    update_button->setStyleSheet("background-color: rgb(100, 100, 100);font-size:40px;border-radius: 50px;");
+    update_button->setStyleSheet("background-color: rgb(75, 75, 75);font-size:40px;border-radius: 50px;");
     update_layout->setContentsMargins(50,50,50,50);
     update_layout->addWidget(updates_header);
     update_layout->addWidget(updates_content);
