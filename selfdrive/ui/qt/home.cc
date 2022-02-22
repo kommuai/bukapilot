@@ -149,6 +149,7 @@ OffroadHome::OffroadHome(QWidget* parent) : QFrame(parent) {
   status->setMaximumWidth(450);
 
   drive -> setAttribute(Qt::WA_StyledBackground);
+  status -> setAttribute(Qt::WA_StyledBackground);
 
   main_layout->addWidget(status,0,0,2,1);
   main_layout->addWidget(qr,0,1,1,2);
@@ -260,8 +261,8 @@ StatusWidget::StatusWidget(QWidget *parent) : QWidget(parent){
     status_layout -> addWidget(device_temp_label);
     status_layout -> addWidget(temp_txt);
     status_layout -> setSpacing(50);
+    setStyleSheet("background-color: rgb(40, 40, 40);border-radius: 25px;");
 }
-
 
 QrWidget::QrWidget(QWidget *parent) : QWidget(parent){
 
