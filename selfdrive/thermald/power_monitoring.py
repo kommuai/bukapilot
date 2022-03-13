@@ -18,7 +18,7 @@ CAR_CHARGING_RATE_W = 45
 
 VBATT_PAUSE_CHARGING = 11.0           # Lower limit on the LPF car battery voltage
 VBATT_INSTANT_PAUSE_CHARGING = 7.0    # Lower limit on the instant car battery voltage measurements to avoid triggering on instant power loss
-MAX_TIME_OFFROAD_S = 30*3600
+MAX_TIME_OFFROAD_S = 3*3600
 MIN_ON_TIME_S = 3600
 
 class PowerMonitoring:
@@ -184,7 +184,6 @@ class PowerMonitoring:
 
     should_shutdown = False
     # Wait until we have shut down charging before powering down
-    should_shutdown |= (not panda_charging and self.should_disable_charging(pandaState, offroad_timestamp))
-    should_shutdown |= ((HARDWARE.get_battery_capacity() < BATT_PERC_OFF) and (not HARDWARE.get_battery_charging()) and ((now - offroad_timestamp) > 60))
+    should_shutdown |= (now - offroad_timestamp) > MAX_TIME_OFFROAD_S
     should_shutdown &= started_seen or (now > MIN_ON_TIME_S)
     return should_shutdown
