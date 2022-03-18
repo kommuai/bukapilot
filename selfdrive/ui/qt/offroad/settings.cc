@@ -14,6 +14,8 @@
 #include "selfdrive/ui/qt/maps/map_settings.h"
 #endif
 
+#include "cereal/gen/cpp/log.capnp.h"
+#include "cereal/messaging/messaging.h"
 #include "selfdrive/common/params.h"
 #include "selfdrive/common/util.h"
 #include "selfdrive/hardware/hw.h"
@@ -158,10 +160,57 @@ DevicePanel::DevicePanel(QWidget* parent) : QWidget(parent) {
     }
   });
 
-  for (auto btn : {dcamBtn, resetCalibBtn, uninstallBtn}) {
+  auto pm = new PubMaster({"kommuState"});
+
+  auto tuneProfile1Btn = new ButtonControl("AggroLevel = -2", "SET");
+  connect(tuneProfile1Btn, &ButtonControl::released, [=]() {
+    MessageBuilder msg;
+    auto ks = msg.initEvent().initKommuState();
+    ks.setAggroLevel(-2);
+    pm->send("kommuState", msg);
+  });
+
+  auto tuneProfile2Btn = new ButtonControl("AggroLevel = -1", "SET");
+  connect(tuneProfile2Btn, &ButtonControl::released, [=]() {
+    MessageBuilder msg;
+    auto ks = msg.initEvent().initKommuState();
+    ks.setAggroLevel(-1);
+    pm->send("kommuState", msg);
+  });
+
+  auto tuneProfile3Btn = new ButtonControl("AggroLevel = 0", "SET");
+  connect(tuneProfile3Btn, &ButtonControl::released, [=]() {
+    MessageBuilder msg;
+    auto ks = msg.initEvent().initKommuState();
+    ks.setAggroLevel(0);
+    pm->send("kommuState", msg);
+  });
+
+  auto tuneProfile4Btn = new ButtonControl("AggroLevel = 1", "SET");
+  connect(tuneProfile4Btn, &ButtonControl::released, [=]() {
+    MessageBuilder msg;
+    auto ks = msg.initEvent().initKommuState();
+    ks.setAggroLevel(1);
+    pm->send("kommuState", msg);
+  });
+
+  auto tuneProfile5Btn = new ButtonControl("AggroLevel = 2", "SET");
+  connect(tuneProfile5Btn, &ButtonControl::released, [=]() {
+    MessageBuilder msg;
+    auto ks = msg.initEvent().initKommuState();
+    ks.setAggroLevel(2);
+    pm->send("kommuState", msg);
+  });
+
+  for (auto btn : {dcamBtn, resetCalibBtn, uninstallBtn, tuneProfile1Btn, tuneProfile2Btn, tuneProfile3Btn, tuneProfile4Btn, tuneProfile5Btn}) {
     if (btn) {
       main_layout->addWidget(horizontal_line());
-      if (btn != resetCalibBtn) {
+      if (btn != resetCalibBtn &&
+          btn != tuneProfile1Btn &&
+          btn != tuneProfile2Btn &&
+          btn != tuneProfile3Btn &&
+          btn != tuneProfile4Btn &&
+          btn != tuneProfile5Btn) {
         connect(parent, SIGNAL(offroadTransition(bool)), btn, SLOT(setEnabled(bool)));
       }
       main_layout->addWidget(btn);
