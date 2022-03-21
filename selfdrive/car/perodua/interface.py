@@ -89,16 +89,23 @@ class CarInterface(CarInterfaceBase):
     elif candidate == CAR.ATIVA:
       # min speed to enable ACC. if car can do stop and go or has gas interceptor,
       # then set enabling speed to a negative value, so it won't matter.
-      ret.minEnableSpeed = 30 * CV.KPH_TO_MS
+      ret.minEnableSpeed = -1
       ret.wheelbase = 2.525
-      ret.steerRatio = 14.54
+      ret.steerRatio = 11.54
       ret.centerToFront = ret.wheelbase * 0.44
       tire_stiffness_factor = 0.6371
       ret.mass = 1035. + STD_CARGO_KG
 
+      ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.095], [0.19]]
+      ret.lateralTuning.pid.kf = 0.000007
 
-      ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.098], [0.135]]
-      ret.longitudinalTuning.kpV = [1.6, 1.1, 1.1]
+      ret.longitudinalTuning.kpBP = [0., 6]
+      ret.longitudinalTuning.kiBP = [0., 6]
+      ret.longitudinalTuning.kpV = [6.4, 5.5]
+      ret.longitudinalTuning.kiV = [5.2, 4.2]
+
+      ret.stoppingBrakeRate = 4.8  # reach stopping target smoothly
+      ret.startingBrakeRate = 0.3  # release brakes fast
 
     else:
       ret.dashcamOnly = True
@@ -131,8 +138,7 @@ class CarInterface(CarInterfaceBase):
   # pass in a car.CarControl to be called at 100hz
   def apply(self, c):
 
-    can_sends = self.CC.update(c.enabled, self.CS, self.frame, c.actuators,
-                               c.hudControl.visualAlert, c.cruiseControl.cancel)
+    can_sends = self.CC.update(c.enabled, self.CS, self.frame, c.actuators, c.hudControl.leadVisible, c.hudControl.rightLaneVisible, c.hudControl.leftLaneVisible, c.cruiseControl.cancel, c.cruiseControl.speedOverride)
 
     self.frame += 1
     return can_sends

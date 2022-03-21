@@ -24,6 +24,9 @@ class CarState(CarStateBase):
     self.cruise_speed_counter = 0
     self.acttrGas = 0
 
+    self.is_plus_btn_latch = False
+    self.is_minus_btn_latch = False
+
   def update(self, cp):
     ret = car.CarState.new_message()
 
@@ -54,7 +57,11 @@ class CarState(CarStateBase):
     # gas pedal
     ret.gas = cp.vl["GAS_PEDAL"]['APPS_1']
     # todo: let gas pressed legit
-    ret.gasPressed = ret.gas > 1.0
+    if self.CP.carFingerprint == CAR.ATIVA:
+      ret.gasPressed = not bool(cp.vl["GAS_PEDAL_2"]['GAS_PEDAL_STEP'])
+    else:
+      ret.gasPressed = ret.gas > 1.0
+
     self.acttrGas = (cp.vl["GAS_SENSOR"]['INTERCEPTOR_GAS']) # KommuActuator gas, read when stock pedal is being intercepted
     if self.acttrGas < 0:
       self.acttrGas = 0
@@ -65,6 +72,8 @@ class CarState(CarStateBase):
     # perodua bezza has a lower resolution brake pressure sensor
     if self.CP.carFingerprint == CAR.BEZZA:
       ret.brakePressed = ret.brake > 1.2
+    elif self.CP.carFingerprint == CAR.ATIVA:
+      ret.brakePressed = bool(cp.vl["BRAKE"]['BRAKE_ENGAGED'])
     else:
       ret.brakePressed = ret.brake > 1e-5
 
@@ -82,11 +91,12 @@ class CarState(CarStateBase):
     if self.CP.carFingerprint == CAR.AXIA:
       ret.steeringPressed = bool(abs(ret.steeringTorque) > 18)
     elif self.CP.carFingerprint == CAR.ATIVA:
-      ret.steeringPressed = bool(abs(ret.steeringTorque) > 25)
+      ret.steeringPressed = bool(abs(ret.steeringTorque) > 22)
     else:
       ret.steeringPressed = bool(abs(ret.steeringTorque) > 70)
 
-    ret.steerWarning = False      # since Perodua has no LKAS, make it always no warning
+    ret.steerWarning = False    # since Perodua has no LKAS, make it always no warning
+
     ret.steerError = False        # since Perodua has no LKAS, make it always no warning
 
     # todo: find this out and add it in
@@ -99,6 +109,7 @@ class CarState(CarStateBase):
       ret.cruiseState.available = True
       ret.cruiseState.nonAdaptive = False
       ret.cruiseState.speed = self.cruise_speed
+      ret.standstill = ret.vEgoRaw < (5 * CV.KPH_TO_MS)
 
       if self.is_cruise_latch:
         # pedal disengage
@@ -123,13 +134,40 @@ class CarState(CarStateBase):
     else:
       ret.cruiseState.available = cp.vl["PCM_BUTTONS"]["ACC_RDY"] != 0
       ret.cruiseState.nonAdaptive = False
-      ret.cruiseState.speed = 7
-      if bool(cp.vl["PCM_BUTTONS"]["SET_MINUS"]):
-        self.is_cruise_latch = True
+      ret.cruiseState.speed = self.cruise_speed
+
+      # set speed logic
+      if self.is_cruise_latch:
+        if bool(cp.vl["PCM_BUTTONS"]["RES_PLUS"]) and not self.is_plus_btn_latch:
+          self.cruise_speed += (5 * CV.KPH_TO_MS)
+          self.is_plus_btn_latch = True
+
+        elif not bool(cp.vl["PCM_BUTTONS"]["RES_PLUS"]):
+          self.is_plus_btn_latch = False
+
+        if bool(cp.vl["PCM_BUTTONS"]["SET_MINUS"]) and not self.is_minus_btn_latch:
+          self.cruise_speed = max(5 * CV.KPH_TO_MS, self.cruise_speed - (5 * CV.KPH_TO_MS))
+          self.is_minus_btn_latch = True
+
+        elif not bool(cp.vl["PCM_BUTTONS"]["SET_MINUS"]):
+          self.is_minus_btn_latch = False
+
+      if not self.is_cruise_latch:
+        if bool(cp.vl["PCM_BUTTONS"]["SET_MINUS"]):
+          self.cruise_speed = max(20 * CV.KPH_TO_MS, ret.vEgo + (5 * CV.KPH_TO_MS))
+          self.is_minus_btn_latch = True
+          self.is_cruise_latch = True
+
+      if bool(cp.vl["PCM_BUTTONS"]["CANCEL"]):
+        self.is_cruise_latch = False
+
       if ret.brakePressed:
         self.is_cruise_latch = False
 
       ret.cruiseState.enabled = self.is_cruise_latch
+
+      if not ret.cruiseState.available:
+        self.is_cruise_latch = False
 
     ret.cruiseState.standstill = ret.standstill
 
@@ -140,8 +178,9 @@ class CarState(CarStateBase):
 
     # blindspot sensors
     if self.CP.enableBsm:
-      ret.leftBlindspot = False
-      ret.rightBlindspot = bool(cp.vl["BSM"]["R_BLINDSPOT"])
+      # used for lane change so its okay for the chime to work on both side.
+      ret.leftBlindspot = bool(cp.vl["BSM"]["BSM_CHIME"])
+      ret.rightBlindspot = bool(cp.vl["BSM"]["BSM_CHIME"])
     else:
       ret.leftBlindspot = False
       ret.rightBlindspot = False
@@ -194,6 +233,7 @@ class CarState(CarStateBase):
       ("GEAR", "TRANSMISSION", 0),
       ("APPS_1", "GAS_PEDAL", 0.),
       ("BRAKE_PRESSURE", "BRAKE", 0.),
+      ("BRAKE_ENGAGED", "BRAKE", 0),
       ("INTERCEPTOR_GAS", "GAS_SENSOR", 0),
       ("GENERIC_TOGGLE", "RIGHT_STALK", 0),
       ("FOG_LIGHT", "RIGHT_STALK", 0),
@@ -201,25 +241,33 @@ class CarState(CarStateBase):
       ("RIGHT_SIGNAL", "METER_CLUSTER", 0),
       ("SEAT_BELT_WARNING", "METER_CLUSTER", 0),
       ("MAIN_DOOR", "METER_CLUSTER", 1),
+      ("LEFT_FRONT_DOOR", "METER_CLUSTER", 1),
+      ("RIGHT_BACK_DOOR", "METER_CLUSTER", 1),
+      ("LEFT_BACK_DOOR", "METER_CLUSTER", 1)
     ]
     checks = []
-    
+
     if CP.carFingerprint == CAR.ATIVA:
-      signals.append(("R_BLINDSPOT","BSM", 0))
+      signals.append(("BSM_CHIME","BSM", 0))
       signals.append(("STEER_ANGLE", "STEERING_MODULE", 0.))
       signals.append(("MAIN_TORQUE", "STEERING_MODULE", 0.))
       signals.append(("STEERING_TORQUE", "EPS_SHAFT_TORQUE", 0.))
       signals.append(("ACC_RDY", "PCM_BUTTONS", 0))
       signals.append(("SET_MINUS", "PCM_BUTTONS", 0))
+      signals.append(("RES_PLUS","PCM_BUTTONS", 0))
+      signals.append(("CANCEL","PCM_BUTTONS", 0))
+      signals.append(("PEDAL_DEPRESSED","PCM_BUTTONS", 0))
+      signals.append(("LKAS_ENGAGED", "LKAS_HUD", 0))
+      signals.append(("ACC_CMD", "ACC_CMD_HUD", 0))
+      signals.append(("STEER_REQ", "STEERING_LKAS", 0))
+      signals.append(("SET_SPEED", "ACC_CMD_HUD", 0))
+      signals.append(("LDA_ALERT", "LKAS_HUD", 0))
+      signals.append(("GAS_PEDAL_STEP", "GAS_PEDAL_2", 0))
     else:
       signals.append(("MAIN_TORQUE", "STEERING_TORQUE", 0))
       signals.append(("STEER_ANGLE", "STEERING_ANGLE_SENSOR", 0.))
       signals.append(("AEB_ALARM", "FWD_CAM3", 0))
       signals.append(("WHEELSPEED_B", "WHEEL_SPEED", 0.))
-      signals.append(("LEFT_FRONT_DOOR", "METER_CLUSTER", 1))
-      signals.append(("RIGHT_BACK_DOOR", "METER_CLUSTER", 1))
-      signals.append(("LEFT_BACK_DOOR", "METER_CLUSTER", 1))
-    
 
     # todo: make it such that enforce_checks=True
     return CANParser(DBC[CP.carFingerprint]['pt'], signals, checks, 0, enforce_checks=False)
