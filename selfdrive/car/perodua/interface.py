@@ -37,7 +37,6 @@ class CarInterface(CarInterfaceBase):
     ret.startAccel = 1                     # Required acceleraton to overcome creep braking
 
     # common interfaces
-    stop_and_go = False
     ret.transmissionType = car.CarParams.TransmissionType.automatic
     ret.enableApgs = False                 # advanced parking guidance system
     ret.safetyParam = 1
@@ -52,7 +51,9 @@ class CarInterface(CarInterfaceBase):
       ret.mass = 850. + STD_CARGO_KG
 
       ret.lateralTuning.pid.kf = 0.0000715
-      ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.06], [0.32]]
+      ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.08], [0.32]]
+      ret.lateralParams.torqueBP, ret.lateralParams.torqueV = [[11, 26], [480, 830]]
+
       ret.longitudinalTuning.kpV = [0.8, 0.9, 1.0]
 
     elif candidate == CAR.MYVI:
@@ -64,6 +65,7 @@ class CarInterface(CarInterfaceBase):
 
       ret.lateralTuning.pid.kf = 0.0000917
       ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.13], [0.28]]
+      ret.lateralParams.torqueBP, ret.lateralParams.torqueV = [[11, 22], [390, 610]]
 
     elif candidate == CAR.BEZZA:
       ret.wheelbase = 2.455
@@ -74,6 +76,7 @@ class CarInterface(CarInterfaceBase):
 
       ret.lateralTuning.pid.kf = 0.0000918
       ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.05], [0.45]]
+      ret.lateralParams.torqueBP, ret.lateralParams.torqueV = [[11, 22], [400, 630]]
 
     elif candidate == CAR.ARUZ:
       ret.wheelbase = 2.685
@@ -84,6 +87,8 @@ class CarInterface(CarInterfaceBase):
 
       ret.lateralTuning.pid.kf = 0.0000917
       ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.098], [0.135]]
+      ret.lateralParams.torqueBP, ret.lateralParams.torqueV = [[11, 22], [380, 600]]
+
       ret.longitudinalTuning.kpV = [1.6, 1.1, 1.1]
 
     elif candidate == CAR.ATIVA:
@@ -97,6 +102,7 @@ class CarInterface(CarInterfaceBase):
       ret.mass = 1035. + STD_CARGO_KG
 
       ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.095], [0.19]]
+      ret.lateralParams.torqueBP, ret.lateralParams.torqueV = [[0.], [255]]
       ret.lateralTuning.pid.kf = 0.000007
 
       ret.longitudinalTuning.kpBP = [0., 6]
