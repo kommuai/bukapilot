@@ -42,6 +42,13 @@ LaneChangeState = log.LateralPlan.LaneChangeState
 LaneChangeDirection = log.LateralPlan.LaneChangeDirection
 EventName = car.CarEvent.EventName
 
+AGGROMAP = {
+  -2: 0.5,
+  -1: 0.8,
+  0: 1,
+  1: 1.2,
+  2: 1.5,
+}
 
 class Controls:
   def __init__(self, sm=None, pm=None, can_sock=None):
@@ -66,7 +73,7 @@ class Controls:
       ignore = ['driverCameraState', 'managerState'] if SIMULATION else None
       self.sm = messaging.SubMaster(['deviceState', 'pandaState', 'modelV2', 'liveCalibration',
                                      'driverMonitoringState', 'longitudinalPlan', 'lateralPlan', 'liveLocationKalman',
-                                     'managerState', 'liveParameters', 'radarState'] + self.camera_packets + joystick_packet,
+                                     'managerState', 'liveParameters', 'radarState', 'kommuState'] + self.camera_packets + joystick_packet,
                                      ignore_alive=ignore, ignore_avg_freq=['radarState', 'longitudinalPlan'])
 
     self.can_sock = can_sock
@@ -318,6 +325,9 @@ class Controls:
     if CS.brakePressed and v_future >= STARTING_TARGET_SPEED \
       and self.CP.openpilotLongitudinalControl and CS.vEgo < 0.3:
       self.events.add(EventName.noTarget)
+
+    # Update aggroLevel
+    self.__k_aggro_factor = AGGROMAP[self.sm["kommuState"].aggroLevel]
 
   def data_sample(self):
     """Receive data from sockets and update carState"""
