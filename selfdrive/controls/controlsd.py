@@ -116,10 +116,15 @@ class Controls:
     self.LoC = LongControl(self.CP, self.CI.compute_gb)
     self.VM = VehicleModel(self.CP)
 
+    self.__k_aggro_factor = None # safeguard against non PID controller
     if self.CP.steerControlType == car.CarParams.SteerControlType.angle:
       self.LaC = LatControlAngle(self.CP)
     elif self.CP.lateralTuning.which() == 'pid':
       self.LaC = LatControlPID(self.CP)
+      self.__k_base_pid_p = self.LaC.pid._k_p[1][0]
+      self.__k_base_pid_i = self.LaC.pid._k_i[1][0]
+      self.__k_base_pid_f = self.LaC.pid.k_f
+      self.__k_aggro_factor = 1
     elif self.CP.lateralTuning.which() == 'indi':
       self.LaC = LatControlINDI(self.CP)
     elif self.CP.lateralTuning.which() == 'lqr':
@@ -453,6 +458,12 @@ class Controls:
     if not self.joystick_mode:
       # Gas/Brake PID loop
       actuators.gas, actuators.brake, self.v_target, self.a_target = self.LoC.update(self.active, CS, self.CP, long_plan)
+
+      if self.__k_aggro_factor:
+        # Override LaC PID with tuning profile
+        self.LaC.pid._k_p = (self.LaC.pid._k_p[0], [self.__k_base_pid_p * self.__k_aggro_factor])
+        self.LaC.pid._k_i = (self.LaC.pid._k_i[0], [self.__k_base_pid_i * self.__k_aggro_factor])
+        self.LaC.pid.k_f = self.__k_base_pid_f * self.__k_aggro_factor
 
       # Steering PID loop and lateral MPC
       desired_curvature, desired_curvature_rate = get_lag_adjusted_curvature(self.CP, CS.vEgo,
