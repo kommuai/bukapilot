@@ -6,6 +6,7 @@ from common.numpy_fast import clip
 from common.realtime import sec_since_boot, config_realtime_process, Priority, Ratekeeper, DT_CTRL
 from common.profiler import Profiler
 from common.params import Params, put_nonblocking
+from common.kommu import Karams
 import cereal.messaging as messaging
 from selfdrive.config import Conversions as CV
 from selfdrive.swaglog import cloudlog
@@ -123,6 +124,7 @@ class Controls:
     self.LoC = LongControl(self.CP, self.CI.compute_gb)
     self.VM = VehicleModel(self.CP)
 
+    self.__k_karams = Karams()
     self.__k_aggro_factor = None # safeguard against non PID controller
     if self.CP.steerControlType == car.CarParams.SteerControlType.angle:
       self.LaC = LatControlAngle(self.CP)
@@ -131,7 +133,7 @@ class Controls:
       self.__k_base_pid_p = self.LaC.pid._k_p[1][0]
       self.__k_base_pid_i = self.LaC.pid._k_i[1][0]
       self.__k_base_pid_f = self.LaC.pid.k_f
-      self.__k_aggro_factor = 1
+      self.__k_aggro_factor = AGGROMAP[self.__k_karams.get("aggro_level", default=0)]
     elif self.CP.lateralTuning.which() == 'indi':
       self.LaC = LatControlINDI(self.CP)
     elif self.CP.lateralTuning.which() == 'lqr':
@@ -326,8 +328,12 @@ class Controls:
       and self.CP.openpilotLongitudinalControl and CS.vEgo < 0.3:
       self.events.add(EventName.noTarget)
 
-    # Update aggroLevel
-    self.__k_aggro_factor = AGGROMAP[self.sm["kommuState"].aggroLevel]
+    # Update aggroLevel and persist
+    new_level = self.sm["kommuState"].aggroLevel
+    new_factor = AGGROMAP[new_level]
+    if new_factor != self.__k_aggro_factor:
+      self.__k_karams.put("aggro_level", new_level)
+      self.__k_aggro_factor = new_factor
 
   def data_sample(self):
     """Receive data from sockets and update carState"""
