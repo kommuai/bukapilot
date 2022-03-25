@@ -5,7 +5,7 @@ from opendbc.can.can_define import CANDefine
 from common.numpy_fast import mean
 from selfdrive.config import Conversions as CV
 from selfdrive.car.interfaces import CarStateBase
-from selfdrive.car.perodua.values import DBC, CAR
+from selfdrive.car.perodua.values import DBC, CAR, ACC_CAR
 
 # todo: clean this part up
 pedal_counter = 0
@@ -31,7 +31,10 @@ class CarState(CarStateBase):
     ret = car.CarState.new_message()
 
     # there is a backwheel speed, but it will overflow to 0 when reach 60kmh
-    ret.wheelSpeeds.rr = cp.vl["WHEEL_SPEED"]['WHEELSPEED_F'] * CV.KPH_TO_MS
+    if self.CP.carFingerprint in CAR.MYVI_PSD:
+      ret.wheelSpeeds.rr = cp.vl["WHEEL_SPEED"]['WHEELSPEED_F'] * CV.KPH_TO_MS * 0.85
+    else:
+      ret.wheelSpeeds.rr = cp.vl["WHEEL_SPEED"]['WHEELSPEED_F'] * CV.KPH_TO_MS
     ret.wheelSpeeds.rl = ret.wheelSpeeds.rr
     ret.wheelSpeeds.fr = ret.wheelSpeeds.rr
     ret.wheelSpeeds.fl = ret.wheelSpeeds.rr
@@ -57,7 +60,7 @@ class CarState(CarStateBase):
     # gas pedal
     ret.gas = cp.vl["GAS_PEDAL"]['APPS_1']
     # todo: let gas pressed legit
-    if self.CP.carFingerprint == CAR.ATIVA:
+    if self.CP.carFingerprint in ACC_CAR:
       ret.gasPressed = not bool(cp.vl["GAS_PEDAL_2"]['GAS_PEDAL_STEP'])
     else:
       ret.gasPressed = ret.gas > 1.0
@@ -72,13 +75,13 @@ class CarState(CarStateBase):
     # perodua bezza has a lower resolution brake pressure sensor
     if self.CP.carFingerprint == CAR.BEZZA:
       ret.brakePressed = ret.brake > 1.2
-    elif self.CP.carFingerprint == CAR.ATIVA:
+    elif self.CP.carFingerprint in ACC_CAR:
       ret.brakePressed = bool(cp.vl["BRAKE"]['BRAKE_ENGAGED'])
     else:
       ret.brakePressed = ret.brake > 1e-5
 
     # steering wheel
-    if self.CP.carFingerprint == CAR.ATIVA:
+    if self.CP.carFingerprint in ACC_CAR:
       ret.steeringAngleDeg = cp.vl["STEERING_MODULE"]['STEER_ANGLE']
       ret.steeringTorque = cp.vl["STEERING_MODULE"]['MAIN_TORQUE']
       ret.steeringTorqueEps = cp.vl["EPS_SHAFT_TORQUE"]['STEERING_TORQUE']
@@ -90,7 +93,7 @@ class CarState(CarStateBase):
 
     if self.CP.carFingerprint == CAR.AXIA:
       ret.steeringPressed = bool(abs(ret.steeringTorque) > 18)
-    elif self.CP.carFingerprint == CAR.ATIVA:
+    elif self.CP.carFingerprint in ACC_CAR:
       ret.steeringPressed = bool(abs(ret.steeringTorque) > 22)
     else:
       ret.steeringPressed = bool(abs(ret.steeringTorque) > 70)
@@ -101,7 +104,7 @@ class CarState(CarStateBase):
 
     # todo: find this out and add it in
 #    ret.stockAeb = cp.vl["FWD_CAM1"]['AEB_BRAKE'] != 0                     # is stock AEB giving a braking signal?
-    if self.CP.carFingerprint != CAR.ATIVA:
+    if self.CP.carFingerprint not in ACC_CAR:
       ret.stockFcw = cp.vl["FWD_CAM3"]['AEB_ALARM'] != 0
 #    ret.espDisabled = cp.vl["ESC_CONTROL"]['STATUS'] != 0                  # electronic stability control status
 
@@ -109,7 +112,7 @@ class CarState(CarStateBase):
       ret.cruiseState.available = True
       ret.cruiseState.nonAdaptive = False
       ret.cruiseState.speed = self.cruise_speed
-      ret.standstill = ret.vEgoRaw < (5 * CV.KPH_TO_MS)
+      ret.standstill = ret.vEgoRaw < (2 * CV.KPH_TO_MS)
 
       if self.is_cruise_latch:
         # pedal disengage
@@ -154,7 +157,7 @@ class CarState(CarStateBase):
 
       if not self.is_cruise_latch:
         if bool(cp.vl["PCM_BUTTONS"]["SET_MINUS"]):
-          self.cruise_speed = max(20 * CV.KPH_TO_MS, ret.vEgo + (5 * CV.KPH_TO_MS))
+          self.cruise_speed = max(30 * CV.KPH_TO_MS, ret.vEgo + (5 * CV.KPH_TO_MS))
           self.is_minus_btn_latch = True
           self.is_cruise_latch = True
 
@@ -247,7 +250,7 @@ class CarState(CarStateBase):
     ]
     checks = []
 
-    if CP.carFingerprint == CAR.ATIVA:
+    if CP.carFingerprint in ACC_CAR:
       signals.append(("BSM_CHIME","BSM", 0))
       signals.append(("STEER_ANGLE", "STEERING_MODULE", 0.))
       signals.append(("MAIN_TORQUE", "STEERING_MODULE", 0.))

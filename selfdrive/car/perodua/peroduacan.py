@@ -119,7 +119,7 @@ def perodua_create_accel_command(packer, v_ego, set_speed, acc_rdy, enabled, is_
   if(v_ego > 8):
     acc_des_speed = acc_des_speed * (1 - brake_amt * 0.25)
   is_braking = brake_amt > 0.0
-
+  
   values = {
     "SET_SPEED": set_speed * 3.6,
     "FOLLOW_DISTANCE": 0,

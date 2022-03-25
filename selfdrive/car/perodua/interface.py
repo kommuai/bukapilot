@@ -91,6 +91,29 @@ class CarInterface(CarInterfaceBase):
 
       ret.longitudinalTuning.kpV = [1.6, 1.1, 1.1]
 
+    elif candidate == CAR.MYVI_PSD:
+      # min speed to enable ACC. if car can do stop and go or has gas interceptor,
+      # then set enabling speed to a negative value, so it won't matter.
+      ret.minEnableSpeed = -1
+      ret.wheelbase = 2.5
+      ret.steerRatio = 10.24
+      ret.centerToFront = ret.wheelbase * 0.44
+      tire_stiffness_factor = 0.6371
+      ret.mass = 1025. + STD_CARGO_KG
+      ret.enableBsm = True
+
+      ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.08], [0.10]]
+      ret.lateralParams.torqueBP, ret.lateralParams.torqueV = [[0.], [255]]
+      ret.lateralTuning.pid.kf = 0.000007
+
+      ret.longitudinalTuning.kpBP = [0., 6, 13]
+      ret.longitudinalTuning.kiBP = [0., 6, 13]
+      ret.longitudinalTuning.kpV = [5.0, 5.0, 3.6]
+      ret.longitudinalTuning.kiV = [1.0, 0.8, 0.6]
+
+      ret.stoppingBrakeRate = 4.8  # reach stopping target smoothly
+      ret.startingBrakeRate = 0.3  # release brakes fast
+
     elif candidate == CAR.ATIVA:
       # min speed to enable ACC. if car can do stop and go or has gas interceptor,
       # then set enabling speed to a negative value, so it won't matter.
@@ -100,6 +123,7 @@ class CarInterface(CarInterfaceBase):
       ret.centerToFront = ret.wheelbase * 0.44
       tire_stiffness_factor = 0.6371
       ret.mass = 1035. + STD_CARGO_KG
+      ret.enableBsm = True
 
       ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.095], [0.19]]
       ret.lateralParams.torqueBP, ret.lateralParams.torqueV = [[0.], [255]]

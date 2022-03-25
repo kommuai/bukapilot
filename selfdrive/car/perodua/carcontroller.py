@@ -78,7 +78,10 @@ class CarController():
 
       # CAN controlled longitudinal
       if (frame % 5) == 0:
-        apply_brake = actuators.brake - actuators.gas
+
+        apply_brake = 0
+        if lead_visible:
+          apply_brake = actuators.brake
 
         can_sends.append(perodua_create_accel_command(self.packer, CS.out.vEgo, CS.out.cruiseState.speed,
                                                       CS.out.cruiseState.available, enabled, lead_visible,
