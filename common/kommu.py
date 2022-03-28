@@ -22,13 +22,13 @@ class Karams:
     with open(self.path) as f:
       self.data = json.load(f)
 
-  def get(self, key, soft=True):
-    if soft:
+  def get(self, key, default=""):
+    if default is not None:
       try:
         ret = self.data[key]
         return ret
       except KeyError:
-        return ""
+        return default
     return self.data[key]
 
   def put(self, key, val):

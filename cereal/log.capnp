@@ -1363,6 +1363,10 @@ struct UploaderState {
   lastFilename @6 :Text;
 }
 
+struct KommuState {
+  aggroLevel @0 :Int8;
+}
+
 struct Event {
   logMonoTime @0 :UInt64;  # nanoseconds
   valid @67 :Bool = true;
@@ -1418,6 +1422,7 @@ struct Event {
     clocks @35 :Clocks;
     deviceState @6 :DeviceState;
     logMessage @18 :Text;
+    kommuState @80 :KommuState;
 
 
     # *********** debug ***********
