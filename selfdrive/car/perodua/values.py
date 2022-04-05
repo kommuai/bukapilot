@@ -43,8 +43,8 @@ DBC = {
   CAR.AXIA: dbc_dict('perodua_general_pt', None),
   CAR.BEZZA: dbc_dict('perodua_general_pt', None),
   CAR.MYVI: dbc_dict('perodua_general_pt', None),
-  CAR.ATIVA: dbc_dict('perodua_ativa_pt', None),
-  CAR.MYVI_PSD: dbc_dict('perodua_ativa_pt', None),
+  CAR.ATIVA: dbc_dict('perodua_psd_pt', None),
+  CAR.MYVI_PSD: dbc_dict('perodua_psd_pt', None),
 }
 
 NOT_CAN_CONTROLLED = set([CAR.ARUZ, CAR.AXIA, CAR.BEZZA, CAR.MYVI])

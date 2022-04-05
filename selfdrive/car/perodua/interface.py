@@ -4,7 +4,10 @@ from selfdrive.swaglog import cloudlog
 from selfdrive.config import Conversions as CV
 from selfdrive.car import STD_CARGO_KG, scale_rot_inertia, scale_tire_stiffness, gen_empty_fingerprint
 from selfdrive.car.interfaces import CarInterfaceBase
-from selfdrive.car.perodua.values import CAR
+from selfdrive.car.perodua.values import CAR, ACC_CAR
+from selfdrive.controls.lib.lateral_planner import LANE_CHANGE_SPEED_MIN
+
+EventName = car.CarEvent.EventName
 
 class CarInterface(CarInterfaceBase):
 
@@ -24,8 +27,8 @@ class CarInterface(CarInterfaceBase):
 
     ret.steerRateCost = 0.7                # Lateral MPC cost on steering rate, higher value = sharper turn
     ret.steerLimitTimer = 0.1              # time before steerLimitAlert is issued
-    ret.steerControlType = car.CarParams.SteerControlType.torque # or car.CarParams.SteerControlType.angle
-    ret.steerActuatorDelay = 0.48           # Steering wheel actuator delay in seconds, it was 0.1
+    ret.steerControlType = car.CarParams.SteerControlType.torque
+    ret.steerActuatorDelay = 0.48           # Steering wheel actuator delay in seconds
 
     # Tire stiffness factor fictitiously lower if it includes the steering column torsion effect.
     # For modeling details, see p.198-200 in "The Science of Vehicle Dynamics (2014), M. Guiggiani"
@@ -40,7 +43,7 @@ class CarInterface(CarInterfaceBase):
     ret.transmissionType = car.CarParams.TransmissionType.automatic
     ret.enableApgs = False                 # advanced parking guidance system
     ret.safetyParam = 1
-    ret.enableGasInterceptor = 0x201 in fingerprint[0]
+    ret.enableGasInterceptor = 0x201 in fingerprint[0] or 0x401 in fingerprint[0]
     ret.openpilotLongitudinalControl = True
 
     if candidate == CAR.AXIA:
@@ -92,56 +95,49 @@ class CarInterface(CarInterfaceBase):
       ret.longitudinalTuning.kpV = [1.6, 1.1, 1.1]
 
     elif candidate == CAR.MYVI_PSD:
-      # min speed to enable ACC. if car can do stop and go or has gas interceptor,
-      # then set enabling speed to a negative value, so it won't matter.
-      ret.minEnableSpeed = -1
       ret.wheelbase = 2.5
-      ret.steerRatio = 10.24
+      ret.steerRatio = 16.74
       ret.centerToFront = ret.wheelbase * 0.44
-      tire_stiffness_factor = 0.6371
+      tire_stiffness_factor = 0.9871
       ret.mass = 1025. + STD_CARGO_KG
-      ret.enableBsm = True
 
-      ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.08], [0.10]]
+      ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.12], [0.20]]
       ret.lateralParams.torqueBP, ret.lateralParams.torqueV = [[0.], [255]]
-      ret.lateralTuning.pid.kf = 0.000007
+      ret.lateralTuning.pid.kf = 0.0000007
 
-      ret.longitudinalTuning.kpBP = [0., 6, 13]
-      ret.longitudinalTuning.kiBP = [0., 6, 13]
-      ret.longitudinalTuning.kpV = [5.0, 5.0, 3.6]
-      ret.longitudinalTuning.kiV = [1.0, 0.8, 0.6]
-
-      ret.stoppingBrakeRate = 4.8  # reach stopping target smoothly
-      ret.startingBrakeRate = 0.3  # release brakes fast
+      ret.longitudinalTuning.kpBP = [0., 6, 13, 36]
+      ret.longitudinalTuning.kiBP = [0., 6, 13, 36]
+      ret.longitudinalTuning.kpV = [4.0, 3.5, 0.8, 0.01]
+      ret.longitudinalTuning.kiV = [1.2, 1.1, 0.6, 0.2]
 
     elif candidate == CAR.ATIVA:
-      # min speed to enable ACC. if car can do stop and go or has gas interceptor,
-      # then set enabling speed to a negative value, so it won't matter.
-      ret.minEnableSpeed = -1
       ret.wheelbase = 2.525
-      ret.steerRatio = 11.54
+      ret.steerRatio = 16.74
       ret.centerToFront = ret.wheelbase * 0.44
-      tire_stiffness_factor = 0.6371
+      tire_stiffness_factor = 0.9871
       ret.mass = 1035. + STD_CARGO_KG
-      ret.enableBsm = True
 
-      ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.095], [0.19]]
+      ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.12], [0.20]]
       ret.lateralParams.torqueBP, ret.lateralParams.torqueV = [[0.], [255]]
-      ret.lateralTuning.pid.kf = 0.000007
+      ret.lateralTuning.pid.kf = 0.0000007
 
-      ret.longitudinalTuning.kpBP = [0., 6]
-      ret.longitudinalTuning.kiBP = [0., 6]
-      ret.longitudinalTuning.kpV = [6.4, 5.5]
-      ret.longitudinalTuning.kiV = [5.2, 4.2]
-
-      ret.stoppingBrakeRate = 4.8  # reach stopping target smoothly
-      ret.startingBrakeRate = 0.3  # release brakes fast
+      ret.longitudinalTuning.kpBP = [0., 6, 13, 36]
+      ret.longitudinalTuning.kiBP = [0., 6, 13, 36]
+      ret.longitudinalTuning.kpV = [4.2, 3.7, 0.8, 0.01]
+      ret.longitudinalTuning.kiV = [1.2, 1.1, 0.6, 0.2]
 
     else:
       ret.dashcamOnly = True
       ret.safetyModel = car.CarParams.SafetyModel.noOutput
 
     ret.enableDsu = False
+
+    if candidate in ACC_CAR:
+      ret.minEnableSpeed = -1
+      ret.steerActuatorDelay = 0.30           # Steering wheel actuator delay in seconds
+      ret.enableBsm = True
+      ret.stoppingBrakeRate = 3.0  # reach stopping target smoothly
+      ret.startingBrakeRate = 0.3  # release brakes fast
 
     ret.rotationalInertia = scale_rot_inertia(ret.mass, ret.wheelbase)
     ret.tireStiffnessFront, ret.tireStiffnessRear = scale_tire_stiffness(ret.mass, ret.wheelbase, ret.centerToFront, tire_stiffness_factor=tire_stiffness_factor)
@@ -160,6 +156,17 @@ class CarInterface(CarInterfaceBase):
 
     # events
     events = self.create_common_events(ret)
+    
+    # create events for auto lane change below allowable speed
+    if ret.vEgo < LANE_CHANGE_SPEED_MIN and (ret.leftBlinker or ret.rightBlinker):
+      events.add(EventName.belowLaneChangeSpeed)
+ 
+    # events for non ACC cars
+    if self.CP.carFingerprint not in ACC_CAR:
+      # create events to warn user that their vehicle doesn't have brakes
+      if self.CC.brake_pressed and (ret.cruiseState.speed >= ret.vEgo):
+        events.add(EventName.promptDriverBrake)
+
     ret.events = events.to_msg()
 
     self.CS.out = ret.as_reader()
