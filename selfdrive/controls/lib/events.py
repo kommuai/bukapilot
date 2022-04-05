@@ -382,6 +382,15 @@ EVENTS: Dict[int, Dict[str, Union[Alert, Callable[[Any, messaging.SubMaster, boo
       Priority.LOW, VisualAlert.ldw, AudibleAlert.chimePrompt, 1., 2., 3.),
   },
 
+  EventName.promptDriverBrake: {
+    ET.PERMANENT: Alert(
+      "BRAKE!",
+      "Vehicle Does Not Have Auto Brake",
+      AlertStatus.userPrompt, AlertSize.mid,
+      Priority.MID, VisualAlert.ldw, AudibleAlert.chimePrompt, 1., 2., 3.),
+  },
+
+
   # ********** events only containing alerts that display while engaged **********
 
   EventName.gasPressed: {
@@ -484,6 +493,14 @@ EVENTS: Dict[int, Dict[str, Union[Alert, Callable[[Any, messaging.SubMaster, boo
 
   EventName.belowSteerSpeed: {
     ET.WARNING: below_steer_speed_alert,
+  },
+
+  EventName.belowLaneChangeSpeed: {
+    ET.WARNING: Alert(
+      "Below Auto Lane Change Speed",
+      "Manually Steer to Change Lane",
+      AlertStatus.userPrompt, AlertSize.mid,
+      Priority.MID, VisualAlert.steerRequired, AudibleAlert.chimeWarning2Repeat, .1, .1, .1),
   },
 
   EventName.preLaneChangeLeft: {
