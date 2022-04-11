@@ -121,7 +121,7 @@ def handle_fan_uno(max_cpu_temp, bat_temp, fan_speed, ignition):
     new_speed = 0
 
   if not ignition:
-    new_speed = min(60, new_speed)
+    new_speed = min(80, new_speed)
 
   return new_speed
 
