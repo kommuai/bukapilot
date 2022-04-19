@@ -123,8 +123,8 @@ class CarInterface(CarInterfaceBase):
 
       ret.longitudinalTuning.kpBP = [0., 6, 13, 36]
       ret.longitudinalTuning.kiBP = [0., 6, 13, 36]
-      ret.longitudinalTuning.kpV = [4.2, 3.7, 0.8, 0.01]
-      ret.longitudinalTuning.kiV = [1.2, 1.1, 0.6, 0.2]
+      ret.longitudinalTuning.kpV = [4.6, 4.2, 1.6, 0.2]
+      ret.longitudinalTuning.kiV = [1.6, 1.4, 1.2, 0.8]
 
     else:
       ret.dashcamOnly = True
