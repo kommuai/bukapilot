@@ -64,6 +64,6 @@ void TermsWindow::showEvent(QShowEvent *event) {
 }
 
 void TermsWindow::enableAccept() {
-  accept_btn->setText("OK");
+  accept_btn->setText("Accept");
   accept_btn->setEnabled(true);
 }

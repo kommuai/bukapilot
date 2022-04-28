@@ -2,6 +2,7 @@
 
 #include <QFontDatabase>
 
+#include "selfdrive/common/params.h"
 #include "selfdrive/hardware/hw.h"
 
 MainWindow::MainWindow(QWidget *parent) : QWidget(parent) {
@@ -22,6 +23,7 @@ MainWindow::MainWindow(QWidget *parent) : QWidget(parent) {
     main_layout->setCurrentWidget(termsWindow);
   });
   QObject::connect(termsWindow, &TermsWindow::closeTerms, [=]() {
+    Params().put("HasAcceptedTerms", Params().get("TermsVersion"));
     main_layout->setCurrentWidget(homeWindow);
   });
   QObject::connect(homeWindow, &HomeWindow::openTraining, [=]() {
