@@ -341,8 +341,8 @@ DriveWidget::DriveWidget(QWidget *parent) : QWidget(parent){
 UpdatesWidget::UpdatesWidget(QWidget *parent) : QWidget(parent){
     update_layout = new QVBoxLayout(this);
     setStyleSheet("background-color: rgb(32, 32, 32);border-radius: 25px;");
-    QLabel *updates_header = new QLabel("Bukapilot v1.0.0");
-    QLabel *updates_content = new QLabel("-Update UI \n-Add Support for Axia, Ativa, Alza, Aruz, Bezza and Proton Cars");
+    QLabel *updates_header = new QLabel("v1-firstbatch");
+    QLabel *updates_content = new QLabel("- First release \n- Supported 12 unique models");
 
 
     QFont header_font;
