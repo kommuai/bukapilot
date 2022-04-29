@@ -1,6 +1,10 @@
 #include "selfdrive/ui/qt/offroad/settings.h"
 
 #include <cassert>
+#include <cstdlib>
+#include <fstream>
+#include <iostream>
+#include <sstream>
 #include <string>
 
 #include <QDebug>
@@ -27,6 +31,65 @@
 #include "selfdrive/ui/qt/widgets/nav_buttons.h"
 #include "selfdrive/ui/ui.h"
 #include "selfdrive/ui/qt/util.h"
+
+BranchControl::BranchControl() : ButtonControl("Git Branch", "", "Warning: Only switch under advice from Kommu's staff.  Unauthorised switching will impose danger to you and other road users.") {
+  branch_label.setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+  branch_label.setStyleSheet("color: #aaaaaa");
+  hlayout->insertWidget(1, &branch_label);
+
+  QObject::connect(this, &ButtonControl::released, [=]() {
+    QString branch = InputDialog::getText("Enter branch name", this);
+    if (branch.length() > 0) {
+      switchToBranch(branch);
+    }
+  });
+
+  setText("SWITCH");
+  setEnabled(true);
+
+  refresh();
+}
+
+std::string BranchControl::readFile(const std::string filename) {
+  std::stringstream buf;
+  std::ifstream f(filename);
+  if (!f) {
+    return "_ERROR_";
+  }
+  buf << f.rdbuf();
+  return buf.str();
+}
+
+std::string BranchControl::getRealBranch() {
+  if (std::system("git rev-parse --abbrev-ref HEAD > _realbranch") == 0) {
+    return readFile("_realbranch");
+  }
+  return "_ERROR_";
+}
+
+void BranchControl::refresh() {
+  std::string label;
+  auto real = getRealBranch();
+  auto target = params.get("GitBranch");
+  if (real == "_ERROR_") {
+    label = real;
+    setEnabled(false);
+  } else {
+    if (target != real) {
+      label = target + " (pending)";
+    } else {
+      label = target;
+    }
+    setEnabled(true);
+  }
+  branch_label.setText(QString::fromStdString(label));
+}
+
+void BranchControl::switchToBranch(const QString &branch) {
+  params.put("GitBranch", branch.toStdString());
+  refresh();
+}
+
 
 TogglesPanel::TogglesPanel(QWidget *parent) : QWidget(parent) {
   QVBoxLayout *main_layout = new QVBoxLayout(this);
@@ -243,7 +306,7 @@ DevicePanel::DevicePanel(QWidget* parent) : QWidget(parent) {
 }
 
 SoftwarePanel::SoftwarePanel(QWidget* parent) : QWidget(parent) {
-  gitBranchLbl = new LabelControl("Git Branch");
+  branchControl = new BranchControl();
   gitCommitLbl = new LabelControl("Git Commit");
   osVersionLbl = new LabelControl("OS Version");
   versionLbl = new LabelControl("Version", "", QString::fromStdString(params.get("ReleaseNotes")).trimmed());
@@ -262,7 +325,7 @@ SoftwarePanel::SoftwarePanel(QWidget* parent) : QWidget(parent) {
   });
 
   QVBoxLayout *main_layout = new QVBoxLayout(this);
-  QWidget *widgets[] = {versionLbl, lastUpdateLbl, updateBtn, gitBranchLbl, gitCommitLbl, osVersionLbl};
+  QWidget *widgets[] = {versionLbl, lastUpdateLbl, updateBtn, branchControl, gitCommitLbl, osVersionLbl};
   for (int i = 0; i < std::size(widgets); ++i) {
     main_layout->addWidget(widgets[i]);
     if (i < std::size(widgets) - 1) {
@@ -294,11 +357,11 @@ void SoftwarePanel::updateLabels() {
     lastUpdate = timeAgo(QDateTime::fromString(QString::fromStdString(tm + "Z"), Qt::ISODate));
   }
 
+  branchControl->refresh();
   versionLbl->setText(getBrandVersion());
   lastUpdateLbl->setText(lastUpdate);
   updateBtn->setText("CHECK");
   updateBtn->setEnabled(true);
-  gitBranchLbl->setText(QString::fromStdString(params.get("GitBranch")));
   gitCommitLbl->setText(QString::fromStdString(params.get("GitCommit")).left(10));
   osVersionLbl->setText(QString::fromStdString(Hardware::get_os_version()).trimmed());
 }

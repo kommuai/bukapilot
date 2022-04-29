@@ -280,12 +280,20 @@ def check_git_fetch_result(fetch_txt):
   err_msg = "Failed to add the host to the list of known hosts (/data/data/com.termux/files/home/.ssh/known_hosts).\n"
   return len(fetch_txt) > 0 and (fetch_txt != err_msg)
 
+def check_for_branch_change():
+  setup_git_options(OVERLAY_MERGED)
+  try:
+    real_branch = run(["git", "rev-parse", "--abbrev-ref", "HEAD"])
+    need_switch = real_branch != Params().get("GitBranch")
+    return need_switch
+  except subprocess.CalledProcessError:
+    return False
 
 def check_for_update() -> Tuple[bool, bool]:
   setup_git_options(OVERLAY_MERGED)
   try:
     git_fetch_output = run(["git", "fetch", "--dry-run"], OVERLAY_MERGED, low_priority=True)
-    return True, check_git_fetch_result(git_fetch_output)
+    return True, check_git_fetch_result(git_fetch_output) or check_for_branch_change()
   except subprocess.CalledProcessError:
     return False, False
 
@@ -294,6 +302,13 @@ def fetch_update(wait_helper: WaitTimeHelper) -> bool:
   cloudlog.info("attempting git fetch inside staging overlay")
 
   setup_git_options(OVERLAY_MERGED)
+
+  is_branch_change = check_for_branch_change()
+  switchto = Params().get("GitBranch", encoding="utf-8")
+
+  run(["git", "remote", "set-branches", "origin", f"{switchto}"], OVERLAY_MERGED, low_priority=True)
+  run(["git", "fetch", "origin"], OVERLAY_MERGED, low_priority=True)
+  run(["git", "checkout", "-B", switchto, "--track", f"origin/{switchto}"], OVERLAY_MERGED, low_priority=True)
 
   git_fetch_output = run(["git", "fetch"], OVERLAY_MERGED, low_priority=True)
   cloudlog.info("git fetch success: %s", git_fetch_output)
@@ -304,7 +319,7 @@ def fetch_update(wait_helper: WaitTimeHelper) -> bool:
   git_fetch_result = check_git_fetch_result(git_fetch_output)
 
   cloudlog.info("comparing %s to %s" % (cur_hash, upstream_hash))
-  if new_version or git_fetch_result:
+  if new_version or git_fetch_result or is_branch_change:
     cloudlog.info("Running update")
 
     if new_version:
