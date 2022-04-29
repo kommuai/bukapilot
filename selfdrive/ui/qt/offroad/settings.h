@@ -10,6 +10,7 @@
 
 
 #include "selfdrive/ui/qt/widgets/controls.h"
+#include "selfdrive/ui/qt/widgets/branch_control.h"
 
 // ********** settings window + top-level panels **********
 
@@ -36,7 +37,7 @@ private:
   void showEvent(QShowEvent *event) override;
   void updateLabels();
 
-  LabelControl *gitBranchLbl;
+  BranchControl *branchControl;
   LabelControl *gitCommitLbl;
   LabelControl *osVersionLbl;
   LabelControl *versionLbl;
