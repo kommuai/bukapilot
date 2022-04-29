@@ -10,7 +10,23 @@
 
 
 #include "selfdrive/ui/qt/widgets/controls.h"
-#include "selfdrive/ui/qt/widgets/branch_control.h"
+
+class BranchControl : public ButtonControl {
+  Q_OBJECT
+
+public:
+  BranchControl();
+
+  void refresh();
+
+private:
+  Params params;
+  QLabel branch_label;
+
+  std::string getRealBranch();
+  std::string readFile(const std::string filename);
+  void switchToBranch(const QString &branch);
+};
 
 class BranchControl : public ButtonControl {
   Q_OBJECT
