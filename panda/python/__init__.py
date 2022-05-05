@@ -259,6 +259,7 @@ class Panda(object):
       with open(fn, "rb") as f:
         code = f.read()
     Panda.flash_static(self._handle, code)
+    time.sleep(1)
     self.reset()
 
   def recover(self, timeout=None):
