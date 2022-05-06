@@ -113,10 +113,13 @@ def perodua_create_brake_command(packer, enabled, decel_cmd, idx):
 
   return packer.make_can_msg("ACC_BRAKE", 0, values)
 
-def perodua_create_accel_command(packer, v_ego, set_speed, acc_rdy, enabled, is_lead, des_speed, brake_amt):
+def perodua_create_accel_command(packer, v_ego, set_speed, acc_rdy, enabled, is_lead, des_speed, brake_amt, mult):
 
   is_braking = brake_amt > 0.0
   
+  if v_ego > 2.5:
+      des_speed = des_speed * (1+mult/10)
+ 
   values = {
     "SET_SPEED": set_speed * CV.MS_TO_KPH,
     "FOLLOW_DISTANCE": 0,
@@ -136,12 +139,12 @@ def perodua_create_accel_command(packer, v_ego, set_speed, acc_rdy, enabled, is_
 
   return packer.make_can_msg("ACC_CMD_HUD", 0, values)
 
-def perodua_create_hud(packer, lkas_rdy, enabled, llane_visible, rlane_visible):
+def perodua_create_hud(packer, lkas_rdy, enabled, llane_visible, rlane_visible, ldw):
 
   values = {
     "LKAS_SET": lkas_rdy,
     "LKAS_ENGAGED": enabled,
-    "LDA_ALERT": 0,
+    "LDA_ALERT": ldw,
     "LANE_RIGHT_DETECT": rlane_visible,
     "LANE_LEFT_DETECT": llane_visible,
     "SET_ME_X02": 0x2,

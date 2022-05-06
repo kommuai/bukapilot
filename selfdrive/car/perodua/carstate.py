@@ -31,8 +31,11 @@ class CarState(CarStateBase):
     ret = car.CarState.new_message()
 
     # there is a backwheel speed, but it will overflow to 0 when reach 60kmh
+    # perodua vehicles doesn't have a good standard for their wheelspeed scaling
     if self.CP.carFingerprint in CAR.MYVI_PSD:
-      ret.wheelSpeeds.rr = cp.vl["WHEEL_SPEED"]['WHEELSPEED_F'] * CV.KPH_TO_MS * 0.85
+      ret.wheelSpeeds.rr = cp.vl["WHEEL_SPEED"]['WHEELSPEED_F'] * CV.KPH_TO_MS * 0.822
+    elif self.CP.carFingerprint in CAR.MYVI:
+      ret.wheelSpeeds.rr = cp.vl["WHEEL_SPEED"]['WHEELSPEED_F'] * CV.KPH_TO_MS * 1.15
     else:
       ret.wheelSpeeds.rr = cp.vl["WHEEL_SPEED"]['WHEELSPEED_F'] * CV.KPH_TO_MS
 
@@ -43,7 +46,7 @@ class CarState(CarStateBase):
     ret.vEgoRaw = mean([ret.wheelSpeeds.rr, ret.wheelSpeeds.rl, ret.wheelSpeeds.fr, ret.wheelSpeeds.fl])
     # unfiltered speed from CAN sensors
     ret.vEgo, ret.aEgo = self.update_speed_kf(ret.vEgoRaw)
-    ret.standstill = ret.vEgoRaw < (2 * CV.KPH_TO_MS)
+    ret.standstill = ret.vEgoRaw < 0.01
 
     # safety checks to engage
     can_gear = int(cp.vl["TRANSMISSION"]['GEAR'])
@@ -124,7 +127,7 @@ class CarState(CarStateBase):
       # latching cruiseState logic
       if not self.is_cruise_latch:
         if self.check_pedal_engage(ret.gas, pedal_press_state):
-          self.cruise_speed = max(30 * CV.KPH_TO_MS, ret.vEgo + (5 * CV.KPH_TO_MS))
+          self.cruise_speed = max(30 * CV.KPH_TO_MS, ret.vEgo)
           self.is_cruise_latch = True
     else:
       ret.cruiseState.available = cp.vl["PCM_BUTTONS"]["ACC_RDY"] != 0
@@ -147,8 +150,13 @@ class CarState(CarStateBase):
           self.is_minus_btn_latch = False
 
       if not self.is_cruise_latch:
+
+        if bool(cp.vl["PCM_BUTTONS"]["RES_PLUS"]):
+          self.is_cruise_latch = True
+          self.is_plus_btn_latch = True
+
         if bool(cp.vl["PCM_BUTTONS"]["SET_MINUS"]):
-          self.cruise_speed = max(30 * CV.KPH_TO_MS, ret.vEgo + (5 * CV.KPH_TO_MS))
+          self.cruise_speed = max(30 * CV.KPH_TO_MS, ret.vEgo)
           self.is_minus_btn_latch = True
           self.is_cruise_latch = True
 

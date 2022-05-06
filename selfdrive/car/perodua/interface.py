@@ -101,14 +101,14 @@ class CarInterface(CarInterfaceBase):
       tire_stiffness_factor = 0.9871
       ret.mass = 1025. + STD_CARGO_KG
 
-      ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.12], [0.20]]
+      ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.10], [0.18]]
       ret.lateralParams.torqueBP, ret.lateralParams.torqueV = [[0.], [255]]
       ret.lateralTuning.pid.kf = 0.0000007
 
-      ret.longitudinalTuning.kpBP = [0., 6, 13, 36]
-      ret.longitudinalTuning.kiBP = [0., 6, 13, 36]
-      ret.longitudinalTuning.kpV = [4.0, 3.5, 0.8, 0.01]
-      ret.longitudinalTuning.kiV = [1.2, 1.1, 0.6, 0.2]
+      ret.longitudinalTuning.kpBP = [0., 6, 13]
+      ret.longitudinalTuning.kiBP = [0., 6, 13]
+      ret.longitudinalTuning.kpV = [3.8, 4.0, 2.0]
+      ret.longitudinalTuning.kiV = [1.3, 1.2, 1.0]
 
     elif candidate == CAR.ATIVA:
       ret.wheelbase = 2.525
@@ -122,9 +122,9 @@ class CarInterface(CarInterfaceBase):
       ret.lateralTuning.pid.kf = 0.0000007
 
       ret.longitudinalTuning.kpBP = [0., 6, 13, 36]
-      ret.longitudinalTuning.kiBP = [0., 6, 13, 36]
-      ret.longitudinalTuning.kpV = [4.6, 4.2, 1.6, 0.2]
-      ret.longitudinalTuning.kiV = [1.6, 1.4, 1.2, 0.8]
+      ret.longitudinalTuning.kiBP = [0., 6, 13]
+      ret.longitudinalTuning.kpV = [4.0, 4.2, 2.0, 0.8]
+      ret.longitudinalTuning.kiV = [1.6, 1.4, 1.2]
 
     else:
       ret.dashcamOnly = True
@@ -136,8 +136,8 @@ class CarInterface(CarInterfaceBase):
       ret.minEnableSpeed = -1
       ret.steerActuatorDelay = 0.30           # Steering wheel actuator delay in seconds
       ret.enableBsm = True
-      ret.stoppingBrakeRate = 3.0  # reach stopping target smoothly
-      ret.startingBrakeRate = 0.3  # release brakes fast
+      ret.stoppingBrakeRate = 0.12  # reach stopping target smoothly
+      ret.startingBrakeRate = 0.2  # release brakes fast
 
     ret.rotationalInertia = scale_rot_inertia(ret.mass, ret.wheelbase)
     ret.tireStiffnessFront, ret.tireStiffnessRear = scale_tire_stiffness(ret.mass, ret.wheelbase, ret.centerToFront, tire_stiffness_factor=tire_stiffness_factor)
@@ -175,7 +175,9 @@ class CarInterface(CarInterfaceBase):
   # pass in a car.CarControl to be called at 100hz
   def apply(self, c):
 
-    can_sends = self.CC.update(c.enabled, self.CS, self.frame, c.actuators, c.hudControl.leadVisible, c.hudControl.rightLaneVisible, c.hudControl.leftLaneVisible, c.cruiseControl.cancel, c.cruiseControl.speedOverride)
+    isLdw = c.hudControl.leftLaneDepart or c.hudControl.rightLaneDepart
+
+    can_sends = self.CC.update(c.enabled, self.CS, self.frame, c.actuators, c.hudControl.leadVisible, c.hudControl.rightLaneVisible, c.hudControl.leftLaneVisible, c.cruiseControl.cancel, c.cruiseControl.speedOverride, isLdw)
 
     self.frame += 1
     return can_sends

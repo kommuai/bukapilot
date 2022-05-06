@@ -52,7 +52,7 @@ class CarController():
     self.params = CarControllerParams(CP)
     self.packer = CANPacker(DBC[CP.carFingerprint]['pt'])
 
-  def update(self, enabled, CS, frame, actuators, lead_visible, rlane_visible, llane_visible, pcm_cancel, v_target):
+  def update(self, enabled, CS, frame, actuators, lead_visible, rlane_visible, llane_visible, pcm_cancel, v_target, ldw):
     can_sends = []
 
     steer_max_interp = interp(CS.out.vEgo, self.params.STEER_BP, self.params.STEER_LIM_TORQ)
@@ -60,6 +60,7 @@ class CarController():
     apply_steer = apply_acttr_steer_torque_limits(new_steer, self.last_steer, self.params)
 
     self.steer_rate_limited = (new_steer != apply_steer) and (apply_steer != 0)
+    apply_gas = clip(actuators.gas, 0., 1.)
 
     '''
     Perodua vehicles supported by Kommu includes vehicles that does not have stock LKAS and ACC.
@@ -79,15 +80,13 @@ class CarController():
       # CAN controlled longitudinal
       if (frame % 5) == 0:
 
-        apply_brake = 0
-        if lead_visible:
-          apply_brake = actuators.brake
+        apply_brake = actuators.brake
 
         can_sends.append(perodua_create_accel_command(self.packer, CS.out.vEgo, CS.out.cruiseState.speed,
                                                       CS.out.cruiseState.available, enabled, lead_visible,
-                                                      v_target, apply_brake))
+                                                      v_target, apply_brake, apply_gas))
         can_sends.append(perodua_create_brake_command(self.packer, enabled, apply_brake, (frame/5) % 8))
-        can_sends.append(perodua_create_hud(self.packer, CS.out.cruiseState.available, enabled, llane_visible, rlane_visible))
+        can_sends.append(perodua_create_hud(self.packer, CS.out.cruiseState.available, enabled, llane_visible, rlane_visible, ldw))
 
     # KommuActuator controls
     else:
