@@ -341,8 +341,8 @@ DriveWidget::DriveWidget(QWidget *parent) : QWidget(parent){
 UpdatesWidget::UpdatesWidget(QWidget *parent) : QWidget(parent){
     update_layout = new QVBoxLayout(this);
     setStyleSheet("background-color: rgb(32, 32, 32);border-radius: 25px;");
-    QLabel *updates_header = new QLabel("v1-firstbatch");
-    QLabel *updates_content = new QLabel("- First release \n- Supported 12 unique models");
+    QLabel *updates_header = new QLabel("v2-firstbatch");
+    QLabel *updates_content = new QLabel("- First prebuilt bukapilot \n - Better Ativa experience \n - Major Perodua bug fixes");
 
 
     QFont header_font;
