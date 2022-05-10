@@ -1,3 +1,10 @@
+Version 2-firstbatch  (2022-05-11)
+=========================
+ * First bukapilot prebuilt release
+ * Perodua: Remove horseriding
+ * Perodua: 1.5x better longitudinal
+ * Bug: Remove intermittent controls mismatch
+
 Version 1-firstbatch  (2022-04-26)
 =========================
  * Initial release of bukapilot based on openpilot v0.8.6
