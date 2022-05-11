@@ -56,7 +56,6 @@ class UpdatesWidget: public QWidget {
 
     private:
         QVBoxLayout *update_layout;
-        QPushButton *update_button;
 };
 
 class QrWidget: public QWidget {

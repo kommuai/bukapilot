@@ -339,34 +339,20 @@ DriveWidget::DriveWidget(QWidget *parent) : QWidget(parent){
 }
 
 UpdatesWidget::UpdatesWidget(QWidget *parent) : QWidget(parent){
+    Params params = Params();
     update_layout = new QVBoxLayout(this);
     setStyleSheet("background-color: rgb(32, 32, 32);border-radius: 25px;");
-    QLabel *updates_header = new QLabel("v2-firstbatch");
-    QLabel *updates_content = new QLabel("- First prebuilt bukapilot \n - Better Ativa experience \n - Major Perodua bug fixes");
-
+    QLabel *updates_header = new QLabel(QString::fromStdString(params.get("ReleaseNotes")));
 
     QFont header_font;
-    QFont content_font;
-
-    content_font.setPixelSize(40);
-    header_font.setPixelSize(50);
+    header_font.setPixelSize(40);
 
     updates_header->setFont(header_font);
     updates_header->setAlignment(Qt::AlignTop);
     updates_header->setWordWrap(true);
-    updates_header->setFixedHeight(65);
-    updates_content->setAlignment(Qt::AlignTop|Qt::AlignLeft);
-    updates_content->setFont(content_font);
-    updates_content->setWordWrap(true);
-    updates_content->setFixedHeight(200);
+    updates_header->setFixedHeight(425);
 
-    update_button = new QPushButton("UPDATE");
-    update_button->setFixedSize(QSize(300,100));
-    update_button->setStyleSheet("background-color: rgb(75, 75, 75);font-size:40px;border-radius: 50px;");
     update_layout->setContentsMargins(50,50,50,50);
     update_layout->addWidget(updates_header);
-    update_layout->addWidget(updates_content);
-    update_layout->addWidget(update_button,0,Qt::AlignRight|Qt::AlignBottom);
-
 }
 
