@@ -71,7 +71,7 @@ def manager_init():
     print("WARNING: failed to make /dev/shm")
 
   # set version params
-  params.put("Version", version)
+  params.put("Version", params.get("ReleaseNotes").split()[1])
   params.put("TermsVersion", terms_version)
   params.put("TrainingVersion", training_version)
   params.put("GitCommit", get_git_commit(default=""))
