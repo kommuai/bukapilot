@@ -96,7 +96,11 @@ def aeb_brake_command(packer, enabled, decel_cmd):
 
 def perodua_create_brake_command(packer, enabled, decel_cmd, idx):
   decel_req = decel_cmd > 0.1
-  pump_speed = interp(decel_cmd, [0., 0.8], [0.4, 1.0])
+  #pump_speed = interp(decel_cmd, [0., 0.8], [0.4, 1.0])
+  pump_speed = 0.8
+
+  if (decel_req >= 0.6):
+      decel_req = 1.0
 
   values = {
     "COUNTER": idx,

@@ -123,8 +123,8 @@ class CarInterface(CarInterfaceBase):
 
       ret.longitudinalTuning.kpBP = [0., 6, 13, 36]
       ret.longitudinalTuning.kiBP = [0., 6, 13]
-      ret.longitudinalTuning.kpV = [4.0, 4.2, 2.0, 0.8]
-      ret.longitudinalTuning.kiV = [1.6, 1.4, 1.2]
+      ret.longitudinalTuning.kpV = [4.1, 4.2, 2.0, 0.8]
+      ret.longitudinalTuning.kiV = [1.8, 1.8, 1.5]
 
     else:
       ret.dashcamOnly = True
@@ -136,7 +136,7 @@ class CarInterface(CarInterfaceBase):
       ret.minEnableSpeed = -1
       ret.steerActuatorDelay = 0.30           # Steering wheel actuator delay in seconds
       ret.enableBsm = True
-      ret.stoppingBrakeRate = 0.12  # reach stopping target smoothly
+      ret.stoppingBrakeRate = 0.15  # reach stopping target smoothly
       ret.startingBrakeRate = 0.2  # release brakes fast
 
     ret.rotationalInertia = scale_rot_inertia(ret.mass, ret.wheelbase)
