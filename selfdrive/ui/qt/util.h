@@ -40,3 +40,5 @@ protected:
 signals:
   void clicked();
 };
+
+std::string exec(const char* cmd);
