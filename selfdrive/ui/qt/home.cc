@@ -340,9 +340,15 @@ DriveWidget::DriveWidget(QWidget *parent) : QWidget(parent){
 
 UpdatesWidget::UpdatesWidget(QWidget *parent) : QWidget(parent){
     Params params = Params();
+
+    std::string updates;
+    if (params.getBool("UpdateAvailable"))
+      updates = "An update is available!\n\n" + params.get("ReleaseNotes");
+    else
+      updates = "You're up to date!";
     update_layout = new QVBoxLayout(this);
     setStyleSheet("background-color: rgb(32, 32, 32);border-radius: 25px;");
-    QLabel *updates_header = new QLabel(QString::fromStdString(params.get("ReleaseNotes")));
+    QLabel *updates_header = new QLabel(QString::fromStdString(updates));
 
     QFont header_font;
     header_font.setPixelSize(40);
