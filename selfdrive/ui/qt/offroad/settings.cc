@@ -50,37 +50,17 @@ BranchControl::BranchControl() : ButtonControl("Git Branch", "", "Warning: Only 
   refresh();
 }
 
-std::string BranchControl::readFile(const std::string filename) {
-  std::stringstream buf;
-  std::ifstream f(filename);
-  if (!f) {
-    return "_ERROR_";
-  }
-  buf << f.rdbuf();
-  return buf.str();
-}
-
-std::string BranchControl::getRealBranch() {
-  if (std::system("git rev-parse --abbrev-ref HEAD > _realbranch") == 0) {
-    return readFile("_realbranch");
-  }
-  return "_ERROR_";
-}
-
 void BranchControl::refresh() {
+  std::string real = exec("git rev-parse --abbrev-ref HEAD");
+  std::string target = params.get("GitBranch");
+  trim(real);
+  trim(target);
+
   std::string label;
-  auto real = getRealBranch();
-  auto target = params.get("GitBranch");
-  if (real == "_ERROR_") {
-    label = real;
-    setEnabled(false);
+  if (target != real) {
+    label = target + "(pending)";
   } else {
-    if (target != real) {
-      label = target + " (pending)";
-    } else {
-      label = target;
-    }
-    setEnabled(true);
+    label = target;
   }
   branch_label.setText(QString::fromStdString(label));
 }

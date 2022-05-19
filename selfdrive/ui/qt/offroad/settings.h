@@ -23,8 +23,6 @@ private:
   Params params;
   QLabel branch_label;
 
-  std::string getRealBranch();
-  std::string readFile(const std::string filename);
   void switchToBranch(const QString &branch);
 };
 
