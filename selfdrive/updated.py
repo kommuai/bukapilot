@@ -283,8 +283,8 @@ def check_git_fetch_result(fetch_txt):
 def check_for_branch_change():
   setup_git_options(OVERLAY_MERGED)
   try:
-    real_branch = run(["git", "rev-parse", "--abbrev-ref", "HEAD"])
-    need_switch = real_branch != Params().get("GitBranch")
+    real_branch = run(["git", "rev-parse", "--abbrev-ref", "HEAD"]).strip()
+    need_switch = real_branch != Params().get("GitBranch", encoding="utf-8").strip()
     return need_switch
   except subprocess.CalledProcessError:
     return False
@@ -304,13 +304,15 @@ def fetch_update(wait_helper: WaitTimeHelper) -> bool:
   setup_git_options(OVERLAY_MERGED)
 
   is_branch_change = check_for_branch_change()
-  switchto = Params().get("GitBranch", encoding="utf-8")
+  if is_branch_change:
+    switchto = Params().get("GitBranch", encoding="utf-8")
 
-  run(["git", "remote", "set-branches", "origin", f"{switchto}"], OVERLAY_MERGED, low_priority=True)
-  run(["git", "fetch", "origin"], OVERLAY_MERGED, low_priority=True)
-  run(["git", "checkout", "-B", switchto, "--track", f"origin/{switchto}"], OVERLAY_MERGED, low_priority=True)
-
-  git_fetch_output = run(["git", "fetch"], OVERLAY_MERGED, low_priority=True)
+    run(["git", "remote", "set-branches", "origin", f"{switchto}"], OVERLAY_MERGED, low_priority=True)
+    git_fetch_output = run(["git", "fetch", "origin"], OVERLAY_MERGED, low_priority=True)
+    run(["git", "checkout", "-B", switchto, "--track", f"origin/{switchto}"], OVERLAY_MERGED, low_priority=True)
+    cloudlog.info("performed branch change")
+  else:
+    git_fetch_output = run(["git", "fetch"], OVERLAY_MERGED, low_priority=True)
   cloudlog.info("git fetch success: %s", git_fetch_output)
 
   cur_hash = run(["git", "rev-parse", "HEAD"], OVERLAY_MERGED).rstrip()
