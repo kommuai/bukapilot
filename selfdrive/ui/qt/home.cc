@@ -99,6 +99,7 @@ HomeWindow::HomeWindow(QWidget* parent) : QWidget(parent) {
 
   QObject::connect(this, &HomeWindow::update, home->status, &StatusWidget::updateState);
   QObject::connect(this, &HomeWindow::update, home->drive, &DriveWidget::updateState);
+  QObject::connect(this, &HomeWindow::update, home->updates, &UpdatesWidget::updateState);
   QObject::connect(this, &HomeWindow::update, onroad, &OnroadWindow::update);
   QObject::connect(this, &HomeWindow::offroadTransitionSignal, onroad, &OnroadWindow::offroadTransitionSignal);
   QObject::connect(onroad, &OnroadWindow::openSettings, this, &HomeWindow::openSettings);
@@ -150,6 +151,7 @@ OffroadHome::OffroadHome(QWidget* parent) : QFrame(parent) {
 
   drive -> setAttribute(Qt::WA_StyledBackground);
   status -> setAttribute(Qt::WA_StyledBackground);
+  updates -> setAttribute(Qt::WA_StyledBackground);
 
   main_layout->addWidget(status,0,0,2,1);
   main_layout->addWidget(qr,0,1,1,2);
@@ -339,16 +341,12 @@ DriveWidget::DriveWidget(QWidget *parent) : QWidget(parent){
 }
 
 UpdatesWidget::UpdatesWidget(QWidget *parent) : QWidget(parent){
-    Params params = Params();
+    params = Params();
 
-    std::string updates;
-    if (params.getBool("UpdateAvailable"))
-      updates = "An update is available!\n\n" + params.get("ReleaseNotes");
-    else
-      updates = "You're up to date!";
+    updates_header = new QLabel("Loading...");
+
     update_layout = new QVBoxLayout(this);
     setStyleSheet("background-color: rgb(32, 32, 32);border-radius: 25px;");
-    QLabel *updates_header = new QLabel(QString::fromStdString(updates));
 
     QFont header_font;
     header_font.setPixelSize(40);
@@ -362,3 +360,12 @@ UpdatesWidget::UpdatesWidget(QWidget *parent) : QWidget(parent){
     update_layout->addWidget(updates_header);
 }
 
+void UpdatesWidget::updateState(const UIState &s) {
+    std::string updates;
+    if (params.getBool("UpdateAvailable"))
+      updates = "An update is available!\n\n" + params.get("ReleaseNotes");
+    else
+      updates = "You're up to date!";
+
+    updates_header->setText(QString::fromStdString(updates));
+}

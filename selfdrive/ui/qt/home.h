@@ -51,11 +51,17 @@ class StatusWidget: public QWidget {
 
 class UpdatesWidget: public QWidget {
 
+    Q_OBJECT
+    public slots:
+      void updateState(const UIState &s);
+
     public:
       explicit UpdatesWidget(QWidget* parent = 0);
 
     private:
         QVBoxLayout *update_layout;
+        QLabel *updates_header;
+        Params params;
 };
 
 class QrWidget: public QWidget {
@@ -91,6 +97,7 @@ public:
 
   StatusWidget* status;
   DriveWidget* drive;
+  UpdatesWidget* updates;
 
 private:
   void showEvent(QShowEvent *event) override;
@@ -98,7 +105,6 @@ private:
 
   QTimer* timer;
 
-  UpdatesWidget* updates;
   QrWidget* qr;
 
 };
