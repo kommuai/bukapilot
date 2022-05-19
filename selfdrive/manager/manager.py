@@ -70,8 +70,12 @@ def manager_init():
   except PermissionError:
     print("WARNING: failed to make /dev/shm")
 
+  # get version
+  with open("/data/openpilot/RELEASES.md", "r") as f:
+    version = next(f).split()[1] # parse first line only
+
   # set version params
-  params.put("Version", params.get("ReleaseNotes").split()[1])
+  params.put("Version", version)
   params.put("TermsVersion", terms_version)
   params.put("TrainingVersion", training_version)
   params.put("GitCommit", get_git_commit(default=""))
