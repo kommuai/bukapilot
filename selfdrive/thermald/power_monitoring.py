@@ -18,7 +18,7 @@ CAR_CHARGING_RATE_W = 45
 
 VBATT_PAUSE_CHARGING = 11.0           # Lower limit on the LPF car battery voltage
 VBATT_INSTANT_PAUSE_CHARGING = 7.0    # Lower limit on the instant car battery voltage measurements to avoid triggering on instant power loss
-MAX_TIME_OFFROAD_S = 3*3600
+MAX_TIME_OFFROAD_S = 3 * 3600
 MIN_ON_TIME_S = 3600
 
 class PowerMonitoring:
@@ -158,18 +158,15 @@ class PowerMonitoring:
     return int(self.car_battery_capacity_uWh)
 
   # See if we need to disable charging
-  def should_disable_charging(self, pandaState, offroad_timestamp):
+  def should_disable_charging(self, pandaState, offroad_timestamp, started_seen):
     if pandaState is None or offroad_timestamp is None:
       return False
 
     now = sec_since_boot()
     disable_charging = False
     disable_charging |= (now - offroad_timestamp) > MAX_TIME_OFFROAD_S
-    disable_charging |= (self.car_voltage_mV < (VBATT_PAUSE_CHARGING * 1e3)) and (self.car_voltage_instant_mV > (VBATT_INSTANT_PAUSE_CHARGING * 1e3))
-    disable_charging |= (self.car_battery_capacity_uWh <= 0)
+    disable_charging &= started_seen or (now > MIN_ON_TIME_S)
     disable_charging &= (not pandaState.pandaState.ignitionLine and not pandaState.pandaState.ignitionCan)
-    disable_charging &= (not self.params.get_bool("DisablePowerDown"))
-    disable_charging &= (pandaState.pandaState.harnessStatus != log.PandaState.HarnessStatus.notConnected)
     disable_charging |= self.params.get_bool("ForcePowerDown")
     return disable_charging
 
@@ -185,5 +182,6 @@ class PowerMonitoring:
     should_shutdown = False
     # Wait until we have shut down charging before powering down
     should_shutdown |= (now - offroad_timestamp) > MAX_TIME_OFFROAD_S
+    should_shutdown &= not panda_charging
     should_shutdown &= started_seen or (now > MIN_ON_TIME_S)
     return should_shutdown

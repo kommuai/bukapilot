@@ -421,7 +421,7 @@ def thermald_thread():
     msg.deviceState.carBatteryCapacityUwh = max(0, power_monitor.get_car_battery_capacity())
 
     # Check if we need to disable charging (handled by boardd)
-    msg.deviceState.chargingDisabled = power_monitor.should_disable_charging(pandaState, off_ts)
+    msg.deviceState.chargingDisabled = power_monitor.should_disable_charging(pandaState, off_ts, started_seen)
 
     # Check if we need to shut down
     if power_monitor.should_shutdown(pandaState, off_ts, started_seen):
