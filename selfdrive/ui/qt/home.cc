@@ -386,15 +386,21 @@ UpdatesWidget::UpdatesWidget(QWidget *parent) : QWidget(parent){
 
     update_layout->setContentsMargins(50,50,50,50);
     update_layout->addWidget(updates_header);
+
+    previousState = 2; // tri-state
 }
 
 void UpdatesWidget::updateState(const UIState &s) {
+    int currentState = params.getBool("UpdateAvailable");
+    if (currentState == previousState)
+        return;
+    previousState = currentState;
     std::string updates;
-    if (params.getBool("UpdateAvailable"))
-      updates = "An update is available!\n\n" + params.get("ReleaseNotes");
+    if (currentState)
+      updates = "An update is available!\nNext version:\n\n";
     else
-      updates = "You're up to date!";
-
+      updates = "You're up to date!\nCurrent version:\n\n";
+    updates += params.get("ReleaseNotes");
     updates_header->setText(QString::fromStdString(updates));
 }
 

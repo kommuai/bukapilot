@@ -64,6 +64,7 @@ class UpdatesWidget: public QWidget {
         QVBoxLayout *update_layout;
         QLabel *updates_header;
         Params params;
+        int previousState;
 };
 
 class QrWidget: public QWidget {
