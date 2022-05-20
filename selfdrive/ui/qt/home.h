@@ -11,6 +11,7 @@
 #include "selfdrive/ui/qt/offroad/driverview.h"
 #include "selfdrive/ui/qt/onroad.h"
 #include "selfdrive/ui/qt/sidebar.h"
+#include "selfdrive/ui/qt/widgets/input.h"
 #include "selfdrive/ui/qt/widgets/offroad_alerts.h"
 #include "selfdrive/ui/ui.h"
 
@@ -57,6 +58,7 @@ class UpdatesWidget: public QWidget {
 
     public:
       explicit UpdatesWidget(QWidget* parent = 0);
+      void mouseReleaseEvent(QMouseEvent* ev) override;
 
     private:
         QVBoxLayout *update_layout;
@@ -137,5 +139,15 @@ private:
   OnroadWindow *onroad;
   DriverViewWindow *driver_view;
   QStackedLayout *slayout;
+};
+
+class NotesPopup : public QDialogBase {
+  Q_OBJECT
+
+public:
+  explicit NotesPopup(const QString &prompt_text, QWidget *parent);
+
+public slots:
+  int exec();
 };
 

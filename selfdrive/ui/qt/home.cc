@@ -13,8 +13,36 @@
 
 #include "selfdrive/common/params.h"
 #include "selfdrive/ui/qt/util.h"
+#include "selfdrive/ui/qt/widgets/scrollview.h"
 
 using qrcodegen::QrCode;
+
+NotesPopup::NotesPopup(const QString &prompt_text, QWidget *parent) : QDialogBase(parent) {
+  setWindowFlags(Qt::Popup);
+  auto main_layout = new QVBoxLayout(this);
+
+  auto prompt = new QLabel(prompt_text, this);
+  prompt->setAlignment(Qt::AlignLeft);
+  prompt->setWordWrap(true);
+  prompt->setStyleSheet(R"(font-size: 50px;)");
+
+  auto scroll = new ScrollView(prompt);
+  scroll->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+  main_layout->addWidget(scroll);
+
+  QHBoxLayout *btn_layout = new QHBoxLayout();
+  main_layout->addLayout(btn_layout);
+
+  QPushButton* close_btn = new QPushButton("OK");
+  close_btn->setStyleSheet(R"(background-color: #00FA9A; border-radius: 10px; padding: 10px; color: black;)");
+  btn_layout->addWidget(close_btn);
+  QObject::connect(close_btn, &QPushButton::released, this, &NotesPopup::accept);
+}
+
+int NotesPopup::exec() {
+  setMainWindow(this);
+  return QDialog::exec();
+}
 
 
 QFrame *home_horizontal_line(QWidget *parent) {
@@ -368,4 +396,8 @@ void UpdatesWidget::updateState(const UIState &s) {
       updates = "You're up to date!";
 
     updates_header->setText(QString::fromStdString(updates));
+}
+
+void UpdatesWidget::mouseReleaseEvent(QMouseEvent* ev) {
+    NotesPopup(updates_header->text(), this).exec();
 }
