@@ -285,6 +285,16 @@ class CarInterface(CarInterfaceBase):
       ret.mass = 4305. * CV.LB_TO_KG + STD_CARGO_KG
       ret.lateralTuning.pid.kf = 0.00007818594
 
+    elif candidate == CAR.COROLLA_CROSS_TSS2:
+      stop_and_go = True
+      ret.safetyParam = 73
+      ret.wheelbase = 2.64
+      ret.steerRatio = 13.9
+      tire_stiffness_factor = 0.444
+      ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.6], [0.1]]
+      ret.mass = 3097. * CV.LB_TO_KG + STD_CARGO_KG
+      ret.lateralTuning.pid.kf = 0.00007818594
+
     ret.steerRateCost = 1.
     ret.centerToFront = ret.wheelbase * 0.44
 
@@ -323,7 +333,7 @@ class CarInterface(CarInterfaceBase):
       ret.longitudinalTuning.kpV = [1.2, 0.8, 0.765, 2.255, 1.5]
       ret.longitudinalTuning.kiBP = [0., MIN_ACC_SPEED, MIN_ACC_SPEED + PEDAL_HYST_GAP, 35.]
       ret.longitudinalTuning.kiV = [0.18, 0.165, 0.489, 0.36]
-    elif candidate in [CAR.COROLLA_TSS2, CAR.COROLLAH_TSS2, CAR.RAV4_TSS2, CAR.RAV4H_TSS2, CAR.LEXUS_NX_TSS2, CAR.ALPHARD_TSS2]:
+    elif candidate in [CAR.COROLLA_TSS2, CAR.COROLLAH_TSS2, CAR.RAV4_TSS2, CAR.RAV4H_TSS2, CAR.LEXUS_NX_TSS2, CAR.ALPHARD_TSS2, CAR.COROLLA_CROSS_TSS2]:
       # Improved longitudinal tune
       ret.longitudinalTuning.deadzoneBP = [0., 8.05]
       ret.longitudinalTuning.deadzoneV = [.0, .14]
