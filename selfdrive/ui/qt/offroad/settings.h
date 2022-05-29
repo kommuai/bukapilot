@@ -53,10 +53,13 @@ private:
 
   BranchControl *branchControl;
   LabelControl *gitCommitLbl;
-  LabelControl *osVersionLbl;
+  ButtonControl *osVersionLbl;
   LabelControl *versionLbl;
   LabelControl *lastUpdateLbl;
   ButtonControl *updateBtn;
+  ButtonControl *testBtn;
+
+  int dev_tab_counter = 0;
 
   Params params;
   QFileSystemWatcher *fs_watch;

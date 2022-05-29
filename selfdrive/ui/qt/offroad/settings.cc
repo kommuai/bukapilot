@@ -31,6 +31,7 @@
 #include "selfdrive/ui/qt/widgets/nav_buttons.h"
 #include "selfdrive/ui/ui.h"
 #include "selfdrive/ui/qt/util.h"
+#include "selfdrive/ui/qt/home.h"
 
 BranchControl::BranchControl() : ButtonControl("Git Branch", "", "Warning: Only switch under advice from Kommu's staff.  Unauthorised switching will impose danger to you and other road users.") {
   branch_label.setAlignment(Qt::AlignRight | Qt::AlignVCenter);
@@ -293,9 +294,10 @@ DevicePanel::DevicePanel(QWidget* parent) : QWidget(parent) {
 SoftwarePanel::SoftwarePanel(QWidget* parent) : QWidget(parent) {
   branchControl = new BranchControl();
   gitCommitLbl = new LabelControl("Git Commit");
-  osVersionLbl = new LabelControl("OS Version");
+  osVersionLbl = new ButtonControl("OS Version", "");
   versionLbl = new LabelControl("Version", "", QString::fromStdString(params.get("ReleaseNotes")).trimmed());
   lastUpdateLbl = new LabelControl("Last Update Check", "", "The last time bukapilot successfully checked for an update. The updater only runs while the car is off.");
+  testBtn = new ButtonControl("QC Test", "Start");
 
   updateBtn = new ButtonControl("Check for Update", "");
   connect(updateBtn, &ButtonControl::released, [=]() {
@@ -313,10 +315,46 @@ SoftwarePanel::SoftwarePanel(QWidget* parent) : QWidget(parent) {
   QWidget *widgets[] = {versionLbl, lastUpdateLbl, updateBtn, branchControl, gitCommitLbl, osVersionLbl};
   for (int i = 0; i < std::size(widgets); ++i) {
     main_layout->addWidget(widgets[i]);
+
     if (i < std::size(widgets) - 1) {
       main_layout->addWidget(horizontal_line());
     }
   }
+
+  connect(osVersionLbl, &ButtonControl::released, [=]() {
+    dev_tab_counter++;
+    if (dev_tab_counter == 3) {
+      main_layout->addWidget(horizontal_line());
+      main_layout->addWidget(testBtn);
+      main_layout->addWidget(horizontal_line());
+
+      // to prevent users from using it
+      if (params.get("GithubUsername") != "iXcess") {
+        testBtn->setEnabled(false);
+      }
+
+      connect(testBtn, &ButtonControl::released, [=]() {
+        std::string filename = "_report";
+        if ( access( filename.c_str(), F_OK ) != -1 ) {
+          QString test_output = exec("cat _report").c_str();
+          std::system("rm _report");
+          testBtn->setText("Restart");
+          NotesPopup(test_output, this).exec();
+        }
+        else {
+          if (params.getBool("IsOffroad")) {
+            ConfirmationDialog::alert("Ensure device plugged into yuyurmori and start ignition", this);
+          }
+          else {
+            if (ConfirmationDialog::confirm("Testing will take awhile. Proceed?", this)) {
+              exec("/data/openpilot/selfdrive/test/qc_test.py -v &> _report &");
+              testBtn->setText("Report");
+            }
+          }
+        }
+      });
+    }
+  });
 
   fs_watch = new QFileSystemWatcher(this);
   QObject::connect(fs_watch, &QFileSystemWatcher::fileChanged, [=](const QString path) {
