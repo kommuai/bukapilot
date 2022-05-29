@@ -385,7 +385,7 @@ EVENTS: Dict[int, Dict[str, Union[Alert, Callable[[Any, messaging.SubMaster, boo
   EventName.promptDriverBrake: {
     ET.PERMANENT: Alert(
       "BRAKE!",
-      "Vehicle Does Not Have Auto Brake",
+      "",
       AlertStatus.userPrompt, AlertSize.mid,
       Priority.MID, VisualAlert.ldw, AudibleAlert.chimePrompt, 1., 2., 3.),
   },
