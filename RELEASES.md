@@ -1,3 +1,13 @@
+Version 3-firstbatch  (2022-05-30)
+=========================
+ * Add full powersaver mode, battery can last at least 2 weeks idle with KommuAssist connected
+ * Add stock ACC option in settings (only for Perodua)
+ * Perodua Ativa: Improve longitudinal
+ * Perodua: Add brake pressure bleed warning
+ * QC: Add pre-fulfillment QC test
+ * Fix minor UI display problems and release note popup
+ * Add file corruption recovery mechanism during scons build
+
 Version 2-firstbatch  (2022-05-11)
 =========================
  * First bukapilot prebuilt release
