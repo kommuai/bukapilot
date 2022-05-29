@@ -38,6 +38,7 @@ def manager_init():
     ("HasAcceptedTerms", "0"),
     ("IsMetric", "1"),
     ("IsRHD", "1"),
+    ("DisableBukapilotLongitudinal", "0"),
     ("OpenpilotEnabledToggle", "1"),
     ("RecordFront", "1"),
     ("UploadRaw", "1"),

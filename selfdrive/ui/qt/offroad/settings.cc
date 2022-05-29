@@ -81,6 +81,11 @@ TogglesPanel::TogglesPanel(QWidget *parent) : QWidget(parent) {
                                   "Use the bukapilot system for adaptive cruise control and lane keep driver assistance. Your attention is required at all times to use this feature. Changing this setting takes effect when the car is powered off.",
                                   "../assets/kommu/settings/kommu_steering_wheel_icon.png",
                                   this));
+  toggles.append(new ParamControl("DisableBukapilotLongitudinal",
+			           "Use Stock ACC",
+				   "Disable the use of bukapilot longitudinal control. Currently works for Perodua vehicles only.",
+				   "../assets/kommu/settings/kommu_steering_wheel_icon.png",
+			          this));
   toggles.append(new ParamControl("IsLdwEnabled",
                                   "Enable Lane Departure Warnings",
                                   "Receive alerts to steer back into the lane when your vehicle drifts over a detected lane line without a turn signal activated while driving over 31mph (50kph).",

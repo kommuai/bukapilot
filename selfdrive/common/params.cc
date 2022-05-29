@@ -183,6 +183,7 @@ std::unordered_map<std::string, uint32_t> keys = {
     {"IsOffroad", CLEAR_ON_MANAGER_START},
     {"IsOnroad", PERSISTENT},
     {"IsRHD", PERSISTENT},
+    {"DisableBukapilotLongitudinal", PERSISTENT},
     {"IsTakingSnapshot", CLEAR_ON_MANAGER_START},
     {"IsUpdateAvailable", CLEAR_ON_MANAGER_START},
     {"UploadRaw", PERSISTENT},
