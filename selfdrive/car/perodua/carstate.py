@@ -34,8 +34,6 @@ class CarState(CarStateBase):
     # perodua vehicles doesn't have a good standard for their wheelspeed scaling
     if self.CP.carFingerprint in CAR.MYVI_PSD:
       ret.wheelSpeeds.rr = cp.vl["WHEEL_SPEED"]['WHEELSPEED_F'] * CV.KPH_TO_MS * 0.822
-    elif self.CP.carFingerprint in CAR.MYVI:
-      ret.wheelSpeeds.rr = cp.vl["WHEEL_SPEED"]['WHEELSPEED_F'] * CV.KPH_TO_MS * 1.15
     else:
       ret.wheelSpeeds.rr = cp.vl["WHEEL_SPEED"]['WHEELSPEED_F'] * CV.KPH_TO_MS
 
@@ -44,6 +42,8 @@ class CarState(CarStateBase):
     ret.wheelSpeeds.fr = ret.wheelSpeeds.rr
     ret.wheelSpeeds.fl = ret.wheelSpeeds.rr
     ret.vEgoRaw = mean([ret.wheelSpeeds.rr, ret.wheelSpeeds.rl, ret.wheelSpeeds.fr, ret.wheelSpeeds.fl])
+    if self.CP.carFingerprint in CAR.MYVI:
+      ret.vEgoRaw *= 1.22
     # unfiltered speed from CAN sensors
     ret.vEgo, ret.aEgo = self.update_speed_kf(ret.vEgoRaw)
     ret.standstill = ret.vEgoRaw < 0.01
