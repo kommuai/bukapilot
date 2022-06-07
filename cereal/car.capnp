@@ -196,6 +196,9 @@ struct CarState {
   leftBlindspot @33 :Bool; # Is there something blocking the left lane change
   rightBlindspot @34 :Bool; # Is there something blocking the right lane change
 
+  # HUD
+  frontDeparture @37: Bool; # stock front departure function
+
   struct WheelSpeeds {
     # optional wheel speeds
     fl @0 :Float32;
