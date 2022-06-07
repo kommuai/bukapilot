@@ -1,9 +1,13 @@
-Version 3-firstbatch  (2022-05-30)
+Version 3-firstbatch  (2022-06-06)
 =========================
- * Add full powersaver mode, battery can last at least 2 weeks idle with KommuAssist connected
+ * Add full powersaver mode to 13 hours, battery can last at least 2 weeks idle with KommuAssist in power saver
  * Add stock ACC option in settings (only for Perodua)
- * Perodua Ativa: Improve longitudinal
- * Perodua: Add brake pressure bleed warning
+ * Perodua PSD: Improve longitudinal
+ * Perodua PSD: Add stock HUD warnings for front departure, forward collision warning & braking
+ * Perodua PSD: Revert cruise speed set logic back to stock behaviour
+ * Perodua PSD: Add brake pressure bleed warning
+ * Perodua MG3: Fix odometer scaling
+ * Increase standstill braking distance for all vehicles
  * QC: Add pre-fulfillment QC test
  * Fix minor UI display problems and release note popup
  * Add file corruption recovery mechanism during scons build
