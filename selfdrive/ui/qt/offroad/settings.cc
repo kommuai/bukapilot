@@ -301,6 +301,7 @@ SoftwarePanel::SoftwarePanel(QWidget* parent) : QWidget(parent) {
 
   updateBtn = new ButtonControl("Check for Update", "");
   connect(updateBtn, &ButtonControl::released, [=]() {
+    emit keepAwakeChanged(true);
     if (params.getBool("IsOffroad")) {
       const QString paramsPath = QString::fromStdString(params.getParamsPath());
       fs_watch->addPath(paramsPath + "/d/LastUpdateTime");
@@ -365,6 +366,7 @@ SoftwarePanel::SoftwarePanel(QWidget* parent) : QWidget(parent) {
       updateBtn->setEnabled(true);
     } else if (path.contains("LastUpdateTime")) {
       updateLabels();
+      emit keepAwakeChanged(false);
     }
   });
 }
@@ -463,11 +465,14 @@ SettingsWindow::SettingsWindow(QWidget *parent) : QFrame(parent) {
   DevicePanel *device = new DevicePanel(this);
   QObject::connect(device, &DevicePanel::showDriverView, this, &SettingsWindow::showDriverView);
 
+  auto software = new SoftwarePanel(this);
+  QObject::connect(software, &SoftwarePanel::keepAwakeChanged, this, &SettingsWindow::keepAwakeChanged);
+
   QList<QPair<QString, QWidget *>> panels = {
     {"Device", device},
     {"Network", network_panel(this)},
     {"Toggles", new TogglesPanel(this)},
-    {"Software", new SoftwarePanel(this)},
+    {"Software", software},
   };
 
 #ifdef ENABLE_MAPS

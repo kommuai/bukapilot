@@ -170,6 +170,7 @@ private:
   const float accel_samples = 5*UI_FREQ;
 
   bool awake;
+  bool keepAwake = false;
   int awake_timeout = 0;
   float accel_prev = 0;
   float gyro_prev = 0;
@@ -187,4 +188,5 @@ signals:
 public slots:
   void setAwake(bool on, bool reset);
   void update(const UIState &s);
+  void setKeepAwake(bool keep);
 };

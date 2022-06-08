@@ -336,6 +336,12 @@ void Device::setAwake(bool on, bool reset) {
   }
 }
 
+void Device::setKeepAwake(bool keep) {
+  keepAwake = keep;
+  if (!keep) // reset timer so we won't sleep right after unset
+    setAwake(true, true);
+}
+
 void Device::updateBrightness(const UIState &s) {
   float brightness_b = 10;
   float brightness_m = 0.1;
@@ -358,7 +364,7 @@ void Device::updateBrightness(const UIState &s) {
 void Device::updateWakefulness(const UIState &s) {
   awake_timeout = std::max(awake_timeout - 1, 0);
 
-  bool should_wake = s.scene.started || s.scene.ignition;
+  bool should_wake = s.scene.started || s.scene.ignition || keepAwake;
   if (!should_wake) {
     // tap detection while display is off
     bool accel_trigger = abs(s.scene.accel_sensor - accel_prev) > 0.2;

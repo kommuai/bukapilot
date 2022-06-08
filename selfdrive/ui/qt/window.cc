@@ -47,6 +47,7 @@ MainWindow::MainWindow(QWidget *parent) : QWidget(parent) {
   QObject::connect(settingsWindow, &SettingsWindow::showDriverView, [=] {
     homeWindow->showDriverView(true);
   });
+  QObject::connect(settingsWindow, &SettingsWindow::keepAwakeChanged, &device, &Device::setKeepAwake);
 
   device.setAwake(true, true);
   QObject::connect(&qs, &QUIState::uiUpdate, &device, &Device::update);

@@ -47,6 +47,9 @@ class SoftwarePanel : public QWidget {
 public:
   explicit SoftwarePanel(QWidget* parent = nullptr);
 
+signals:
+  void keepAwakeChanged(bool keep);
+
 private:
   void showEvent(QShowEvent *event) override;
   void updateLabels();
@@ -79,6 +82,8 @@ signals:
   void closeSettings();
   void offroadTransition(bool offroad);
   void showDriverView();
+  // forwarded
+  void keepAwakeChanged(bool keep);
 
 private:
   QPushButton *sidebar_alert_widget;
