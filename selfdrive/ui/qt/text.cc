@@ -1,6 +1,7 @@
 #include <cstdlib>
 #include <fstream>
 #include <QApplication>
+#include <QFontDatabase>
 #include <QLabel>
 #include <QPushButton>
 #include <QScrollBar>
@@ -18,6 +19,11 @@ int main(int argc, char *argv[]) {
   QApplication a(argc, argv);
   QWidget window;
   setMainWindow(&window);
+
+  QString fontFam = QFontDatabase::applicationFontFamilies(
+        QFontDatabase::addApplicationFont("/data/openpilot/selfdrive/assets/dosvga.ttf")
+      ).at(0);
+  a.setFont(QFont(fontFam));
 
   QGridLayout *main_layout = new QGridLayout(&window);
   main_layout->setMargin(50);
@@ -76,7 +82,7 @@ int main(int argc, char *argv[]) {
     * {
       outline: none;
       color: white;
-      background-color: black;
+      background-color: #0000aa;
       font-size: 60px;
     }
     QPushButton {
