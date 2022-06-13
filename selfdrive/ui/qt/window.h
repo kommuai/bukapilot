@@ -4,8 +4,7 @@
 #include <QWidget>
 
 #include "selfdrive/ui/qt/home.h"
-#include "selfdrive/ui/qt/offroad/training.h"
-#include "selfdrive/ui/qt/offroad/terms.h"
+#include "selfdrive/ui/qt/offroad/onboarding.h"
 #include "selfdrive/ui/qt/offroad/settings.h"
 
 class MainWindow : public QWidget {
@@ -25,6 +24,5 @@ private:
   QStackedLayout *main_layout;
   HomeWindow *homeWindow;
   SettingsWindow *settingsWindow;
-  TrainingWindow *trainingWindow;
-  TermsWindow *termsWindow;
+  OnboardingWindow *onboardingWindow;
 };

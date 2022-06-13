@@ -12,24 +12,18 @@ MainWindow::MainWindow(QWidget *parent) : QWidget(parent) {
   homeWindow = new HomeWindow(this);
   main_layout->addWidget(homeWindow);
 
-  termsWindow = new TermsWindow(this);
-  main_layout->addWidget(termsWindow);
+  onboardingWindow = new OnboardingWindow(this);
+  main_layout->addWidget(onboardingWindow);
 
-  trainingWindow = new TrainingWindow(this);
-  main_layout->addWidget(trainingWindow);
-
-
-  QObject::connect(homeWindow, &HomeWindow::openTerms, [=]() {
-    main_layout->setCurrentWidget(termsWindow);
-  });
-  QObject::connect(termsWindow, &TermsWindow::closeTerms, [=]() {
-    Params().put("HasAcceptedTerms", Params().get("TermsVersion"));
-    main_layout->setCurrentWidget(homeWindow);
-  });
   QObject::connect(homeWindow, &HomeWindow::openTraining, [=]() {
-    main_layout->setCurrentWidget(trainingWindow);
+    Params().put("CompletedTrainingVersion", "b'0'");
+    main_layout->setCurrentWidget(onboardingWindow);
   });
-  QObject::connect(trainingWindow, &TrainingWindow::closeTraining, [=]() {
+  QObject::connect(homeWindow, &HomeWindow::openTerms, [=]() {
+    Params().put("HasAcceptedTerms", "b'0'");
+    main_layout->setCurrentWidget(onboardingWindow);
+  });
+  QObject::connect(onboardingWindow, &OnboardingWindow::onboardingDone, [=]() {
     main_layout->setCurrentWidget(homeWindow);
   });
 
@@ -49,6 +43,12 @@ MainWindow::MainWindow(QWidget *parent) : QWidget(parent) {
   });
   QObject::connect(settingsWindow, &SettingsWindow::keepAwakeChanged, &device, &Device::setKeepAwake);
 
+  bool should_onboard = Params().get("HasAcceptedTerms") != Params().get("TermsVersion") &&
+    Params().get("CompletedTrainingVersion") != Params().get("TrainingVersion");
+  if (should_onboard) {
+    main_layout->setCurrentWidget(onboardingWindow);
+  }
+
   device.setAwake(true, true);
   QObject::connect(&qs, &QUIState::uiUpdate, &device, &Device::update);
   QObject::connect(&qs, &QUIState::offroadTransition, [=](bool offroad) {
@@ -57,7 +57,9 @@ MainWindow::MainWindow(QWidget *parent) : QWidget(parent) {
     }
   });
   QObject::connect(&device, &Device::displayPowerChanged, [=]() {
-       closeSettings();
+    if(main_layout->currentWidget() != onboardingWindow) {
+      closeSettings();
+    }
   });
 
   // load fonts
