@@ -24,7 +24,7 @@ Item {
     Text {
       id: helpText
       width: flickArea.contentWidth
-      font.family: "Inter"
+      font.family: "Glacial Indifference"
       font.weight: "Light"
       font.pixelSize: 50
       textFormat: Text.RichText

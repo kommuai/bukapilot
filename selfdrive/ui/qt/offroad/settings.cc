@@ -452,7 +452,7 @@ SettingsWindow::SettingsWindow(QWidget *parent) : QFrame(parent) {
   QPushButton *close_btn = new QPushButton("x");
   close_btn->setStyleSheet(R"(
     font-size: 90px;
-    font-family: Calibri;
+    font-family: Glacial Indifference;
     border 0px black solid;
     border-radius: 75px;
     background-color: #000000;

@@ -61,14 +61,13 @@ MainWindow::MainWindow(QWidget *parent) : QWidget(parent) {
   });
 
   // load fonts
-  QFontDatabase::addApplicationFont("../assets/fonts/opensans_regular.ttf");
-  QFontDatabase::addApplicationFont("../assets/fonts/opensans_bold.ttf");
-  QFontDatabase::addApplicationFont("../assets/fonts/opensans_semibold.ttf");
+  QFontDatabase::addApplicationFont("../assets/fonts/GlacialIndifference-Regular.otf");
+  QFontDatabase::addApplicationFont("../assets/fonts/GlacialIndifference-Bold.otf");
 
   // no outline to prevent the focus rectangle
   setStyleSheet(R"(
     * {
-      font-family: Inter;
+      font-family: Glacial Indifference;
       outline: none;
     }
   )");

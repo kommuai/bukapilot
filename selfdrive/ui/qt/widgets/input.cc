@@ -64,7 +64,7 @@ InputDialog::InputDialog(const QString &prompt_text, QWidget *parent) : QDialogB
     * {
       outline: none;
       color: white;
-      font-family: Inter;
+      font-family: Glacial Indifference;
       background-color: black;
     }
   )");
