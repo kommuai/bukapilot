@@ -8,6 +8,7 @@
 
 
 #include "selfdrive/ui/ui.h"
+#include "selfdrive/ui/qt/widgets/main_sidebar_buttons.h"
 
 class Sidebar : public QFrame {
   Q_OBJECT
@@ -24,6 +25,7 @@ public:
   explicit Sidebar(QWidget* parent = 0);
 
 signals:
+  void openAlerts();
   void openSettings();
   void openTerms();
   void openTraining();
@@ -31,6 +33,7 @@ signals:
 
 public slots:
   void updateState(const UIState &s);
+  void setAlertIcon(bool hasUnread);
 
 protected:
   void mousePressEvent(QMouseEvent *event) override;
@@ -63,5 +66,5 @@ private:
   int net_strength = 0;
 
   QButtonGroup *sidebar_btns;
-
+  MainSidebarButton *alertButton;
 };

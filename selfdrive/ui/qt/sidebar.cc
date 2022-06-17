@@ -10,7 +10,6 @@
 #include "selfdrive/hardware/hw.h"
 #include "selfdrive/ui/qt/util.h"
 
-#include "selfdrive/ui/qt/widgets/main_sidebar_buttons.h"
 
 
 void Sidebar::drawMetric(QPainter &p, const QString &label, const QString &val, QColor c, int y) {
@@ -53,6 +52,7 @@ Sidebar::Sidebar(QWidget *parent) : QFrame(parent) {
   new_sidebar_layout->addWidget(logo_lbl);
   new_sidebar_layout->setAlignment(logo_lbl,Qt::AlignHCenter);
   QList<QString> btns = {
+    "Alerts",
     "Tutorial",
     "T&C",
     "Settings",
@@ -69,13 +69,13 @@ Sidebar::Sidebar(QWidget *parent) : QFrame(parent) {
       MainSidebarButton *main_sidebar_btn = new MainSidebarButton(btn_name,pixmap);
       main_sidebar_btn->setCheckable(false);
       main_sidebar_btn->setChecked(sidebar_btns->buttons().size() == 0);
-      main_sidebar_btn->setFixedHeight(250);
+      main_sidebar_btn->setFixedHeight(200);
       main_sidebar_btn->setStyleSheet(QString(R"(
         QPushButton {
           color: white;
           border: none;
           background: black;
-          font-size: 35px;
+          font-size: 30px;
           font-weight: 100;
           padding-top: 50px;
           padding-left: 150px;
@@ -89,17 +89,22 @@ Sidebar::Sidebar(QWidget *parent) : QFrame(parent) {
 
     sidebar_btns->addButton(main_sidebar_btn);
     connect(sidebar_btns->button(-2),  &MainSidebarButton::released, [=]() {
-        emit openTraining();
+        emit openAlerts();
     });
     connect(sidebar_btns->button(-3),  &MainSidebarButton::released, [=]() {
-        emit openTerms();
+        emit openTraining();
     });
     connect(sidebar_btns->button(-4),  &MainSidebarButton::released, [=]() {
+        emit openTerms();
+    });
+    connect(sidebar_btns->button(-5),  &MainSidebarButton::released, [=]() {
         emit openSettings();
     });
     new_sidebar_layout->addWidget(main_sidebar_btn);
     new_sidebar_layout->setAlignment(main_sidebar_btn,Qt::AlignHCenter);
 
+    alertButton = (MainSidebarButton *) sidebar_btns->button(-2);
+    setAlertIcon(false);
   }
 
   connect(this, &Sidebar::valueChanged, [=] { update(); });
@@ -119,3 +124,10 @@ void Sidebar::updateState(const UIState &s) {
 
 }
 
+void Sidebar::setAlertIcon(bool hasUnread) {
+  if (hasUnread)
+    alertButton->replaceImage("../assets/kommu/Alerts_unread.png");
+  else
+    alertButton->replaceImage("../assets/kommu/Alerts.png");
+  update();
+}

@@ -27,3 +27,9 @@ void MainSidebarButton::paintEvent(QPaintEvent *e) {
 
 }
 
+bool MainSidebarButton::replaceImage(const QString &filename) {
+  const int size = 65;
+  bool ret = icon.load(filename);
+  icon = icon.scaled(size,size, Qt::KeepAspectRatio);
+  return ret;
+}

@@ -1,7 +1,10 @@
 #include "selfdrive/ui/qt/home.h"
 
 #include <QDateTime>
+#include <QJsonObject>
+#include <QJsonDocument>
 #include <QHBoxLayout>
+#include <QQuickWidget>
 #include <QMouseEvent>
 #include <QVBoxLayout>
 #include <QGridLayout>
@@ -14,36 +17,78 @@
 #include "selfdrive/common/params.h"
 #include "selfdrive/ui/qt/util.h"
 #include "selfdrive/ui/qt/widgets/scrollview.h"
+#include "selfdrive/hardware/hw.h"
 
 using qrcodegen::QrCode;
 
-NotesPopup::NotesPopup(const QString &prompt_text, QWidget *parent) : QDialogBase(parent) {
+NotesPopup::NotesPopup(const QString &title_text, const QString &prompt_text, bool reboot_btn, QWidget *parent) : QDialogBase(parent) {
   setWindowFlags(Qt::Popup);
   auto main_layout = new QVBoxLayout(this);
+  main_layout->setContentsMargins(45, 35, 45, 45);
+  main_layout->setSpacing(0);
 
-  auto prompt = new QLabel(prompt_text, this);
+  QLabel *title = new QLabel(title_text);
+  title->setStyleSheet("font-size: 90px; font-weight: 600;");
+  main_layout->addWidget(title);
+
+  main_layout->addSpacing(30);
+
+  prompt = new QLabel(prompt_text, this);
   prompt->setAlignment(Qt::AlignLeft);
   prompt->setWordWrap(true);
-  prompt->setStyleSheet(R"(font-size: 50px;)");
+  prompt->setStyleSheet(R"(font-size: 50px; background-color: #1b1b1b; color: white;)");
+  prompt->setMargin(35);
 
   auto scroll = new ScrollView(prompt);
-  scroll->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+  scroll->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
   main_layout->addWidget(scroll);
+
+  main_layout->addSpacing(30);
 
   QHBoxLayout *btn_layout = new QHBoxLayout();
   main_layout->addLayout(btn_layout);
 
-  QPushButton* close_btn = new QPushButton("OK");
-  close_btn->setStyleSheet(R"(background-color: #00FA9A; border-radius: 10px; padding: 10px; color: black;)");
+  if (reboot_btn) {
+    btn_layout->setSpacing(35);
+    QPushButton *rbt_btn = new QPushButton("Reboot");
+    rbt_btn->setStyleSheet(R"(background-color: #B73D3D)");
+    btn_layout->addWidget(rbt_btn);
+    connect(rbt_btn, &QPushButton::released, [=]() { Hardware::reboot(); });
+  }
+
+  QPushButton* close_btn = new QPushButton("Close");
   btn_layout->addWidget(close_btn);
   QObject::connect(close_btn, &QPushButton::released, this, &NotesPopup::accept);
+
+
+  setStyleSheet(R"(
+    * {
+    color: white;
+    background-color: black;
+   }
+   QPushButton {
+     height: 120px;
+     font-size: 55px;
+     font-weight: 400;
+     border-radius: 10px;
+     background-color: #00FA9A;
+     color: black;
+   }
+  )");
 }
 
 int NotesPopup::exec() {
-  setMainWindow(this);
+  show();
   return QDialog::exec();
 }
 
+void NotesPopup::show() {
+  setMainWindow(this);
+}
+
+void NotesPopup::setText(const QString &t) {
+  prompt->setText(t);
+}
 
 QFrame *home_horizontal_line(QWidget *parent) {
   QFrame *line = new QFrame(parent);
@@ -121,6 +166,7 @@ HomeWindow::HomeWindow(QWidget* parent) : QWidget(parent) {
 
   home = new OffroadHome();
   slayout->addWidget(home);
+  connect(sidebar, &Sidebar::openAlerts, home, &OffroadHome::openAlerts);
 
   onroad = new OnroadWindow(this);
   slayout->addWidget(onroad);
@@ -137,6 +183,8 @@ HomeWindow::HomeWindow(QWidget* parent) : QWidget(parent) {
     showDriverView(false);
   });
   slayout->addWidget(driver_view);
+
+  connect(home, &OffroadHome::setAlertIcon, sidebar, &Sidebar::setAlertIcon);
 }
 
 void HomeWindow::showSidebar(bool show) {
@@ -187,8 +235,6 @@ OffroadHome::OffroadHome(QWidget* parent) : QFrame(parent) {
   main_layout->addWidget(drive,1,2);
   main_layout->setHorizontalSpacing(35);
 
-  // set up refresh timer
-  timer = new QTimer(this);
   setStyleSheet(R"(
     * {
      color: white;
@@ -207,9 +253,62 @@ OffroadHome::OffroadHome(QWidget* parent) : QFrame(parent) {
     }
   )");
 
+  // setup alerts
+  QString json = util::read_file("../controls/lib/alerts_offroad.json").c_str();
+  QJsonObject obj = QJsonDocument::fromJson(json.toUtf8()).object();
+  // descending sort labels by severity
+  std::vector<std::pair<std::string, int>> sorted;
+  for (auto it = obj.constBegin(); it != obj.constEnd(); ++it) {
+    sorted.push_back({it.key().toStdString(), it.value()["severity"].toInt()});
+  }
+  std::sort(sorted.begin(), sorted.end(), [=](auto &l, auto &r) { return l.second > r.second; });
+
+  for (const auto &[key, severity] : sorted) {
+    alerts[key] = 1;
+  }
+
+  alertScreen = new NotesPopup("Notification", "", false, this);
+  connect(alertScreen, &NotesPopup::accepted, this, &OffroadHome::closeAlerts);
+
+  refresh();
+
+  // set up refresh timer
+  timer = new QTimer(this);
+  timer->callOnTimeout(this, &OffroadHome::refresh);
 }
 
+void OffroadHome::showEvent(QShowEvent *event) {
+  timer->start(10 * 1000);
+}
 
+void OffroadHome::hideEvent(QHideEvent *event) {
+  timer->stop();
+}
+
+void OffroadHome::refresh() {
+  std::string text = "";
+  bool hasUnread = false;
+  for (const auto &[key, _number] : alerts) {
+    std::string bytes = Params().get(key);
+    if (bytes.size()) {
+      auto doc_par = QJsonDocument::fromJson(bytes.c_str());
+      text += doc_par["text"].toString().toStdString();
+      text += '\n';
+      text += '\n';
+      hasUnread = true;
+    }
+  }
+  alertScreen->setText(QString::fromStdString(text));
+  emit setAlertIcon(hasUnread);
+}
+
+void OffroadHome::openAlerts() {
+  alertScreen->show();
+  refresh();
+}
+
+void OffroadHome::closeAlerts() {
+}
 
 void StatusWidget::updateState(const UIState &s) {
 
@@ -255,15 +354,6 @@ void DriveWidget::updateState(const UIState &s) {
     upl_spd_val -> setText(QString::number((int)uploadSpeed) + " MB/s");
   }
 
-}
-
-
-void OffroadHome::showEvent(QShowEvent *event) {
-  timer->start(10 * 1000);
-}
-
-void OffroadHome::hideEvent(QHideEvent *event) {
-  timer->stop();
 }
 
 StatusWidget::StatusWidget(QWidget *parent) : QWidget(parent){
@@ -405,5 +495,5 @@ void UpdatesWidget::updateState(const UIState &s) {
 }
 
 void UpdatesWidget::mouseReleaseEvent(QMouseEvent* ev) {
-    NotesPopup(updates_header->text(), this).exec();
+    NotesPopup("Release Notes", updates_header->text(), false, this).exec();
 }

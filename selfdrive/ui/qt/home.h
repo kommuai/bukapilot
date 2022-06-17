@@ -1,5 +1,6 @@
 #pragma once
 
+#include <map>
 #include <QFrame>
 #include <QLabel>
 #include <QPushButton>
@@ -91,6 +92,7 @@ class DriveWidget: public QWidget {
         QLabel *upl_spd_val;
 };
 
+class NotesPopup;
 
 class OffroadHome : public QFrame {
   Q_OBJECT
@@ -102,13 +104,24 @@ public:
   DriveWidget* drive;
   UpdatesWidget* updates;
 
+signals:
+  void setAlertIcon(bool hasUnread);
+
+public slots:
+  void openAlerts();
+  void closeAlerts();
+
 private:
   void showEvent(QShowEvent *event) override;
   void hideEvent(QHideEvent *event) override;
+  void refresh();
 
   QTimer* timer;
 
   QrWidget* qr;
+
+  std::map<std::string, int> alerts;
+  NotesPopup* alertScreen;
 
 };
 
@@ -146,9 +159,14 @@ class NotesPopup : public QDialogBase {
   Q_OBJECT
 
 public:
-  explicit NotesPopup(const QString &prompt_text, QWidget *parent);
+  explicit NotesPopup(const QString &title, const QString &prompt_text, bool reboot_btn, QWidget *parent);
+  void setText(const QString &t);
+  void show();
 
 public slots:
   int exec();
+
+private:
+  QLabel *prompt;
 };
 

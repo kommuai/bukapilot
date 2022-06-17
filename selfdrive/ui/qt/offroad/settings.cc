@@ -340,7 +340,7 @@ SoftwarePanel::SoftwarePanel(QWidget* parent) : QWidget(parent) {
           QString test_output = exec("cat _report").c_str();
           std::system("rm _report");
           testBtn->setText("Restart");
-          NotesPopup(test_output, this).exec();
+          NotesPopup("Test Report", test_output, true, this).exec();
         }
         else {
           if (params.getBool("IsOffroad")) {

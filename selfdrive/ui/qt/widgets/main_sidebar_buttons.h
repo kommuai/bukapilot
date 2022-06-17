@@ -16,6 +16,7 @@ Q_OBJECT
 
 public:
     MainSidebarButton( const QString &text, const QPixmap &newIcon, QWidget *parent = nullptr );
+    bool replaceImage(const QString &filename);
 
 protected:
     QPixmap icon;
