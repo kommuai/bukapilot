@@ -114,7 +114,7 @@ def handle_fan_eon(max_cpu_temp, bat_temp, fan_speed, ignition):
 
 
 def handle_fan_uno(max_cpu_temp, bat_temp, fan_speed, ignition):
-  new_speed = int(interp(max_cpu_temp, [40.0, 70.0], [0, 100]))
+  new_speed = int(interp(max_cpu_temp, [45.0, 70.0], [0, 90]))
 
   # remove humming at low temperature due to audible pwm for snowfan
   if new_speed < 15:
