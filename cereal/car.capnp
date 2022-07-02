@@ -196,8 +196,15 @@ struct CarState {
   leftBlindspot @33 :Bool; # Is there something blocking the left lane change
   rightBlindspot @34 :Bool; # Is there something blocking the right lane change
 
-  # HUD
-  frontDeparture @37: Bool; # stock front departure function
+  # stock system
+  stockAdas @37: StockADAS;
+
+  struct StockADAS {
+    laneDepartureHUD @0:Bool;
+    frontDepartureHUD @1:Bool;
+    ldpSteerV @2:Float32;        # stock ldp steer req value
+    aebV @3:Float32;             # stock aeb req value  
+  }
 
   struct WheelSpeeds {
     # optional wheel speeds
