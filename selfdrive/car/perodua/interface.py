@@ -114,15 +114,10 @@ class CarInterface(CarInterfaceBase):
       ret.lateralParams.torqueBP, ret.lateralParams.torqueV = [[0.], [255]]
       ret.lateralTuning.pid.kf = 0.0000007
 
-      ret.longitudinalTuning.kpBP = [0., 6, 13]
-      ret.longitudinalTuning.kiBP = [0., 6, 13]
-      ret.longitudinalTuning.kpV = [5.0, 5.0, 3.9]
-      ret.longitudinalTuning.kiV = [1.8, 1.6, 1.4]
-
-      ret.gasMaxBP = [0., 9., 35]
-      ret.gasMaxV = [0.5, 0.6, 0.7]
-
-      ret.stoppingBrakeRate = 0.2  # reach stopping target smoothly
+      ret.longitudinalTuning.kpBP = [0., 5., 20.]
+      ret.longitudinalTuning.kpV = [1.2, 1.2, 0.8]
+      ret.gasMaxBP = [0.]
+      ret.gasMaxV = [0.5]
     elif candidate == CAR.ATIVA:
       ret.wheelbase = 2.525
       ret.steerRatio = 16.74
@@ -134,14 +129,10 @@ class CarInterface(CarInterfaceBase):
       ret.lateralParams.torqueBP, ret.lateralParams.torqueV = [[0.], [255]]
       ret.lateralTuning.pid.kf = 0.0000007
 
-      ret.longitudinalTuning.kpBP = [0., 6, 13]
-      ret.longitudinalTuning.kiBP = [0., 6, 13]
-      ret.longitudinalTuning.kpV = [3.6, 4.1, 2.6]
-      ret.longitudinalTuning.kiV = [0.6, 1.5, 1.0]
-
-      ret.gasMaxBP = [0., 9., 35]
-      ret.gasMaxV = [0.5, 0.6, 0.4]
-      ret.stoppingBrakeRate = 0.1  # reach stopping target smoothly
+      ret.longitudinalTuning.kpBP = [0., 5., 20.]
+      ret.longitudinalTuning.kpV = [1.6, 1.6, 1.2]
+      ret.gasMaxBP = [0.]
+      ret.gasMaxV = [0.8]
     else:
       ret.dashcamOnly = True
       ret.safetyModel = car.CarParams.SafetyModel.noOutput
@@ -149,10 +140,18 @@ class CarInterface(CarInterfaceBase):
     ret.enableDsu = False
 
     if candidate in ACC_CAR:
+      ret.longitudinalTuning.deadzoneBP = [0., 8.05]
+      ret.longitudinalTuning.deadzoneV = [.0, .14]
+      ret.longitudinalTuning.kiBP = [0., 5., 20.]
+      ret.longitudinalTuning.kiV = [.14, .10, .08]
+      #ret.longitudinalTuning.kiV = [.32, .20, .17, .14, .07]
+      ret.startAccel = 1.2  # Accelerate from 0 faster
+
       ret.minEnableSpeed = -1
       ret.steerActuatorDelay = 0.30           # Steering wheel actuator delay in seconds
       ret.enableBsm = True
-      ret.startingBrakeRate = 0.05  # release brakes fast
+      ret.stoppingBrakeRate = 0.005 # reach stopping target smoothly
+      ret.startingBrakeRate = 0.2  # release brakes fast
 
     ret.rotationalInertia = scale_rot_inertia(ret.mass, ret.wheelbase)
     ret.tireStiffnessFront, ret.tireStiffnessRear = scale_tire_stiffness(ret.mass, ret.wheelbase, ret.centerToFront, tire_stiffness_factor=tire_stiffness_factor)
@@ -171,11 +170,11 @@ class CarInterface(CarInterfaceBase):
 
     # events
     events = self.create_common_events(ret)
-    
+
     # create events for auto lane change below allowable speed
     if ret.vEgo < LANE_CHANGE_SPEED_MIN and (ret.leftBlinker or ret.rightBlinker):
       events.add(EventName.belowLaneChangeSpeed)
- 
+
     # events for non ACC cars
     if self.CP.carFingerprint not in ACC_CAR:
       # create events to warn user that their vehicle doesn't have brakes

@@ -96,6 +96,10 @@ def aeb_brake_command(packer, enabled, decel_cmd):
 
 def perodua_create_brake_command(packer, enabled, decel_req, pump, decel_cmd, aeb, idx):
 
+  if aeb:
+    decel_req = 2.55 # cap it at -4ms^-2
+    pump = 1.6 # cap at 1.6 because 4 bits with 0.1 scale
+
   values = {
     "COUNTER": idx,
     "PUMP_REACTION1": pump,
@@ -103,10 +107,10 @@ def perodua_create_brake_command(packer, enabled, decel_req, pump, decel_cmd, ae
     "MAGNITUDE": (-1* decel_cmd) if (enabled and decel_req) else 0,
     "SET_ME_1_WHEN_ENGAGE": 1 if enabled else 0,
     "PUMP_REACTION2": -1* pump,
-    "AEB_REQ1": aeb,
-    "AEB_REQ2": aeb,
-    "AEB_REQ3": aeb,
-    "AEB_1019": 1019 if aeb else 0,
+    #"AEB_REQ1": aeb,
+    #"AEB_REQ2": aeb,
+    #"AEB_REQ3": aeb,
+    #"AEB_1019": 1019 if aeb else 0,
   }
 
   dat = packer.make_can_msg("ACC_BRAKE", 0, values)[2]
@@ -117,8 +121,8 @@ def perodua_create_brake_command(packer, enabled, decel_req, pump, decel_cmd, ae
 
 def perodua_create_accel_command(packer, set_speed, acc_rdy, enabled, is_lead, des_speed, brake_amt, mult, brake_pump):
   is_braking = (brake_amt > 0.0 or brake_pump > 0.0)
-  if des_speed > 3.0:
-      des_speed = des_speed * (1+mult/10)
+  if des_speed > 3.5:
+      des_speed = des_speed * (1+mult/3)
 
   values = {
     "SET_SPEED": set_speed * CV.MS_TO_KPH,
