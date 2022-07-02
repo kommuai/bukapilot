@@ -209,57 +209,30 @@ DevicePanel::DevicePanel(QWidget* parent) : QWidget(parent) {
     }
   });
 
-  auto pm = new PubMaster({"kommuState"});
-
   auto tuneProfile1Btn = new ButtonControl("AggroLevel = -2", "SET");
   connect(tuneProfile1Btn, &ButtonControl::released, [=]() {
-    MessageBuilder msg;
-    auto ks = msg.initEvent().initKommuState();
-    ks.setAggroLevel(-2);
-    pm->send("kommuState", msg);
   });
 
   auto tuneProfile2Btn = new ButtonControl("AggroLevel = -1", "SET");
   connect(tuneProfile2Btn, &ButtonControl::released, [=]() {
-    MessageBuilder msg;
-    auto ks = msg.initEvent().initKommuState();
-    ks.setAggroLevel(-1);
-    pm->send("kommuState", msg);
   });
 
   auto tuneProfile3Btn = new ButtonControl("AggroLevel = 0", "SET");
   connect(tuneProfile3Btn, &ButtonControl::released, [=]() {
-    MessageBuilder msg;
-    auto ks = msg.initEvent().initKommuState();
-    ks.setAggroLevel(0);
-    pm->send("kommuState", msg);
   });
 
   auto tuneProfile4Btn = new ButtonControl("AggroLevel = 1", "SET");
   connect(tuneProfile4Btn, &ButtonControl::released, [=]() {
-    MessageBuilder msg;
-    auto ks = msg.initEvent().initKommuState();
-    ks.setAggroLevel(1);
-    pm->send("kommuState", msg);
   });
 
   auto tuneProfile5Btn = new ButtonControl("AggroLevel = 2", "SET");
   connect(tuneProfile5Btn, &ButtonControl::released, [=]() {
-    MessageBuilder msg;
-    auto ks = msg.initEvent().initKommuState();
-    ks.setAggroLevel(2);
-    pm->send("kommuState", msg);
   });
 
-  for (auto btn : {dcamBtn, resetCalibBtn, uninstallBtn, tuneProfile1Btn, tuneProfile2Btn, tuneProfile3Btn, tuneProfile4Btn, tuneProfile5Btn}) {
+  for (auto btn : {dcamBtn, resetCalibBtn, uninstallBtn}) {
     if (btn) {
       main_layout->addWidget(horizontal_line());
-      if (btn != resetCalibBtn &&
-          btn != tuneProfile1Btn &&
-          btn != tuneProfile2Btn &&
-          btn != tuneProfile3Btn &&
-          btn != tuneProfile4Btn &&
-          btn != tuneProfile5Btn) {
+      if (btn != resetCalibBtn) {
         connect(parent, SIGNAL(offroadTransition(bool)), btn, SLOT(setEnabled(bool)));
       }
       main_layout->addWidget(btn);
