@@ -167,6 +167,9 @@ DevicePanel::DevicePanel(QWidget* parent) : QWidget(parent) {
   QString serial = QString::fromStdString(params.get("HardwareSerial", false));
   main_layout->addWidget(new LabelControl("Serial", serial));
 
+  QString myvi = QString::fromStdString(params.get("MyviProfile", false));
+  main_layout->addWidget(new LabelControl("Myvi Profile", myvi));
+
   // offroad-only buttons
 
   auto dcamBtn = new ButtonControl("Driver Camera", "PREVIEW",
@@ -209,27 +212,22 @@ DevicePanel::DevicePanel(QWidget* parent) : QWidget(parent) {
     }
   });
 
-  auto tuneProfile1Btn = new ButtonControl("AggroLevel = -2", "SET");
-  connect(tuneProfile1Btn, &ButtonControl::released, [=]() {
+  auto myviBtnS = new ButtonControl("MYVI STANDARD", "SET");
+  connect(myviBtnS, &ButtonControl::released, [=]() {
+      Params().put("MyviProfile", "standard");
   });
 
-  auto tuneProfile2Btn = new ButtonControl("AggroLevel = -1", "SET");
-  connect(tuneProfile2Btn, &ButtonControl::released, [=]() {
+  auto myviBtnA = new ButtonControl("MYVI TYPE A", "SET");
+  connect(myviBtnA, &ButtonControl::released, [=]() {
+      Params().put("MyviProfile", "azri");
   });
 
-  auto tuneProfile3Btn = new ButtonControl("AggroLevel = 0", "SET");
-  connect(tuneProfile3Btn, &ButtonControl::released, [=]() {
+  auto myviBtnB = new ButtonControl("MYVI TYPE B", "SET");
+  connect(myviBtnB, &ButtonControl::released, [=]() {
+      Params().put("MyviProfile", "kevin");
   });
 
-  auto tuneProfile4Btn = new ButtonControl("AggroLevel = 1", "SET");
-  connect(tuneProfile4Btn, &ButtonControl::released, [=]() {
-  });
-
-  auto tuneProfile5Btn = new ButtonControl("AggroLevel = 2", "SET");
-  connect(tuneProfile5Btn, &ButtonControl::released, [=]() {
-  });
-
-  for (auto btn : {dcamBtn, resetCalibBtn, uninstallBtn}) {
+  for (auto btn : {dcamBtn, resetCalibBtn, uninstallBtn, myviBtnS, myviBtnA, myviBtnB}) {
     if (btn) {
       main_layout->addWidget(horizontal_line());
       if (btn != resetCalibBtn) {

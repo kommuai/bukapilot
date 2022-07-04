@@ -42,6 +42,7 @@ def manager_init():
     ("OpenpilotEnabledToggle", "1"),
     ("RecordFront", "1"),
     ("UploadRaw", "1"),
+    ("MyviProfile", "standard"),
   ]
   if not PC:
     default_params.append(("LastUpdateTime", datetime.datetime.utcnow().isoformat().encode('utf8')))
