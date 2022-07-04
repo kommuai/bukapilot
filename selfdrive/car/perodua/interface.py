@@ -76,8 +76,16 @@ class CarInterface(CarInterfaceBase):
 
       ret.gasMaxV = [0.5, 0.5, 0.6]
       ret.lateralTuning.pid.kf = 0.0000917
-      ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.10], [0.32]]
-      ret.lateralParams.torqueBP, ret.lateralParams.torqueV = [[11  , 28], [390, 580]]
+
+      if Params().get("MyviProfile", encoding="utf-8") == "azri":
+        ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.16], [0.41]]
+        ret.lateralParams.torqueBP, ret.lateralParams.torqueV = [[11  , 22], [380, 670]]
+      elif Params().get("MyviProfile", encoding="utf-8") == "kevin":
+        ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.10], [0.32]]
+        ret.lateralParams.torqueBP, ret.lateralParams.torqueV = [[11  , 28], [390, 650]]
+      else:
+        ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.10], [0.32]]
+        ret.lateralParams.torqueBP, ret.lateralParams.torqueV = [[11  , 28], [390, 580]]
 
     elif candidate == CAR.BEZZA:
       ret.wheelbase = 2.455
