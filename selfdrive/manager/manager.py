@@ -55,6 +55,12 @@ def manager_init():
     if params.get(k) is None:
       params.put(k, v)
 
+  # MIGRATE FROM KARAM
+  if params.get("RsjDongle") is None:
+    k = Karams()
+    params.put("RsjDongle", k.get("rsj_dongle"))
+    params.put("RsjSession", k.get("rsj_session"))
+
   # is this dashcam?
   if os.getenv("PASSIVE") is not None:
     params.put_bool("Passive", bool(int(os.getenv("PASSIVE"))))
