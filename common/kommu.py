@@ -1,3 +1,4 @@
+from common.params import Params
 from selfdrive.hardware import EON, HARDWARE
 
 import requests
@@ -38,7 +39,7 @@ class Karams:
 
 
 def refresh_session():
-  k = Karams()
+  params = Params()
 
   init = requests.get(WEB_BASE + "/self-service/login/api")
   if init.status_code != 200:
@@ -46,19 +47,19 @@ def refresh_session():
 
   data = {
       "method": "password",
-      "password_identifier": k.get("rsj_dongle"),
+      "password_identifier": params.get("RsjDongle"),
       "password": HARDWARE.get_imei(1) + HARDWARE.get_serial(),
   }
   resp = requests.post(init.json()["ui"]["action"], data=data)
   if resp.status_code != 200:
     raise AuthException("can't login into system")
 
-  k.put("rsj_session", resp.json()["session_token"])
+  params.put("RsjSession", resp.json()["session_token"])
 
 
 def _kapi_raw(func, *args, **kwargs):
-  k = Karams()
-  auth = k.get("rsj_session")
+  params = Params()
+  auth = params.get("RsjSession")
 
   if "headers" in kwargs:
     headers = kwargs["headers"]

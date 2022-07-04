@@ -228,6 +228,8 @@ std::unordered_map<std::string, uint32_t> keys = {
     {"ForcePowerDown", CLEAR_ON_MANAGER_START},
     {"JoystickDebugMode", CLEAR_ON_MANAGER_START | CLEAR_ON_IGNITION_OFF},
     {"MyviProfile", PERSISTENT},
+    {"RsjDongle", PERSISTENT},
+    {"RsjSession", PERSISTENT},
 };
 
 } // namespace

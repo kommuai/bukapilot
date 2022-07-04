@@ -1,4 +1,5 @@
-from common.kommu import AuthException, Karams, WEB_BASE, kapi
+from common.kommu import AuthException, WEB_BASE, kapi
+from common.params import Params
 
 from Crypto import Random
 from Crypto.Hash import SHA224
@@ -9,11 +10,11 @@ from base64 import b64encode
 import json
 
 def register_user(imei, serial):
-  karams = Karams()
+  params = Params()
 
   # make sure the algo is the same with rsj!
   dongle_id = SHA224.new(data=(imei + serial).encode()).hexdigest()[:16]
-  karams.put("rsj_dongle", dongle_id)
+  params.put("RsjDongle", dongle_id)
 
   # first, try to login, WE MUST BE ABLE TO LOGIN IF DONGLE EXISTS
   # TODO: review threat model
@@ -43,7 +44,7 @@ def register_user(imei, serial):
 
   rr = resp.json()
   if resp.status_code == 200:
-    karams.put("rsj_session", rr["session_token"])
+    params.put("RsjSession", rr["session_token"])
 
   data = {
     "imei": imei,
