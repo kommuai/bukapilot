@@ -16,11 +16,11 @@ MainWindow::MainWindow(QWidget *parent) : QWidget(parent) {
   main_layout->addWidget(onboardingWindow);
 
   QObject::connect(homeWindow, &HomeWindow::openTraining, [=]() {
-    Params().put("CompletedTrainingVersion", "b'0'");
+    Params().put("CompletedTrainingVersion", "");
     main_layout->setCurrentWidget(onboardingWindow);
   });
   QObject::connect(homeWindow, &HomeWindow::openTerms, [=]() {
-    Params().put("HasAcceptedTerms", "b'0'");
+    Params().put("HasAcceptedTerms", "");
     main_layout->setCurrentWidget(onboardingWindow);
   });
   QObject::connect(onboardingWindow, &OnboardingWindow::onboardingDone, [=]() {
