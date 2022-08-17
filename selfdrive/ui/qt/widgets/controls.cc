@@ -71,7 +71,7 @@ void AbstractControl::hideEvent(QHideEvent *e) {
 
 // controls
 
-ButtonControl::ButtonControl(const QString &title, const QString &text, const QString &desc, QWidget *parent) : AbstractControl(title, desc, "", parent) {
+ButtonControl::ButtonControl(const QString &title, const QString &text, const QString &desc, bool no_style, QWidget *parent) : AbstractControl(title, desc, "", parent) {
   btn.setText(text);
   btn.setStyleSheet(R"(
     QPushButton {
@@ -89,6 +89,15 @@ ButtonControl::ButtonControl(const QString &title, const QString &text, const QS
       color: #33E4E4E4;
     }
   )");
+
+  if (no_style) {
+    btn.setStyleSheet(R"(
+      QPushButton {
+        border: none;
+      }
+    )");
+  }
+
   btn.setFixedSize(250, 100);
   QObject::connect(&btn, &QPushButton::clicked, this, &ButtonControl::clicked);
   hlayout->addWidget(&btn);
