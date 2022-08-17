@@ -80,6 +80,7 @@ struct CarEvent @0x9b1657f34caf3ad3 {
     gasPressed @73;
     stockFcw @74;
     startup @75;
+    startupQC @110;
     startupNoCar @76;
     startupNoControl @77;
     startupMaster @78;
@@ -108,6 +109,7 @@ struct CarEvent @0x9b1657f34caf3ad3 {
 
     belowLaneChangeSpeed @108;
     promptDriverBrake @109;
+    qcDone @111;
 
     radarCanErrorDEPRECATED @15;
     communityFeatureDisallowedDEPRECATED @62;

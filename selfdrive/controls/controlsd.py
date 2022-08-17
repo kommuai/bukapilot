@@ -71,6 +71,8 @@ class Controls:
       self.camera_packets.append("wideRoadCameraState")
 
     params = Params()
+
+    self.is_qc_test = params.get("QC_Test") is not None
     self.joystick_mode = params.get_bool("JoystickDebugMode")
     joystick_packet = ['testJoystick'] if self.joystick_mode else []
 
@@ -278,6 +280,10 @@ class Controls:
         self.logged_comm_issue = True
     else:
       self.logged_comm_issue = False
+
+    if self.is_qc_test:
+      if Params().get("QC_Test") is None:
+        self.events.add(EventName.qcDone)
 
     if not self.sm['liveParameters'].valid:
       self.events.add(EventName.vehicleModelInvalid)

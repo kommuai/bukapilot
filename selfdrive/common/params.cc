@@ -179,6 +179,7 @@ std::unordered_map<std::string, uint32_t> keys = {
     {"FeaturesDict", PERSISTENT},
     {"FeaturesPackage", PERSISTENT},
     {"FeaturesValue", PERSISTENT},
+    {"QC_Test", CLEAR_ON_MANAGER_START},
 };
 
 } // namespace

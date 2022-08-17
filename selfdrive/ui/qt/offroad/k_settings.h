@@ -48,6 +48,10 @@ private slots:
 
 private:
   ButtonControl *resetCalibBtn;
+  ButtonControl *serialBtn;
+  ButtonControl *testBtn;
+
+  int dev_tab_counter = 0;
   Params params;
 };
 

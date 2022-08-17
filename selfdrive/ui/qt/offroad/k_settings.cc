@@ -14,6 +14,7 @@
 #include "selfdrive/common/util.h"
 #include "selfdrive/hardware/hw.h"
 #include "selfdrive/ui/qt/widgets/controls.h"
+#include "selfdrive/ui/qt/widgets/popup.h"
 #include "selfdrive/ui/qt/widgets/input.h"
 #include "selfdrive/ui/qt/widgets/scrollview.h"
 #include "selfdrive/ui/qt/widgets/ssh_keys.h"
@@ -87,10 +88,11 @@ TogglesPanel::TogglesPanel(SettingsWindow *parent) : ListWidget(parent) {
 
 DevicePanel::DevicePanel(SettingsWindow *parent) : ListWidget(parent) {
   addItem(new LabelControl("Dongle ID", getDongleId().value_or("N/A")));
-  addItem(new LabelControl("Serial", params.get("HardwareSerial").c_str()));
+  serialBtn = new ButtonControl("Serial", params.get("HardwareSerial").c_str(), "", true);
+  addItem(serialBtn);
+  testBtn = new ButtonControl("QC Test", "Start");
 
   // offroad-only buttons
-
   auto dcamBtn = new ButtonControl("Driver Camera", "PREVIEW",
                                    "Preview the driver facing camera to help optimize device mounting position for best driver monitoring experience. (vehicle must be off)");
   connect(dcamBtn, &ButtonControl::clicked, [=]() { emit showDriverView(); });
@@ -104,6 +106,35 @@ DevicePanel::DevicePanel(SettingsWindow *parent) : ListWidget(parent) {
     }
   });
   addItem(resetCalibBtn);
+
+  connect(serialBtn, &ButtonControl::clicked, [=]() {
+    dev_tab_counter++;
+    if (dev_tab_counter == 3) {
+      addItem(testBtn);
+
+      connect(testBtn, &ButtonControl::clicked, [=]() {
+        std::string filename = "_report";
+
+        if ( access( filename.c_str(), F_OK ) != -1 ) {
+          QString test_output = exec("cat _report").c_str();
+          std::system("rm _report");
+          testBtn->setText("Restart");
+          Popup("QC Report", test_output, Popup::OK, this).exec();
+        }
+        else {
+          if (!params.getBool("IsOffroad")) {
+            ConfirmationDialog::alert("Ensure ignition is off first!", this);
+          }
+          else {
+            if (ConfirmationDialog::confirm("Spoof calibration. Proceed?", this)) {
+              exec("/data/openpilot/selfdrive/test/qc_test.py -v &> _report &");
+              testBtn->setText("Report");
+            }
+          }
+        }
+      });
+    }
+  });
 
   if (Hardware::TICI()) {
     auto regulatoryBtn = new ButtonControl("Regulatory", "VIEW", "");

@@ -279,6 +279,10 @@ EVENTS: Dict[int, Dict[str, Union[Alert, AlertCallbackType]]] = {
     ET.PERMANENT: StartupAlert("Be ready to take over at any time")
   },
 
+  EventName.startupQC: {
+    ET.PERMANENT: StartupAlert("WARNING: Undergoing QC Testing")
+  },
+
   EventName.startupMaster: {
     ET.PERMANENT: StartupAlert("WARNING: This branch is not tested",
                                alert_status=AlertStatus.userPrompt),
@@ -516,6 +520,11 @@ EVENTS: Dict[int, Dict[str, Union[Alert, AlertCallbackType]]] = {
   # Unused
   EventName.gpsMalfunction: {
     ET.PERMANENT: NormalPermanentAlert("GPS Malfunction", "Contact Support"),
+  },
+
+  # For QC Test
+  EventName.qcDone: {
+    ET.PERMANENT: NormalPermanentAlert("QC Done", "Please turn off ignition and check the report log", priority=Priority.HIGHEST),
   },
 
   # When the GPS position and localizer diverge the localizer is reset to the
