@@ -1,3 +1,16 @@
+Version 9.3-longOverhaul  (2023-07-10)
+=========================
+* Allow forced car profile selection through fix fingerprinting
+* Increase reactiveness to lead accel for pure vision vehicles
+* Retune the MPC
+* TNGA/DNGA:
+  * Fix lane departure warning disable icon
+  * More reactive stock AEB
+  * Increase stopping decel rate
+* TSS2:
+  * Fix steer fault error during manual input
+  * Throttle max RPM for Alphard Vellfire above 4k RPM
+
 Version 9.1-longOverhaul  (2023-02-25)
 =========================
  * Fix firmware caused device error during startup
@@ -17,8 +30,7 @@ Version 9.1-longOverhaul  (2023-02-25)
  * Perodua MG3 (credits to Kenneth):
    * More aggresive gas to close distance at higher speed
 
-
-Version 9-longOverhaul  (20223-02-25)
+Version 9-longOverhaul  (2023-02-25)
 =========================
  * Fix firmware caused device error during startup
  * x50 (credits to Ryan & Darren):
