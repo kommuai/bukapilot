@@ -26,11 +26,12 @@ class BrakingStatus():
   BRAKE_HOLD = 1
   PUMP_RESET = 2
 
-def apply_perodua_steer_torque_limits(apply_torque, apply_torque_last, driver_torque, LIMITS):
+def apply_perodua_steer_torque_limits(apply_torque, apply_torque_last, driver_torque, blinkerOn, LIMITS):
 
-  # limits due to driver torque
-  driver_max_torque = 255 + driver_torque * 1.5
-  driver_min_torque = -255 + driver_torque * 1.5
+  # limits due to driver torque and lane change
+  reduced_torque_mult = 5 if blinkerOn else 1.5
+  driver_max_torque = 255 + driver_torque * reduced_torque_mult
+  driver_min_torque = -255 + driver_torque * reduced_torque_mult
   max_steer_allowed = max(min(255, driver_max_torque), 0)
   min_steer_allowed = min(max(-255, driver_min_torque), 0)
   apply_torque = clip(apply_torque, min_steer_allowed, max_steer_allowed)
@@ -155,7 +156,8 @@ class CarController():
     apply_steer = apply_acttr_steer_torque_limits(new_steer, self.last_steer, self.params)
 
     if CS.CP.carFingerprint in ACC_CAR:
-      apply_steer = apply_perodua_steer_torque_limits(new_steer, self.last_steer, CS.out.steeringTorqueEps, self.params)
+      isBlinkerOn = CS.out.leftBlinker != CS.out.rightBlinker
+      apply_steer = apply_perodua_steer_torque_limits(new_steer, self.last_steer, CS.out.steeringTorqueEps, isBlinkerOn, self.params)
 
     self.steer_rate_limited = (new_steer != apply_steer) and (apply_steer != 0)
     if CS.CP.carFingerprint not in NOT_CAN_CONTROLLED:
