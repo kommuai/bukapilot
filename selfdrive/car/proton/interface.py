@@ -42,7 +42,7 @@ class CarInterface(CarInterfaceBase):
       ret.centerToFront = ret.wheelbase * 0.44
       tire_stiffness_factor = 0.9871
       ret.mass = 1370. + STD_CARGO_KG
-      ret.wheelSpeedFactor = 1
+      ret.wheelSpeedFactor = 1.0
 
       ret.lateralParams.torqueBP, ret.lateralParams.torqueV = [[0.], [550]]
 
@@ -53,18 +53,21 @@ class CarInterface(CarInterfaceBase):
       ret.lateralTuning.pid.kf = 0.00008
 
       ret.longitudinalTuning.kpBP = [0., 5., 20.]
-      ret.longitudinalTuning.kpV = [1.6, 1.6, 0.6]
-      ret.longitudinalActuatorDelayLowerBound = 0.42
-      ret.longitudinalActuatorDelayUpperBound = 0.60
+      ret.longitudinalTuning.kpV = [0.1, 0.1, 0.1]
+      #ret.longitudinalTuning.kpV = [1.0, 0.6, 0.2]
+      ret.longitudinalActuatorDelayLowerBound = 0.2
+      ret.longitudinalActuatorDelayUpperBound = 0.3
 
     else:
       ret.dashcamOnly = True
       ret.safetyModel = car.CarParams.SafetyModel.noOutput
 
     # Todo
-    ret.longitudinalTuning.deadzoneBP = [0., 8.05]
-    ret.longitudinalTuning.deadzoneV = [.0, .14]
+    #ret.longitudinalTuning.deadzoneBP = [0., 8.05]
+    #ret.longitudinalTuning.deadzoneV = [.0, .14]
+    ret.longitudinalTuning.kiBP = [0.]
     ret.longitudinalTuning.kiBP = [0., 5., 20.]
+    ret.longitudinalTuning.kiV = [0.]
     ret.longitudinalTuning.kiV = [.14, .08, .02]
 
     ret.minEnableSpeed = -1
