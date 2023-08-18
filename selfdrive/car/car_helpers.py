@@ -86,6 +86,8 @@ def fingerprint(logcan, sendcan):
   fixed_fingerprint = os.environ.get('FINGERPRINT', "")
   if not fixed_fingerprint:
     fixed_fingerprint = Params().get("FixFingerprint")
+    fixed_fingerprint = fixed_fingerprint.upper() if fixed_fingerprint is not None else None
+
     if fixed_fingerprint:
       fixed_fingerprint = fixed_fingerprint.decode('ascii')
 
