@@ -85,7 +85,7 @@ interfaces = load_interfaces(interface_names)
 def fingerprint(logcan, sendcan):
   fixed_fingerprint = os.environ.get('FINGERPRINT', "")
   if not fixed_fingerprint:
-    fixed_fingerprint = Params().get("FixFingerprint")
+    fixed_fingerprint = Params().get("FixFingerprint").upper()
     if fixed_fingerprint:
       fixed_fingerprint = fixed_fingerprint.decode('ascii')
 
