@@ -2,7 +2,9 @@
 import os
 import argparse
 import threading
-from inputs import get_gamepad
+import socket
+import sys
+import struct
 
 import cereal.messaging as messaging
 from common.realtime import Ratekeeper
@@ -38,9 +40,9 @@ class Keyboard:
 
 
 class Joystick:
-  def __init__(self, gamepad=False):
+  def __init__(self, controller=None):
     # TODO: find a way to get this from API, perhaps "inputs" doesn't support it
-    if gamepad:
+    if controller:
       self.cancel_button = 'BTN_NORTH'  # (BTN_NORTH=X, ABS_RZ=Right Trigger)
       accel_axis = 'ABS_Y'
       steer_axis = 'ABS_RX'
@@ -54,22 +56,44 @@ class Joystick:
     self.axes_order = [accel_axis, steer_axis]
     self.cancel = False
 
-  def update(self):
-    joystick_event = get_gamepad()[0]
-    event = (joystick_event.code, joystick_event.state)
-    if event[0] == self.cancel_button:
-      if event[1] == 1:
-        self.cancel = True
-      elif event[1] == 0:   # state 0 is falling edge
-        self.cancel = False
-    elif event[0] in self.axes_values:
-      self.max_axis_value[event[0]] = max(event[1], self.max_axis_value[event[0]])
-      self.min_axis_value[event[0]] = min(event[1], self.min_axis_value[event[0]])
+    self.controller_type = controller
 
-      norm = -interp(event[1], [self.min_axis_value[event[0]], self.max_axis_value[event[0]]], [-1., 1.])
-      self.axes_values[event[0]] = norm if abs(norm) > 0.05 else 0.  # center can be noisy, deadzone of 5%
+  def update(self):
+    # inputs joystick
+    if self.controller_type == None or self.controller_type.gamepad:
+      joystick_event = get_gamepad()[0]
+      event = (joystick_event.code, joystick_event.state)
+      if event[0] == self.cancel_button:
+        if event[1] == 1:
+          self.cancel = True
+        elif event[1] == 0:   # state 0 is falling edge
+          self.cancel = False
+      elif event[0] in self.axes_values:
+        self.max_axis_value[event[0]] = max(event[1], self.max_axis_value[event[0]])
+        self.min_axis_value[event[0]] = min(event[1], self.min_axis_value[event[0]])
+
+        norm = -interp(event[1], [self.min_axis_value[event[0]], self.max_axis_value[event[0]]], [-1., 1.])
+        self.axes_values[event[0]] = norm if abs(norm) > 0.05 else 0.  # center can be noisy, deadzone of 5%
+      else:
+        return False
+
+    # udp joystick
     else:
-      return False
+      # write the udp stuff here and update axes_values.
+      s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+      s.bind(("192.168.43.1", 1234))
+      # recvfrom is a blocking operation
+      data, _ = s.recvfrom(4096)
+      j_accel, j_steer, button_pressed = struct.unpack("BB?", data)
+
+      self.axes_values['ABS_RX'] = -interp(j_accel, [self.min_axis_value['ABS_RX'], self.max_axis_value['ABS_RX']], [-1., 1.])
+      self.axes_values['ABS_Y'] = interp(j_steer, [self.min_axis_value['ABS_Y'], self.max_axis_value['ABS_Y']], [-1., 1.])
+      self.axes_values = {key: value if abs(value) > 0.110 else 0 for key, value in self.axes_values.items()} # center can be noisy, deadzone of 10%
+
+      if button_pressed:
+        self.cancel = True
+      else:
+        self.cancel = False
     return True
 
 
@@ -82,9 +106,6 @@ def send_thread(joystick):
     dat.testJoystick.buttons = [joystick.cancel]
     joystick_sock.send(dat.to_bytes())
     print('\n' + ', '.join(f'{name}: {round(v, 3)}' for name, v in joystick.axes_values.items()))
-    if "WEB" in os.environ:
-      import requests
-      requests.get("http://"+os.environ["WEB"]+":5000/control/%f/%f" % tuple([joystick.axes_values[a] for a in joystick.axes_order][::-1]), timeout=None)
     rk.keep_time()
 
 def joystick_thread(joystick):
@@ -99,7 +120,11 @@ if __name__ == '__main__':
                                    formatter_class=argparse.ArgumentDefaultsHelpFormatter)
   parser.add_argument('--keyboard', action='store_true', help='Use your keyboard instead of a joystick')
   parser.add_argument('--gamepad', action='store_true', help='Use gamepad configuration instead of joystick')
+  parser.add_argument('--udp_joystick', action='store_true', help='Use ESP32 UDP joystick configuration instead of joystick')
   args = parser.parse_args()
+
+  if not args.udp_joystick:
+    from inputs import get_gamepad
 
   if not Params().get_bool("IsOffroad") and "ZMQ" not in os.environ and "WEB" not in os.environ:
     print("The car must be off before running joystickd.")
@@ -112,8 +137,10 @@ if __name__ == '__main__':
     print('Buttons')
     print('- `R`: Resets axes')
     print('- `C`: Cancel cruise control')
-  else:
+  elif args.gamepad:
     print('Using joystick, make sure to run cereal/messaging/bridge on your device if running over the network!')
+  else:
+    print('Using ESP UDP joystick, waiting for connection')
 
-  joystick = Keyboard() if args.keyboard else Joystick(args.gamepad)
+  joystick = Keyboard() if args.keyboard else Joystick(args)
   joystick_thread(joystick)
