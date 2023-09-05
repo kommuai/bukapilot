@@ -1,6 +1,4 @@
 from cereal import car
-from collections import deque
-from math import ceil
 from opendbc.can.parser import CANParser
 from opendbc.can.can_define import CANDefine
 from common.numpy_fast import mean
@@ -51,8 +49,6 @@ class CarState(CarStateBase):
       cp.vl["WHEEL_SPEED"]['WHEELSPEED_F'],
     )
     ret.vEgoRaw = mean([ret.wheelSpeeds.rr, ret.wheelSpeeds.rl, ret.wheelSpeeds.fr, ret.wheelSpeeds.fl])
-
-    # unfiltered speed from CAN sensors
     ret.vEgo, ret.aEgo = self.update_speed_kf(ret.vEgoRaw)
     ret.standstill = ret.vEgoRaw < 0.01
 
@@ -68,9 +64,8 @@ class CarState(CarStateBase):
     if self.CP.carFingerprint in ACC_CAR:
       ret.seatbeltUnlatched |= cp.vl["METER_CLUSTER"]['SEAT_BELT_WARNING2'] == 1
     ret.gearShifter = self.parse_gear_shifter(self.shifter_values.get(can_gear, None))
-    disengage = ret.doorOpen or ret.seatbeltUnlatched
-    if disengage:
-      self.is_cruise_latch = False
+
+    self.is_cruise_latch = False if (ret.doorOpen or ret.seatbeltUnlatched) else self.is_cruise_latch
 
     # gas pedal
     ret.gas = cp.vl["GAS_PEDAL"]['APPS_1']
@@ -110,8 +105,8 @@ class CarState(CarStateBase):
     else:
       ret.steeringPressed = bool(abs(ret.steeringTorque) > 70)
 
-    ret.steerWarning = False    # since Perodua has no LKAS, make it always no warning
-    ret.steerError = False        # since Perodua has no LKAS, make it always no warning
+    ret.steerWarning = False
+    ret.steerError = False
 
     if self.CP.carFingerprint not in ACC_CAR:
 
@@ -218,10 +213,7 @@ class CarState(CarStateBase):
     # set speed in range of 30 - 130kmh only
     self.cruise_speed = max(min(self.cruise_speed, 130 * CV.KPH_TO_MS), 30 * CV.KPH_TO_MS)
     ret.cruiseState.speedCluster = self.cruise_speed
-    if self.CP.carFingerprint == CAR.ATIVA:
-      ret.cruiseState.speed = ret.cruiseState.speedCluster / 1.078
-    else:
-      ret.cruiseState.speed = ret.cruiseState.speedCluster / HUD_MULTIPLIER
+    ret.cruiseState.speed = ret.cruiseState.speedCluster / HUD_MULTIPLIER
 
     ret.cruiseState.standstill = False
     ret.cruiseState.nonAdaptive = False
