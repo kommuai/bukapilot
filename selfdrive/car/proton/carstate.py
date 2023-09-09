@@ -27,11 +27,17 @@ class CarState(CarStateBase):
     self.mads = f.has("StockAcc")
 
     self.stock_lks_settings = 0
+    self.stock_lks_settings2 = 0
+    self.stock_ldp = 0
+    self.stock_ldp_cmd = 0
 
   def update(self, cp):
     ret = car.CarState.new_message()
 
     self.stock_lks_settings = cp.vl["ADAS_LKAS"]["STOCK_LKS_SETTINGS"]
+    self.stock_ldp_cmd = cp.vl["ADAS_LKAS"]["STEER_CMD"]
+    self.stock_lks_settings2 = cp.vl["ADAS_LKAS"]["SET_ME_1_1"]
+    self.stock_ldp = bool(cp.vl["LKAS"]["LANE_DEPARTURE_WARNING_RIGHT"]) or bool(cp.vl["LKAS"]["LANE_DEPARTURE_WARNING_LEFT"])
 
     ret.wheelSpeeds = self.get_wheel_speeds(
       cp.vl["WHEEL_SPEED"]['WHEELSPEED_F'],
@@ -179,6 +185,10 @@ class CarState(CarStateBase):
       ("ACC_REQ", "ACC_CMD", 1),
       ("HAND_ON_WHEEL_WARNING", "ADAS_LKAS", 1),
       ("STOCK_LKS_SETTINGS", "ADAS_LKAS", 1),
+      ("SET_ME_1_1", "ADAS_LKAS", 1),
+      ("STEER_CMD", "ADAS_LKAS", 1),
+      ("LANE_DEPARTURE_WARNING_RIGHT", "LKAS", 1),
+      ("LANE_DEPARTURE_WARNING_LEFT", "LKAS", 1),
     ]
     checks = []
 
