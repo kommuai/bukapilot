@@ -27,7 +27,7 @@ class CarInterface(CarInterfaceBase):
     ret.steerRateCost = 0.6                # Lateral MPC cost on steering rate, higher value = sharper turn
     ret.steerLimitTimer = 0.1              # time before steerLimitAlert is issued
     ret.steerControlType = car.CarParams.SteerControlType.torque
-    ret.steerActuatorDelay = 0.30          # Steering wheel actuator delay in seconds
+    ret.steerActuatorDelay = 0.2          # Steering wheel actuator delay in seconds
 
     ret.lateralTuning.init('pid')
     ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP = [[0.], [0.]]
@@ -42,7 +42,7 @@ class CarInterface(CarInterfaceBase):
       ret.centerToFront = ret.wheelbase * 0.44
       tire_stiffness_factor = 0.9871
       ret.mass = 1370. + STD_CARGO_KG
-      ret.wheelSpeedFactor = 1.0
+      ret.wheelSpeedFactor = 1.048
 
       ret.lateralParams.torqueBP, ret.lateralParams.torqueV = [[0.], [550]]
 
@@ -52,9 +52,8 @@ class CarInterface(CarInterfaceBase):
       ret.lateralTuning.pid.kiV = [0.08, 0.30, 0.45]
       ret.lateralTuning.pid.kf = 0.00008
 
-      ret.longitudinalTuning.kpBP = [0., 5., 20.]
-      ret.longitudinalTuning.kpV = [0.1, 0.1, 0.1]
-      #ret.longitudinalTuning.kpV = [1.0, 0.6, 0.2]
+      ret.longitudinalTuning.kpBP = [0., 4., 20.]
+      ret.longitudinalTuning.kpV = [1.2, 1.0, 0.4]
       ret.longitudinalActuatorDelayLowerBound = 0.2
       ret.longitudinalActuatorDelayUpperBound = 0.3
 
@@ -65,14 +64,14 @@ class CarInterface(CarInterfaceBase):
     # Todo
     #ret.longitudinalTuning.deadzoneBP = [0., 8.05]
     #ret.longitudinalTuning.deadzoneV = [.0, .14]
-    ret.longitudinalTuning.kiBP = [0.]
+#    ret.longitudinalTuning.kiBP = [0.]
     ret.longitudinalTuning.kiBP = [0., 5., 20.]
-    ret.longitudinalTuning.kiV = [0.]
-    ret.longitudinalTuning.kiV = [.14, .08, .02]
+ #   ret.longitudinalTuning.kiV = [0.]
+    ret.longitudinalTuning.kiV = [.32, .20, .07]
 
     ret.minEnableSpeed = -1
     ret.enableBsm = True
-    ret.stoppingDecelRate = 0.005 # reach stopping target smoothly
+    ret.stoppingDecelRate = 0.02 # reach stopping target smoothly
 
     ret.rotationalInertia = scale_rot_inertia(ret.mass, ret.wheelbase)
     ret.tireStiffnessFront, ret.tireStiffnessRear = scale_tire_stiffness(ret.mass, ret.wheelbase, ret.centerToFront, tire_stiffness_factor=tire_stiffness_factor)
