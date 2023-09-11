@@ -77,7 +77,8 @@ class CarController():
     # CAN controlled lateral running at 50hz
     if (frame % 2) == 0:
       if CS.stock_ldp:
-        apply_steer = CS.stock_ldp_cmd
+        steer_dir = -1 if CS.steer_dir else 1
+        apply_steer = CS.stock_ldp_cmd * steer_dir
         lat_active |= True
       can_sends.append(create_can_steer_command(self.packer, apply_steer, lat_active, CS.hand_on_wheel_warning and CS.is_icc_on, (frame/2) % 16, CS.stock_lks_settings,  CS.stock_lks_settings2))
 
