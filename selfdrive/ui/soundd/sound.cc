@@ -76,7 +76,7 @@ void Sound::setAlert(const Alert &alert) {
     bool allowed_alerts = (alert.sound != AudibleAlert::NONE);
 
     if (params.getBool("QuietMode")) {
-      allowed_alerts = (alert.sound == AudibleAlert::PROMPT_DISTRACTED || alert.sound == AudibleAlert::WARNING_SOFT || alert.sound == AudibleAlert::WARNING_IMMEDIATE);
+      allowed_alerts = (alert.sound == AudibleAlert::PROMPT_REPEAT || alert.sound == AudibleAlert::PROMPT_DISTRACTED || alert.sound == AudibleAlert::WARNING_SOFT || alert.sound == AudibleAlert::WARNING_IMMEDIATE);
     }
 
     if (allowed_alerts) {
