@@ -1,7 +1,7 @@
 from cereal import car
 from opendbc.can.parser import CANParser
 from opendbc.can.can_define import CANDefine
-from common.numpy_fast import mean
+from common.numpy_fast import mean, interp
 from selfdrive.config import Conversions as CV
 from selfdrive.car.interfaces import CarStateBase
 from selfdrive.car.perodua.values import DBC, CAR, ACC_CAR, HUD_MULTIPLIER
@@ -110,7 +110,8 @@ class CarState(CarStateBase):
 
     if self.CP.carFingerprint not in ACC_CAR:
 
-      ret.vEgoCluster = ret.vEgoRaw * HUD_MULTIPLIER
+      #ret.vEgoCluster = ret.vEgoRaw * HUD_MULTIPLIER
+      ret.vEgoCluster = ret.vEgoRaw * interp(ret.vEgo, [0,140], [1.0615,1.0170])
       ret.stockAeb = cp.vl["ADAS_AEB"]['BRAKE_REQ'] != 0
       ret.stockFcw = cp.vl["ADAS_HUD"]['AEB_ALARM'] != 0
       ret.cruiseState.available = True
@@ -213,7 +214,7 @@ class CarState(CarStateBase):
     # set speed in range of 30 - 130kmh only
     self.cruise_speed = max(min(self.cruise_speed, 130 * CV.KPH_TO_MS), 30 * CV.KPH_TO_MS)
     ret.cruiseState.speedCluster = self.cruise_speed
-    ret.cruiseState.speed = ret.cruiseState.speedCluster / HUD_MULTIPLIER
+    ret.cruiseState.speed = ret.cruiseState.speedCluster / interp(ret.vEgo, [0,140], [1.0615,1.0170])
 
     ret.cruiseState.standstill = False
     ret.cruiseState.nonAdaptive = False
