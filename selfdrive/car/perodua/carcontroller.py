@@ -29,9 +29,9 @@ class BrakingStatus():
 def apply_perodua_steer_torque_limits(apply_torque, apply_torque_last, driver_torque, blinkerOn, LIMITS):
 
   # limits due to driver torque and lane change
-  reduced_torque_mult = 5 if blinkerOn else 1.5
+  reduced_torque_mult = 10 if blinkerOn else 1.5
   driver_max_torque = 255 + driver_torque * reduced_torque_mult
-  driver_min_torque = -255 + driver_torque * reduced_torque_mult
+  driver_min_torque = -255 - driver_torque * reduced_torque_mult
   max_steer_allowed = max(min(255, driver_max_torque), 0)
   min_steer_allowed = min(max(-255, driver_min_torque), 0)
   apply_torque = clip(apply_torque, min_steer_allowed, max_steer_allowed)
