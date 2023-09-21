@@ -9,7 +9,8 @@
       "acc_speed_range": "0 - 130",
       "acc_stop_and_go": true,
       "lkc_torque": "Medium",
-      "lkc_speed_range": "0 - 130"
+      "lkc_speed_range": "0 - 130",
+      "max_steering_angle": "45°"
     },
     {
       "brand": "Perodua",
@@ -20,7 +21,8 @@
       "acc_speed_range": "0 - 130",
       "acc_stop_and_go": true,
       "lkc_torque": "High",
-      "lkc_speed_range": "0 - 130"
+      "lkc_speed_range": "0 - 130",
+      "max_steering_angle": "45°"
     },
     {
       "brand": "Perodua",
@@ -31,7 +33,8 @@
       "acc_speed_range": "0 - 130",
       "acc_stop_and_go": true,
       "lkc_torque": "High",
-      "lkc_speed_range": "0 - 130"
+      "lkc_speed_range": "0 - 130",
+      "max_steering_angle": "45°"
     },
     {
       "brand": "Proton",
@@ -42,7 +45,8 @@
       "acc_speed_range": "0 - 130",
       "acc_stop_and_go": true,
       "lkc_torque": "High",
-      "lkc_speed_range": "0 - 130"
+      "lkc_speed_range": "0 - 130",
+      "max_steering_angle": "120°"
     },
     {
       "brand": "Honda",
@@ -53,7 +57,8 @@
       "acc_speed_range": "0 - 145",
       "acc_stop_and_go": true,
       "lkc_torque": "Low",
-      "lkc_speed_range": "20 - 145"
+      "lkc_speed_range": "20 - 145",
+      "max_steering_angle": "30°"
     },
     {
       "brand": "Honda",
@@ -64,7 +69,8 @@
       "acc_speed_range": "30 - 145",
       "acc_stop_and_go": false,
       "lkc_torque": "High",
-      "lkc_speed_range": "30 - 145"
+      "lkc_speed_range": "30 - 145",
+      "max_steering_angle": "45°"
     },
     {
       "brand": "Honda",
@@ -75,7 +81,8 @@
       "acc_speed_range": "0 - 145",
       "acc_stop_and_go": true,
       "lkc_torque": "High",
-      "lkc_speed_range": "0 - 145"
+      "lkc_speed_range": "0 - 145",
+      "max_steering_angle": "45°"
     },
     {
       "brand": "Hyundai",
@@ -86,7 +93,8 @@
       "acc_speed_range": "10 - 180",
       "acc_stop_and_go": false,
       "lkc_torque": "High",
-      "lkc_speed_range": "51 - 180"
+      "lkc_speed_range": "51 - 180",
+      "max_steering_angle": "60°"
     },
     {
       "brand": "Toyota",
@@ -97,7 +105,8 @@
       "acc_speed_range": "0 - 125",
       "acc_stop_and_go": true,
       "lkc_torque": "High",
-      "lkc_speed_range": "0 - 125"
+      "lkc_speed_range": "0 - 125",
+      "max_steering_angle": "90°"
     },
     {
       "brand": "Toyota",
@@ -108,7 +117,8 @@
       "acc_speed_range": "0 - 125",
       "acc_stop_and_go": true,
       "lkc_torque": "High",
-      "lkc_speed_range": "0 - 125"
+      "lkc_speed_range": "0 - 125",
+      "max_steering_angle": "60°"
     },
     {
       "brand": "Toyota",
@@ -119,7 +129,8 @@
       "acc_speed_range": "0 - 125",
       "acc_stop_and_go": true,
       "lkc_torque": "High",
-      "lkc_speed_range": "0 - 125"
+      "lkc_speed_range": "0 - 125",
+      "max_steering_angle": "60°"
     },
     {
       "brand": "Toyota",
@@ -130,7 +141,8 @@
       "acc_speed_range": "0 - 125",
       "acc_stop_and_go": true,
       "lkc_torque": "High",
-      "lkc_speed_range": "0 - 125"
+      "lkc_speed_range": "0 - 125",
+      "max_steering_angle": "60°"
     },
     {
       "brand": "Toyota",
@@ -141,7 +153,8 @@
       "acc_speed_range": "0 - 125",
       "acc_stop_and_go": true,
       "lkc_torque": "High",
-      "lkc_speed_range": "0 - 125"
+      "lkc_speed_range": "0 - 125",
+      "max_steering_angle": "60°"
     },
     {
       "brand": "Toyota",
@@ -152,7 +165,8 @@
       "acc_speed_range": "0 - 130",
       "acc_stop_and_go": true,
       "lkc_torque": "Medium",
-      "lkc_speed_range": "0 - 130"
+      "lkc_speed_range": "0 - 130",
+      "max_steering_angle": "45°"
     },
     {
       "brand": "Lexus",
@@ -163,7 +177,8 @@
       "acc_speed_range": "0 - 125",
       "acc_stop_and_go": true,
       "lkc_torque": "High",
-      "lkc_speed_range": "0 - 125"
+      "lkc_speed_range": "0 - 125",
+      "max_steering_angle": "60°"
     },
     {
       "brand": "Lexus",
@@ -174,7 +189,8 @@
       "acc_speed_range": "0 - 125",
       "acc_stop_and_go": true,
       "lkc_torque": "High",
-      "lkc_speed_range": "0 - 125"
+      "lkc_speed_range": "0 - 125",
+      "max_steering_angle": "60°"
     },
     {
       "brand": "Lexus",
@@ -185,7 +201,8 @@
       "acc_speed_range": "0 - 125",
       "acc_stop_and_go": true,
       "lkc_torque": "High",
-      "lkc_speed_range": "0 - 125"
+      "lkc_speed_range": "0 - 125",
+      "max_steering_angle": "60°"
     },
     {
       "brand": "Lexus",
@@ -196,7 +213,8 @@
       "acc_speed_range": "0 - 125",
       "acc_stop_and_go": true,
       "lkc_torque": "High",
-      "lkc_speed_range": "0 - 125"
+      "lkc_speed_range": "0 - 125",
+      "max_steering_angle": "60°"
     }
   ]
 }
