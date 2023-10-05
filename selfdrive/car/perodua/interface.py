@@ -140,7 +140,7 @@ class CarInterface(CarInterfaceBase):
       ret.longitudinalTuning.kpBP = [0., 5., 20.]
       ret.longitudinalTuning.kpV = [0.65, 0.6, 0.5]
       ret.longitudinalTuning.kiBP = [5, 7, 28]
-      ret.longitudinalTuning.kiV = [0.11, 0.08, 0.06]
+      ret.longitudinalTuning.kiV = [0.12, 0.11, 0.10]
       ret.longitudinalActuatorDelayLowerBound = 0.42
       ret.longitudinalActuatorDelayUpperBound = 0.60
       ret.speedControlled = True
