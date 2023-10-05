@@ -169,6 +169,18 @@
       "max_steering_angle": "45°"
     },
     {
+      "brand": "Toyota",
+      "model": "Vios",
+      "year": "2022",
+      "variant": "G",
+      "acc_low_speed": true,
+      "acc_speed_range": "0 - 130",
+      "acc_stop_and_go": true,
+      "lkc_torque": "Medium",
+      "lkc_speed_range": "0 - 130",
+      "max_steering_angle": "30°"
+    },
+    {
       "brand": "Lexus",
       "model": "ES",
       "year": "2019-2022",

@@ -4,7 +4,7 @@ from selfdrive.car.perodua.peroduacan import create_steer_command, perodua_creat
                                              perodua_aeb_warning, create_can_steer_command, \
                                              perodua_create_accel_command, \
                                              perodua_create_brake_command, perodua_create_hud
-from selfdrive.car.perodua.values import ACC_CAR, CAR, DBC, NOT_CAN_CONTROLLED, BRAKE_SCALE, GAS_SCALE
+from selfdrive.car.perodua.values import ACC_CAR, CAR, DBC, NOT_CAN_CONTROLLED, BRAKE_SCALE, GAS_SCALE, SNG_CAR
 from selfdrive.controls.lib.desire_helper import LANE_CHANGE_SPEED_MIN
 from opendbc.can.packer import CANPacker
 from common.numpy_fast import clip, interp
@@ -202,7 +202,7 @@ class CarController():
       if (frame % 5) == 0 and CS.CP.openpilotLongitudinalControl:
 
         # standstill logic
-        if enabled and apply_brake > 0 and CS.out.standstill and CS.CP.carFingerprint != CAR.ALZA:
+        if enabled and apply_brake > 0 and CS.out.standstill and CS.CP.carFingerprint not in SNG_CAR:
           if self.standstill_status == BrakingStatus.STANDSTILL_INIT:
             self.min_standstill_accel = apply_brake + 0.2
           apply_brake, self.standstill_status, self.prev_ts = standstill_brake(self.min_standstill_accel, self.prev_ts, ts, self.standstill_status)
@@ -214,7 +214,7 @@ class CarController():
         pump, brake_req, self.last_pump = psd_brake(apply_brake, self.last_pump)
 
         # the 0.5 is needed because once speed is commanded, the accel is too high at lower speed below 10kmh
-        boost = interp(CS.out.vEgo, [1.8, 3], [0., 1.0])
+        boost = interp(CS.out.vEgo, [0.2, 1.8], [0., 1.0])
         des_speed = actuators.speed + (actuators.accel * boost)
         can_sends.append(perodua_create_accel_command(self.packer, CS.out.cruiseState.speedCluster,
                                                       CS.out.cruiseState.available, enabled, lead_visible,
