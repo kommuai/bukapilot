@@ -123,6 +123,7 @@ class CarInterface(CarInterfaceBase):
       ret.longitudinalTuning.kiV = [0.11, 0.1, 0.1]
       ret.longitudinalActuatorDelayLowerBound = 0.42
       ret.longitudinalActuatorDelayUpperBound = 0.60
+      ret.speedControlled = True
 
     elif candidate == CAR.ATIVA:
       ret.wheelbase = 2.525
@@ -142,6 +143,7 @@ class CarInterface(CarInterfaceBase):
       ret.longitudinalTuning.kiV = [0.11, 0.08, 0.06]
       ret.longitudinalActuatorDelayLowerBound = 0.42
       ret.longitudinalActuatorDelayUpperBound = 0.60
+      ret.speedControlled = True
 
     elif candidate == CAR.ALZA:
       ret.wheelbase = 2.750
