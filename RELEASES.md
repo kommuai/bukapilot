@@ -1,3 +1,17 @@
+Version 9.4-longOverhaul  (2023-10-06)
+=========================
+* Quiet mode sounds all safety related warnings
+* Support for new KommuAssist1s
+* Support Toyota Vios 2023
+* TNGA/DNGA:
+  * Reduce fighting torque during manual lane change
+  * Revamp longitudinal control (quick braking reaction)
+  * Fix steer limit warning
+* TSS2:
+  * Minor longitudinal retuning
+* Proton:
+  * Fix stock LKS settings except Auxiliary
+
 Version 9.3-longOverhaul  (2023-07-10)
 =========================
 * Allow forced car profile selection through fix fingerprinting
