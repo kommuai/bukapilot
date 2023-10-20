@@ -193,6 +193,13 @@ class CarInterface(CarInterfaceBase):
       ret.mass = 1035. + STD_CARGO_KG
       ret.wheelSpeedFactor = 1.0
 
+      ret.wheelbase = 2.620
+      ret.steerRatio = 17.00
+      ret.centerToFront = ret.wheelbase * 0.44
+      tire_stiffness_factor = 0.9871
+      ret.mass = 1035. + STD_CARGO_KG
+      ret.wheelSpeedFactor = 1.0
+
       ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.16], [0.30]]
       ret.lateralParams.torqueBP, ret.lateralParams.torqueV = [[0.], [255]]
       ret.lateralTuning.pid.kf = 0.00018
@@ -203,6 +210,26 @@ class CarInterface(CarInterfaceBase):
       ret.longitudinalTuning.kiV = [0.12, 0.12, 0.12]
 
       ret.lateralParams.torqueBP, ret.lateralParams.torqueV = [[0.], [255]]
+
+    elif candidate == CAR.YARIS_CROSS:
+      ret.wheelbase = 2.560
+      ret.steerRatio = 17.00
+      ret.centerToFront = ret.wheelbase * 0.44
+      tire_stiffness_factor = 0.9871
+      ret.mass = 1360. + STD_CARGO_KG
+      ret.wheelSpeedFactor = 1.43
+
+      ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.16], [0.30]]
+      ret.lateralParams.torqueBP, ret.lateralParams.torqueV = [[0.], [255]]
+      ret.lateralTuning.pid.kf = 0.00018
+
+      ret.longitudinalTuning.kpBP = [0., 5., 20.]
+      ret.longitudinalTuning.kpV = [0.65, 0.6, 0.6]
+      ret.longitudinalTuning.kiBP = [5, 7, 28]
+      ret.longitudinalTuning.kiV = [0.12, 0.12, 0.12]
+      ret.longitudinalActuatorDelayLowerBound = 0.42
+      ret.longitudinalActuatorDelayUpperBound = 0.60
+      ret.speedControlled = True
 
     else:
       ret.dashcamOnly = True

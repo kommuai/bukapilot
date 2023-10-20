@@ -21,6 +21,8 @@ class CarState(CarStateBase):
     super().__init__(CP)
     can_define = CANDefine(DBC[CP.carFingerprint]['pt'])
     self.shifter_values = can_define.dv["TRANSMISSION"]['GEAR']
+    if CP.carFingerprint == CAR.YARIS_CROSS:
+      self.shifter_values = can_define.dv["GEAR_PACKET_HYBRID"]['GEAR']
     if CP.carFingerprint in ACC_CAR:
       self.set_distance_values = can_define.dv['ACC_CMD_HUD']['FOLLOW_DISTANCE']
     self.is_cruise_latch = False
@@ -69,9 +71,8 @@ class CarState(CarStateBase):
 
     # gas pedal
     ret.gas = cp.vl["GAS_PEDAL"]['APPS_1']
-    # todo: let gas pressed legit
     if self.CP.carFingerprint in ACC_CAR:
-      ret.gasPressed = not bool(cp.vl["GAS_PEDAL_2"]['GAS_PEDAL_STEP'])
+      ret.gasPressed = cp.vl["GAS_PEDAL"]['APPS_3'] > 0.05
     else:
       ret.gasPressed = False
 
@@ -299,6 +300,7 @@ class CarState(CarStateBase):
     checks = []
 
     if CP.carFingerprint in ACC_CAR:
+      signals.append(("APPS_3","GAS_PEDAL", 0))
       signals.append(("BSM_CHIME","BSM", 0))
       signals.append(("SEAT_BELT_WARNING2","METER_CLUSTER", 0))
       signals.append(("STEER_ANGLE", "STEERING_MODULE", 0.))
@@ -327,6 +329,7 @@ class CarState(CarStateBase):
       signals.append(("UI_SPEED", "BUTTONS", 0))
       signals.append(("CRUISE_STANDSTILL", "ACC_BRAKE", 0))
       signals.append(("AEB_1019", "ACC_BRAKE", 0))
+      signals.append(("GEAR", "GEAR_PACKET_HYBRID", 0))
     else:
       signals.append(("MAIN_TORQUE", "STEERING_TORQUE", 0))
       signals.append(("STEER_ANGLE", "STEERING_ANGLE_SENSOR", 0.))
