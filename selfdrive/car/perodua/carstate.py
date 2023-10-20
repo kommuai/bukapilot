@@ -150,7 +150,7 @@ class CarState(CarStateBase):
       self.stock_lkc_off = bool(cp.vl["LKAS_HUD"]['LDA_OFF'])
       self.stock_fcw_off = bool(cp.vl["LKAS_HUD"]['FCW_DISABLE'])
 
-      ret.cruiseState.available = cp.vl["PCM_BUTTONS"]["ACC_RDY"] != 0
+      ret.cruiseState.available = True
       distance_val = int(cp.vl["ACC_CMD_HUD"]['FOLLOW_DISTANCE'])
       ret.cruiseState.setDistance = self.parse_set_distance(self.set_distance_values.get(distance_val, None))
 
