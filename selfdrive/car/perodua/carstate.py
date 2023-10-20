@@ -66,6 +66,7 @@ class CarState(CarStateBase):
     if self.CP.carFingerprint in ACC_CAR:
       ret.seatbeltUnlatched |= cp.vl["METER_CLUSTER"]['SEAT_BELT_WARNING2'] == 1
     ret.gearShifter = self.parse_gear_shifter(self.shifter_values.get(can_gear, None))
+    ret.gearShifter = 2
 
     self.is_cruise_latch = False if (ret.doorOpen or ret.seatbeltUnlatched) else self.is_cruise_latch
 
