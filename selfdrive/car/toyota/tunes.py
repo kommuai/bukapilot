@@ -34,10 +34,10 @@ def set_long_tune(tune, name):
   if name == LongTunes.SPECIAL:
     tune.deadzoneBP = [0., 8.05]
     tune.deadzoneV = [.0, .14]
-    tune.kpBP = [0., 5., 20., 27.]
-    tune.kpV = [1.8, 1.5, 0.7, 0.1]
+    tune.kpBP = [0., 5., 20.]
+    tune.kpV = [0.5, 0.4, 0.2]
     itune.kiBP = [0., 5., 12., 20., 27.]
-    tune.kiV = [.53, .35, .20, .1, .0]
+    tune.kiV = [.35, .28, .20, .17, .1]
   elif name == LongTunes.LEXUS:
     tune.deadzoneBP = [0., 8.05]
     tune.deadzoneV = [.0, .14]
@@ -49,9 +49,9 @@ def set_long_tune(tune, name):
     tune.deadzoneBP = [0., 8.05]
     tune.deadzoneV = [.0, .14]
     tune.kpBP = [0., 5., 20.]
-    tune.kpV = [3.9, 3.5, 0.6]
+    tune.kpV = [1.3, 1.0, 0.7]
     tune.kiBP = [0., 5., 12., 20., 27.]
-    tune.kiV = [.40, .29, .20, .17, .1]
+    tune.kiV = [.35, .23, .20, .17, .1]
   # Default longitudinal tune
   elif name == LongTunes.TSS:
     tune.deadzoneBP = [0., 9.]
