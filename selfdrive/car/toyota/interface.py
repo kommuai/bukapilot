@@ -191,7 +191,7 @@ class CarInterface(CarInterfaceBase):
       stop_and_go = True
       ret.wheelbase = 3.00
       ret.steerRatio = 14.2
-      ret.wheelSpeedFactor = 1.035
+      ret.wheelSpeedFactor = 1.0
       tire_stiffness_factor = 0.444
       ret.mass = 4305. * CV.LB_TO_KG + STD_CARGO_KG
       set_lat_tune(ret.lateralTuning, LatTunes.PID_J)
