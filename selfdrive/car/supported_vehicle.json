@@ -50,18 +50,6 @@
     },
     {
       "brand": "Honda",
-      "model": "CRV",
-      "year": "2020-2022",
-      "variant": "1.5 TCP, Black",
-      "acc_low_speed": true,
-      "acc_speed_range": "0 - 145",
-      "acc_stop_and_go": true,
-      "lkc_torque": "Low",
-      "lkc_speed_range": "20 - 145",
-      "max_steering_angle": "30°"
-    },
-    {
-      "brand": "Honda",
       "model": "City",
       "year": "2019-2022",
       "variant": "V-Sensing, RS",
@@ -227,6 +215,18 @@
       "lkc_torque": "High",
       "lkc_speed_range": "0 - 125",
       "max_steering_angle": "60°"
+    },
+    {
+      "brand": "BYD",
+      "model": "Atto 3",
+      "year": "2023",
+      "variant": "All",
+      "acc_low_speed": true,
+      "acc_speed_range": "0 - 150",
+      "acc_stop_and_go": true,
+      "lkc_torque": "High",
+      "lkc_speed_range": "0 - 150",
+      "max_steering_angle": "120°"
     }
   ]
 }
