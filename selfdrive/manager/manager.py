@@ -120,6 +120,7 @@ def manager_init() -> None:
         "ClearCode"          :    1 << 2,
         "StockAcc"           :    1 << 3,
         "IgnoreHardIgnition" :    1 << 4,
+        "IgnoreDM" :              1 << 5,
         },
       "packages": {
         "default": [],
@@ -127,9 +128,10 @@ def manager_init() -> None:
         "myvi-b": ["MyviKevin"],
         "clear-code": ["ClearCode"],
         "stock-acc" : ["StockAcc"],
-        "ignore-ignition-line" : ["IgnoreHardIgnition"]
+        "ignore-ignition-line" : ["IgnoreHardIgnition"],
+        "ignore-dm" : ["IgnoreDM"]
         },
-      "version": 3,
+      "version": 4,
       }
   cur_dict = params.get("FeaturesDict")
   if cur_dict is None or (json.loads(cur_dict)["version"] < new_dict["version"]):
