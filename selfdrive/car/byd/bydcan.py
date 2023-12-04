@@ -30,13 +30,11 @@ def byd_checksum(byte_key, dat):
 def create_can_steer_command(packer, steer_angle, steer_req, raw_cnt):
 
   values = {
-    "TORQUE": 0,       # not actual torque, useless params, leaving the name as it is first
     "STEER_REQ": steer_req,
     "STEER_REQ_ACTIVE_LOW": not steer_req,
-    "STEER_ANGLE": steer_angle * 0.86,            # desired steer angle
-    #"STEER_ANGLE": steer_angle * 0.958,            # desired steer angle
+    "STEER_ANGLE": steer_angle * 0.86,     # desired steer angle
     "SET_ME_X01": 0x1 if steer_req else 0, # must be 0x1 to steer
-    "SET_ME_XEB": 0xE if steer_req else 0, # 0xB fault lesser, seems like steer torque
+    "SET_ME_XE": 0xE if steer_req else 0, # 0xB fault lesser, higher value fault lesser.
     "COUNTER": raw_cnt,
     "SET_ME_FF": 0xFF,
     "SET_ME_F": 0xF,
@@ -49,7 +47,8 @@ def create_can_steer_command(packer, steer_angle, steer_req, raw_cnt):
   values["CHECKSUM"] = crc
   return packer.make_can_msg("STEERING_MODULE_ADAS", 0, values)
 
-def create_accel_command(packer, accel, enabled, is_standstill,  raw_cnt):
+def create_accel_command(packer, accel, enabled, brake_hold, raw_cnt):
+  accel = max(min(accel * 16.67, 30), -50)
 
   values = {
     "ACCEL_CMD": accel,
@@ -58,15 +57,15 @@ def create_accel_command(packer, accel, enabled, is_standstill,  raw_cnt):
     "COUNTER": raw_cnt,
     "ACC_ON_1": enabled,
     "ACC_ON_2": enabled,
-    "UNKNOWN1": 2 if enabled else 0,       # 2 is needed to brake, 1 is to cruise, 3 is to accel, 4-9 more power?
-    "UNKNOWN2": 12 if enabled else 0,      # prioritise test 12-14, was 12
+    "ACCEL_FACTOR": 14 if enabled else 0,   # the higher the value, the more powerful the accel
+    "DECEL_FACTOR": 1 if enabled else 0,   # the lower the value, the more powerful the decel
     "SET_ME_X8": 8,
     "SET_ME_1": 1,
     "SET_ME_XF": 0xF,
     "CMD_REQ_ACTIVE_LOW": 0 if enabled else 1,
     "ACC_REQ_NOT_STANDSTILL": enabled,
     "ACC_CONTROLLABLE_AND_ON": enabled,
-    "ACC_OVERRIDE_OR_STANDSTILL": is_standstill,
+    "ACC_OVERRIDE_OR_STANDSTILL": 0,       # use this to apply brake hold
     "STANDSTILL_STATE": 0,                 # TODO integrate vEgo check
     "STANDSTILL_RESUME": 0,                # TODO integrate buttons
   }

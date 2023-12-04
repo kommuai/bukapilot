@@ -31,7 +31,7 @@ class CarState(CarStateBase):
 
     # unfiltered speed from CAN sensors
     ret.vEgo, ret.aEgo = self.update_speed_kf(ret.vEgoRaw)
-    ret.vEgoCluster = ret.vEgo * HUD_MULTIPLIER
+    ret.vEgoCluster = ret.vEgo
     ret.standstill = ret.vEgoRaw < 0.01
 
     # safety checks to engage
@@ -80,7 +80,7 @@ class CarState(CarStateBase):
       self.is_cruise_latch = True
 
     ret.cruiseState.speedCluster = max(int(cp.vl["ACC_HUD_ADAS"]['SET_SPEED']), 30) * CV.KPH_TO_MS
-    ret.cruiseState.speed = ret.cruiseState.speedCluster / HUD_MULTIPLIER
+    ret.cruiseState.speed = ret.cruiseState.speedCluster
     ret.cruiseState.standstill = bool(cp.vl["ACC_CMD"]["STANDSTILL_STATE"])
     ret.cruiseState.nonAdaptive = False
 

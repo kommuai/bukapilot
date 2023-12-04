@@ -3,7 +3,7 @@
 from selfdrive.car import dbc_dict
 from cereal import car
 
-HUD_MULTIPLIER = 0.715
+HUD_MULTIPLIER = 0.718
 
 class CAR:
   ATTO3 = "BYD ATTO 3"

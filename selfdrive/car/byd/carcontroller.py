@@ -30,31 +30,20 @@ class CarController():
 
     # steer
     apply_angle = apply_byd_steer_angle_limits(actuators.steeringAngleDeg, CS.out.steeringAngleDeg, CS.out.vEgo, self.params)
-    #self.steer_rate_limited = ((actuators.steeringAngleDeg != apply_angle) and (apply_angle != 0)) or (abs(apply_angle - CS.out.steeringAngleDeg) > 2.5)
     self.steer_rate_limited = (abs(apply_angle - CS.out.steeringAngleDeg) > 2.5)
 
     # BYD CAN controlled lateral running at 50hz
     if (frame % 2) == 0:
       lat_active = (enabled and abs(CS.out.steeringAngleDeg) < 85) # temporary hardcode 85 degrees because if 90 degrees it will fault
+      brake_hold = False
       can_sends.append(create_can_steer_command(self.packer, apply_angle, lat_active, (frame/2) % 16))
-
-#      if CS.out.genericToggle:
-#        can_sends.append(send_buttons(self.packer, frame % 16))
-      #if CS.out.leftBlinker:
-      #  # accel
-      #  can_sends.append(create_accel_command(self.packer, 30, 1, CS.out.standstill, (frame/2) % 16))
-      #elif CS.out.rightBlinker and False:
-      #  # decel
-      #  can_sends.append(create_accel_command(self.packer, -30, 1, CS.out.standstill, (frame/2) % 16))
-      #else:
-      #  can_sends.append(create_accel_command(self.packer, 0, 0, CS.out.standstill, (frame/2) % 16))
-      #  a = list(create_accel_command(self.packer, 0, 0, (frame/2) % 16)[2])
-      #  b = [hex(i) for i in a]
-      #  print(b)
+      can_sends.append(create_accel_command(self.packer, actuators.accel, enabled, brake_hold, (frame/2) % 16))
+      if CS.out.genericToggle:
+        can_sends.append(send_buttons(self.packer, frame % 16))
 
 #    if CS.out.standstill and enabled and (frame % 50 == 0):
       # Spam resume button to resume from standstill at max freq of 20 Hz.
- #     can_sends.append(send_buttons(self.packer, frame % 16))
+#      can_sends.append(send_buttons(self.packer, frame % 16))
 
     new_actuators = actuators.copy()
     new_actuators.steeringAngleDeg = apply_angle
