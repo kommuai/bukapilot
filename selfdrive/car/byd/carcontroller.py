@@ -1,6 +1,6 @@
 from cereal import car
 from selfdrive.car import make_can_msg
-from selfdrive.car.byd.bydcan import create_can_steer_command, create_accel_command, send_buttons
+from selfdrive.car.byd.bydcan import create_can_steer_command, create_accel_command, send_buttons, create_lkas_hud
 from selfdrive.car.byd.values import CAR, DBC
 from opendbc.can.packer import CANPacker
 from common.numpy_fast import clip
@@ -40,6 +40,7 @@ class CarController():
       can_sends.append(create_accel_command(self.packer, actuators.accel, enabled, brake_hold, (frame/2) % 16))
       if CS.out.genericToggle:
         can_sends.append(send_buttons(self.packer, frame % 16))
+      can_sends.append(create_lkas_hud(self.packer, enabled, frame % 16))
 
 #    if CS.out.standstill and enabled and (frame % 50 == 0):
       # Spam resume button to resume from standstill at max freq of 20 Hz.

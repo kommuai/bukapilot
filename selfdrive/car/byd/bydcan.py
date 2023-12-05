@@ -76,16 +76,18 @@ def create_accel_command(packer, accel, enabled, brake_hold, raw_cnt):
   return packer.make_can_msg("ACC_CMD", 0, values)
 
 # 50hz
-def create_lkas_hud(packer, enabled, is_standstill, raw_cnt):
+def create_lkas_hud(packer, enabled, raw_cnt):
 
   values = {
     "STEER_ACTIVE_ACTIVE_LOW": not enabled,
     "STEER_ACTIVE_1_1": enabled,
     "STEER_ACTIVE_1_2": enabled,
     "STEER_ACTIVE_1_3": enabled,
-    "SET_ME_1_1": 1,
+    "SET_ME_1_1": 0,  # not necessarily 1
     "SET_ME_1_2": 1,
-    "SET_ME_XE": 0xE,
+    "UNKNOWN1" : 1,
+    "UNKNOWN2" : 1,
+    "SET_ME_XE": 0xC,
     "SET_ME_X5F": 0x5F,
     "SET_ME_XFF": 0xFF,
     "HAND_ON_WHEEL_WARNING": 0,           # TODO integrate warning signs when steer limited
