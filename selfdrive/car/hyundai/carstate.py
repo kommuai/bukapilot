@@ -175,16 +175,16 @@ class CarState(CarStateBase):
 
     checks = [
       # address, frequency
-      ("MDPS12", 50),
-      ("TCS13", 50),
-      ("TCS15", 10),
-      ("CLU11", 50),
-      ("ESP12", 100),
-      ("CGW1", 10),
-      ("CGW2", 5),
-      ("CGW4", 5),
-      ("WHL_SPD11", 50),
-      ("SAS11", 100),
+      ("MDPS12", 0),
+      ("TCS13", 0),
+      ("TCS15", 0),
+      ("CLU11", 0),
+      ("ESP12", 0),
+      ("CGW1", 0),
+      ("CGW2", 0),
+      ("CGW4", 0),
+      ("WHL_SPD11", 0),
+      ("SAS11", 0),
     ]
 
     if not CP.openpilotLongitudinalControl:
@@ -197,8 +197,8 @@ class CarState(CarStateBase):
       ]
 
       checks += [
-        ("SCC11", 50),
-        ("SCC12", 50),
+        ("SCC11", 0),
+        ("SCC12", 0),
       ]
 
       if CP.carFingerprint in FEATURES["use_fca"]:
@@ -206,7 +206,7 @@ class CarState(CarStateBase):
           ("FCA_CmdAct", "FCA11"),
           ("CF_VSM_Warn", "FCA11"),
         ]
-        checks.append(("FCA11", 50))
+        checks.append(("FCA11", 0))
       else:
         signals += [
           ("AEB_CmdAct", "SCC12"),
@@ -218,36 +218,36 @@ class CarState(CarStateBase):
         ("CF_Lca_IndLeft", "LCA11"),
         ("CF_Lca_IndRight", "LCA11"),
       ]
-      checks.append(("LCA11", 50))
+      checks.append(("LCA11", 0))
 
     if CP.carFingerprint in (HYBRID_CAR | EV_CAR):
       if CP.carFingerprint in HYBRID_CAR:
         signals.append(("CR_Vcu_AccPedDep_Pos", "E_EMS11"))
       else:
         signals.append(("Accel_Pedal_Pos", "E_EMS11"))
-      checks.append(("E_EMS11", 50))
+      checks.append(("E_EMS11", 0))
     else:
       signals += [
         ("PV_AV_CAN", "EMS12"),
         ("CF_Ems_AclAct", "EMS16"),
       ]
       checks += [
-        ("EMS12", 100),
-        ("EMS16", 100),
+        ("EMS12", 0),
+        ("EMS16", 0),
       ]
 
     if CP.carFingerprint in FEATURES["use_cluster_gears"]:
       signals.append(("CF_Clu_Gear", "CLU15"))
-      checks.append(("CLU15", 5))
+      checks.append(("CLU15", 0))
     elif CP.carFingerprint in FEATURES["use_tcu_gears"]:
       signals.append(("CUR_GR", "TCU12"))
-      checks.append(("TCU12", 100))
+      checks.append(("TCU12", 0))
     elif CP.carFingerprint in FEATURES["use_elect_gears"]:
       signals.append(("Elect_Gear_Shifter", "ELECT_GEAR"))
-      checks.append(("ELECT_GEAR", 20))
+      checks.append(("ELECT_GEAR", 0))
     else:
       signals.append(("CF_Lvr_Gear", "LVR12"))
-      checks.append(("LVR12", 100))
+      checks.append(("LVR12", 0))
 
     return CANParser(DBC[CP.carFingerprint]["pt"], signals, checks, 0)
 
@@ -273,7 +273,7 @@ class CarState(CarStateBase):
     ]
 
     checks = [
-      ("LKAS11", 100)
+      ("LKAS11", 0)
     ]
 
-    return CANParser(DBC[CP.carFingerprint]["pt"], signals, checks, 2)
+    return CANParser(DBC[CP.carFingerprint]["pt"], signals, checks, 0)
