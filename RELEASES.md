@@ -1,3 +1,10 @@
+Version 9.5-longOverhaul  (2023-12-08)
+=========================
+* Support BYD Atto 3
+* Fix intermittent disengage for BYD, Hondas and Proton
+* Vellphard:
+  * Reduce jerks during high speed drives
+
 Version 9.4-longOverhaul  (2023-10-06)
 =========================
 * Quiet mode sounds all safety related warnings
