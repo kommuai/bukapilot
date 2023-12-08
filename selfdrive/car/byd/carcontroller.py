@@ -37,14 +37,11 @@ class CarController():
       lat_active = (enabled and abs(CS.out.steeringAngleDeg) < 85) # temporary hardcode 85 degrees because if 90 degrees it will fault
       brake_hold = False
       can_sends.append(create_can_steer_command(self.packer, apply_angle, lat_active, (frame/2) % 16))
-      can_sends.append(create_accel_command(self.packer, actuators.accel, enabled, brake_hold, (frame/2) % 16))
-      if CS.out.genericToggle:
-        can_sends.append(send_buttons(self.packer, frame % 16))
+#      can_sends.append(create_accel_command(self.packer, actuators.accel, enabled, brake_hold, (frame/2) % 16))
       can_sends.append(create_lkas_hud(self.packer, enabled, frame % 16))
 
-#    if CS.out.standstill and enabled and (frame % 50 == 0):
-      # Spam resume button to resume from standstill at max freq of 20 Hz.
-#      can_sends.append(send_buttons(self.packer, frame % 16))
+    if CS.out.standstill and enabled and (frame % 50 == 0):
+      can_sends.append(send_buttons(self.packer, frame % 16))
 
     new_actuators = actuators.copy()
     new_actuators.steeringAngleDeg = apply_angle

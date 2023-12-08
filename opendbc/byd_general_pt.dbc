@@ -85,6 +85,9 @@ BO_ 944 PCM_BUTTONS: 8 XXX
  SG_ ACC_ON_BTN : 19|1@0+ (1,0) [0|1] "" XXX
  SG_ SET_ME_1_1 : 2|1@0+ (1,0) [0|1] "" XXX
  SG_ SET_ME_1_2 : 12|1@0+ (1,0) [0|1] "" XXX
+ SG_ LKAS_ON_BTN : 6|1@0+ (1,0) [0|1] "" XXX
+ SG_ DEC_DISTANCE_BTN : 15|1@0+ (1,0) [0|1] "" XXX
+ SG_ INC_DISTANCE_BTN : 16|1@0+ (1,0) [0|1] "" XXX
  SG_ COUNTER : 55|4@0+ (1,0) [0|15] "" XXX
  SG_ CHECKSUM : 63|8@0+ (1,0) [0|255] "" XXX
 

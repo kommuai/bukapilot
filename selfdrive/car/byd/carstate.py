@@ -75,8 +75,12 @@ class CarState(CarStateBase):
     distance_val = int(cp.vl["ACC_HUD_ADAS"]['SET_DISTANCE'])
     ret.cruiseState.setDistance = self.parse_set_distance(self.set_distance_values.get(distance_val, None))
 
-    # engage and disengage logic
+    # engage and disengage logic, do we still need this?
     if (cp.vl["PCM_BUTTONS"]["SET_BTN"] != 0 or cp.vl["PCM_BUTTONS"]["RES_BTN"] != 0) and not ret.brakePressed:
+      self.is_cruise_latch = True
+
+    # this can override the above engage disengage logic
+    if bool(cp.vl["ACC_CMD"]["ACC_REQ_NOT_STANDSTILL"]):
       self.is_cruise_latch = True
 
     ret.cruiseState.speedCluster = max(int(cp.vl["ACC_HUD_ADAS"]['SET_SPEED']), 30) * CV.KPH_TO_MS
@@ -137,6 +141,7 @@ class CarState(CarStateBase):
       ("LEFT_APPROACH", "BSM", 0),
       ("RIGHT_APPROACH", "BSM", 0),
       ("STANDSTILL_STATE", "ACC_CMD", 0),
+      ("ACC_REQ_NOT_STANDSTILL", "ACC_CMD", 0),
       ("SET_BTN", "PCM_BUTTONS", 0),
       ("RES_BTN", "PCM_BUTTONS", 0),
     ]

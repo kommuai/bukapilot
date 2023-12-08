@@ -102,8 +102,8 @@ def create_lkas_hud(packer, enabled, raw_cnt):
 def send_buttons(packer, count):
   """Spoof ACC Button Command."""
   values = {
-      "SET_BUTTON": 1,
-      "RES_BUTTON": 1,
+      "SET_BTN": 1,
+      "RES_BTN": 1,
       "SET_ME_1_1": 1,
       "SET_ME_1_2": 1,
       "COUNTER": count,
