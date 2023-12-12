@@ -14,6 +14,8 @@ class CarState(CarStateBase):
     self.set_distance_values = can_define.dv['ACC_HUD_ADAS']['SET_DISTANCE']
     self.is_cruise_latch = False
     self.prev_angle = 0
+    self.lss_state = 0
+    self.lss_alert = 0
 
   def update(self, cp):
     ret = car.CarState.new_message()
@@ -108,6 +110,8 @@ class CarState(CarStateBase):
       ret.leftBlindspot = bool(cp.vl["BSM"]["LEFT_APPROACH"])
       ret.rightBlindspot = bool(cp.vl["BSM"]["RIGHT_APPROACH"])
 
+    self.lss_state = cp.vl["LKAS_HUD_ADAS"]["LSS_STATE"]
+    self.lss_alert = cp.vl["LKAS_HUD_ADAS"]["SETTINGS"]
     return ret
 
 
@@ -144,6 +148,8 @@ class CarState(CarStateBase):
       ("ACC_REQ_NOT_STANDSTILL", "ACC_CMD", 0),
       ("SET_BTN", "PCM_BUTTONS", 0),
       ("RES_BTN", "PCM_BUTTONS", 0),
+      ("LSS_STATE", "LKAS_HUD_ADAS", 0),
+      ("SETTINGS", "LKAS_HUD_ADAS", 0)
     ]
     checks = []
 

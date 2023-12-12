@@ -84,12 +84,12 @@ BO_ 944 PCM_BUTTONS: 8 XXX
  SG_ RES_BTN : 4|1@0+ (1,0) [0|1] "" XXX
  SG_ ACC_ON_BTN : 19|1@0+ (1,0) [0|1] "" XXX
  SG_ SET_ME_1_1 : 2|1@0+ (1,0) [0|1] "" XXX
- SG_ SET_ME_1_2 : 12|1@0+ (1,0) [0|1] "" XXX
  SG_ LKAS_ON_BTN : 6|1@0+ (1,0) [0|1] "" XXX
  SG_ DEC_DISTANCE_BTN : 15|1@0+ (1,0) [0|1] "" XXX
  SG_ INC_DISTANCE_BTN : 16|1@0+ (1,0) [0|1] "" XXX
  SG_ COUNTER : 55|4@0+ (1,0) [0|15] "" XXX
  SG_ CHECKSUM : 63|8@0+ (1,0) [0|255] "" XXX
+ SG_ SET_ME_1_2 : 12|1@0+ (1,0) [0|1] "" XXX
 
 BO_ 544 PEDAL_PRESSED: 8 XXX
  SG_ PEDAL_PRESSED_ACTIVE_LOW : 12|1@0+ (1,0) [0|1] "" XXX
@@ -97,6 +97,7 @@ BO_ 544 PEDAL_PRESSED: 8 XXX
 BO_ 578 DRIVE_STATE: 8 XXX
  SG_ BRAKE_PRESSED : 37|1@0+ (1,0) [0|1] "" XXX
  SG_ GEAR : 40|3@1+ (1,0) [0|7] "" XXX
+ SG_ RAW_THROTTLE : 30|7@0+ (1,0) [0|127] "" XXX
 
 BO_ 813 ACC_HUD_ADAS: 8 XXX
  SG_ COUNTER : 48|4@1+ (1,0) [0|15] "" XXX
@@ -115,15 +116,15 @@ BO_ 790 LKAS_HUD_ADAS: 8 XXX
  SG_ SET_ME_XFF : 23|8@0+ (1,0) [0|255] "" XXX
  SG_ SET_ME_X5F : 31|8@0+ (1,0) [0|255] "" XXX
  SG_ SET_ME_1_2 : 32|1@0+ (1,0) [0|1] "" XXX
- SG_ SET_ME_XE : 48|4@1+ (1,0) [0|15] "" XXX
+ SG_ SETTINGS : 48|4@1+ (1,0) [0|15] "" XXX
  SG_ SET_ME_1_1 : 0|1@0+ (1,0) [0|1] "" XXX
  SG_ UNKNOWN1 : 1|1@0+ (1,0) [0|1] "" XXX
- SG_ UNKNOWN2 : 6|1@0+ (1,0) [0|1] "" XXX
  SG_ SET_ME_0 : 47|8@0+ (1,0) [0|255] "" XXX
- SG_ STEER_ACTIVE_1_1 : 5|1@0+ (1,0) [0|1] "" XXX
  SG_ STEER_ACTIVE_1_3 : 35|1@0+ (1,0) [0|1] "" XXX
  SG_ STEER_ACTIVE_1_2 : 37|1@0+ (1,0) [0|1] "" XXX
  SG_ HAND_ON_WHEEL_WARNING : 10|1@0+ (1,0) [0|1] "" XXX
+ SG_ STEER_ACTIVE_1_1 : 5|1@0+ (1,0) [0|1] "" XXX
+ SG_ LSS_STATE : 7|2@0+ (1,0) [0|1] "" XXX
 
 BO_ 814 ACC_CMD: 8 XXX
  SG_ ACCEL_CMD : 0|8@1+ (1,-100) [0|255] "" XXX
@@ -169,6 +170,10 @@ BO_ 843 ADAS4: 8 XXX
 BO_ 884 ADAS5: 8 XXX
 
 BO_ 1074 ADAS6: 8 XXX
+
+
+
+
 
 VAL_ 578 GEAR 4 "D" 2 "R" 1 "P" ;
 VAL_ 813 SET_DISTANCE 8 "4bar" 4 "3bar" 2 "2bar" 1 "1bar" ;

@@ -38,7 +38,7 @@ class CarController():
       brake_hold = False
       can_sends.append(create_can_steer_command(self.packer, apply_angle, lat_active, (frame/2) % 16))
 #      can_sends.append(create_accel_command(self.packer, actuators.accel, enabled, brake_hold, (frame/2) % 16))
-      can_sends.append(create_lkas_hud(self.packer, enabled, frame % 16))
+      can_sends.append(create_lkas_hud(self.packer, enabled, CS.lss_state, CS.lss_alert, frame % 16))
 
     if CS.out.standstill and enabled and (frame % 50 == 0):
       can_sends.append(send_buttons(self.packer, frame % 16))
