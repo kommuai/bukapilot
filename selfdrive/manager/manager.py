@@ -33,6 +33,7 @@ done_bootlog = False
 
 def try_bootlog(can_block = False) -> bool:
   sys_time = datetime.datetime.today()
+  os.system('date +T -s %s' % datetime.datetime.utcnow().strftime('%I:%M:%S'))
   time_valid = sys_time > MIN_DATE
 
   if not time_valid and not can_block:
