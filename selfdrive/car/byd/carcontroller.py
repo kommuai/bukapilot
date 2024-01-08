@@ -24,6 +24,7 @@ class CarController():
     self.params = CarControllerParams(CP)
     self.packer = CANPacker(DBC[CP.carFingerprint]['pt'])
     self.steer_rate_limited = False
+    self.lka_active = False
 
   def update(self, enabled, CS, frame, actuators, lead_visible, rlane_visible, llane_visible, pcm_cancel, ldw):
     can_sends = []
@@ -34,11 +35,18 @@ class CarController():
 
     # BYD CAN controlled lateral running at 50hz
     if (frame % 2) == 0:
-      lat_active = (enabled and abs(CS.out.steeringAngleDeg) < 85) # temporary hardcode 85 degrees because if 90 degrees it will fault
+
+      # logic to activate and deactivate lane keep, cannot tie to the lka_on state because it will occasionally deactivate itself
+      if CS.lka_on:
+        self.lka_active = True
+      if not CS.lka_on and CS.lkas_rdy_btn:
+        self.lka_active = False
+
+      lat_active = enabled and abs(CS.out.steeringAngleDeg) < 60 and self.lka_active # temporary hardcode 60 because if 90 degrees it will fault
       brake_hold = False
-      can_sends.append(create_can_steer_command(self.packer, apply_angle, lat_active, (frame/2) % 16))
+      can_sends.append(create_can_steer_command(self.packer, apply_angle, lat_active, CS.out.standstill, (frame/2) % 16))
 #      can_sends.append(create_accel_command(self.packer, actuators.accel, enabled, brake_hold, (frame/2) % 16))
-      can_sends.append(create_lkas_hud(self.packer, enabled, CS.lss_state, CS.lss_alert, frame % 16))
+      can_sends.append(create_lkas_hud(self.packer, enabled, CS.lss_state, CS.lss_alert, CS.tsr, CS.abh, CS.passthrough, CS.HMA, CS.pt2, CS.pt3, CS.pt4, CS.pt5, self.lka_active, frame % 16))
 
     if CS.out.standstill and enabled and (frame % 100 == 0):
       can_sends.append(send_buttons(self.packer, frame % 16))

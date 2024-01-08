@@ -27,14 +27,18 @@ def byd_checksum(byte_key, dat):
 
   return (((byte_crc4_linear_inverse(first_bytes) + (-1*remainder + 5)) << 4) + byte_crc4_linear_inverse(second_bytes)) & 0xff
 
-def create_can_steer_command(packer, steer_angle, steer_req, raw_cnt):
+def create_can_steer_command(packer, steer_angle, steer_req, is_standstill, raw_cnt):
+
+  set_me_xe = 0xB
+  if is_standstill:
+    set_me_xe = 0xE
 
   values = {
     "STEER_REQ": steer_req,
     "STEER_REQ_ACTIVE_LOW": not steer_req,
-    "STEER_ANGLE": steer_angle * 0.86,     # desired steer angle
+    "STEER_ANGLE": steer_angle * 1.02,     # desired steer angle
     "SET_ME_X01": 0x1 if steer_req else 0, # must be 0x1 to steer
-    "SET_ME_XE": 0xE if steer_req else 0, # 0xB fault lesser, higher value fault lesser.
+    "SET_ME_XE": set_me_xe if steer_req else 0, # 0xB fault lesser, maybe higher value fault lesser, 0xB also seem to have the highest angle limit at high speed.
     "COUNTER": raw_cnt,
     "SET_ME_FF": 0xFF,
     "SET_ME_F": 0xF,
@@ -76,21 +80,25 @@ def create_accel_command(packer, accel, enabled, brake_hold, raw_cnt):
   return packer.make_can_msg("ACC_CMD", 0, values)
 
 # 50hz
-def create_lkas_hud(packer, enabled, lss_state, lss_alert, raw_cnt):
+def create_lkas_hud(packer, enabled, lss_state, lss_alert, tsr, ahb, passthrough, hma, pt2, pt3, pt4, pt5, lka_on, raw_cnt):
 
   values = {
-    "STEER_ACTIVE_ACTIVE_LOW": not enabled,
-    "STEER_ACTIVE_1_1": enabled, # Left lane visible
-    "STEER_ACTIVE_1_2": enabled, # steering wheel between lanes icon, lkas active
-    "STEER_ACTIVE_1_3": enabled, # Right lane visible
+    "STEER_ACTIVE_ACTIVE_LOW": lka_on, # not enabled,
+    "STEER_ACTIVE_1_1": enabled and lka_on, # Left lane visible
+    "STEER_ACTIVE_1_2": enabled and lka_on, # steering wheel between lanes icon, lkas active
+    "STEER_ACTIVE_1_3": enabled and lka_on, # Right lane visible
     "LSS_STATE": lss_state,
-    "SET_ME_1_1": 0,             # not necessarily 1
     "SET_ME_1_2": 1,
-    "UNKNOWN1" : 1,
     "SETTINGS": lss_alert,
-    "SET_ME_X5F": 0x5F,
-    "SET_ME_XFF": 0xFF,
+    "SET_ME_X5F": ahb,
+    "SET_ME_XFF": passthrough,
     "HAND_ON_WHEEL_WARNING": 0,           # TODO integrate warning signs when steer limited
+    "TSR": tsr,
+    "HMA": hma,
+    "PT2": pt2,
+    "PT3": pt3,
+    "PT4": pt4,
+    "PT5": pt5,
     "COUNTER": raw_cnt,
   }
 

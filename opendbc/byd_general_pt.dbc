@@ -117,14 +117,17 @@ BO_ 790 LKAS_HUD_ADAS: 8 XXX
  SG_ SET_ME_X5F : 31|8@0+ (1,0) [0|255] "" XXX
  SG_ SET_ME_1_2 : 32|1@0+ (1,0) [0|1] "" XXX
  SG_ SETTINGS : 48|4@1+ (1,0) [0|15] "" XXX
- SG_ SET_ME_1_1 : 0|1@0+ (1,0) [0|1] "" XXX
- SG_ UNKNOWN1 : 1|1@0+ (1,0) [0|1] "" XXX
- SG_ SET_ME_0 : 47|8@0+ (1,0) [0|255] "" XXX
  SG_ STEER_ACTIVE_1_3 : 35|1@0+ (1,0) [0|1] "" XXX
  SG_ STEER_ACTIVE_1_2 : 37|1@0+ (1,0) [0|1] "" XXX
  SG_ HAND_ON_WHEEL_WARNING : 10|1@0+ (1,0) [0|1] "" XXX
  SG_ STEER_ACTIVE_1_1 : 5|1@0+ (1,0) [0|1] "" XXX
  SG_ LSS_STATE : 7|2@0+ (1,0) [0|1] "" XXX
+ SG_ HMA : 4|5@0+ (1,0) [0|7] "" XXX
+ SG_ PT2 : 11|5@1+ (1,0) [0|31] "" XXX
+ SG_ PT3 : 8|2@1+ (1,0) [0|3] "" XXX
+ SG_ PT4 : 39|2@0+ (1,0) [0|3] "" XXX
+ SG_ PT5 : 33|2@1+ (1,0) [0|3] "" XXX
+ SG_ TSR : 47|8@0+ (1,0) [0|255] "" XXX
 
 BO_ 814 ACC_CMD: 8 XXX
  SG_ ACCEL_CMD : 0|8@1+ (1,-100) [0|255] "" XXX

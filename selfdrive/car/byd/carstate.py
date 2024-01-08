@@ -16,9 +16,30 @@ class CarState(CarStateBase):
     self.prev_angle = 0
     self.lss_state = 0
     self.lss_alert = 0
+    self.tsr = 0
+    self.ahb = 0
+    self.passthrough = 0
+    self.lka_on = 0
+    self.HMA = 0
+    self.pt2 = 0
+    self.pt3 = 0
+    self.pt4 = 0
+    self.pt5 = 0
+    self.lkas_rdy_btn = False
 
   def update(self, cp):
     ret = car.CarState.new_message()
+
+    self.tsr = cp.vl["LKAS_HUD_ADAS"]['TSR']
+    self.lka_on = cp.vl["LKAS_HUD_ADAS"]['STEER_ACTIVE_ACTIVE_LOW']
+    self.lkas_rdy_btn = cp.vl["PCM_BUTTONS"]['LKAS_ON_BTN']
+    self.abh = cp.vl["LKAS_HUD_ADAS"]['SET_ME_XFF']
+    self.passthrough = cp.vl["LKAS_HUD_ADAS"]['SET_ME_X5F']
+    self.HMA = cp.vl["LKAS_HUD_ADAS"]['HMA']
+    self.pt2 = cp.vl["LKAS_HUD_ADAS"]['PT2']
+    self.pt3 = cp.vl["LKAS_HUD_ADAS"]['PT3']
+    self.pt4 = cp.vl["LKAS_HUD_ADAS"]['PT4']
+    self.pt5 = cp.vl["LKAS_HUD_ADAS"]['PT5']
 
     # EV irrelevant messages
     ret.brakeHoldActive = False
@@ -85,15 +106,18 @@ class CarState(CarStateBase):
     if bool(cp.vl["ACC_CMD"]["ACC_REQ_NOT_STANDSTILL"]):
       self.is_cruise_latch = True
 
-    ret.cruiseState.speedCluster = max(int(cp.vl["ACC_HUD_ADAS"]['SET_SPEED']), 30) * CV.KPH_TO_MS
+    # byd speedCluster will follow wheelspeed if cruiseState is not available
+    if ret.cruiseState.available:
+      ret.cruiseState.speedCluster = max(int(cp.vl["ACC_HUD_ADAS"]['SET_SPEED']), 30) * CV.KPH_TO_MS
+    else:
+      ret.cruiseState.speedCluster = 0
+
     ret.cruiseState.speed = ret.cruiseState.speedCluster
     ret.cruiseState.standstill = bool(cp.vl["ACC_CMD"]["STANDSTILL_STATE"])
     ret.cruiseState.nonAdaptive = False
 
-    if not ret.cruiseState.available:
-      self.is_cruise_latch = False
-
-    if ret.brakePressed:
+    stock_acc_on =  bool(cp.vl["ACC_CMD"]["ACC_CONTROLLABLE_AND_ON"])
+    if not ret.cruiseState.available or ret.brakePressed or not stock_acc_on:
       self.is_cruise_latch = False
 
     ret.cruiseState.enabled = self.is_cruise_latch
@@ -146,9 +170,20 @@ class CarState(CarStateBase):
       ("RIGHT_APPROACH", "BSM", 0),
       ("STANDSTILL_STATE", "ACC_CMD", 0),
       ("ACC_REQ_NOT_STANDSTILL", "ACC_CMD", 0),
+      ("ACC_CONTROLLABLE_AND_ON", "ACC_CMD", 0),
       ("SET_BTN", "PCM_BUTTONS", 0),
       ("RES_BTN", "PCM_BUTTONS", 0),
       ("LSS_STATE", "LKAS_HUD_ADAS", 0),
+      ("TSR", "LKAS_HUD_ADAS", 0),
+      ("HMA", "LKAS_HUD_ADAS", 0),
+      ("PT2", "LKAS_HUD_ADAS", 0),
+      ("PT3", "LKAS_HUD_ADAS", 0),
+      ("PT4", "LKAS_HUD_ADAS", 0),
+      ("PT5", "LKAS_HUD_ADAS", 0),
+      ("SET_ME_X5F", "LKAS_HUD_ADAS", 0),
+      ("SET_ME_XFF", "LKAS_HUD_ADAS", 0),
+      ("LKAS_ON_BTN", "PCM_BUTTONS", 0),
+      ("STEER_ACTIVE_ACTIVE_LOW", "LKAS_HUD_ADAS", 0),
       ("SETTINGS", "LKAS_HUD_ADAS", 0)
     ]
     checks = []
