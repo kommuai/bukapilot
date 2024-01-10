@@ -5,7 +5,7 @@ from selfdrive.car.toyota.toyotacan import create_steer_command, create_ui_comma
                                            create_accel_command, create_acc_cancel_command, \
                                            create_fcw_command, create_lta_steer_command
 from selfdrive.car.toyota.values import CAR, STATIC_DSU_MSGS, NO_STOP_TIMER_CAR, TSS2_CAR, \
-                                        MIN_ACC_SPEED, PEDAL_TRANSITION, CarControllerParams
+                                        MIN_ACC_SPEED, PEDAL_TRANSITION, CarControllerParams, EV_HYBRID_CAR
 from opendbc.can.packer import CANPacker
 from common.realtime import DT_CTRL
 VisualAlert = car.CarControl.HUDControl.VisualAlert
@@ -91,7 +91,7 @@ class CarController():
     pcm_accel_cmd = clip(actuators.accel, CarControllerParams.ACCEL_MIN, CarControllerParams.ACCEL_MAX)
 
     # throttle accel if it goes above 3200 rpm, happens with Toyota Alphards and Vellfires
-    if CS.rpm > 3200 and active:
+    if CS.rpm > 3200 and active and CS.CP.carFingerprint not in EV_HYBRID_CAR:
       pcm_accel_cmd = 0.2
 
     # steer torque
