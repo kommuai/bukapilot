@@ -132,6 +132,14 @@ class CarInterface(CarInterfaceBase):
       ret.mass = 3060. * CV.LB_TO_KG + STD_CARGO_KG
       set_lat_tune(ret.lateralTuning, LatTunes.PID_D)
 
+    elif candidate in (CAR.CROSSH_TSS2):
+      stop_and_go = True
+      ret.wheelbase = 2.64
+      ret.steerRatio = 13.9
+      tire_stiffness_factor = 0.444  # not optimized yet
+      ret.mass = 1430. + STD_CARGO_KG
+      set_lat_tune(ret.lateralTuning, LatTunes.PID_D)
+
     elif candidate in (CAR.LEXUS_ES_TSS2, CAR.LEXUS_ESH_TSS2, CAR.LEXUS_ESH):
       stop_and_go = True
       ret.wheelbase = 2.8702
@@ -235,6 +243,9 @@ class CarInterface(CarInterfaceBase):
     elif candidate == (CAR.LEXUS_NX_TSS2):
       ret.stoppingDecelRate = 0.3  # reach stopping target smoothly
       set_long_tune(ret.longitudinalTuning, LongTunes.LEXUS)
+    elif candidate == (CAR.CROSSH_TSS2):
+      ret.stoppingDecelRate = 0.3  # reach stopping target smoothly
+      set_long_tune(ret.longitudinalTuning, LongTunes.CROSS_HYBRID)
     elif candidate in TSS2_CAR:
       set_long_tune(ret.longitudinalTuning, LongTunes.TSS2)
       ret.stoppingDecelRate = 0.3  # reach stopping target smoothly
