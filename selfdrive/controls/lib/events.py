@@ -468,6 +468,14 @@ EVENTS: Dict[int, Dict[str, Union[Alert, AlertCallbackType]]] = {
     ET.WARNING: below_steer_speed_alert,
   },
 
+  EventName.aboveSteerSpeed: {
+    ET.WARNING: Alert(
+      "Back to operational speed",
+      "",
+      AlertStatus.normal, AlertSize.small,
+      Priority.LOW, VisualAlert.none, AudibleAlert.prompt, .1),
+  },
+
   EventName.belowLaneChangeSpeed: {
     ET.WARNING: Alert(
       "Below Auto Lane Change Speed",
