@@ -469,11 +469,11 @@ EVENTS: Dict[int, Dict[str, Union[Alert, AlertCallbackType]]] = {
   },
 
   EventName.aboveSteerSpeed: {
-    ET.WARNING: Alert(
-      "Back to operational speed",
+    ET.PERMANENT: Alert(
+      "Lane Keep Assist Operational",
       "",
       AlertStatus.normal, AlertSize.small,
-      Priority.LOW, VisualAlert.none, AudibleAlert.prompt, .1),
+      Priority.LOW, VisualAlert.none, AudibleAlert.prompt, .2, creation_delay=1.0),
   },
 
   EventName.belowLaneChangeSpeed: {
