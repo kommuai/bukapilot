@@ -333,14 +333,19 @@ class CarInterface(CarInterfaceBase):
             events.add(EventName.buttonCancel)
 
     # low speed steer alert hysteresis logic (only for cars with steer cut off above 10 m/s)
+    self.operational_speed = False
     if ret.vEgo < (self.CP.minSteerSpeed) and self.CP.minSteerSpeed > 10.:
       self.low_speed_alert = True
     if ret.vEgo > (self.CP.minSteerSpeed + .1):
       self.low_speed_alert = False
-      events.add(car.CarEvent.EventName.pcmEnable)
+    if ret.vEgo >= (self.CP.minSteerSpeed) and ret.vEgo < (self.CP.minSteerSpeed + 1.0):
+      self.operational_speed = True
+
+    if self.operational_speed:
+      events.add(car.CarEvent.EventName.aboveSteerSpeed)
 
     if self.low_speed_alert:
-      events.add(car.CarEvent.EventName.aboveSteerSpeed)
+      events.add(car.CarEvent.EventName.belowSteerSpeed)
 
     ret.events = events.to_msg()
 
