@@ -177,7 +177,7 @@ class CarInterface(CarInterfaceBase):
       ret.steerRatio = 13.7
       tire_stiffness_factor = 0.444  # not optimized yet
       ret.mass = 4070 * CV.LB_TO_KG + STD_CARGO_KG
-      set_lat_tune(ret.lateralTuning, LatTunes.PID_C)
+      set_lat_tune(ret.lateralTuning, LatTunes.PID_L)
 
     elif candidate == CAR.PRIUS_TSS2:
       stop_and_go = True
