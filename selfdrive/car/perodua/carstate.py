@@ -212,7 +212,7 @@ class CarState(CarStateBase):
       self.is_cruise_latch = False
 
     # set speed in range of 30 - 130kmh only
-    self.cruise_speed = max(min(self.cruise_speed, 130 * CV.KPH_TO_MS), 30 * CV.KPH_TO_MS)
+    self.cruise_speed = max(min(self.cruise_speed, 150 * CV.KPH_TO_MS), 30 * CV.KPH_TO_MS)
     ret.cruiseState.speedCluster = self.cruise_speed
     ret.cruiseState.speed = ret.cruiseState.speedCluster / interp(ret.vEgo, [0,140], [1.0615,1.0170])
 
