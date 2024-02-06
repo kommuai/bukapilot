@@ -166,7 +166,7 @@ class CarInterface(CarInterfaceBase):
     elif candidate in (CAR.LEXUS_NXH, CAR.LEXUS_NX, CAR.LEXUS_NX_TSS2, CAR.LEXUS_NXH_TSS2):
       stop_and_go = True
       ret.wheelbase = 2.66
-      ret.steerRatio = 14.7
+      ret.steerRatio = 13.7
       tire_stiffness_factor = 0.444  # not optimized yet
       ret.mass = 4070 * CV.LB_TO_KG + STD_CARGO_KG
       set_lat_tune(ret.lateralTuning, LatTunes.PID_L)
