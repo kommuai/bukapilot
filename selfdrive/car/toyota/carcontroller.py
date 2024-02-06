@@ -123,6 +123,11 @@ class CarController():
       # Lexus IS uses a different cancellation message
       if pcm_cancel_cmd and CS.CP.carFingerprint in (CAR.LEXUS_IS, CAR.LEXUS_RC):
         can_sends.append(create_acc_cancel_command(self.packer))
+      # Lexus 2018 no unplug DSU + using KommuActuator
+      elif CS.CP.carFingerprint in (CAR.LEXUS_NX):
+        if CS.out.standstill and (pcm_accel_cmd > 0):
+          # Send a quick gas command to resume SNG
+          can_sends.append(make_can_msg(512, b'\x01\x2F\x01\x2F\x00\x01\x00\x00', 0))
       elif CS.CP.openpilotLongitudinalControl:
         can_sends.append(create_accel_command(self.packer, pcm_accel_cmd, pcm_cancel_cmd, self.standstill_req, lead, CS.acc_type, CS.distance_btn))
         self.accel = pcm_accel_cmd

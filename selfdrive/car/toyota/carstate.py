@@ -126,7 +126,7 @@ class CarState(CarStateBase):
       self.low_speed_lockout = cp.vl["PCM_CRUISE_2"]["LOW_SPEED_LOCKOUT"] == 2
 
     self.pcm_acc_status = cp.vl["PCM_CRUISE"]["CRUISE_STATE"]
-    if self.CP.carFingerprint in NO_STOP_TIMER_CAR or self.CP.enableGasInterceptor:
+    if self.CP.carFingerprint in NO_STOP_TIMER_CAR or self.CP.enableGasInterceptor or self.CP.carFingerprint in (CAR.LEXUS_NX):
       # ignore standstill in hybrid vehicles, since pcm allows to restart without
       # receiving any special command. Also if interceptor is detected
       ret.cruiseState.standstill = False
