@@ -312,7 +312,7 @@ bool Device::motionTriggered(const UIState &s) {
   static float gyro_prev = 0;
 
   bool accel_trigger = abs(s.scene.accel_sensor - accel_prev) > 0.2;
-  bool gyro_trigger = abs(s.scene.gyro_sensor - gyro_prev) > 0.15;
+  bool gyro_trigger = 1;
 
   gyro_prev = s.scene.gyro_sensor;
   accel_prev = (accel_prev * (accel_samples - 1) + s.scene.accel_sensor) / accel_samples;
