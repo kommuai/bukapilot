@@ -37,7 +37,7 @@ bool set_time(char *timestr) {
     return false;
   char h[3] = {0}, m[3] = {0}, s[3] = {0};
   sscanf(timestr, "%c%c%c%c%c%c", &h[0], &h[1], &m[0], &m[1], &s[0], &s[1]);
-  sprintf(tcmd, "date +%%T -s \"%s:%s:%s\"", h, m, s);
+  sprintf(tcmd, "export TZ=UTC && date +%%T -s \"%s:%s:%s\"", h, m, s);
   return true;
 }
 

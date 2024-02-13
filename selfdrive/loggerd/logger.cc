@@ -103,10 +103,14 @@ kj::Array<capnp::word> logger_build_init_data() {
 
 std::string logger_get_route_name() {
   char route_name[64] = {'\0'};
-  time_t rawtime = time(NULL);
-  struct tm timeinfo;
-  localtime_r(&rawtime, &timeinfo);
-  strftime(route_name, sizeof(route_name), "%Y-%m-%d--%H-%M-%S", &timeinfo);
+  time_t rawtime;
+  struct tm *timeinfo;
+
+  time(&rawtime);
+
+  // Convert the time to UTC time
+  timeinfo = gmtime(&rawtime);
+  strftime(route_name, sizeof(route_name), "%Y-%m-%d--%H-%M-%S", timeinfo);
   return route_name;
 }
 
