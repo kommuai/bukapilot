@@ -19,6 +19,9 @@ class CarState(CarStateBase):
     else:  # preferred and elect gear methods use same definition
       self.shifter_values = can_define.dv["LVR12"]["CF_Lvr_Gear"]
 
+    self.operational_speed = False
+    self.counter = 0
+    self.prevEnAboveSteerSpeed = False
 
   def update(self, cp, cp_cam):
     ret = car.CarState.new_message()

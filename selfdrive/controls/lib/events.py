@@ -473,7 +473,7 @@ EVENTS: Dict[int, Dict[str, Union[Alert, AlertCallbackType]]] = {
       "Lane Keep Assist Operational",
       "",
       AlertStatus.normal, AlertSize.small,
-      Priority.LOW, VisualAlert.none, AudibleAlert.prompt, .2, creation_delay=1.0),
+      Priority.LOW, VisualAlert.none, AudibleAlert.prompt, 1.0, creation_delay=0.2),
   },
 
   EventName.belowLaneChangeSpeed: {
