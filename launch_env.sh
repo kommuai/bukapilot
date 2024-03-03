@@ -7,6 +7,16 @@ export OPENBLAS_NUM_THREADS=1
 export VECLIB_MAXIMUM_THREADS=1
 export QT_QPA_EVDEV_TOUCHSCREEN_PARAMETERS=/dev/input/event1:rotate=90
 
+file_path="/system/priv-app/plusneossetup/apk_v1"
+
+# Check if the file exists
+if [ -e "$file_path" ]; then
+    echo "File 'apk_v1' exists in /system/priv-app/plusneossetup/"
+else
+    echo "File 'apk_v1' does not exist in /system/priv-app/plusneossetup/"
+    bash install_neos_apk.sh
+fi
+
 if [ -z "$REQUIRED_NEOS_VERSION" ]; then
   export REQUIRED_NEOS_VERSION="19.1"
 fi
