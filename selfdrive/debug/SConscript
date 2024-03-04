@@ -1,0 +1,3 @@
+Import('common', 'env')
+
+env.Program("feature", ["feature.cc"], LIBS=[common, "zmq", "json11"])
