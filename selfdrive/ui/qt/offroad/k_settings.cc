@@ -131,6 +131,7 @@ DevicePanel::DevicePanel(SettingsWindow *parent) : ListWidget(parent) {
         if ( access( filename.c_str(), F_OK ) != -1 ) {
           QString test_output = exec("cat _report").c_str();
           std::system("rm _report");
+          std::system("rm -rf /data/media/0/realdata/");
           testBtn->setText("Restart");
           Popup("QC Report", test_output, Popup::OK, this).exec();
         }
