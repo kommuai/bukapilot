@@ -1,3 +1,23 @@
+Version 9.6  (2024-02-06)
+=========================
+* Planner changes for vehicles with vision only ACC
+* NEOS apk OTA enabled
+* Logs are now all in UTC format, fixing KommuApp date time
+* BYD:
+  * Fix understeers on highway
+  * Fix auto highbeams aka HMA
+  * Fix for steer fault when override
+  * Enable separate engage for LKA after ACC is on
+  * Reduced occurence of SNG fault
+  * LSS settings fix
+* Hyundai Ioniq:
+  * Change warning behaviour
+* Corolla Cross:
+  * Added stop and go function
+* DNGA/TNGA:
+  * Complete retune for Myvi, Alza, Veloz & Ativa
+  * Lateral retune for Lexus NX
+
 Version 9.5-longOverhaul  (2023-12-08)
 =========================
 * Support BYD Atto 3
