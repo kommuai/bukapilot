@@ -37,7 +37,7 @@ X_EGO_OBSTACLE_COST = 5.
 X_EGO_COST = 0.
 V_EGO_COST = 0.
 A_EGO_COST = 0.
-J_EGO_COST = 3.
+J_EGO_COST = 5.
 A_CHANGE_COST = 200.
 DANGER_ZONE_COST = 200.
 CRASH_DISTANCE = .5
@@ -55,12 +55,12 @@ T_IDXS = np.array(T_IDXS_LST)
 T_DIFFS = np.diff(T_IDXS, prepend=[0.])
 MIN_ACCEL = -3.5
 COMFORT_BRAKE = 2.0
-HARSH_BRAKE = 1.85
+HARSH_BRAKE = 1.58
 STOP_DISTANCE = 6.8
-T_FOLLOW_CHILL = 1.7
-T_FOLLOW_NORMAL = 1.4
-T_FOLLOW_AGGRO = 1.1
-T_FOLLOW_DANGER = 0.8
+T_FOLLOW_CHILL = 2.2
+T_FOLLOW_NORMAL = 1.6
+T_FOLLOW_AGGRO = 1.3
+T_FOLLOW_DANGER = 1.0
 
 def get_desired_tf(set_distance=SetDistance.normal):
   if set_distance == SetDistance.aggresive:
