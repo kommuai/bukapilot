@@ -80,10 +80,26 @@ def create_accel_command(packer, accel, enabled, brake_hold, raw_cnt):
   return packer.make_can_msg("ACC_CMD", 0, values)
 
 # 50hz
-def create_lkas_hud(packer, enabled, pt, raw_cnt):
+def create_lkas_hud(packer, enabled, lss_state, lss_alert, tsr, ahb, passthrough, hma, pt2, pt3, pt4, pt5, lka_on, raw_cnt):
 
   values = {
-    "NEW_SIGNAL_1": pt,
+    "STEER_ACTIVE_ACTIVE_LOW": lka_on, # not enabled,
+    "STEER_ACTIVE_1_1": enabled and lka_on, # Left lane visible
+    "STEER_ACTIVE_1_2": enabled and lka_on, # steering wheel between lanes icon, lkas active
+    "STEER_ACTIVE_1_3": enabled and lka_on, # Right lane visible
+    "LSS_STATE": lss_state,
+    "SET_ME_1_2": 1,
+    "SETTINGS": lss_alert,
+    "SET_ME_X5F": ahb,
+    "SET_ME_XFF": passthrough,
+    "HAND_ON_WHEEL_WARNING": 0,           # TODO integrate warning signs when steer limited
+    "TSR": tsr,
+    "HMA": hma,
+    "PT2": pt2,
+    "PT3": pt3,
+    "PT4": pt4,
+    "PT5": pt5,
+    "COUNTER": raw_cnt,
   }
 
   dat = packer.make_can_msg("LKAS_HUD_ADAS", 0, values)[2]

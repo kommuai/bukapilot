@@ -14,12 +14,32 @@ class CarState(CarStateBase):
     self.set_distance_values = can_define.dv['ACC_HUD_ADAS']['SET_DISTANCE']
     self.is_cruise_latch = False
     self.prev_angle = 0
+    self.lss_state = 0
+    self.lss_alert = 0
+    self.tsr = 0
+    self.ahb = 0
     self.passthrough = 0
+    self.lka_on = 0
+    self.HMA = 0
+    self.pt2 = 0
+    self.pt3 = 0
+    self.pt4 = 0
+    self.pt5 = 0
+    self.lkas_rdy_btn = False
 
   def update(self, cp):
     ret = car.CarState.new_message()
 
-    self.passthrough = cp.vl["LKAS_HUD_ADAS"]['NEW_SIGNAL_1']
+    self.tsr = cp.vl["LKAS_HUD_ADAS"]['TSR']
+    self.lka_on = cp.vl["LKAS_HUD_ADAS"]['STEER_ACTIVE_ACTIVE_LOW']
+    self.lkas_rdy_btn = cp.vl["PCM_BUTTONS"]['LKAS_ON_BTN']
+    self.abh = cp.vl["LKAS_HUD_ADAS"]['SET_ME_XFF']
+    self.passthrough = cp.vl["LKAS_HUD_ADAS"]['SET_ME_X5F']
+    self.HMA = cp.vl["LKAS_HUD_ADAS"]['HMA']
+    self.pt2 = cp.vl["LKAS_HUD_ADAS"]['PT2']
+    self.pt3 = cp.vl["LKAS_HUD_ADAS"]['PT3']
+    self.pt4 = cp.vl["LKAS_HUD_ADAS"]['PT4']
+    self.pt5 = cp.vl["LKAS_HUD_ADAS"]['PT5']
     self.counter_pcm_buttons = cp.vl["PCM_BUTTONS"]['COUNTER']
 
     # EV irrelevant messages
@@ -115,6 +135,8 @@ class CarState(CarStateBase):
       ret.leftBlindspot = bool(cp.vl["BSM"]["LEFT_APPROACH"])
       ret.rightBlindspot = bool(cp.vl["BSM"]["RIGHT_APPROACH"])
 
+    self.lss_state = cp.vl["LKAS_HUD_ADAS"]["LSS_STATE"]
+    self.lss_alert = cp.vl["LKAS_HUD_ADAS"]["SETTINGS"]
     return ret
 
 
@@ -152,9 +174,19 @@ class CarState(CarStateBase):
       ("ACC_CONTROLLABLE_AND_ON", "ACC_CMD", 0),
       ("SET_BTN", "PCM_BUTTONS", 0),
       ("RES_BTN", "PCM_BUTTONS", 0),
-      ("NEW_SIGNAL_1", "LKAS_HUD_ADAS", 0),
+      ("LSS_STATE", "LKAS_HUD_ADAS", 0),
+      ("TSR", "LKAS_HUD_ADAS", 0),
+      ("HMA", "LKAS_HUD_ADAS", 0),
+      ("PT2", "LKAS_HUD_ADAS", 0),
+      ("PT3", "LKAS_HUD_ADAS", 0),
+      ("PT4", "LKAS_HUD_ADAS", 0),
+      ("PT5", "LKAS_HUD_ADAS", 0),
+      ("SET_ME_X5F", "LKAS_HUD_ADAS", 0),
+      ("SET_ME_XFF", "LKAS_HUD_ADAS", 0),
       ("LKAS_ON_BTN", "PCM_BUTTONS", 0),
       ("COUNTER", "PCM_BUTTONS", 0),
+      ("STEER_ACTIVE_ACTIVE_LOW", "LKAS_HUD_ADAS", 0),
+      ("SETTINGS", "LKAS_HUD_ADAS", 0)
     ]
     checks = []
 
