@@ -55,8 +55,8 @@ T_IDXS = np.array(T_IDXS_LST)
 T_DIFFS = np.diff(T_IDXS, prepend=[0.])
 MIN_ACCEL = -3.5
 COMFORT_BRAKE = 2.0
-HARSH_BRAKE = 1.58
-STOP_DISTANCE = 6.8
+HARSH_BRAKE = 1.6
+STOP_DISTANCE = 6.4
 T_FOLLOW_CHILL = 2.2
 T_FOLLOW_NORMAL = 1.6
 T_FOLLOW_AGGRO = 1.3
@@ -260,9 +260,9 @@ class LongitudinalMpc:
   # test them using test/test_longitudinal.py
   def get_cost_multipliers(self):
     tfs = [T_FOLLOW_AGGRO, T_FOLLOW_NORMAL, T_FOLLOW_CHILL]
-    a_change_tf = interp(self.desired_tf, tfs, [0.5, 1., 1.])
-    j_ego_tf = interp(self.desired_tf, tfs, [0.5, 1., 1.])
-    d_zone_tf = interp(self.desired_tf, tfs, [2., 1., 1.])
+    a_change_tf = interp(self.desired_tf, tfs, [0.5, 0.8, 1.])
+    j_ego_tf = interp(self.desired_tf, tfs, [0.5, 0.8, 1.])
+    d_zone_tf = interp(self.desired_tf, tfs, [2., 1.5, 1.])
     return (a_change_tf, j_ego_tf, d_zone_tf)
 
   def set_weights_for_lead_policy(self):
