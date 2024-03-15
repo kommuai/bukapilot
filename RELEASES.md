@@ -1,4 +1,4 @@
-Version 9.6  (2024-02-06)
+Version 9.6.1  (2024-03-06)
 =========================
 * Planner changes for vehicles with vision only ACC
 * NEOS apk OTA enabled
