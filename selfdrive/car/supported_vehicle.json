@@ -51,13 +51,25 @@
     {
       "brand": "Honda",
       "model": "City",
-      "year": "2019-2024",
+      "year": "2019-2023",
       "variant": "V-Sensing, RS",
       "acc_low_speed": false,
       "acc_speed_range": "30 - 145",
       "acc_stop_and_go": false,
       "lkc_torque": "High",
       "lkc_speed_range": "30 - 145",
+      "max_steering_angle": "45°"
+    },
+    {
+      "brand": "Honda",
+      "model": "City FL",
+      "year": "2024",
+      "variant": "RS Hybrid",
+      "acc_low_speed": true,
+      "acc_speed_range": "0 - 145",
+      "acc_stop_and_go": true,
+      "lkc_torque": "High",
+      "lkc_speed_range": "0 - 145",
       "max_steering_angle": "45°"
     },
     {
@@ -125,18 +137,6 @@
       "model": "Corolla Cross",
       "year": "2022-2023",
       "variant": "V, Hybrid",
-      "acc_low_speed": true,
-      "acc_speed_range": "0 - 125",
-      "acc_stop_and_go": true,
-      "lkc_torque": "High",
-      "lkc_speed_range": "0 - 125",
-      "max_steering_angle": "60°"
-    },
-    {
-      "brand": "Toyota",
-      "model": "Prius",
-      "year": "2021-2022",
-      "variant": "All",
       "acc_low_speed": true,
       "acc_speed_range": "0 - 125",
       "acc_stop_and_go": true,
