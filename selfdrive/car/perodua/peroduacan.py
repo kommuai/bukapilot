@@ -135,7 +135,7 @@ def perodua_create_accel_command(packer, set_speed, acc_rdy, enabled, is_lead, d
   values = {
     "SET_SPEED": set_speed * CV.MS_TO_KPH,
     "FOLLOW_DISTANCE": compute_set_distance(set_distance),
-    "IS_LEAD": is_lead,
+    "IS_LEAD": enabled,
     "IS_ACCEL": (not is_braking) and enabled,
     "IS_DECEL": is_braking and enabled,
     "SET_ME_1_2": acc_rdy, #rdy buton
