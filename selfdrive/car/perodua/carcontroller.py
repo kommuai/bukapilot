@@ -216,13 +216,13 @@ class CarController():
         # the accel is too high at lower speed below 5kmh
         boost = interp(CS.out.vEgo, [0.2, 0.5], [0., 1.0])
         des_speed = actuators.speed + (actuators.accel * boost)
-        can_sends.append(perodua_create_accel_command(self.packer, CS.out.cruiseState.speedCluster,
-                                                      CS.out.cruiseState.available, enabled, lead_visible,
-                                                      des_speed, apply_brake, pump, CS.out.cruiseState.setDistance))
+        #can_sends.append(perodua_create_accel_command(self.packer, CS.out.cruiseState.speedCluster,
+        #                                              CS.out.cruiseState.available, enabled, lead_visible,
+        #                                              des_speed, apply_brake, pump, CS.out.cruiseState.setDistance))
 
         # Let stock AEB kick in only when system not engaged
         aeb = not enabled and CS.out.stockAdas.aebV
-        can_sends.append(perodua_create_brake_command(self.packer, enabled, brake_req, pump, apply_brake, aeb, (frame/5) % 8))
+        #can_sends.append(perodua_create_brake_command(self.packer, enabled, brake_req, pump, apply_brake, aeb, (frame/5) % 8))
         can_sends.append(perodua_create_hud(self.packer, CS.out.cruiseState.available, enabled, llane_visible, rlane_visible, self.stockLdw, CS.out.stockFcw, CS.out.stockAeb, CS.out.stockAdas.frontDepartureHUD, CS.stock_lkc_off, CS.stock_fcw_off))
 
     # KommuActuator controls

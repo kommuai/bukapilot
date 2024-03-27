@@ -212,6 +212,7 @@ class CarInterface(CarInterfaceBase):
       ret.lateralParams.torqueBP, ret.lateralParams.torqueV = [[0.], [255]]
 
     elif candidate == CAR.YARIS_CROSS:
+      ret.safetyConfigs[0].safetyParam = 2 # TODO: To be removed after long is enabled
       ret.wheelbase = 2.560
       ret.steerRatio = 17.00
       ret.centerToFront = ret.wheelbase * 0.44
