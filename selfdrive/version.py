@@ -7,7 +7,7 @@ from functools import lru_cache
 from common.basedir import BASEDIR
 from selfdrive.swaglog import cloudlog
 
-TESTED_BRANCHES = ['release']
+TESTED_BRANCHES = ['release','jb_run']
 
 training_version: bytes = b"0.2.0"
 terms_version: bytes = b"2"
