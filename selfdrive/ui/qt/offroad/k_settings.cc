@@ -74,6 +74,15 @@ TogglesPanel::TogglesPanel(SettingsWindow *parent) : ListWidget(parent) {
       "../assets/offroad/icon_speed_limit.png",
     });
   }
+  if (params.getBool("StockAccToggle_Allow")) {
+    toggles.push_back({
+      "UseStockAcc",
+      "Stock Longitudinal Control",
+      "bukapilot will use the stock ACC instead of bukapilot's ACC.",
+      "../assets/offroad/icon_speed_limit.png",
+    });
+  }
+
 
   for (auto &[param, title, desc, icon] : toggles) {
     auto toggle = new ParamControl(param, title, desc, icon, this);

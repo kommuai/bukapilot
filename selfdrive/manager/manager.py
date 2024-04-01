@@ -139,6 +139,9 @@ def manager_init() -> None:
     params.put("FeaturesDict", json.dumps(new_dict))
     Features().set_package("default")
 
+  if Features().has("StockAcc"):
+    params.put("StockAccToggle_Allow", b'1')
+
   # set dongle id
   reg_res = register(show_spinner=True)
   if reg_res:
