@@ -9,6 +9,7 @@ from selfdrive.car.toyota.values import CAR, STATIC_DSU_MSGS, NO_STOP_TIMER_CAR,
 from opendbc.can.packer import CANPacker
 from common.realtime import DT_CTRL
 VisualAlert = car.CarControl.HUDControl.VisualAlert
+from common.params import Params
 
 # EPS faults if you apply torque while the steering rate is above 100deg/s for too long
 MAX_STEER_RATE = 100
@@ -65,6 +66,8 @@ class CarController():
     self.prev_ts = 0.
     self.standstill_status = BrakingStatus.STANDSTILL_INIT
     self.min_standstill_accel = 0
+
+    self.use_stock_acc = Params().getBool("UseStockAcc")
 
   def update(self, enabled, active, CS, frame, actuators, pcm_cancel_cmd, hud_alert,
              left_line, right_line, lead, left_lane_depart, right_lane_depart):
@@ -136,6 +139,12 @@ class CarController():
 
     can_sends = []
 
+    if frame < 10:
+      if self.use_stock_acc:
+        can_sends.append(make_can_msg(32, b'\x01\x00\x00\x00\x00\x00\x00\x00', 0))
+      else:
+        can_sends.append(make_can_msg(32, b'\x00\x00\x00\x00\x00\x00\x00\x00', 0))
+
     if frame < 1000:
       can_sends.append(make_can_msg(2015, b'\x01\x04\x00\x00\x00\x00\x00\x00', 0))
 
@@ -166,7 +175,7 @@ class CarController():
         if CS.out.standstill and (pcm_accel_cmd > 0):
           # Send a quick gas command to resume SNG
           can_sends.append(make_can_msg(512, b'\x01\x2F\x01\x2F\x00\x01\x00\x00', 0))
-      elif CS.CP.openpilotLongitudinalControl:
+      elif CS.CP.openpilotLongitudinalControl and not self.use_stock_acc:
 
         # standstill logic
         if enabled and pcm_accel_cmd > 0 and CS.out.standstill and CS.CP.carFingerprint == CAR.COROLLA_TSS2:
