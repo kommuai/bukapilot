@@ -2,7 +2,7 @@ from cereal import car
 from selfdrive.car import make_can_msg
 from selfdrive.car.perodua.peroduacan import create_steer_command, perodua_create_gas_command, \
                                              perodua_aeb_warning, create_can_steer_command, \
-                                             perodua_create_accel_command, \
+                                             perodua_create_accel_command, create_sng_resume, \
                                              perodua_create_brake_command, perodua_create_hud
 from selfdrive.car.perodua.values import ACC_CAR, CAR, DBC, NOT_CAN_CONTROLLED, BRAKE_SCALE, GAS_SCALE, SNG_CAR
 from selfdrive.controls.lib.desire_helper import LANE_CHANGE_SPEED_MIN
@@ -201,6 +201,9 @@ class CarController():
       # CAN controlled longitudinal
       if (frame % 5) == 0 and CS.CP.openpilotLongitudinalControl:
 
+        if enabled and CS.out.standstill:
+          can_sends.append(create_sng_resume(self.packer, (frame/5) % 8))
+
         # standstill logic
         if enabled and apply_brake > 0 and CS.out.standstill and CS.CP.carFingerprint not in SNG_CAR:
           if self.standstill_status == BrakingStatus.STANDSTILL_INIT:
@@ -223,7 +226,7 @@ class CarController():
         # Let stock AEB kick in only when system not engaged
         aeb = not enabled and CS.out.stockAdas.aebV
         #can_sends.append(perodua_create_brake_command(self.packer, enabled, brake_req, pump, apply_brake, aeb, (frame/5) % 8))
-        can_sends.append(perodua_create_hud(self.packer, CS.out.cruiseState.available, enabled, llane_visible, rlane_visible, self.stockLdw, CS.out.stockFcw, CS.out.stockAeb, CS.out.stockAdas.frontDepartureHUD, CS.stock_lkc_off, CS.stock_fcw_off))
+        #can_sends.append(perodua_create_hud(self.packer, CS.out.cruiseState.available, enabled, llane_visible, rlane_visible, self.stockLdw, CS.out.stockFcw, CS.out.stockAeb, CS.out.stockAdas.frontDepartureHUD, CS.stock_lkc_off, CS.stock_fcw_off))
 
     # KommuActuator controls
     else:
