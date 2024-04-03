@@ -42,7 +42,7 @@ class CarController():
       if not CS.lka_on and CS.lkas_rdy_btn:
         self.lka_active = False
 
-      lat_active = enabled and abs(CS.out.steeringAngleDeg) < 60 and self.lka_active # temporary hardcode 60 because if 90 degrees it will fault
+      lat_active = enabled and abs(CS.out.steeringAngleDeg) < 60 and self.lka_active and not CS.out.standstill # temporary hardcode 60 because if 90 degrees it will fault
       brake_hold = False
       can_sends.append(create_can_steer_command(self.packer, apply_angle, lat_active, CS.out.standstill, (frame/2) % 16))
 #      can_sends.append(create_accel_command(self.packer, actuators.accel, enabled, brake_hold, (frame/2) % 16))
