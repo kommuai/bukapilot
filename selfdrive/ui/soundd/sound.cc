@@ -52,7 +52,12 @@ void Sound::update() {
   if (sm.updated("carState")) {
     float volume = util::map_val(sm["carState"].getCarState().getVEgo(), 11.f, 20.f, 0.f, 1.0f);
     volume = QAudio::convertVolume(volume, QAudio::LogarithmicVolumeScale, QAudio::LinearVolumeScale);
-    volume = util::map_val(volume, 0.f, 1.f, Hardware::MIN_VOLUME, Hardware::MAX_VOLUME);
+    if (params.getBool("QuietMode")) {
+      volume = util::map_val(volume, 0.f, 1.f, Hardware::MIN_VOLUME_QUIET_MODE, Hardware::MAX_VOLUME_QUIET_MODE);
+    }
+    else {
+      volume = util::map_val(volume, 0.f, 1.f, Hardware::MIN_VOLUME, Hardware::MAX_VOLUME);
+    }
     for (auto &[s, loops] : sounds) {
       s->setVolume(std::round(100 * volume) / 100);
     }
