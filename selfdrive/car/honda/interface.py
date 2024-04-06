@@ -111,8 +111,7 @@ class CarInterface(CarInterfaceBase):
       ret.steerRatio = 15.38  # 10.93 is end-to-end spec
       ret.lateralParams.torqueBP, ret.lateralParams.torqueV = [[0, 4096], [0, 4096]]  # TODO: determine if there is a dead zone at the top end
       tire_stiffness_factor = 1.
-      ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP = [[0., 5.9, 6.], [0., 5.9, 6.]]
-      ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0, 0, 0.8], [0, 0, 0.24]]
+      ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.8], [0.24]]
 
     elif candidate in (CAR.CITY_BOSCH):
       stop_and_go = True
@@ -123,6 +122,8 @@ class CarInterface(CarInterfaceBase):
       ret.lateralParams.torqueBP, ret.lateralParams.torqueV = [[0, 4096], [0, 4096]]  # TODO: determine if there is a dead zone at the top end
       tire_stiffness_factor = 1.
       ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.8], [0.24]]
+      ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP = [[0., 5.9, 6.], [0., 5.9, 6.]]
+      ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0, 0, 0.8], [0, 0, 0.24]]
 
 
 
