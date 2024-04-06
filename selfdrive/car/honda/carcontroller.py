@@ -74,6 +74,17 @@ def brake_pump_hysteresis(apply_brake, apply_brake_last, last_pump_ts, ts):
   return pump_on, last_pump_ts
 
 
+PERIOD = 1.8 # second
+DUTY_CYCLE = 0.4 # %
+# pwm steer is used to pwm the steer request so it doesn't wobble during low speed for city hev
+def pwm_steer(counter):
+  if counter <= (PERIOD * DUTY_CYCLE / 0.01):
+    return True, counter + 1
+  if counter >= PERIOD / 0.01:
+    return False, 0
+
+  return False, counter + 1
+
 def process_hud_alert(hud_alert):
   # initialize to no alert
   fcw_display = 0
@@ -109,6 +120,8 @@ class CarController():
     self.speed = 0
     self.gas = 0
     self.brake = 0
+
+    self.pwm_counter = 0
 
     self.params = CarControllerParams(CP)
 
@@ -162,6 +175,13 @@ class CarController():
     if CS.CP.carFingerprint in HONDA_BOSCH and CS.CP.openpilotLongitudinalControl and False:
       if (frame % 10) == 0:
         can_sends.append((0x18DAB0F1, 0, b"\x02\x3E\x80\x00\x00\x00\x00\x00", 1))
+
+    # for city low speed steer logic, active for awhile, disable for awhile.
+    if CS.out.vEgo < 6:
+      steer_req, self.pwm_counter = pwm_steer(self.pwm_counter)
+      lkas_active &= steer_req
+    else:
+      self.pwm_counter = 0
 
     # Send steering command.
     idx = frame % 4

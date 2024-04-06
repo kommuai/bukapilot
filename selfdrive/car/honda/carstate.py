@@ -243,7 +243,7 @@ class CarState(CarStateBase):
       self.park_brake = 0  # TODO
 
     gear = int(cp.vl[self.gearbox_msg]["GEAR_SHIFTER"])
-    if self.CP.carFingerprint == CAR.CIVIC_BOSCH: # TODO: remove this hardcode
+    if self.CP.carFingerprint == CAR.CIVIC_BOSCH or self.CP.carFingerprint == CAR.CITY_BOSCH: # TODO: remove this hardcode
       ret.gearShifter = 2
 
     if self.CP.enableGasInterceptor:
