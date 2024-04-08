@@ -192,7 +192,7 @@ OffroadHome::OffroadHome(QWidget* parent) : QFrame(parent) {
   qr_label->setWordWrap(true);
   qr_label->setMaximumWidth(650);
   qr_layout->addWidget(qr_label);
-  auto qr_code = new QrWidget("https://kommu.ai", this);
+  auto qr_code = new QrWidget("https://onelink.to/kommuapp", this);
   qr_code->setFixedSize(300, 300);
   qr_layout->addWidget(qr_code);
   main_layout->addWidget(qr, 0, 1, 1, 2);
