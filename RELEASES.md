@@ -1,3 +1,10 @@
+Version 9.6.2  (2024-04-12)
+=========================
+* Quiet mode reduces warning sound
+* QR code on homepage links to KommuApp
+* Relax BYD lane keep during standstill
+* Support Honda City Hybrid RS
+
 Version 9.6  (2024-02-06)
 =========================
 * Planner changes for vehicles with vision only ACC
