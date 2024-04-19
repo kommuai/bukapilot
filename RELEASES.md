@@ -4,6 +4,7 @@ Version 9.6.2  (2024-04-12)
 * QR code on homepage links to KommuApp
 * Relax BYD lane keep during standstill
 * Support Honda City Hybrid RS
+* Hotfix X50 stop and go fault
 
 Version 9.6  (2024-02-06)
 =========================
