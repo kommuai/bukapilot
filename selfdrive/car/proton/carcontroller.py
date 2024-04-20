@@ -1,7 +1,7 @@
 from cereal import car
 from selfdrive.car import make_can_msg
 from selfdrive.car.proton.protoncan import create_can_steer_command, create_hud, create_lead_detect, send_buttons, create_acc_cmd
-from selfdrive.car.proton.values import CAR, DBC, BRAKE_SCALE, GAS_SCALE
+from selfdrive.car.proton.values import CAR, DBC
 from selfdrive.controls.lib.desire_helper import LANE_CHANGE_SPEED_MIN
 from opendbc.can.packer import CANPacker
 from common.numpy_fast import clip, interp

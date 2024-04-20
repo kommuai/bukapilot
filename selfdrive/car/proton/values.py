@@ -10,6 +10,7 @@ Ecu = car.CarParams.Ecu
 HUD_MULTIPLIER = 1.035
 
 class CAR:
+  S70 = "PROTON S70"
   X50 = "PROTON X50"
 
 FINGERPRINTS = {
@@ -19,11 +20,7 @@ FINGERPRINTS = {
 }
 
 DBC = {
+  CAR.S70: dbc_dict('proton_general_pt', None),
   CAR.X50: dbc_dict('proton_general_pt', None),
 }
-
-# Todo
-BRAKE_SCALE = defaultdict(lambda: 1, {CAR.X50: 1})
-# Todo
-GAS_SCALE = defaultdict(lambda: 1, {CAR.X50: 1})
 
