@@ -37,6 +37,8 @@ class CarState(CarStateBase):
 
     self.stock_lkc_off = True
     self.stock_fcw_off = True
+    self.lkas_rdy = True
+
   def update(self, cp):
     ret = car.CarState.new_message()
 
@@ -146,6 +148,7 @@ class CarState(CarStateBase):
       ret.stockAeb = bool(cp.vl["LKAS_HUD"]['AEB_BRAKE'])
       ret.stockFcw = bool(cp.vl["LKAS_HUD"]['AEB_ALARM'])
       self.stock_lkc_off = bool(cp.vl["LKAS_HUD"]['LDA_OFF'])
+      self.lkas_rdy = bool(cp.vl["LKAS_HUD"]['LKAS_SET'])
       self.stock_fcw_off = bool(cp.vl["LKAS_HUD"]['FCW_DISABLE'])
 
       ret.cruiseState.available = cp.vl["PCM_BUTTONS"]["ACC_RDY"] != 0
@@ -314,6 +317,7 @@ class CarState(CarStateBase):
       signals.append(("FCW_DISABLE", "LKAS_HUD", 0))
       signals.append(("LDA_RELATED1", "LKAS_HUD", 0))
       signals.append(("LDA_ALERT", "LKAS_HUD", 0))
+      signals.append(("LKAS_SET", "LKAS_HUD", 0))
       signals.append(("ACC_CMD", "ACC_CMD_HUD", 0))
       signals.append(("STEER_CMD", "STEERING_LKAS", 0))
       signals.append(("STEER_REQ", "STEERING_LKAS", 0))
