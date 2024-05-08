@@ -16,8 +16,8 @@ def apply_byd_steer_angle_limits(apply_angle, actual_angle, v_ego, LIMITS):
 
 class CarControllerParams():
   def __init__(self, CP):
-    self.ANGLE_RATE_LIMIT_UP = 6       # maximum allow 150 degree per second, 100Hz loop means 1.5
-    self.ANGLE_RATE_LIMIT_DOWN = 6
+    self.ANGLE_RATE_LIMIT_UP = 3       # maximum allow 150 degree per second, 100Hz loop means 1.5
+    self.ANGLE_RATE_LIMIT_DOWN = 3
 
 class CarController():
   def __init__(self, dbc_name, CP, VM):
@@ -42,7 +42,10 @@ class CarController():
       if not CS.lka_on and CS.lkas_rdy_btn:
         self.lka_active = False
 
-      lat_active = enabled and abs(CS.out.steeringAngleDeg) < 60 and self.lka_active and not CS.out.standstill # temporary hardcode 60 because if 90 degrees it will fault
+      if CS.out.steeringTorqueEps > 15:
+        apply_angle = CS.out.steeringAngleDeg
+
+      lat_active = enabled and abs(CS.out.steeringAngleDeg) < 90 and self.lka_active and not CS.out.standstill # temporary hardcode 60 because if 90 degrees it will fault
       brake_hold = False
 
 #      if CS.out.vEgo < 1 and actuators.accel > 0 and enabled:
