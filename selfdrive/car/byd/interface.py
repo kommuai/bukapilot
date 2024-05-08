@@ -25,6 +25,7 @@ class CarInterface(CarInterfaceBase):
     ret.steerLimitTimer = 0.1              # time before steerLimitAlert is issued
     ret.steerControlType = car.CarParams.SteerControlType.angle
     ret.steerActuatorDelay = 0.01          # Steering wheel actuator delay in seconds
+    ret.stopAccel = -0.25
 
     ret.enableGasInterceptor = False
     ret.openpilotLongitudinalControl = True
@@ -39,7 +40,7 @@ class CarInterface(CarInterfaceBase):
 
       # currently not in use, byd is using stock long
       ret.longitudinalTuning.kpBP = [0., 5., 20.]
-      ret.longitudinalTuning.kpV = [1.5, 1.3, 1.0]
+      ret.longitudinalTuning.kpV = [1.5, 1.2, 1.0]
       ret.longitudinalActuatorDelayLowerBound = 0.3
       ret.longitudinalActuatorDelayUpperBound = 0.4
 
@@ -51,8 +52,7 @@ class CarInterface(CarInterfaceBase):
     ret.longitudinalTuning.deadzoneBP = [0., 8.05, 20]
     ret.longitudinalTuning.deadzoneV = [0., 0., 0.]
     ret.longitudinalTuning.kiBP = [0., 5., 20.]
-    ret.longitudinalTuning.kiV = [0.32, 0.23, 0.12]
-    ret.longitudinalTuning.kiV = [0., 0., 0.]
+    ret.longitudinalTuning.kiV = [0.38, 0.30, 0.12]
 
     ret.minEnableSpeed = -1
     ret.enableBsm = True

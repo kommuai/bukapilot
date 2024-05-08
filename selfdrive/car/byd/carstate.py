@@ -118,7 +118,7 @@ class CarState(CarStateBase):
     ret.cruiseState.nonAdaptive = False
 
     stock_acc_on =  bool(cp.vl["ACC_CMD"]["ACC_CONTROLLABLE_AND_ON"])
-    if not ret.cruiseState.available or ret.brakePressed or not stock_acc_on:
+    if not ret.cruiseState.available or ret.brakePressed:
       self.is_cruise_latch = False
 
     ret.cruiseState.enabled = self.is_cruise_latch
