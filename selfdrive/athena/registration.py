@@ -35,7 +35,6 @@ def register(show_spinner=False) -> str:
 
   pubkey = Path(PERSIST+"/comma/id_rsa.pub")
   if not pubkey.is_file():
-    dongle_id = UNREGISTERED_DONGLE_ID
     cloudlog.warning(f"missing public key: {pubkey}")
   elif needs_registration:
     if show_spinner:
