@@ -54,7 +54,7 @@ def clear_locks(root):
 class Uploader():
   def __init__(self, dongle_id, root):
     self.dongle_id = dongle_id
-    self.api = Api(dongle_id)
+    #self.api = Api(dongle_id)
     self.root = root
 
     self.upload_thread = None
