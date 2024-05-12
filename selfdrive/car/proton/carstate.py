@@ -140,8 +140,8 @@ class CarState(CarStateBase):
     # blindspot sensors
     if self.CP.enableBsm:
       # used for lane change so its okay for the chime to work on both side.
-      ret.leftBlindspot = bool(cp.vl["BSM_ADAS"]["LEFT_APPROACH"])
-      ret.rightBlindspot = bool(cp.vl["BSM_ADAS"]["RIGHT_APPROACH"])
+      ret.leftBlindspot = bool(cp.vl["BSM_ADAS"]["LEFT_APPROACH"]) or bool(cp.vl["BSM_ADAS"]["LEFT_APPROACH_WARNING"])
+      ret.rightBlindspot = bool(cp.vl["BSM_ADAS"]["RIGHT_APPROACH"]) or bool(cp.vl["BSM_ADAS"]["RIGHT_APPROACH_WARNING"])
 
     # to delete
     ret.cruiseState.speedOffset = cp.vl["ADAS_LEAD_DETECT"]['LEAD_DISTANCE']
@@ -176,7 +176,9 @@ class CarState(CarStateBase):
       ("RIGHT_SIGNAL", "LEFT_STALK", 0),
       ("GENERIC_TOGGLE", "LEFT_STALK", 0),
       ("RIGHT_APPROACH", "BSM_ADAS", 0),
+      ("RIGHT_APPROACH_WARNING", "BSM_ADAS", 0),
       ("LEFT_APPROACH", "BSM_ADAS", 0),
+      ("LEFT_APPROACH_WARNING", "BSM_ADAS", 0),
       ("RIGHT_SIDE_SEATBELT_ACTIVE_LOW", "SEATBELTS", 0),
       ("BACK_LEFT_DOOR", "DOOR_LEFT_SIDE", 1),
       ("FRONT_LEFT_DOOR", "DOOR_LEFT_SIDE", 1),
