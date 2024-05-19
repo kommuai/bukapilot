@@ -96,7 +96,7 @@ class CarState(CarStateBase):
 
     # Todo: get the real value
     ret.stockAeb = False
-    ret.stockFcw = False
+    ret.stockFcw = bool(cp.vl["FCW"]["STOCK_FCW_TRIGGERED"])
 
     self.acc_req = bool(cp.vl["ACC_CMD"]["ACC_REQ"])
     ret.cruiseState.available = any([cp.vl["PCM_BUTTONS"]["ACC_ON_OFF_BUTTON"], cp.vl["PCM_BUTTONS"]["GAS_OVERRIDE"]])
@@ -194,6 +194,7 @@ class CarState(CarStateBase):
       ("STEER_CMD", "ADAS_LKAS", 1),
       ("LANE_DEPARTURE_WARNING_RIGHT", "LKAS", 1),
       ("LANE_DEPARTURE_WARNING_LEFT", "LKAS", 1),
+      ("STOCK_FCW_TRIGGERED", "FCW", 1),
     ]
     checks = []
 
