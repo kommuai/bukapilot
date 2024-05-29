@@ -25,6 +25,8 @@ class CarController():
     self.packer = CANPacker(DBC[CP.carFingerprint]['pt'])
     self.steer_rate_limited = False
     self.lka_active = False
+    self.send_resume = False
+    self.resume_counter = 0
 
   def update(self, enabled, CS, frame, actuators, lead_visible, rlane_visible, llane_visible, pcm_cancel, ldw):
     can_sends = []
@@ -51,9 +53,18 @@ class CarController():
 #      can_sends.append(create_accel_command(self.packer, actuators.accel, enabled, brake_hold, (frame/2) % 16))
       can_sends.append(create_lkas_hud(self.packer, enabled, CS.lss_state, CS.lss_alert, CS.tsr, CS.abh, CS.passthrough, CS.HMA, CS.pt2, CS.pt3, CS.pt4, CS.pt5, self.lka_active, frame % 16))
 
-    # frequency doesn't matter, but the counter must match + 1 else it will fault
-    if CS.out.standstill and enabled and (frame % 100 == 0):
-      can_sends.append(send_buttons(self.packer, (CS.counter_pcm_buttons + 1) % 16))
+    # frequency doesn't matter (original 20hz), but the counter must match + 1 else it will fault
+    if CS.out.standstill and enabled and (frame % 50 == 0):
+      self.send_resume = True
+
+    # send 3 consecutive resume command
+    if (frame % 10) == 0 and self.send_resume:
+      if self.resume_counter >= 2:
+        self.send_resume = False
+        self.resume_counter = 0
+      can_sends.append(send_buttons(self.packer, 1, (CS.counter_pcm_buttons + 1) % 16))
+      self.resume_counter += 1
+
 
     new_actuators = actuators.copy()
     new_actuators.steeringAngleDeg = apply_angle

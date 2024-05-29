@@ -107,11 +107,11 @@ def create_lkas_hud(packer, enabled, lss_state, lss_alert, tsr, ahb, passthrough
   values["CHECKSUM"] = crc
   return packer.make_can_msg("LKAS_HUD_ADAS", 0, values)
 
-def send_buttons(packer, count):
+def send_buttons(packer, state, count):
   """Spoof ACC Button Command."""
   values = {
-      "SET_BTN": 1,
-      "RES_BTN": 1,
+      "SET_BTN": state,
+      "RES_BTN": state,
       "SET_ME_1_1": 1,
       "SET_ME_1_2": 1,
       "COUNTER": count,
