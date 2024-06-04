@@ -1,3 +1,16 @@
+Version 9.6.4  (2024-06-04)
+=========================
+* Support Proton S70
+* Support Honda City Hybrid RS
+* Remove false positive relay malfunction
+* BYD:
+  * Change BYD steer behaviour
+  * Fix elka
+  * Reduced SNG resume failure
+* Proton:
+  * Fix blindspot detection (credits to TK)
+  * Add forward collision warning in bukapilot (credits to TK)
+
 Version 9.6  (2024-02-06)
 =========================
 * Planner changes for vehicles with vision only ACC
