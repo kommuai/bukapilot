@@ -75,10 +75,6 @@ class CarInterface(CarInterfaceBase):
     # events
     events = self.create_common_events(ret)
 
-    # create events for auto lane change below allowable speed
-    if ret.vEgo < LANE_CHANGE_SPEED_MIN and (ret.leftBlinker or ret.rightBlinker):
-      events.add(EventName.belowLaneChangeSpeed)
-
     ret.events = events.to_msg()
 
     self.CS.out = ret.as_reader()
@@ -89,7 +85,6 @@ class CarInterface(CarInterfaceBase):
 
     isLdw = c.hudControl.leftLaneDepart or c.hudControl.rightLaneDepart
 
-    can_sends = self.CC.update(c.enabled, self.CS, self.frame, c.actuators, c.hudControl.leadVisible, c.hudControl.rightLaneVisible, c.hudControl.leftLaneVisible, c.cruiseControl.cancel, isLdw)
-
+    can_sends = self.CC.update(c.enabled, self.CS, self.frame, c.actuators, c.hudControl.leadVisible, c.hudControl.rightLaneVisible, c.hudControl.leftLaneVisible, c.cruiseControl.cancel, isLdw, c.laneActive)
     self.frame += 1
     return can_sends

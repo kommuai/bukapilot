@@ -322,6 +322,9 @@ struct CarControl {
   # Actuator commands as computed by controlsd
   actuators @6 :Actuators;
 
+  # Lane active is used for any aux lane assist functions
+  laneActive @11: Bool;
+
   # Any car specific rate limits or quirks applied by
   # the CarController are reflected in actuatorsOutput
   # and matches what is sent to the car

@@ -62,6 +62,7 @@ def manager_init() -> None:
     ("HasAcceptedTerms", "0"),
     ("OpenpilotEnabledToggle", "1"),
     ("IsMetric", "1"),
+    ("IsAlcEnabled", "1"),
     ("IsLdwEnabled", "1"),
     ("IsRHD", "1"),
     ("RecordFront", "1"),
