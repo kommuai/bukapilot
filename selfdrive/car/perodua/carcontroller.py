@@ -147,7 +147,7 @@ class CarController():
 
     self.stockLdw = False
 
-  def update(self, enabled, CS, frame, actuators, lead_visible, rlane_visible, llane_visible, pcm_cancel, ldw):
+  def update(self, enabled, CS, frame, actuators, lead_visible, rlane_visible, llane_visible, pcm_cancel, ldw, laneActive):
     can_sends = []
 
     # steer
@@ -196,7 +196,7 @@ class CarController():
             apply_steer = -CS.out.stockAdas.ldpSteerV
 
         steer_req = enabled or self.stockLdw
-        can_sends.append(create_can_steer_command(self.packer, apply_steer, steer_req, (frame/2) % 16))
+        can_sends.append(create_can_steer_command(self.packer, apply_steer, steer_req and laneActive, (frame/2) % 16))
 
       # CAN controlled longitudinal
       if (frame % 5) == 0 and CS.CP.openpilotLongitudinalControl:

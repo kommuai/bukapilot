@@ -39,6 +39,12 @@ TogglesPanel::TogglesPanel(SettingsWindow *parent) : ListWidget(parent) {
       "../assets/kommu/icon_warning.png",
     },
     {
+      "IsAlcEnabled",
+      "Enable Assisted Lane Change",
+      "Assisted Lane Change will assist your vehicle in a single lane change when a steering nudge and the vehicle's signal lights are turned on. This features works over 31mph (50 km/h).",
+      "../assets/kommu/icon_bukapilot.png",
+    },
+    {
       "IsRHD",
       "Enable Right-Hand Drive",
       "Allow bukapilot to obey left-hand traffic conventions and perform driver monitoring on right driver seat.",

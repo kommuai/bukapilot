@@ -28,7 +28,7 @@ class CarController():
     self.send_resume = False
     self.resume_counter = 0
 
-  def update(self, enabled, CS, frame, actuators, lead_visible, rlane_visible, llane_visible, pcm_cancel, ldw):
+  def update(self, enabled, CS, frame, actuators, lead_visible, rlane_visible, llane_visible, pcm_cancel, ldw, laneActive):
     can_sends = []
 
     # steer
@@ -53,7 +53,7 @@ class CarController():
 
       lat_active = enabled and abs(CS.out.steeringAngleDeg) < 90 and self.lka_active and not CS.out.standstill or CS.elka_steer_req
       brake_hold = False
-      can_sends.append(create_can_steer_command(self.packer, apply_angle, lat_active, CS.out.standstill, (frame/2) % 16))
+      can_sends.append(create_can_steer_command(self.packer, apply_angle, lat_active and laneActive, CS.out.standstill, (frame/2) % 16))
 #      can_sends.append(create_accel_command(self.packer, actuators.accel, enabled, brake_hold, (frame/2) % 16))
       can_sends.append(create_lkas_hud(self.packer, enabled, CS.lss_state, CS.lss_alert, CS.tsr, CS.abh, CS.passthrough, CS.HMA, CS.pt2, CS.pt3, CS.pt4, CS.pt5, self.lka_active, frame % 16))
 
