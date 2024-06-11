@@ -44,14 +44,10 @@ class CarController():
       if not CS.lka_on and CS.lkas_rdy_btn:
         self.lka_active = False
 
-      # original emergency lane keep
-      if CS.elka_steer_req:
-        apply_angle = CS.elka
-
       if CS.out.steeringTorqueEps > 15:
         apply_angle = CS.out.steeringAngleDeg
 
-      lat_active = enabled and abs(CS.out.steeringAngleDeg) < 90 and self.lka_active and not CS.out.standstill or CS.elka_steer_req
+      lat_active = enabled and abs(CS.out.steeringAngleDeg) < 90 and self.lka_active and not CS.out.standstill # temporary hardcode 60 because if 90 degrees it will fault
       brake_hold = False
       can_sends.append(create_can_steer_command(self.packer, apply_angle, lat_active and laneActive, CS.out.standstill, (frame/2) % 16))
 #      can_sends.append(create_accel_command(self.packer, actuators.accel, enabled, brake_hold, (frame/2) % 16))

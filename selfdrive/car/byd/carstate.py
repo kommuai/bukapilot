@@ -26,8 +26,6 @@ class CarState(CarStateBase):
     self.pt4 = 0
     self.pt5 = 0
     self.lkas_rdy_btn = False
-    self.elka_steer_req = 0
-    self.elka = 0
 
   def update(self, cp):
     ret = car.CarState.new_message()
@@ -43,9 +41,6 @@ class CarState(CarStateBase):
     self.pt4 = cp.vl["LKAS_HUD_ADAS"]['PT4']
     self.pt5 = cp.vl["LKAS_HUD_ADAS"]['PT5']
     self.counter_pcm_buttons = cp.vl["PCM_BUTTONS"]['COUNTER']
-    self.elka = cp.vl["STEERING_MODULE_ADAS"]['STEER_ANGLE']
-    self.elka_steer_req = cp.vl["STEERING_MODULE_ADAS"]['STEER_REQ']
-    self.steer_req_active_low = cp.vl["STEERING_MODULE_ADAS"]['STEER_REQ_ACTIVE_LOW']
 
     # EV irrelevant messages
     ret.brakeHoldActive = False
@@ -191,9 +186,6 @@ class CarState(CarStateBase):
       ("LKAS_ON_BTN", "PCM_BUTTONS", 0),
       ("COUNTER", "PCM_BUTTONS", 0),
       ("STEER_ACTIVE_ACTIVE_LOW", "LKAS_HUD_ADAS", 0),
-      ("STEER_ANGLE", "STEERING_MODULE_ADAS", 0),
-      ("STEER_REQ", "STEERING_MODULE_ADAS", 0),
-      ("STEER_REQ_ACTIVE_LOW", "STEERING_MODULE_ADAS", 0),
       ("SETTINGS", "LKAS_HUD_ADAS", 0)
     ]
     checks = []
