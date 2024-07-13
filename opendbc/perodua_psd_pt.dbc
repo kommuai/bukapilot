@@ -119,6 +119,13 @@ BO_ 516 RIGHT_STALK: 8 XXX
  SG_ GENERIC_TOGGLE : 1|1@0+ (1,0) [0|1] "" XXX
  SG_ HIGH_BEAM : 0|1@0+ (1,0) [0|1] "" XXX
 
+BO_ 519 PCM_BUTTONS_HYBRID: 6 XXX
+ SG_ GAS_PRESSED : 12|1@0+ (1,0) [0|1] "" XXX
+ SG_ RES_PLUS : 6|1@0+ (1,0) [0|1] "" XXX
+ SG_ SET_MINUS : 5|1@0+ (1,0) [0|1] "" XXX
+ SG_ CANCEL : 4|1@0+ (1,0) [0|1] "" XXX
+ SG_ CHECKSUM : 40|8@1+ (1,0) [0|255] "" XXX
+
 BO_ 520 PCM_BUTTONS: 6 XXX
  SG_ ACC_RDY : 9|1@0+ (1,0) [0|1] "" XXX
  SG_ RES_PLUS : 6|1@0+ (1,0) [0|1] "" XXX

@@ -38,6 +38,8 @@ class CarState(CarStateBase):
     self.stock_lkc_off = True
     self.stock_fcw_off = True
     self.lkas_rdy = True
+    self.lkas_latch = False
+    self.lkas_btn_rising_edge_seen = False
 
   def update(self, cp):
     ret = car.CarState.new_message()
@@ -73,7 +75,10 @@ class CarState(CarStateBase):
     ret.gas = cp.vl["GAS_PEDAL"]['APPS_1']
     # todo: let gas pressed legit
     if self.CP.carFingerprint in ACC_CAR:
-      ret.gasPressed = not bool(cp.vl["GAS_PEDAL_2"]['GAS_PEDAL_STEP'])
+      if self.CP.carFingerprint == CAR.ATIVA_H:
+        ret.gasPressed = not bool(cp.vl["PCM_BUTTONS_HYBRID"]['GAS_PRESSED'])
+      else:
+        ret.gasPressed = not bool(cp.vl["GAS_PEDAL_2"]['GAS_PEDAL_STEP'])
     else:
       ret.gasPressed = False
 
@@ -151,15 +156,28 @@ class CarState(CarStateBase):
       self.lkas_rdy = bool(cp.vl["LKAS_HUD"]['LKAS_SET'])
       self.stock_fcw_off = bool(cp.vl["LKAS_HUD"]['FCW_DISABLE'])
 
-      ret.cruiseState.available = cp.vl["PCM_BUTTONS"]["ACC_RDY"] != 0
+      # logic to engage LKC
+      if bool(cp.vl["BUTTONS"]['LKC_BTN']):
+        if not self.lkas_btn_rising_edge_seen:
+          self.lkas_btn_rising_edge_seen = True
+
+      if self.lkas_btn_rising_edge_seen and not bool(cp.vl["BUTTONS"]['LKC_BTN']):
+        self.lkas_latch = not self.lkas_latch
+        self.lkas_btn_rising_edge_seen = False
+
+      ret.cruiseState.available = bool(cp.vl["ACC_CMD_HUD"]["SET_ME_1_2"])
       distance_val = int(cp.vl["ACC_CMD_HUD"]['FOLLOW_DISTANCE'])
       ret.cruiseState.setDistance = self.parse_set_distance(self.set_distance_values.get(distance_val, None))
 
       # set speed logic
       # todo: check if the logic needs to be this complicated
 
-      minus_button = bool(cp.vl["PCM_BUTTONS"]["SET_MINUS"])
-      plus_button = bool(cp.vl["PCM_BUTTONS"]["RES_PLUS"])
+      if self.CP.carFingerprint == CAR.ATIVA_H:
+        minus_button = bool(cp.vl["PCM_BUTTONS_HYBRID"]["SET_MINUS"])
+        plus_button = bool(cp.vl["PCM_BUTTONS_HYBRID"]["RES_PLUS"])
+      else:
+        minus_button = bool(cp.vl["PCM_BUTTONS"]["SET_MINUS"])
+        plus_button = bool(cp.vl["PCM_BUTTONS"]["RES_PLUS"])
 
       if self.is_cruise_latch:
         cur_time = time()
@@ -208,7 +226,7 @@ class CarState(CarStateBase):
       self.is_plus_btn_latch = plus_button
       self.is_minus_btn_latch = minus_button
 
-      if bool(cp.vl["PCM_BUTTONS"]["CANCEL"]):
+      if bool(cp.vl["PCM_BUTTONS"]["CANCEL"]) or bool(cp.vl["PCM_BUTTONS_HYBRID"]["CANCEL"]) :
         self.is_cruise_latch = False
 
     if ret.brakePressed:
@@ -308,7 +326,11 @@ class CarState(CarStateBase):
       signals.append(("MAIN_TORQUE", "STEERING_MODULE", 0.))
       signals.append(("STEERING_TORQUE", "EPS_SHAFT_TORQUE", 0.))
       signals.append(("ACC_RDY", "PCM_BUTTONS", 0))
+      signals.append(("GAS_PRESSED", "PCM_BUTTONS_HYBRID", 0))
       signals.append(("SET_MINUS", "PCM_BUTTONS", 0))
+      signals.append(("SET_MINUS", "PCM_BUTTONS_HYBRID", 0))
+      signals.append(("RES_PLUS", "PCM_BUTTONS_HYBRID", 0))
+      signals.append(("CANCEL", "PCM_BUTTONS_HYBRID", 0))
       signals.append(("RES_PLUS","PCM_BUTTONS", 0))
       signals.append(("CANCEL","PCM_BUTTONS", 0))
       signals.append(("PEDAL_DEPRESSED","PCM_BUTTONS", 0))
@@ -319,6 +341,7 @@ class CarState(CarStateBase):
       signals.append(("LDA_ALERT", "LKAS_HUD", 0))
       signals.append(("LKAS_SET", "LKAS_HUD", 0))
       signals.append(("ACC_CMD", "ACC_CMD_HUD", 0))
+      signals.append(("SET_ME_1_2", "ACC_CMD_HUD", 0))
       signals.append(("STEER_CMD", "STEERING_LKAS", 0))
       signals.append(("STEER_REQ", "STEERING_LKAS", 0))
       signals.append(("FRONT_DEPART", "LKAS_HUD", 0))
@@ -329,6 +352,7 @@ class CarState(CarStateBase):
       signals.append(("LDA_ALERT", "LKAS_HUD", 0))
       signals.append(("GAS_PEDAL_STEP", "GAS_PEDAL_2", 0))
       signals.append(("UI_SPEED", "BUTTONS", 0))
+      signals.append(("LKC_BTN", "BUTTONS", 0))
       signals.append(("CRUISE_STANDSTILL", "ACC_BRAKE", 0))
       signals.append(("AEB_1019", "ACC_BRAKE", 0))
     else:

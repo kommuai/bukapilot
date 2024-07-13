@@ -12,6 +12,7 @@ class CAR:
   ALZA = "PERODUA ALZA"
   ARUZ = "PERODUA ARUZ"
   ATIVA = "PERODUA ATIVA"
+  ATIVA_H = "PERODUA ATIVA HYBRID"
   AXIA = "PERODUA AXIA"
   BEZZA = "PERODUA BEZZA"
   MYVI = "PERODUA MYVI"
@@ -66,16 +67,17 @@ DBC = {
   CAR.BEZZA: dbc_dict('perodua_general_pt', None),
   CAR.MYVI: dbc_dict('perodua_general_pt', None),
   CAR.ATIVA: dbc_dict('perodua_psd_pt', None),
+  CAR.ATIVA_H: dbc_dict('perodua_psd_pt', None),
   CAR.ALZA: dbc_dict('perodua_psd_pt', None),
   CAR.MYVI_PSD: dbc_dict('perodua_psd_pt', None),
   CAR.VIOS: dbc_dict('perodua_psd_pt', None),
   CAR.QC: dbc_dict('perodua_psd_pt', None),
 }
 
-BRAKE_SCALE = defaultdict(lambda: 1, {CAR.ATIVA: 3.3, CAR.MYVI_PSD: 3.3, CAR.ALZA: 2.6, CAR.VIOS: 3.2, CAR.QC: 1.0})
-GAS_SCALE = defaultdict(lambda: 2600, {CAR.ATIVA: 0.4, CAR.MYVI_PSD: 0.35, CAR.ALZA: 0.4, CAR.VIOS: 0.4, CAR.QC: 0.0})
+BRAKE_SCALE = defaultdict(lambda: 1, {CAR.ATIVA: 3.3, CAR.ATIVA_H : 2.0, CAR.MYVI_PSD: 3.3, CAR.ALZA: 2.6, CAR.VIOS: 3.2, CAR.QC: 1.0})
+GAS_SCALE = defaultdict(lambda: 2600, {CAR.ATIVA: 0.4, CAR.ATIVA_H: 0.4, CAR.MYVI_PSD: 0.35, CAR.ALZA: 0.4, CAR.VIOS: 0.4, CAR.QC: 0.0})
 
 NOT_CAN_CONTROLLED = set([CAR.ARUZ, CAR.AXIA, CAR.BEZZA, CAR.MYVI])
 
-ACC_CAR = set([CAR.ALZA, CAR.ATIVA, CAR.MYVI_PSD, CAR.VIOS, CAR.QC])
-SNG_CAR = set([CAR.ALZA, CAR.VIOS])
+ACC_CAR = set([CAR.ALZA, CAR.ATIVA, CAR.ATIVA_H, CAR.MYVI_PSD, CAR.VIOS, CAR.QC])
+SNG_CAR = set([CAR.ALZA, CAR.VIOS, CAR.ATIVA_H])

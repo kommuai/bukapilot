@@ -145,6 +145,27 @@ class CarInterface(CarInterfaceBase):
       ret.longitudinalActuatorDelayUpperBound = 0.40
       ret.speedControlled = True
 
+    elif candidate == CAR.ATIVA_H:
+      ret.wheelbase = 2.525
+      ret.steerRatio = 17.00
+      ret.centerToFront = ret.wheelbase * 0.44
+      tire_stiffness_factor = 0.9871
+      ret.mass = 1035. + STD_CARGO_KG
+      ret.wheelSpeedFactor = 1.485  # Proper value should be 1.535, but testing 1.505 to see if it's more comfortable in terms of distance
+
+      ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.12], [0.13]]
+      ret.lateralParams.torqueBP, ret.lateralParams.torqueV = [[0.], [255]]
+      ret.lateralTuning.pid.kf = 0.000188
+
+      ret.longitudinalTuning.kpBP = [0., 5., 20.]
+      ret.longitudinalTuning.kpV = [0.15, 0.5, 0.05]
+      ret.longitudinalTuning.kiBP = [5, 7, 28]
+      ret.longitudinalTuning.kiV = [0.15, 0.14, 0.01]
+      ret.longitudinalActuatorDelayLowerBound = 0.15
+      ret.longitudinalActuatorDelayUpperBound = 0.20
+      ret.speedControlled = True
+
+
     elif candidate == CAR.ALZA:
       ret.wheelbase = 2.750
       ret.steerRatio = 17.00
@@ -230,6 +251,7 @@ class CarInterface(CarInterfaceBase):
     ret = self.CS.update(self.cp)
     ret.canValid = self.cp.can_valid
     ret.steeringRateLimited = self.CC.steer_rate_limited if self.CC is not None else False
+    ret.steeringRateLimited &= self.CS.lkas_rdy
 
     # events
     events = self.create_common_events(ret)
