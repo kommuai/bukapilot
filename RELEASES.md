@@ -1,3 +1,11 @@
+Version 9.6.5  (2024-07-12)
+=========================
+* Toggles disable assisted lane change option
+* Perodua now need to engage lane keep separately
+* Update BYD fingerprint
+* Allow higher acceleration during highway turns
+* Support Ativa Hybrid
+
 Version 9.6  (2024-02-06)
 =========================
 * Planner changes for vehicles with vision only ACC
