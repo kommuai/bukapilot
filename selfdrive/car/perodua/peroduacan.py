@@ -173,4 +173,17 @@ def perodua_create_hud(packer, lkas_rdy, enabled, llane_visible, rlane_visible, 
 
   return packer.make_can_msg("LKAS_HUD", 0, values)
 
+def perodua_buttons(packer, set_button, res_button, counter):
+
+  values = {
+    "SET_MINUS": set_button,
+    "RES_PLUS" : res_button,
+  }
+
+  dat = packer.make_can_msg("PCM_BUTTONS", 0, values)[2]
+  crc = (perodua_checksum(520, dat[:-1]))
+  values["CHECKSUM"] = crc
+
+  return packer.make_can_msg("PCM_BUTTONS", 0, values)
+
 
