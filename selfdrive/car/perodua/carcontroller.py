@@ -208,23 +208,24 @@ class CarController():
       if (frame % 5) == 0 and CS.CP.openpilotLongitudinalControl:
 
         # check if need to revert to stock acc
-        if CS.out.vEgo > 10: # 36kmh
+        if enabled and CS.out.vEgo > 10: # 36kmh
           if CS.stock_acc_engaged:
             self.using_stock_acc = True
         else:
-          # spam engage until stock ACC engages
-          can_sends.append(perodua_buttons(self.packer, 1, 0))
+          if enabled:
+            # spam engage until stock ACC engages
+            can_sends.append(perodua_buttons(self.packer, 1, 0, (frame/5) % 16))
 
         # check if need to revert to bukapilot acc
         if CS.out.vEgo < 8.3: # 30kmh
           self.using_stock_acc = False
 
         # set stock acc follow speed
-        if self.using_stock_acc:
-          if CS.out.cruiseState.speed - (CS.stock_acc_set_speed // 3.6) > 1:
-            can_sends.append(perodua_buttons(self.packer, 0, 1))
-          if (CS.stock_acc_set_speed // 3.6) - CS.out.cruiseState.speed > 1:
-            can_sends.append(perodua_buttons(self.packer, 1, 0))
+        if enabled and self.using_stock_acc:
+          if CS.out.cruiseState.speedCluster - (CS.stock_acc_set_speed // 3.6) > 0.3:
+            can_sends.append(perodua_buttons(self.packer, 0, 1, (frame/5) % 16))
+          if (CS.stock_acc_set_speed // 3.6) - CS.out.cruiseState.speedCluster > 0.3:
+            can_sends.append(perodua_buttons(self.packer, 1, 0, (frame/5) % 16))
 
         # standstill logic
         if enabled and apply_brake > 0 and CS.out.standstill and CS.CP.carFingerprint not in SNG_CAR:

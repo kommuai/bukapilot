@@ -43,6 +43,7 @@ class CarState(CarStateBase):
     self.stock_acc_engaged = False
     self.stock_acc_cmd = 0
     self.stock_brake_mag = 0
+    self.stock_acc_set_speed = 0
 
   def update(self, cp):
     ret = car.CarState.new_message()
@@ -161,8 +162,8 @@ class CarState(CarStateBase):
 
       self.stock_acc_cmd = cp.vl["ACC_CMD_HUD"]["ACC_CMD"] # kph
       self.stock_acc_engaged = self.stock_acc_cmd > 0
-
-      self.stock_brake_mag = -1 * cp.vl["ACC_BRAKE"]["MAGNITUDE"] 
+      self.stock_acc_set_speed = cp.vl["ACC_CMD_HUD"]["SET_SPEED"] #kph
+      self.stock_brake_mag = -1 * cp.vl["ACC_BRAKE"]["MAGNITUDE"]
 
       # logic to engage LKC
       if bool(cp.vl["BUTTONS"]['LKC_BTN']):
@@ -241,6 +242,7 @@ class CarState(CarStateBase):
       self.is_cruise_latch = False
 
     # set speed in range of 30 - 120kmh only
+    #print(self.stock_acc_cmd, self.stock_acc_set_speed, self.cruise_speed * 3.6)
     self.cruise_speed = max(min(self.cruise_speed, 120 * CV.KPH_TO_MS), 30 * CV.KPH_TO_MS)
     ret.cruiseState.speedCluster = self.cruise_speed
     ret.cruiseState.speed = ret.cruiseState.speedCluster / interp(ret.vEgo, [0,140], [1.0615,1.0170])

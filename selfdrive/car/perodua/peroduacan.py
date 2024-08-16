@@ -173,11 +173,16 @@ def perodua_create_hud(packer, lkas_rdy, enabled, llane_visible, rlane_visible, 
 
   return packer.make_can_msg("LKAS_HUD", 0, values)
 
-def perodua_buttons(packer, set_button, res_button):
+def perodua_buttons(packer, set_button, res_button, counter):
 
   values = {
     "SET_MINUS": set_button,
     "RES_PLUS" : res_button,
+    "ACC_RDY" : 1,
+    "PEDAL_DEPRESSED": 1,
+    "NEW_SIGNAL_1": 1,
+    "NEW_SIGNAL_2": 1,
+    "COUNTER" : counter,
   }
 
   dat = packer.make_can_msg("PCM_BUTTONS", 0, values)[2]
