@@ -173,7 +173,7 @@ def perodua_create_hud(packer, lkas_rdy, enabled, llane_visible, rlane_visible, 
 
   return packer.make_can_msg("LKAS_HUD", 0, values)
 
-def perodua_buttons(packer, set_button, res_button, counter):
+def perodua_buttons(packer, set_button, res_button):
 
   values = {
     "SET_MINUS": set_button,
