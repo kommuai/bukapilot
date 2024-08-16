@@ -171,7 +171,7 @@ class CarController():
     apply_brake = clip(apply_brake, 0., 1.56)
 
     if self.using_stock_acc:
-      apply_brake = CS.stock_brake_mag
+      apply_brake = min(CS.stock_brake_mag, apply_brake)
 
     if CS.out.gasPressed:
       apply_brake = 0
@@ -214,7 +214,7 @@ class CarController():
         else:
           if enabled:
             # spam engage until stock ACC engages
-            can_sends.append(perodua_buttons(self.packer, 1, 0, (frame/5) % 16))
+            can_sends.append(perodua_buttons(self.packer, 0, 1, (frame/5) % 16))
 
         # check if need to revert to bukapilot acc
         if CS.out.vEgo < 8.3: # 30kmh
