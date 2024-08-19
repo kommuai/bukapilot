@@ -1,6 +1,7 @@
 from cereal import log
 from common.realtime import DT_MDL
 from selfdrive.config import Conversions as CV
+from common.params import Params
 
 LaneChangeState = log.LateralPlan.LaneChangeState
 LaneChangeDirection = log.LateralPlan.LaneChangeDirection
@@ -40,12 +41,17 @@ class DesireHelper:
     self.prev_one_blinker = False
     self.desire = log.LateralPlan.Desire.none
 
+    # read params
+    params = Params()
+    self.is_alc_enabled = params.get_bool("IsAlcEnabled")
+
   def update(self, carstate, active, lane_change_prob):
     v_ego = carstate.vEgo
     one_blinker = carstate.leftBlinker != carstate.rightBlinker
     below_lane_change_speed = v_ego < LANE_CHANGE_SPEED_MIN
 
-    if not active or self.lane_change_timer > LANE_CHANGE_TIME_MAX:
+    # If ALC is disabled, do not start assisted lane change.
+    if not active or self.lane_change_timer > LANE_CHANGE_TIME_MAX or not self.is_alc_enabled:
       self.lane_change_state = LaneChangeState.off
       self.lane_change_direction = LaneChangeDirection.none
     else:
