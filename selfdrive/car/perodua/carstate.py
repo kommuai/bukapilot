@@ -38,7 +38,7 @@ class CarState(CarStateBase):
     self.stock_lkc_off = True
     self.stock_fcw_off = True
     self.lkas_rdy = True
-    self.lkas_latch = False
+    self.lkas_latch = True # Set LKAS for Perodua to True by default
     self.lkas_btn_rising_edge_seen = False
     self.stock_acc_engaged = False
     self.stock_acc_cmd = 0
