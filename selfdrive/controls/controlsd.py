@@ -57,6 +57,11 @@ IGNORED_SAFETY_MODES = [SafetyModel.silent, SafetyModel.noOutput]
 CSID_MAP = {"0": EventName.roadCameraError, "1": EventName.wideRoadCameraError, "2": EventName.driverCameraError}
 
 class Controls:
+
+  # Check if blinker was used within 2 seconds.
+  def recent_blinker_2s(self):
+    return (self.sm.frame - self.last_blinker_frame) * DT_CTRL < 2.0
+
   def __init__(self, sm=None, pm=None, can_sock=None):
     config_realtime_process(4 if TICI else 3, Priority.CTRL_HIGH)
 
@@ -534,7 +539,10 @@ class Controls:
         left_deviation = actuators.steer > 0 and dpath_points[0] < -0.20
         right_deviation = actuators.steer < 0 and dpath_points[0] > 0.20
 
-        if left_deviation or right_deviation:
+        # Condition to show steering limit warning
+        # Within 2 seconds of manual lane change, do not show this warning.
+        manual_LC_2s = not self.is_alc_enabled and self.recent_blinker_2s()
+        if (left_deviation or right_deviation) and not manual_LC_2s:
           self.events.add(EventName.steerSaturated)
 
     # Ensure no NaNs/Infs
@@ -586,10 +594,11 @@ class Controls:
     hudControl.rightLaneVisible = True
     hudControl.leftLaneVisible = True
 
-    recent_blinker = (self.sm.frame - self.last_blinker_frame) * DT_CTRL < 2.0  # 2s blinker cooldown
-    ldw_allowed = self.is_ldw_enabled and CS.vEgo > LDW_MIN_SPEED and not recent_blinker \
+    ldw_allowed = self.is_ldw_enabled and CS.vEgo > LDW_MIN_SPEED and not self.recent_blinker_2s() \
                     and not self.active and self.sm['liveCalibration'].calStatus == Calibration.CALIBRATED
 
+    # 0.1s blinker cooldown after lane change, (for ALC disabled) lane keep will be activated again after cooldown
+    recent_blinker = (self.sm.frame - self.last_blinker_frame) * DT_CTRL < 0.1
     if recent_blinker and not self.is_alc_enabled:
       CC.laneActive = False
 
