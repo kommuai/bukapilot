@@ -155,7 +155,7 @@ std::string exec(const char* cmd) {
 }
 
 public:
-  ChangeBranchSelect() : ButtonControl("Change Branch", "SET", "Warning: Changing the branch can be dangerous!") {
+  ChangeBranchSelect() : ButtonControl("Change Branch", "SET", "Warning: Untested branches may cause unexpected behaviours.") {
     selection_label = new QLabel();
     selection_label->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
     selection_label->setStyleSheet("color: #aaaaaa");
@@ -170,7 +170,7 @@ public:
         if (branchName == currentBranchName) {
           QString currentPrompt = QString::fromStdString("You are already using the branch\n" + currentBranchName);
           ConfirmationDialog::alert(currentPrompt, this);
-        } else if (ConfirmationDialog::confirm("Are you sure to Change Branch?\nAny unsaved changes will be lost.", this)) {
+        } else if (ConfirmationDialog::confirm("Are you sure to Change Branch?\nAny unsaved changes will be lost.\n\nReboot required, please wait.", this)) {
           // Delete branch, fetch and checkout to the branch. (Ignoring changes not committed/not pushed.)
           std::string changeBranchCommand = "git branch -D " + branchName + "; git fetch origin " + branchName + ":" + branchName + " && git checkout " + branchName + " --force";
 
