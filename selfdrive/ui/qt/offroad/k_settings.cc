@@ -291,15 +291,7 @@ SoftwarePanel::SoftwarePanel(QWidget* parent) : ListWidget(parent) {
     std::system("pkill -1 -f selfdrive.updated");
   });
 
-  auto uninstallBtn = new ButtonControl("Uninstall " + getBrand(), "UNINSTALL");
-  connect(uninstallBtn, &ButtonControl::clicked, [&]() {
-    if (ConfirmationDialog::confirm("Are you sure to\nUninstall?", this)) {
-      params.putBool("DoUninstall", true);
-    }
-  });
-  connect(uiState(), &UIState::offroadTransition, uninstallBtn, &QPushButton::setEnabled);
-
-  QWidget *widgets[] = {versionLbl, lastUpdateLbl, updateBtn, gitCommitLbl, osVersionLbl, featuresInput, fingerprintInput, branchInput, uninstallBtn};
+  QWidget *widgets[] = {versionLbl, lastUpdateLbl, updateBtn, gitCommitLbl, osVersionLbl, featuresInput, fingerprintInput, branchInput};
   for (QWidget* w : widgets) {
     addItem(w);
   }
