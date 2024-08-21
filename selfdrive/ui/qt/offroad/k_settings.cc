@@ -56,12 +56,6 @@ TogglesPanel::TogglesPanel(SettingsWindow *parent) : ListWidget(parent) {
       "Receive only safety critical alerts.",
       "../assets/kommu/quiet_mode.png",
     },
-    {
-      "EndToEndToggle",
-      "\U0001f96c Disable use of lanelines (Alpha) \U0001f96c",
-      "In this mode bukapilot will ignore lanelines and just drive how it thinks a human would.",
-      "../assets/offroad/icon_road.png",
-    },
   };
 
   Params params;
