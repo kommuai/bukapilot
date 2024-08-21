@@ -38,9 +38,6 @@ class CarInterface(CarInterfaceBase):
     ret.openpilotLongitudinalControl = True
 
     f = Features()
-    if f.has("StockAcc"):
-      ret.safetyConfigs[0].safetyParam = 2
-      ret.openpilotLongitudinalControl = False
 
     if candidate == CAR.AXIA:
       ret.wheelbase = 2.455                # meter
