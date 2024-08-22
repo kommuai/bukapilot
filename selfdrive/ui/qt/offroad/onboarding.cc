@@ -147,11 +147,12 @@ void DeclinePage::showEvent(QShowEvent *event) {
 
   QObject::connect(back_btn, &QPushButton::clicked, this, &DeclinePage::getBack);
 
-  QPushButton *uninstall_btn = new QPushButton(QString("Decline, uninstall %1").arg(getBrand()));
-  uninstall_btn->setStyleSheet("background-color: #B73D3D");
-  buttons->addWidget(uninstall_btn);
-  QObject::connect(uninstall_btn, &QPushButton::clicked, [=]() {
-    Params().putBool("DoUninstall", true);
+  QPushButton *decline_btn = new QPushButton(QString("Decline, power off"));
+  decline_btn->setStyleSheet("background-color: #B73D3D");
+  buttons->addWidget(decline_btn);
+  QObject::connect(decline_btn, &QPushButton::clicked, [=]() {
+    Params().put("HasAcceptedTerms", "0");
+    Params().putBool("DoShutdown", true);
   });
 }
 
