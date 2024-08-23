@@ -56,7 +56,7 @@ class CarState(CarStateBase):
     # unfiltered speed from CAN sensors
     ret.vEgo, ret.aEgo = self.update_speed_kf(ret.vEgoRaw)
     ret.vEgoCluster = ret.vEgo
-    ret.standstill = ret.vEgoRaw < 0.05
+    ret.standstill = ret.vEgoRaw < 0.01
 
     # safety checks to engage
     can_gear = int(cp.vl["DRIVE_STATE"]['GEAR'])

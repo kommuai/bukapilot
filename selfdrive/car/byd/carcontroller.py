@@ -54,7 +54,7 @@ class CarController():
       can_sends.append(create_lkas_hud(self.packer, enabled, CS.lss_state, CS.lss_alert, CS.tsr, CS.abh, CS.passthrough, CS.HMA, CS.pt2, CS.pt3, CS.pt4, CS.pt5, self.lka_active, frame % 16))
 
     # frequency doesn't matter (original 20hz), but the counter must match + 1 else it will fault
-    if (CS.out.standstill or CS.out.cruiseState.standstill) and enabled and (frame % 50 == 0):
+    if CS.out.standstill and enabled and (frame % 50 == 0):
       self.send_resume = True
 
     # send 3 consecutive resume command
