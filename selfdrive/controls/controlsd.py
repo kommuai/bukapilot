@@ -542,7 +542,7 @@ class Controls:
         # Condition to show steering limit warning
         # Within 2 seconds of manual lane change, do not show this warning.
         manual_LC_2s = not self.is_alc_enabled and self.recent_blinker_2s()
-        if (left_deviation or right_deviation) and not manual_LC_2s:
+        if (left_deviation or right_deviation) and not manual_LC_2s and not CS.lkaDisabled:
           self.events.add(EventName.steerSaturated)
 
     # Ensure no NaNs/Infs

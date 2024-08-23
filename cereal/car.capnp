@@ -203,6 +203,8 @@ struct CarState {
   leftBlindspot @33 :Bool; # Is there something blocking the left lane change
   rightBlindspot @34 :Bool; # Is there something blocking the right lane change
 
+  lkaDisabled @41 :Bool; # Default value is False
+
   stockAdas @39: StockADAS;
 
   struct StockADAS {
