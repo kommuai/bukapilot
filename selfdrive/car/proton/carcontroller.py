@@ -91,8 +91,8 @@ class CarController():
       #  fake_enable = False
       #can_sends.append(create_acc_cmd(self.packer, actuators.accel, fake_enable, (frame/2) % 16))
 
-    if CS.out.standstill and enabled and (frame % 50 == 0):
-      # Spam resume button to resume from standstill at max freq of 10 Hz.
+    if CS.out.standstill and enabled and (frame % 29 == 0):
+      # Spam resume button to resume from standstill at max freq of 34.48 Hz.
       if not self.mads or CS.acc_req:
         can_sends.append(send_buttons(self.packer, frame % 16, False))
 
