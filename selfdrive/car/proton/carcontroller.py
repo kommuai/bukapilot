@@ -56,6 +56,7 @@ class CarController():
 
   def update(self, enabled, CS, frame, actuators, lead_visible, rlane_visible, llane_visible, pcm_cancel, ldw, laneActive):
     can_sends = []
+    laneActive = laneActive and not CS.out.lkaDisabled
     lat_active = enabled and laneActive
     # tester present - w/ no response (keeps radar disabled)
     if CS.CP.openpilotLongitudinalControl and self.disable_radar:

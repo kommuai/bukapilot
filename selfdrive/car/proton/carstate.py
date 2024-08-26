@@ -40,6 +40,7 @@ class CarState(CarStateBase):
     self.stock_lks_settings2 = cp.vl["ADAS_LKAS"]["SET_ME_1_1"]
     self.steer_dir = cp.vl["ADAS_LKAS"]["STEER_DIR"]
     self.stock_ldp = bool(cp.vl["LKAS"]["LANE_DEPARTURE_WARNING_RIGHT"]) or bool(cp.vl["LKAS"]["LANE_DEPARTURE_WARNING_LEFT"])
+    ret.lkaDisabled = not bool(cp.vl["ADAS_LKAS"]["LKS_ENABLE"])
 
     ret.wheelSpeeds = self.get_wheel_speeds(
       cp.vl["WHEEL_SPEED"]['WHEELSPEED_F'],
@@ -195,6 +196,7 @@ class CarState(CarStateBase):
       ("LANE_DEPARTURE_WARNING_RIGHT", "LKAS", 1),
       ("LANE_DEPARTURE_WARNING_LEFT", "LKAS", 1),
       ("STOCK_FCW_TRIGGERED", "FCW", 1),
+      ("LKS_ENABLE", "ADAS_LKAS", 1)
     ]
     checks = []
 
