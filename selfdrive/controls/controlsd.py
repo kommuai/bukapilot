@@ -55,12 +55,45 @@ SafetyModel = car.CarParams.SafetyModel
 
 IGNORED_SAFETY_MODES = [SafetyModel.silent, SafetyModel.noOutput]
 CSID_MAP = {"0": EventName.roadCameraError, "1": EventName.wideRoadCameraError, "2": EventName.driverCameraError}
+LANE_CHANGE_COOLDOWN = 0.1
 
 class Controls:
 
-  # Check if blinker was used within 2 seconds.
+  def time_diff(self, frame_type):
+   return (self.sm.frame - frame_type) * DT_CTRL
+
+  # Check if blinker was used within specified seconds.
+  def recent_blinker(self, sec):
+    return self.time_diff(self.last_blinker_frame) < sec
+  # Check if cruise control was resumed within specified seconds.
+  def recent_resume(self, sec):
+    return self.time_diff(self.last_resume_frame) < sec
   def recent_blinker_2s(self):
-    return (self.sm.frame - self.last_blinker_frame) * DT_CTRL < 2.0
+    return self.recent_blinker(2.0)
+  def recent_resume_2s(self):
+    return self.recent_resume(2.0)
+
+  def reduce_steer(self, steer, steeringAngle):
+    cooldown = LANE_CHANGE_COOLDOWN # Steering cooldown
+    end_time = 2.0 # The time where the steering becomes 100% again
+    start_val = 0.25 # The percentage of steering when steering starts again
+
+    blinker_diff = self.time_diff(self.last_blinker_frame)
+    resume_diff = self.time_diff(self.last_resume_frame)
+    diff = min(blinker_diff, resume_diff) # The last performed action
+
+    if diff is blinker_diff:
+      if self.is_alc_enabled:
+        diff = resume_diff # Only reduce steering for resume
+    if diff is resume_diff:
+      cooldown = 0 # Resume has no cooldown
+
+    if diff < end_time:
+      def out(ste):
+        mul = min(1, (diff / (end_time - cooldown)) * (1 - start_val) + start_val)
+        return ste * mul
+      return out(steer), out(steeringAngle)
+    return steer, steeringAngle
 
   def __init__(self, sm=None, pm=None, can_sock=None):
     config_realtime_process(4 if TICI else 3, Priority.CTRL_HIGH)
@@ -155,6 +188,7 @@ class Controls:
     self.cruise_mismatch_counter = 0
     self.can_rcv_error_counter = 0
     self.last_blinker_frame = 0
+    self.last_resume_frame = 0
     self.distance_traveled = 0
     self.last_functional_fan_frame = 0
     self.events_prev = []
@@ -185,6 +219,9 @@ class Controls:
     # controlsd is driven by can recv, expected at 100Hz
     self.rk = Ratekeeper(100, print_delay_threshold=None)
     self.prof = Profiler(False)  # off by default
+
+    # Resume status for checking the last resume frame
+    self.resumed = False
 
   def update_events(self, CS):
     """Compute carEvents from carState"""
@@ -496,6 +533,14 @@ class Controls:
     if CS.leftBlinker or CS.rightBlinker:
       self.last_blinker_frame = self.sm.frame
 
+    # If resume
+    if not self.resumed and self.active:
+      self.resumed = True
+      self.last_resume_frame = self.sm.frame
+    # If cancel
+    if self.resumed and not self.active:
+      self.resumed = False
+
     # State specific actions
 
     if not self.active:
@@ -529,6 +574,10 @@ class Controls:
         lac_log.output = steer
         lac_log.saturated = abs(steer) >= 0.9
 
+    # Reduce steering after resume/manual lance change
+    if lat_active:
+      actuators.steer, actuators.steeringAngleDeg = self.reduce_steer(actuators.steer, actuators.steeringAngleDeg)
+
     # Send a "steering required alert" if saturation count has reached the limit
     if lac_log.active and lac_log.saturated and not CS.steeringPressed:
       dpath_points = lat_plan.dPathPoints
@@ -541,7 +590,8 @@ class Controls:
         # Condition to show steering limit warning
         # Within 2 seconds of manual lane change, do not show this warning.
         manual_LC_2s = not self.is_alc_enabled and self.recent_blinker_2s()
-        if (left_deviation or right_deviation) and not manual_LC_2s and not CS.lkaDisabled:
+        if (left_deviation or right_deviation) and not manual_LC_2s \
+            and not CS.lkaDisabled and not self.recent_resume_2s():
           self.events.add(EventName.steerSaturated)
 
     # Ensure no NaNs/Infs
@@ -594,12 +644,14 @@ class Controls:
     hudControl.leftLaneVisible = True
 
     # 0.1s blinker cooldown after lane change, (for ALC disabled) lane keep will be activated again after cooldown
-    recent_blinker = (self.sm.frame - self.last_blinker_frame) * DT_CTRL < 0.1
-    if recent_blinker and not self.is_alc_enabled or CS.lkaDisabled:
+    if self.recent_blinker(LANE_CHANGE_COOLDOWN) and not self.is_alc_enabled or CS.lkaDisabled:
       CC.laneActive = False
-    ldw_allowed = self.is_ldw_enabled and CS.vEgo > LDW_MIN_SPEED and not self.recent_blinker_2s() \
+
+    ldw_allowed = self.is_ldw_enabled and CS.vEgo > LDW_MIN_SPEED \
+                    and not self.recent_blinker_2s() and not self.recent_resume_2s() \
                     and (not self.active or not CC.laneActive) \
                     and self.sm['liveCalibration'].calStatus == Calibration.CALIBRATED
+
     model_v2 = self.sm['modelV2']
     desire_prediction = model_v2.meta.desirePrediction
     if len(desire_prediction) and ldw_allowed:
