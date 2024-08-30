@@ -594,14 +594,14 @@ class Controls:
     hudControl.rightLaneVisible = True
     hudControl.leftLaneVisible = True
 
-    ldw_allowed = self.is_ldw_enabled and CS.vEgo > LDW_MIN_SPEED and not self.recent_blinker_2s() \
-                    and not self.active and self.sm['liveCalibration'].calStatus == Calibration.CALIBRATED
-
     # 0.1s blinker cooldown after lane change, (for ALC disabled) lane keep will be activated again after cooldown
     recent_blinker = (self.sm.frame - self.last_blinker_frame) * DT_CTRL < 0.1
     if recent_blinker and not self.is_alc_enabled:
       CC.laneActive = False
 
+    ldw_allowed = self.is_ldw_enabled and CS.vEgo > LDW_MIN_SPEED and not self.recent_blinker_2s() \
+                    and (not CC.laneActive or not self.active) and self.sm['liveCalibration'].calStatus == Calibration.CALIBRATED
+    print(CC.laneActive)
     model_v2 = self.sm['modelV2']
     desire_prediction = model_v2.meta.desirePrediction
     if len(desire_prediction) and ldw_allowed:
