@@ -9,6 +9,7 @@ from selfdrive.car.toyota.values import CAR, STATIC_DSU_MSGS, NO_STOP_TIMER_CAR,
 from opendbc.can.packer import CANPacker
 from common.realtime import DT_CTRL
 VisualAlert = car.CarControl.HUDControl.VisualAlert
+from common.features import Features
 
 # EPS faults if you apply torque while the steering rate is above 100deg/s for too long
 MAX_STEER_RATE = 100
@@ -65,6 +66,9 @@ class CarController():
     self.prev_ts = 0.
     self.standstill_status = BrakingStatus.STANDSTILL_INIT
     self.min_standstill_accel = 0
+
+    f = Features()
+    self.force_use_stock_acc = f.has("StockAcc")
 
   def update(self, enabled, active, CS, frame, actuators, pcm_cancel_cmd, hud_alert,
              left_line, right_line, lead, left_lane_depart, right_lane_depart, laneActive):
@@ -177,6 +181,9 @@ class CarController():
           self.standstill_status = BrakingStatus.STANDSTILL_INIT
           self.prev_ts = ts
 
+        if self.force_use_stock_acc and CS.out.vEgo > 1:
+          pcm_accel_cmd = CS.stock_acc_cmd
+
         can_sends.append(create_accel_command(self.packer, pcm_accel_cmd, pcm_cancel_cmd, self.standstill_req, lead, CS.acc_type, CS.distance_btn))
         self.accel = pcm_accel_cmd
       else:
@@ -216,7 +223,7 @@ class CarController():
 
     new_actuators = actuators.copy()
     new_actuators.steer = apply_steer / CarControllerParams.STEER_MAX
-    new_actuators.accel = self.accel
+    new_actuators.accel = CS.stock_acc_cmd if (self.force_use_stock_acc and CS.out.vEgo > 1) else self.accel
     new_actuators.gas = self.gas
 
     return new_actuators, can_sends

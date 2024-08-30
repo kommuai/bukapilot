@@ -32,8 +32,11 @@ class CarState(CarStateBase):
     # rpm check for alphard vellfire
     self.rpm = 0
 
+    self.stock_acc_cmd = 0
+
   def update(self, cp, cp_cam):
     ret = car.CarState.new_message()
+    self.stock_acc_cmd = cp.vl["ACC_CONTROL"]["ACCEL_CMD"]
 
     ret.doorOpen = any([cp.vl["BODY_CONTROL_STATE"]["DOOR_OPEN_FL"], cp.vl["BODY_CONTROL_STATE"]["DOOR_OPEN_FR"],
                         cp.vl["BODY_CONTROL_STATE"]["DOOR_OPEN_RL"], cp.vl["BODY_CONTROL_STATE"]["DOOR_OPEN_RR"]])
@@ -184,6 +187,7 @@ class CarState(CarStateBase):
       ("STEER_REQUEST", "STEERING_LKA"),
       ("RPM", "ENGINE_RPM"),
       ("LKAS_STATUS", "LKAS_HUD"),
+      ("ACCEL_CMD", "ACC_CONTROL"),
     ]
 
     checks = [
@@ -203,6 +207,7 @@ class CarState(CarStateBase):
       ("LKAS_HUD", 0), # TODO: figure out why freq is inconsistent
       ("STEERING_LKA", 42),
       ("ENGINE_RPM", 0),
+      ("ACC_CONTROL", 0),
     ]
 
     if CP.flags & ToyotaFlags.HYBRID:
