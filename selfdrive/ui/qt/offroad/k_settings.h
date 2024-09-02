@@ -12,13 +12,7 @@
 #include "selfdrive/common/params.h"
 #include "selfdrive/ui/qt/widgets/controls.h"
 #include "selfdrive/ui/qt/widgets/input.h"
-
-#include <iostream>
-#include <cstdarg>
-#include <string>
-#include <fstream>
-#include <memory>
-#include <cstdio>
+#include "selfdrive/common/util.h"
 
 // ********** settings window + top-level panels **********
 class SettingsWindow : public QFrame {
@@ -139,27 +133,14 @@ private:
 class ChangeBranchSelect : public ButtonControl {
   Q_OBJECT
 
-// Function to use C++ to execute a Bash command
-// Modified from https://gist.github.com/meritozh/f0351894a2a4aa92871746bf45879157
-std::string exec(const char* cmd) {
-    std::shared_ptr<FILE> pipe(popen(cmd, "r"), pclose);
-    if (!pipe) return "ERROR";
-    char buffer[128];
-    std::string result = "";
-    while (!feof(pipe.get())) {
-        if (fgets(buffer, 128, pipe.get()) != NULL)
-            result += buffer;
-    }
-    result.pop_back(); // Remove the last character (line feed)
-    return result;
-}
-
 public:
   ChangeBranchSelect() : ButtonControl("Change Branch", "SET", "Warning: Untested branches may cause unexpected behaviours.") {
     selection_label = new QLabel();
     selection_label->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
     selection_label->setStyleSheet("color: #aaaaaa");
-    std::string currentBranchName = exec("git symbolic-ref --short HEAD"); // Display current branch name
+    // Display current branch name
+    std::string currentBranchName = util::check_output("git symbolic-ref --short HEAD");
+    currentBranchName.pop_back(); // Remove the last character (line feed)
     selection_label->setText(QString::fromStdString(currentBranchName));
     hlayout->insertWidget(1, selection_label);
     connect(this, &ButtonControl::clicked, [=] {
