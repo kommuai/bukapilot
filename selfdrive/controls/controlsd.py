@@ -30,7 +30,7 @@ from selfdrive.manager.process_config import managed_processes
 
 SOFT_DISABLE_TIME = 3  # seconds
 LDW_MIN_SPEED = 31 * CV.MPH_TO_MS
-LANE_DEPARTURE_THRESHOLD = 0.1
+LANE_DEPARTURE_THRESHOLD = 0.005
 
 REPLAY = "REPLAY" in os.environ
 SIMULATION = "SIMULATION" in os.environ
@@ -596,12 +596,11 @@ class Controls:
 
     # 0.1s blinker cooldown after lane change, (for ALC disabled) lane keep will be activated again after cooldown
     recent_blinker = (self.sm.frame - self.last_blinker_frame) * DT_CTRL < 0.1
-    if recent_blinker and not self.is_alc_enabled:
+    if recent_blinker and not self.is_alc_enabled or CS.lkaDisabled:
       CC.laneActive = False
-
     ldw_allowed = self.is_ldw_enabled and CS.vEgo > LDW_MIN_SPEED and not self.recent_blinker_2s() \
-                    and (not CC.laneActive or not self.active) and self.sm['liveCalibration'].calStatus == Calibration.CALIBRATED
-    print(CC.laneActive)
+                    and (not self.active or not CC.laneActive) \
+                    and self.sm['liveCalibration'].calStatus == Calibration.CALIBRATED
     model_v2 = self.sm['modelV2']
     desire_prediction = model_v2.meta.desirePrediction
     if len(desire_prediction) and ldw_allowed:
