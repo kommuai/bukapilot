@@ -41,6 +41,7 @@ class CarState(CarStateBase):
     self.pt4 = cp.vl["LKAS_HUD_ADAS"]['PT4']
     self.pt5 = cp.vl["LKAS_HUD_ADAS"]['PT5']
     self.counter_pcm_buttons = cp.vl["PCM_BUTTONS"]['COUNTER']
+    ret.lkaDisabled = not self.lka_on
 
     # EV irrelevant messages
     ret.brakeHoldActive = False
