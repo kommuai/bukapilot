@@ -3,6 +3,7 @@
 #include <QString>
 
 #include "selfdrive/hardware/hw.h"
+#include "selfdrive/common/params.h"
 #include "selfdrive/ui/ui.h"
 
 const std::tuple<AudibleAlert, QString, int> sound_list[] = {
@@ -22,6 +23,9 @@ const std::tuple<AudibleAlert, QString, int> sound_list[] = {
 class Sound : public QObject {
 public:
   explicit Sound(QObject *parent = 0);
+
+private:
+  Params params;
 
 protected:
   void update();

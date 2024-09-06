@@ -22,10 +22,6 @@ void TrainingGuide::mouseReleaseEvent(QMouseEvent *e) {
   click_timer.restart();
 
   if (boundingRect[currentIndex].contains(e->x(), e->y())) {
-    if (currentIndex == 9) {
-      const QRect yes = QRect(692, 842, 492, 148);
-      Params().putBool("RecordFront", yes.contains(e->x(), e->y()));
-    }
     currentIndex += 1;
   } else if (currentIndex == (boundingRect.size() - 2) && boundingRect.last().contains(e->x(), e->y())) {
     currentIndex = 0;
@@ -137,7 +133,7 @@ void DeclinePage::showEvent(QShowEvent *event) {
   main_layout->setSpacing(40);
 
   QLabel *text = new QLabel(this);
-  text->setText("You must accept the Terms and Conditions in order to use openpilot.");
+  text->setText("You must accept the Terms and Conditions in order to use bukapilot.");
   text->setStyleSheet(R"(font-size: 80px; font-weight: 300; margin: 200px;)");
   text->setWordWrap(true);
   main_layout->addWidget(text, 0, Qt::AlignCenter);
@@ -151,11 +147,12 @@ void DeclinePage::showEvent(QShowEvent *event) {
 
   QObject::connect(back_btn, &QPushButton::clicked, this, &DeclinePage::getBack);
 
-  QPushButton *uninstall_btn = new QPushButton(QString("Decline, uninstall %1").arg(getBrand()));
-  uninstall_btn->setStyleSheet("background-color: #B73D3D");
-  buttons->addWidget(uninstall_btn);
-  QObject::connect(uninstall_btn, &QPushButton::clicked, [=]() {
-    Params().putBool("DoUninstall", true);
+  QPushButton *decline_btn = new QPushButton(QString("Decline, power off"));
+  decline_btn->setStyleSheet("background-color: #B73D3D");
+  buttons->addWidget(decline_btn);
+  QObject::connect(decline_btn, &QPushButton::clicked, [=]() {
+    Params().put("HasAcceptedTerms", "0");
+    Params().putBool("DoShutdown", true);
   });
 }
 

@@ -12,14 +12,19 @@ MainWindow::MainWindow(QWidget *parent) : QWidget(parent) {
   main_layout->addWidget(homeWindow);
   QObject::connect(homeWindow, &HomeWindow::openSettings, this, &MainWindow::openSettings);
   QObject::connect(homeWindow, &HomeWindow::closeSettings, this, &MainWindow::closeSettings);
+  connect(homeWindow, &HomeWindow::openTerms, [=] {
+    onboardingWindow->showTerms();
+    main_layout->setCurrentWidget(onboardingWindow);
+  });
+
+  connect(homeWindow, &HomeWindow::openTraining, [=] {
+    onboardingWindow->showTrainingGuide();
+    main_layout->setCurrentWidget(onboardingWindow);
+  });
 
   settingsWindow = new SettingsWindow(this);
   main_layout->addWidget(settingsWindow);
   QObject::connect(settingsWindow, &SettingsWindow::closeSettings, this, &MainWindow::closeSettings);
-  QObject::connect(settingsWindow, &SettingsWindow::reviewTrainingGuide, [=]() {
-    onboardingWindow->showTrainingGuide();
-    main_layout->setCurrentWidget(onboardingWindow);
-  });
   QObject::connect(settingsWindow, &SettingsWindow::showDriverView, [=] {
     homeWindow->showDriverView(true);
   });
@@ -45,22 +50,13 @@ MainWindow::MainWindow(QWidget *parent) : QWidget(parent) {
   });
 
   // load fonts
-  QFontDatabase::addApplicationFont("../assets/fonts/opensans_regular.ttf");
-  QFontDatabase::addApplicationFont("../assets/fonts/opensans_bold.ttf");
-  QFontDatabase::addApplicationFont("../assets/fonts/opensans_semibold.ttf");
-  QFontDatabase::addApplicationFont("../assets/fonts/Inter-Black.ttf");
-  QFontDatabase::addApplicationFont("../assets/fonts/Inter-Bold.ttf");
-  QFontDatabase::addApplicationFont("../assets/fonts/Inter-ExtraBold.ttf");
-  QFontDatabase::addApplicationFont("../assets/fonts/Inter-ExtraLight.ttf");
-  QFontDatabase::addApplicationFont("../assets/fonts/Inter-Medium.ttf");
-  QFontDatabase::addApplicationFont("../assets/fonts/Inter-Regular.ttf");
-  QFontDatabase::addApplicationFont("../assets/fonts/Inter-SemiBold.ttf");
-  QFontDatabase::addApplicationFont("../assets/fonts/Inter-Thin.ttf");
+  QFontDatabase::addApplicationFont("../assets/fonts/GlacialIndifference-Regular.otf");
+  QFontDatabase::addApplicationFont("../assets/fonts/GlacialIndifference-Bold.otf");
 
   // no outline to prevent the focus rectangle
   setStyleSheet(R"(
     * {
-      font-family: Inter;
+      font-family: Glacial Indifference;
       outline: none;
     }
   )");

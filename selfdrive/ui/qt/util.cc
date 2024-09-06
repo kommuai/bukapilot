@@ -14,7 +14,7 @@ QString getVersion() {
 }
 
 QString getBrand() {
-  return Params().getBool("Passive") ? "dashcam" : "openpilot";
+  return Params().getBool("Passive") ? "dashcam" : "bukapilot";
 }
 
 QString getBrandVersion() {
@@ -22,7 +22,7 @@ QString getBrandVersion() {
 }
 
 QString getUserAgent() {
-  return "openpilot-" + getVersion();
+  return "bukapilot-" + getVersion();
 }
 
 std::optional<QString> getDongleId() {
@@ -128,4 +128,23 @@ QPixmap loadPixmap(const QString &fileName, const QSize &size, Qt::AspectRatioMo
   } else {
     return QPixmap(fileName).scaled(size, aspectRatioMode, Qt::SmoothTransformation);
   }
+}
+
+#include <cstdio>
+#include <stdexcept>
+std::string exec(const char *cmd) {
+  char buffer[128];
+  std::string result = "";
+  FILE *pipe = popen(cmd, "r");
+  if (!pipe) throw std::runtime_error("popen() failed!");
+  try {
+    while (fgets(buffer, sizeof buffer, pipe) != NULL) {
+      result += buffer;
+    }
+  } catch (...) {
+    pclose(pipe);
+    throw;
+  }
+  pclose(pipe);
+  return result;
 }

@@ -212,7 +212,7 @@ void UIState::updateStatus() {
     if (scene.started) {
       status = STATUS_DISENGAGED;
       scene.started_frame = sm->frame;
-      scene.end_to_end = Params().getBool("EndToEndToggle");
+      scene.end_to_end = false; // Use lanelines in UI
       wide_camera = Hardware::TICI() ? Params().getBool("EnableWideCamera") : false;
     }
     started_prev = scene.started;
@@ -225,6 +225,7 @@ UIState::UIState(QObject *parent) : QObject(parent) {
     "modelV2", "controlsState", "liveCalibration", "radarState", "deviceState", "roadCameraState",
     "pandaStates", "carParams", "driverMonitoringState", "sensorEvents", "carState", "liveLocationKalman",
     "wideRoadCameraState",
+    "uploaderState",
   });
 
   Params params;

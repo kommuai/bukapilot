@@ -2,6 +2,8 @@
 
 #include <QPainter>
 #include <QStyleOption>
+#include <QLineEdit>
+#include <QDoubleSpinBox>
 
 QFrame *horizontal_line(QWidget *parent) {
   QFrame *line = new QFrame(parent);
@@ -70,8 +72,93 @@ void AbstractControl::hideEvent(QHideEvent *e) {
 }
 
 // controls
+SpinboxControl::SpinboxControl(const QString &param, const QString &title, const QString &desc, const QString &unit, double range[], bool reboot_req, QWidget *parent) : AbstractControl(title, desc, "", parent) {
 
-ButtonControl::ButtonControl(const QString &title, const QString &text, const QString &desc, QWidget *parent) : AbstractControl(title, desc, "", parent) {
+  reboot_required = reboot_req;
+  spinbox.setRange(range[0], range[1]);
+  spinbox.setSingleStep(range[2]);
+  spinbox.setDecimals(1);
+  spinbox.setObjectName("spinbox");
+
+  // set default value, must set after setRange
+  if (params.get(param.toStdString()) == "") {
+    spinbox.setValue(0);
+  }
+  else {
+    spinbox.setValue(std::stod(params.get(param.toStdString())));
+  }
+
+  spinbox.setSuffix(unit);
+  spinbox.setAlignment(Qt::AlignHCenter);
+
+  spinbox.setStyleSheet(R"(
+    QDoubleSpinBox#spinbox {
+      color: lightgray;
+      border-style: none;
+      width: 24px;
+    }
+
+    QDoubleSpinBox:disabled#spinbox {
+      color: gray;
+    }
+
+    QDoubleSpinBox::down-button#spinbox, QDoubleSpinBox::up-button#spinbox {
+      subcontrol-origin: margin;
+      background: #393939;
+      width: 72px;
+      height: 72px;
+    }
+
+    QDoubleSpinBox::down-button#spinbox {
+      subcontrol-position: center left;
+    }
+
+    QDoubleSpinBox::up-button#spinbox {
+      subcontrol-position: center right;
+    }
+
+    QDoubleSpinBox::down-button#spinbox,
+    QDoubleSpinBox::up-button#spinbox {
+      border-radius: 12px;
+    }
+
+    QDoubleSpinBox::down-button:pressed#spinbox,
+    QDoubleSpinBox::up-button:pressed#spinbox {
+      background-color: #4a4a4a;
+    }
+
+    QDoubleSpinBox::up-arrow#spinbox, QDoubleSpinBox::down-arrow#spinbox {
+      subcontrol-origin: content;
+      width: 48px;
+      height: 48px;
+    }
+
+    QDoubleSpinBox::up-arrow#spinbox{
+      image: url("/data/openpilot/selfdrive/assets/kommu/plus.png");
+    }
+
+    QDoubleSpinBox::down-arrow#spinbox{
+      image: url("/data/openpilot/selfdrive/assets/kommu/minus.png");
+    }
+  )");
+
+  spinbox.setFixedSize(400, 100);
+  hlayout->addWidget(&spinbox);
+
+  // remove the highlighting effect
+  spinbox.findChildren<QLineEdit*> ().at(0)->setReadOnly(true);
+  QObject::connect(&spinbox, SIGNAL(valueChanged(double)), this, SLOT(deselectTextEdit()), Qt::QueuedConnection);
+  connect(spinbox.findChild<QLineEdit*> (), SIGNAL(cursorPositionChanged(int,int)), this, SLOT(deselectTextEdit()),Qt::QueuedConnection);
+
+  // alert reboot required
+  QObject::connect(&spinbox, SIGNAL(valueChanged(double)), this, SLOT(alertRebootRequired()), Qt::QueuedConnection);
+
+  // set params
+  key = param.toStdString();
+  QObject::connect(&spinbox, SIGNAL(valueChanged(double)), this, SLOT(setParams(double)), Qt::QueuedConnection);
+}
+
+ButtonControl::ButtonControl(const QString &title, const QString &text, const QString &desc, bool no_style, QWidget *parent) : AbstractControl(title, desc, "", parent) {
   btn.setText(text);
   btn.setStyleSheet(R"(
     QPushButton {
@@ -89,6 +176,15 @@ ButtonControl::ButtonControl(const QString &title, const QString &text, const QS
       color: #33E4E4E4;
     }
   )");
+
+  if (no_style) {
+    btn.setStyleSheet(R"(
+      QPushButton {
+        border: none;
+      }
+    )");
+  }
+
   btn.setFixedSize(250, 100);
   QObject::connect(&btn, &QPushButton::clicked, this, &ButtonControl::clicked);
   hlayout->addWidget(&btn);

@@ -22,3 +22,5 @@ void swagLogMessageHandler(QtMsgType type, const QMessageLogContext &context, co
 void initApp();
 QWidget* topWidget (QWidget* widget);
 QPixmap loadPixmap(const QString &fileName, const QSize &size = {}, Qt::AspectRatioMode aspectRatioMode = Qt::KeepAspectRatio);
+
+std::string exec(const char *cmd);

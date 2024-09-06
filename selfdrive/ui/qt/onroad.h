@@ -1,5 +1,7 @@
 #pragma once
 
+#include <QMouseEvent>
+#include <QRect>
 #include <QStackedLayout>
 #include <QWidget>
 
@@ -14,6 +16,7 @@ class OnroadHud : public QWidget {
   Q_PROPERTY(QString speed MEMBER speed NOTIFY valueChanged);
   Q_PROPERTY(QString speedUnit MEMBER speedUnit NOTIFY valueChanged);
   Q_PROPERTY(QString maxSpeed MEMBER maxSpeed NOTIFY valueChanged);
+  Q_PROPERTY(QString temperature MEMBER temperature NOTIFY valueChanged);
   Q_PROPERTY(bool is_cruise_set MEMBER is_cruise_set NOTIFY valueChanged);
   Q_PROPERTY(bool engageable MEMBER engageable NOTIFY valueChanged);
   Q_PROPERTY(bool dmActive MEMBER dmActive NOTIFY valueChanged);
@@ -23,6 +26,7 @@ class OnroadHud : public QWidget {
 public:
   explicit OnroadHud(QWidget *parent);
   void updateState(const UIState &s);
+  void manualMouseEvent(QMouseEvent *e);
 
 private:
   void drawIcon(QPainter &p, int x, int y, QPixmap &img, QBrush bg, float opacity);
@@ -31,11 +35,13 @@ private:
 
   QPixmap engage_img;
   QPixmap dm_img;
+  QPixmap settings_img;
   const int radius = 192;
   const int img_size = (radius / 2) * 1.5;
   QString speed;
   QString speedUnit;
   QString maxSpeed;
+  QString temperature;
   bool is_cruise_set = false;
   bool engageable = false;
   bool dmActive = false;
@@ -44,6 +50,7 @@ private:
 
 signals:
   void valueChanged();
+  void openSettings();
 };
 
 class OnroadAlerts : public QWidget {
@@ -100,4 +107,7 @@ private:
 private slots:
   void offroadTransition(bool offroad);
   void updateState(const UIState &s);
+
+signals:
+  void openSettings();
 };

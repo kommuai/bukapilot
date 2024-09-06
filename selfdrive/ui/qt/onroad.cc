@@ -43,6 +43,7 @@ OnroadWindow::OnroadWindow(QWidget *parent) : QWidget(parent) {
   setAttribute(Qt::WA_OpaquePaintEvent);
   QObject::connect(uiState(), &UIState::uiUpdate, this, &OnroadWindow::updateState);
   QObject::connect(uiState(), &UIState::offroadTransition, this, &OnroadWindow::offroadTransition);
+  QObject::connect(hud, &OnroadHud::openSettings, this, &OnroadWindow::openSettings);
 }
 
 void OnroadWindow::updateState(const UIState &s) {
@@ -71,8 +72,9 @@ void OnroadWindow::mousePressEvent(QMouseEvent* e) {
     bool sidebarVisible = geometry().x() > 0;
     map->setVisible(!sidebarVisible && !map->isVisible());
   }
-  // propagation event to parent(HomeWindow)
-  QWidget::mousePressEvent(e);
+
+  // NOTE: not propagating event to parent(HomeWindow)
+  hud->manualMouseEvent(e);
 }
 
 void OnroadWindow::offroadTransition(bool offroad) {
@@ -169,8 +171,8 @@ void OnroadAlerts::paintEvent(QPaintEvent *event) {
 
 // OnroadHud
 OnroadHud::OnroadHud(QWidget *parent) : QWidget(parent) {
-  engage_img = loadPixmap("../assets/img_chffr_wheel.png", {img_size, img_size});
   dm_img = loadPixmap("../assets/img_driver_face.png", {img_size, img_size});
+  settings_img = loadPixmap("../assets/kommu/settings.png", {img_size, img_size});
 
   connect(this, &OnroadHud::valueChanged, [=] { update(); });
 }
@@ -180,18 +182,23 @@ void OnroadHud::updateState(const UIState &s) {
   const SubMaster &sm = *(s.sm);
   const auto cs = sm["controlsState"].getControlsState();
 
-  float maxspeed = cs.getVCruise();
+  float maxspeed = sm["carState"].getCarState().getCruiseState().getSpeedCluster() * MS_TO_KPH;
   bool cruise_set = maxspeed > 0 && (int)maxspeed != SET_SPEED_NA;
   if (cruise_set && !s.scene.is_metric) {
     maxspeed *= KM_TO_MILE;
   }
   QString maxspeed_str = cruise_set ? QString::number(std::nearbyint(maxspeed)) : "N/A";
-  float cur_speed = std::max(0.0, sm["carState"].getCarState().getVEgo() * (s.scene.is_metric ? MS_TO_KPH : MS_TO_MPH));
+  float cur_speed_hud = sm["carState"].getCarState().getVEgoCluster();
+  float cur_speed =  (cur_speed_hud == 0.0) ? sm["carState"].getCarState().getVEgo() : cur_speed_hud;
+  cur_speed = std::max(0.0, cur_speed * (s.scene.is_metric ? MS_TO_KPH : MS_TO_MPH));
+  float temp = sm["deviceState"].getDeviceState().getAmbientTempC() * (s.scene.is_metric ? 1 : 1.8);
+  temp += s.scene.is_metric ? 0 : 32;
 
   setProperty("is_cruise_set", cruise_set);
   setProperty("speed", QString::number(std::nearbyint(cur_speed)));
   setProperty("maxSpeed", maxspeed_str);
   setProperty("speedUnit", s.scene.is_metric ? "km/h" : "mph");
+  setProperty("temperature", QString::number(std::nearbyint(temp)) + (s.scene.is_metric ? "C" : "F"));
   setProperty("hideDM", cs.getAlertSize() != cereal::ControlsState::AlertSize::NONE);
   setProperty("status", s.status);
 
@@ -200,6 +207,15 @@ void OnroadHud::updateState(const UIState &s) {
     setProperty("engageable", cs.getEngageable() || cs.getEnabled());
     setProperty("dmActive", sm["driverMonitoringState"].getDriverMonitoringState().getIsActiveMode());
   }
+}
+
+void OnroadHud::manualMouseEvent(QMouseEvent *e) {
+  // make dm icon to act as settings button
+  auto const x = radius / 2 + (bdr_s * 2);
+  auto const y = rect().bottom() - footer_h / 2;
+  auto const w = img_size;
+  if (e->globalX() > x && e->globalY() > y && e->globalX() <= x + w && e->globalY() <= y + w)
+      emit openSettings();
 }
 
 void OnroadHud::paintEvent(QPaintEvent *event) {
@@ -235,17 +251,28 @@ void OnroadHud::paintEvent(QPaintEvent *event) {
   configFont(p, "Open Sans", 66, "Regular");
   drawText(p, rect().center().x(), 290, speedUnit, 200);
 
-  // engage-ability icon
-  if (engageable) {
-    drawIcon(p, rect().right() - radius / 2 - bdr_s * 2, radius / 2 + int(bdr_s * 1.5),
-             engage_img, bg_colors[status], 1.0);
-  }
+  // temperature
+  QRect temp_rc(rect().right() - bdr_s * 2 - 184, bdr_s * 1.5, 184, 202);
+  p.setPen(QPen(QColor(0xff, 0xff, 0xff, 100), 10));
+  p.setBrush(QColor(0, 0, 0, 100));
+  p.drawRoundedRect(temp_rc, 20, 20);
+  p.setPen(Qt::NoPen);
+
+  configFont(p, "Open Sans", 48, "Regular");
+  drawText(p, temp_rc.center().x(), 118, "TEMP", 200);
+  configFont(p, "Open Sans", 66, "Bold");
+  drawText(p, temp_rc.center().x(), 212, temperature, 255);
 
   // dm icon
   if (!hideDM) {
-    drawIcon(p, radius / 2 + (bdr_s * 2), rect().bottom() - footer_h / 2,
+    drawIcon(p, rect().right() - radius / 2 - (bdr_s * 2), rect().bottom() - footer_h / 2,
              dm_img, QColor(0, 0, 0, 70), dmActive ? 1.0 : 0.2);
   }
+
+  // settings icon
+  drawIcon(p, radius / 2 + (bdr_s * 2), rect().bottom() - footer_h / 2,
+           settings_img, QColor(0, 0, 0, 70), engageable ? 1.0 : 0.2);
+
 }
 
 void OnroadHud::drawText(QPainter &p, int x, int y, const QString &text, int alpha) {

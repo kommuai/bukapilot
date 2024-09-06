@@ -31,22 +31,21 @@ private:
     continueBtnStandard,
     continueBtnStandard,
     QRect(1442, 565, 230, 310),
-    QRect(1515, 562, 133, 60),
+    QRect(1580, 515, 235, 565),
     continueBtnStandard,
-    QRect(1580, 630, 215, 130),
+    QRect(1580, 560, 215, 330),
     QRect(1210, 0, 485, 590),
     QRect(1460, 400, 375, 210),
-    QRect(166, 842, 1019, 148),
-    QRect(1460, 210, 300, 310),
+    QRect(1404, 201, 349, 322), // max speed
     continueBtnStandard,
-    QRect(1375, 80, 545, 1000),
+    QRect(1224, 408, 689, 421), // lane change
     continueBtnStandard,
-    QRect(1610, 130, 280, 800),
-    QRect(1385, 485, 400, 270),
+    QRect(1240, 496, 493, 245), // brake
+    QRect(1444, 120, 325, 841), // traffic
     continueBtnStandard,
     continueBtnStandard,
-    QRect(1036, 769, 718, 189),
-    QRect(201, 769, 718, 189),
+    QRect(1036, 792, 781, 141), // finish button
+    QRect(164, 792, 781, 141),  // reset button
   };
 
   const QRect continueBtnWide = {1850, 0, 310, 1080};
@@ -119,6 +118,7 @@ class OnboardingWindow : public QStackedWidget {
 
 public:
   explicit OnboardingWindow(QWidget *parent = 0);
+  inline void showTerms() { setCurrentIndex(0); }
   inline void showTrainingGuide() { setCurrentIndex(1); }
   inline bool completed() const { return accepted_terms && training_done; }
 

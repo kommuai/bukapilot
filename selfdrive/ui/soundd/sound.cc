@@ -8,6 +8,7 @@
 
 #include "cereal/messaging/messaging.h"
 #include "selfdrive/common/util.h"
+#include "selfdrive/common/params.h"
 
 // TODO: detect when we can't play sounds
 // TODO: detect when we can't display the UI
@@ -51,7 +52,12 @@ void Sound::update() {
   if (sm.updated("carState")) {
     float volume = util::map_val(sm["carState"].getCarState().getVEgo(), 11.f, 20.f, 0.f, 1.0f);
     volume = QAudio::convertVolume(volume, QAudio::LogarithmicVolumeScale, QAudio::LinearVolumeScale);
-    volume = util::map_val(volume, 0.f, 1.f, Hardware::MIN_VOLUME, Hardware::MAX_VOLUME);
+    if (params.getBool("QuietMode")) {
+      volume = util::map_val(volume, 0.f, 1.f, Hardware::MIN_VOLUME_QUIET_MODE, Hardware::MAX_VOLUME_QUIET_MODE);
+    }
+    else {
+      volume = util::map_val(volume, 0.f, 1.f, Hardware::MIN_VOLUME, Hardware::MAX_VOLUME);
+    }
     for (auto &[s, loops] : sounds) {
       s->setVolume(std::round(100 * volume) / 100);
     }
@@ -72,7 +78,13 @@ void Sound::setAlert(const Alert &alert) {
     }
 
     // play sound
-    if (alert.sound != AudibleAlert::NONE) {
+    bool allowed_alerts = (alert.sound != AudibleAlert::NONE);
+
+    if (params.getBool("QuietMode")) {
+      allowed_alerts = (alert.sound == AudibleAlert::PROMPT_REPEAT || alert.sound == AudibleAlert::PROMPT_DISTRACTED || alert.sound == AudibleAlert::WARNING_SOFT || alert.sound == AudibleAlert::WARNING_IMMEDIATE);
+    }
+
+    if (allowed_alerts) {
       auto &[s, loops] = sounds[alert.sound];
       s->setLoopCount(loops);
       s->play();

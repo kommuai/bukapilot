@@ -5,6 +5,8 @@
 #include <QLabel>
 #include <QPainter>
 #include <QPushButton>
+#include <QDoubleSpinBox>
+#include <QLineEdit>
 
 #include "selfdrive/common/params.h"
 #include "selfdrive/ui/qt/widgets/toggle.h"
@@ -69,12 +71,41 @@ private:
   ElidedLabel label;
 };
 
+// widget for a spinbox with a label
+class SpinboxControl : public AbstractControl {
+  Q_OBJECT
+
+public:
+  SpinboxControl(const QString &param, const QString &title, const QString &desc = "", const QString &unit = "", double range[] = {}, bool reboot_req = false, QWidget *parent = nullptr);
+
+public slots:
+  void deselectTextEdit() { spinbox.findChild<QLineEdit*> ()->deselect(); };
+  void alertRebootRequired() {
+    if (reboot_required) {
+      this->setTitle("(Reboot Required)");
+    }
+  };
+  void setParams(double param_value) {
+  std::string param_value_str = QString::number(param_value).toStdString();
+    params.put(key, param_value_str);
+  }
+  void setEnabled(bool enabled) { spinbox.setEnabled(enabled); };
+
+private:
+  bool reboot_required;
+  std::string key;
+  Params params;
+
+protected:
+  QDoubleSpinBox spinbox;
+};
+
 // widget for a button with a label
 class ButtonControl : public AbstractControl {
   Q_OBJECT
 
 public:
-  ButtonControl(const QString &title, const QString &text, const QString &desc = "", QWidget *parent = nullptr);
+  ButtonControl(const QString &title, const QString &text, const QString &desc = "", bool no_style = false, QWidget *parent = nullptr);
   inline void setText(const QString &text) { btn.setText(text); }
   inline QString text() const { return btn.text(); }
 
@@ -141,7 +172,7 @@ class ListWidget : public QWidget {
     outer_layout.setSpacing(0);
     outer_layout.addLayout(&inner_layout);
     inner_layout.setMargin(0);
-    inner_layout.setSpacing(25); // default spacing is 25
+    inner_layout.setSpacing(50); // default spacing is 25
     outer_layout.addStretch();
   }
   inline void addItem(QWidget *w) { inner_layout.addWidget(w); }
