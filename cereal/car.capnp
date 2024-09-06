@@ -80,6 +80,7 @@ struct CarEvent @0x9b1657f34caf3ad3 {
     gasPressed @73;
     stockFcw @74;
     startup @75;
+    startupQC @110;
     startupNoCar @76;
     startupNoControl @77;
     startupMaster @78;
@@ -105,6 +106,12 @@ struct CarEvent @0x9b1657f34caf3ad3 {
     highCpuUsage @105;
     cruiseMismatch @106;
     lkasDisabled @107;
+
+    belowLaneChangeSpeed @108;
+    promptDriverBrake @109;
+    qcDone @111;
+    protonHandOnWheelWarning @112;
+    aboveSteerSpeed @113;
 
     radarCanErrorDEPRECATED @15;
     communityFeatureDisallowedDEPRECATED @62;
@@ -139,6 +146,7 @@ struct CarState {
 
   # car speed
   vEgo @1 :Float32;         # best estimate of speed
+  vEgoCluster @40 :Float32; # best estimate of HUD speed
   aEgo @16 :Float32;        # best estimate of acceleration
   vEgoRaw @17 :Float32;     # unfiltered speed from CAN sensors
   yawRate @22 :Float32;     # best estimate of yaw rate
@@ -195,6 +203,17 @@ struct CarState {
   leftBlindspot @33 :Bool; # Is there something blocking the left lane change
   rightBlindspot @34 :Bool; # Is there something blocking the right lane change
 
+  lkaDisabled @41 :Bool; # Default value is False
+
+  stockAdas @39: StockADAS;
+
+  struct StockADAS {
+    laneDepartureHUD @0 :Bool;
+    frontDepartureHUD @1 :Bool;
+    ldpSteerV @2 :Float32;
+    aebV @3 :Float32;
+  }
+
   struct WheelSpeeds {
     # optional wheel speeds
     fl @0 :Float32;
@@ -210,6 +229,17 @@ struct CarState {
     speedOffset @3 :Float32;
     standstill @4 :Bool;
     nonAdaptive @5 :Bool;
+    speedCluster @6 :Float32;  # Set speed as shown on instrument cluster
+    setDistance @7 :SetDistance;
+
+    enum SetDistance {
+      unknown @0;
+      chill @1;
+      normal @2;
+      aggresive @3;
+      experimental @4;
+      auto @5;
+    }
   }
 
   enum GearShifter {
@@ -293,6 +323,9 @@ struct CarControl {
 
   # Actuator commands as computed by controlsd
   actuators @6 :Actuators;
+
+  # Lane active is used for any aux lane assist functions
+  laneActive @11: Bool;
 
   # Any car specific rate limits or quirks applied by
   # the CarController are reflected in actuatorsOutput
@@ -454,6 +487,7 @@ struct CarParams {
   networkLocation @50 :NetworkLocation;  # Where Panda/C2 is integrated into the car's CAN network
 
   wheelSpeedFactor @63 :Float32; # Multiplier on wheels speeds to computer actual speeds
+  speedControlled @66: Bool; # To identify cars that are speed controlled but accel controlled brakes
 
   struct SafetyConfig {
     safetyModel @0 :SafetyModel;
@@ -539,6 +573,10 @@ struct CarParams {
     hyundaiLegacy @23;
     hyundaiCommunity @24;
     stellantis @25;
+    proton @26;
+    perodua @27;
+    wuling @28;
+    byd @29;
   }
 
   enum SteerControlType {
