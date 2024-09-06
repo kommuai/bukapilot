@@ -68,10 +68,12 @@ class LongControl():
 
       v_target = speeds[0]
       v_target_future = speeds[-1]
+      des_speed = v_target_upper
     else:
       v_target = 0.0
       v_target_future = 0.0
       a_target = 0.0
+      des_speed = 0
 
     # TODO: This check is not complete and needs to be enforced by MPC
     a_target = clip(a_target, ACCEL_MIN_ISO, ACCEL_MAX_ISO)
@@ -85,7 +87,7 @@ class LongControl():
                                                        v_target_future, CS.brakePressed,
                                                        CS.cruiseState.standstill)
 
-    if self.long_control_state == LongCtrlState.off or CS.gasPressed:
+    if self.long_control_state == LongCtrlState.off:
       self.reset(CS.vEgo)
       output_accel = 0.
 
@@ -93,13 +95,16 @@ class LongControl():
     elif self.long_control_state == LongCtrlState.pid:
       self.v_pid = v_target
 
+      # Reset PID when manual gas input is seen
+      if CS.gasPressed:
+        self.reset(CS.vEgo)
       # Toyota starts braking more when it thinks you want to stop
       # Freeze the integrator so we don't accelerate to compensate, and don't allow positive acceleration
       prevent_overshoot = not CP.stoppingControl and CS.vEgo < 1.5 and v_target_future < 0.7 and v_target_future < self.v_pid
       deadzone = interp(CS.vEgo, CP.longitudinalTuning.deadzoneBP, CP.longitudinalTuning.deadzoneV)
       freeze_integrator = prevent_overshoot
 
-      output_accel = self.pid.update(self.v_pid, CS.vEgo, speed=CS.vEgo, deadzone=deadzone, feedforward=a_target, freeze_integrator=freeze_integrator)
+      output_accel = self.pid.update(self.v_pid, CS.vEgo, speed=CS.vEgo, deadzone=deadzone, feedforward=a_target, freeze_integrator=freeze_integrator, speed_controlled=CP.speedControlled)
 
       if prevent_overshoot:
         output_accel = min(output_accel, 0.0)
@@ -115,4 +120,4 @@ class LongControl():
     self.last_output_accel = output_accel
     final_accel = clip(output_accel, accel_limits[0], accel_limits[1])
 
-    return final_accel
+    return final_accel, des_speed

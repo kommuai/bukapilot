@@ -44,7 +44,7 @@ class PIController():
     self.f = 0.0
     self.control = 0
 
-  def update(self, setpoint, measurement, speed=0.0, override=False, feedforward=0., deadzone=0., freeze_integrator=False):
+  def update(self, setpoint, measurement, speed=0.0, override=False, feedforward=0., deadzone=0., freeze_integrator=False, speed_controlled=False):
     self.speed = speed
 
     error = float(apply_deadzone(setpoint - measurement, deadzone))
@@ -63,6 +63,10 @@ class PIController():
           (error <= 0 and (control >= self.neg_limit or i > 0.0))) and \
          not freeze_integrator:
         self.i = i
+
+    # Speed controlled cars doesn't need the integrator for positive acceleration
+    if speed_controlled and self.i > 0:
+      self.i = 0
 
     control = self.p + self.f + self.i
 

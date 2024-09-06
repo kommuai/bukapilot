@@ -137,7 +137,7 @@ class Alert:
 
 class NoEntryAlert(Alert):
   def __init__(self, alert_text_2: str, visual_alert: car.CarControl.HUDControl.VisualAlert=VisualAlert.none):
-    super().__init__("openpilot Unavailable", alert_text_2, AlertStatus.normal,
+    super().__init__("bukapilot Unavailable", alert_text_2, AlertStatus.normal,
                      AlertSize.mid, Priority.LOW, visual_alert,
                      AudibleAlert.refuse, 3.)
 
@@ -154,7 +154,7 @@ class SoftDisableAlert(Alert):
 class UserSoftDisableAlert(SoftDisableAlert):
   def __init__(self, alert_text_2: str):
     super().__init__(alert_text_2),
-    self.alert_text_1 = "openpilot will disengage"
+    self.alert_text_1 = "bukapilot will disengage"
 
 
 class ImmediateDisableAlert(Alert):
@@ -221,10 +221,10 @@ def below_engage_speed_alert(CP: car.CarParams, sm: messaging.SubMaster, metric:
 
 def below_steer_speed_alert(CP: car.CarParams, sm: messaging.SubMaster, metric: bool, soft_disable_time: int) -> Alert:
   return Alert(
-    f"Steer Unavailable Below {get_display_speed(CP.minSteerSpeed, metric)}",
     "",
-    AlertStatus.userPrompt, AlertSize.small,
-    Priority.MID, VisualAlert.steerRequired, AudibleAlert.prompt, 0.4)
+    "",
+    AlertStatus.userPrompt, AlertSize.none,
+    Priority.MID, VisualAlert.none, AudibleAlert.prompt, 0.4)
 
 
 def calibration_incomplete_alert(CP: car.CarParams, sm: messaging.SubMaster, metric: bool, soft_disable_time: int) -> Alert:
@@ -279,6 +279,10 @@ EVENTS: Dict[int, Dict[str, Union[Alert, AlertCallbackType]]] = {
     ET.PERMANENT: StartupAlert("Be ready to take over at any time")
   },
 
+  EventName.startupQC: {
+    ET.PERMANENT: StartupAlert("WARNING: Undergoing QC Testing")
+  },
+
   EventName.startupMaster: {
     ET.PERMANENT: StartupAlert("WARNING: This branch is not tested",
                                alert_status=AlertStatus.userPrompt),
@@ -311,7 +315,7 @@ EVENTS: Dict[int, Dict[str, Union[Alert, AlertCallbackType]]] = {
   },
 
   EventName.cruiseMismatch: {
-    #ET.PERMANENT: ImmediateDisableAlert("openpilot failed to cancel cruise"),
+    #ET.PERMANENT: ImmediateDisableAlert("bukapilot failed to cancel cruise"),
   },
 
   # openpilot doesn't recognize the car. This switches openpilot into a
@@ -338,6 +342,14 @@ EVENTS: Dict[int, Dict[str, Union[Alert, AlertCallbackType]]] = {
       "Risk of Collision",
       AlertStatus.critical, AlertSize.full,
       Priority.HIGHEST, VisualAlert.fcw, AudibleAlert.warningSoft, 2.),
+  },
+
+  EventName.promptDriverBrake: {
+    ET.PERMANENT: Alert(
+      "BRAKE!",
+      "",
+      AlertStatus.userPrompt, AlertSize.mid,
+      Priority.MID, VisualAlert.ldw, AudibleAlert.promptRepeat, 2.),
   },
 
   EventName.ldw: {
@@ -443,8 +455,33 @@ EVENTS: Dict[int, Dict[str, Union[Alert, AlertCallbackType]]] = {
       Priority.LOW, VisualAlert.none, AudibleAlert.none, .2),
   },
 
+  EventName.protonHandOnWheelWarning: {
+    ET.WARNING: Alert(
+      "Touch Steering Wheel",
+      "Set Proton ICC to ACC to remove warning",
+      AlertStatus.userPrompt, AlertSize.mid,
+      Priority.LOW, VisualAlert.none, AudibleAlert.none, .2),
+  },
+
+
   EventName.belowSteerSpeed: {
     ET.WARNING: below_steer_speed_alert,
+  },
+
+  EventName.aboveSteerSpeed: {
+    ET.PERMANENT: Alert(
+      "Lane Keep Assist Operational",
+      "",
+      AlertStatus.normal, AlertSize.small,
+      Priority.LOW, VisualAlert.none, AudibleAlert.prompt, 1.0, creation_delay=0.2),
+  },
+
+  EventName.belowLaneChangeSpeed: {
+    ET.WARNING: Alert(
+      "Below Auto Lane Change Speed",
+      "Manually Steer to Change Lane",
+      AlertStatus.userPrompt, AlertSize.mid,
+      Priority.MID, VisualAlert.steerRequired, AudibleAlert.none, .1),
   },
 
   EventName.preLaneChangeLeft: {
@@ -500,6 +537,11 @@ EVENTS: Dict[int, Dict[str, Union[Alert, AlertCallbackType]]] = {
   # Unused
   EventName.gpsMalfunction: {
     ET.PERMANENT: NormalPermanentAlert("GPS Malfunction", "Contact Support"),
+  },
+
+  # For QC Test
+  EventName.qcDone: {
+    ET.PERMANENT: NormalPermanentAlert("QC Done", "Please turn off ignition and check the report log", priority=Priority.HIGHEST),
   },
 
   # When the GPS position and localizer diverge the localizer is reset to the
@@ -590,9 +632,9 @@ EVENTS: Dict[int, Dict[str, Union[Alert, AlertCallbackType]]] = {
   },
 
   EventName.overheat: {
-    ET.PERMANENT: NormalPermanentAlert("System Overheated"),
-    ET.SOFT_DISABLE: soft_disable_alert("System Overheated"),
-    ET.NO_ENTRY: NoEntryAlert("System Overheated"),
+    ET.PERMANENT: NormalPermanentAlert("Overheat Prevention", "Please cool down device to 50 degree celcius"),
+    ET.SOFT_DISABLE: soft_disable_alert("Overheat Prevention: Please cool down device to 50 degree celcius"),
+    ET.NO_ENTRY: NoEntryAlert("Overheat Prevention: Please cool down device to 50 degree celcius"),
   },
 
   EventName.wrongGear: {
@@ -768,7 +810,11 @@ EVENTS: Dict[int, Dict[str, Union[Alert, AlertCallbackType]]] = {
   # On cars that use stock ACC the car can decide to cancel ACC for various reasons.
   # When this happens we can no long control the car so the user needs to be warned immediately.
   EventName.cruiseDisabled: {
-    ET.IMMEDIATE_DISABLE: ImmediateDisableAlert("Cruise Is Off"),
+    ET.IMMEDIATE_DISABLE: Alert(
+      "bukapilot Canceled",
+      "Cruise is Off",
+      AlertStatus.normal, AlertSize.mid,
+      Priority.HIGH, VisualAlert.none, AudibleAlert.disengage, 3.),
   },
 
   # For planning the trajectory Model Predictive Control (MPC) is used. This is
@@ -791,7 +837,7 @@ EVENTS: Dict[int, Dict[str, Union[Alert, AlertCallbackType]]] = {
 
   EventName.noTarget: {
     ET.IMMEDIATE_DISABLE: Alert(
-      "openpilot Canceled",
+      "bukapilot Canceled",
       "No close lead car",
       AlertStatus.normal, AlertSize.mid,
       Priority.HIGH, VisualAlert.none, AudibleAlert.disengage, 3.),
@@ -800,7 +846,7 @@ EVENTS: Dict[int, Dict[str, Union[Alert, AlertCallbackType]]] = {
 
   EventName.speedTooLow: {
     ET.IMMEDIATE_DISABLE: Alert(
-      "openpilot Canceled",
+      "bukapilot Canceled",
       "Speed too low",
       AlertStatus.normal, AlertSize.mid,
       Priority.HIGH, VisualAlert.none, AudibleAlert.disengage, 3.),

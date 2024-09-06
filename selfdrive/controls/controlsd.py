@@ -37,6 +37,7 @@ SIMULATION = "SIMULATION" in os.environ
 NOSENSOR = "NOSENSOR" in os.environ
 IGNORE_PROCESSES = {"rtshield", "uploader", "deleter", "loggerd", "logmessaged", "tombstoned",
                     "logcatd", "proclogd", "clocksd", "updated", "timezoned", "manage_athenad",
+                    "gpsd",
                     "statsd", "shutdownd"} | \
                     {k for k, v in managed_processes.items() if not v.enabled}
 
@@ -56,6 +57,11 @@ IGNORED_SAFETY_MODES = [SafetyModel.silent, SafetyModel.noOutput]
 CSID_MAP = {"0": EventName.roadCameraError, "1": EventName.wideRoadCameraError, "2": EventName.driverCameraError}
 
 class Controls:
+
+  # Check if blinker was used within 2 seconds.
+  def recent_blinker_2s(self):
+    return (self.sm.frame - self.last_blinker_frame) * DT_CTRL < 2.0
+
   def __init__(self, sm=None, pm=None, can_sock=None):
     config_realtime_process(4 if TICI else 3, Priority.CTRL_HIGH)
 
@@ -70,6 +76,8 @@ class Controls:
       self.camera_packets.append("wideRoadCameraState")
 
     params = Params()
+
+    self.is_qc_test = params.get("QC_Test") is not None
     self.joystick_mode = params.get_bool("JoystickDebugMode")
     joystick_packet = ['testJoystick'] if self.joystick_mode else []
 
@@ -98,6 +106,7 @@ class Controls:
     # read params
     self.is_metric = params.get_bool("IsMetric")
     self.is_ldw_enabled = params.get_bool("IsLdwEnabled")
+    self.is_alc_enabled = params.get_bool("IsAlcEnabled")
     openpilot_enabled_toggle = params.get_bool("OpenpilotEnabledToggle")
     passive = params.get_bool("Passive") or not openpilot_enabled_toggle
 
@@ -237,10 +246,11 @@ class Controls:
          (CS.rightBlindspot and direction == LaneChangeDirection.right):
         self.events.add(EventName.laneChangeBlocked)
       else:
-        if direction == LaneChangeDirection.left:
-          self.events.add(EventName.preLaneChangeLeft)
-        else:
-          self.events.add(EventName.preLaneChangeRight)
+        if self.is_alc_enabled:
+          if direction == LaneChangeDirection.left:
+            self.events.add(EventName.preLaneChangeLeft)
+          else:
+            self.events.add(EventName.preLaneChangeRight)
     elif self.sm['lateralPlan'].laneChangeState in (LaneChangeState.laneChangeStarting,
                                                     LaneChangeState.laneChangeFinishing):
       self.events.add(EventName.laneChange)
@@ -277,6 +287,10 @@ class Controls:
         self.logged_comm_issue = True
     else:
       self.logged_comm_issue = False
+
+    if self.is_qc_test:
+      if Params().get("QC_Test") is None:
+        self.events.add(EventName.qcDone)
 
     if not self.sm['liveParameters'].valid:
       self.events.add(EventName.vehicleModelInvalid)
@@ -492,7 +506,7 @@ class Controls:
     if not self.joystick_mode:
       # accel PID loop
       pid_accel_limits = self.CI.get_pid_accel_limits(self.CP, CS.vEgo, self.v_cruise_kph * CV.KPH_TO_MS)
-      actuators.accel = self.LoC.update(self.active, CS, self.CP, long_plan, pid_accel_limits)
+      actuators.accel, actuators.speed = self.LoC.update(self.active, CS, self.CP, long_plan, pid_accel_limits)
 
       # Steering PID loop and lateral MPC
       lat_active = self.active and not CS.steerWarning and not CS.steerError and CS.vEgo > self.CP.minSteerSpeed
@@ -525,7 +539,10 @@ class Controls:
         left_deviation = actuators.steer > 0 and dpath_points[0] < -0.20
         right_deviation = actuators.steer < 0 and dpath_points[0] > 0.20
 
-        if left_deviation or right_deviation:
+        # Condition to show steering limit warning
+        # Within 2 seconds of manual lane change, do not show this warning.
+        manual_LC_2s = not self.is_alc_enabled and self.recent_blinker_2s()
+        if (left_deviation or right_deviation) and not manual_LC_2s and not CS.lkaDisabled:
           self.events.add(EventName.steerSaturated)
 
     # Ensure no NaNs/Infs
@@ -557,6 +574,7 @@ class Controls:
     CC.enabled = self.enabled
     CC.active = self.active
     CC.actuators = actuators
+    CC.laneActive = True
 
     orientation_value = self.sm['liveLocationKalman'].orientationNED.value
     if len(orientation_value) > 2:
@@ -576,9 +594,13 @@ class Controls:
     hudControl.rightLaneVisible = True
     hudControl.leftLaneVisible = True
 
-    recent_blinker = (self.sm.frame - self.last_blinker_frame) * DT_CTRL < 5.0  # 5s blinker cooldown
-    ldw_allowed = self.is_ldw_enabled and CS.vEgo > LDW_MIN_SPEED and not recent_blinker \
+    ldw_allowed = self.is_ldw_enabled and CS.vEgo > LDW_MIN_SPEED and not self.recent_blinker_2s() \
                     and not self.active and self.sm['liveCalibration'].calStatus == Calibration.CALIBRATED
+
+    # 0.1s blinker cooldown after lane change, (for ALC disabled) lane keep will be activated again after cooldown
+    recent_blinker = (self.sm.frame - self.last_blinker_frame) * DT_CTRL < 0.1
+    if recent_blinker and not self.is_alc_enabled:
+      CC.laneActive = False
 
     model_v2 = self.sm['modelV2']
     desire_prediction = model_v2.meta.desirePrediction

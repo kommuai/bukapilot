@@ -43,7 +43,7 @@ class LatControlPID(LatControl):
       deadzone = 0.0
 
       output_steer = self.pid.update(angle_steers_des, CS.steeringAngleDeg, override=CS.steeringPressed,
-                                     feedforward=steer_feedforward, speed=CS.vEgo, deadzone=deadzone)
+                                     feedforward=steer_feedforward, speed=CS.vEgo, deadzone=deadzone, speed_controlled=False)
       pid_log.active = True
       pid_log.p = self.pid.p
       pid_log.i = self.pid.i

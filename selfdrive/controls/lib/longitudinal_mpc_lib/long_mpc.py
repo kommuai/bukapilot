@@ -2,6 +2,8 @@
 import os
 import numpy as np
 
+from common.params import Params
+from cereal import car
 from common.realtime import sec_since_boot
 from common.numpy_fast import clip, interp
 from selfdrive.swaglog import cloudlog
@@ -16,6 +18,8 @@ else:
 
 from casadi import SX, vertcat
 
+SetDistance = car.CarState.CruiseState.SetDistance
+
 LONG_MPC_DIR = os.path.dirname(os.path.abspath(__file__))
 EXPORT_DIR = os.path.join(LONG_MPC_DIR, "c_generated_code")
 JSON_FILE = "acados_ocp_long.json"
@@ -24,19 +28,20 @@ SOURCES = ['lead0', 'lead1', 'cruise']
 
 X_DIM = 3
 U_DIM = 1
-PARAM_DIM= 4
+PARAM_DIM = 6
 COST_E_DIM = 5
 COST_DIM = COST_E_DIM + 1
 CONSTR_DIM = 4
 
-X_EGO_OBSTACLE_COST = 3.
+X_EGO_OBSTACLE_COST = 5.
 X_EGO_COST = 0.
 V_EGO_COST = 0.
 A_EGO_COST = 0.
-J_EGO_COST = 5.0
-A_CHANGE_COST = .5
-DANGER_ZONE_COST = 100.
+J_EGO_COST = 5.
+A_CHANGE_COST = 200.
+DANGER_ZONE_COST = 200.
 CRASH_DISTANCE = .5
+LEAD_DANGER_FACTOR = 0.75
 LIMIT_COST = 1e6
 
 
@@ -44,23 +49,39 @@ LIMIT_COST = 1e6
 # much better convergence of the MPC with low iterations
 N = 12
 MAX_T = 10.0
-T_IDXS_LST = [index_function(idx, max_val=MAX_T, max_idx=N+1) for idx in range(N+1)]
+T_IDXS_LST = [index_function(idx, max_val=MAX_T, max_idx=N) for idx in range(N+1)]
 
 T_IDXS = np.array(T_IDXS_LST)
 T_DIFFS = np.diff(T_IDXS, prepend=[0.])
 MIN_ACCEL = -3.5
-T_FOLLOW = 1.45
-COMFORT_BRAKE = 2.5
-STOP_DISTANCE = 6.0
+COMFORT_BRAKE = 2.0
+HARSH_BRAKE = 1.6
+STOP_DISTANCE = 6.4
+T_FOLLOW_CHILL = 2.2
+T_FOLLOW_NORMAL = 1.6
+T_FOLLOW_AGGRO = 1.3
+T_FOLLOW_DANGER = 1.0
+
+def get_desired_tf(set_distance=SetDistance.normal):
+  if set_distance == SetDistance.aggresive:
+    return T_FOLLOW_AGGRO
+  elif set_distance == SetDistance.normal:
+    return T_FOLLOW_NORMAL
+  elif set_distance == SetDistance.chill:
+    return T_FOLLOW_CHILL
+  elif set_distance == SetDistance.experimental:
+    return T_FOLLOW_DANGER
+  else:
+    return T_FOLLOW_NORMAL
 
 def get_stopped_equivalence_factor(v_lead):
-  return (v_lead**2) / (2 * COMFORT_BRAKE)
+  return (v_lead**2) / (2 * HARSH_BRAKE)
 
-def get_safe_obstacle_distance(v_ego):
-  return (v_ego**2) / (2 * COMFORT_BRAKE) + T_FOLLOW * v_ego + STOP_DISTANCE
+def get_safe_obstacle_distance(v_ego, desired_tf, stop_distance_offset = 0):
+  return (v_ego**2) / (2 * COMFORT_BRAKE) + desired_tf * v_ego + STOP_DISTANCE + stop_distance_offset
 
-def desired_follow_distance(v_ego, v_lead):
-  return get_safe_obstacle_distance(v_ego) - get_stopped_equivalence_factor(v_lead)
+def desired_follow_distance(v_ego, v_lead, stop_distance_offset, desired_tf = get_desired_tf()):
+  return get_safe_obstacle_distance(v_ego, desired_tf, stop_distance_offset) - get_stopped_equivalence_factor(v_lead)
 
 
 def gen_long_model():
@@ -88,7 +109,9 @@ def gen_long_model():
   a_max = SX.sym('a_max')
   x_obstacle = SX.sym('x_obstacle')
   prev_a = SX.sym('prev_a')
-  model.p = vertcat(a_min, a_max, x_obstacle, prev_a)
+  t_follow = SX.sym('t_follow')
+  lead_danger_factor = SX.sym('lead_danger_factor')
+  model.p = vertcat(a_min, a_max, x_obstacle, prev_a, t_follow, lead_danger_factor)
 
   # dynamics model
   f_expl = vertcat(v_ego, a_ego, j_ego)
@@ -122,11 +145,13 @@ def gen_long_mpc_solver():
   a_min, a_max = ocp.model.p[0], ocp.model.p[1]
   x_obstacle = ocp.model.p[2]
   prev_a = ocp.model.p[3]
+  desired_tf = ocp.model.p[4]
+  lead_danger_factor = ocp.model.p[5]
 
   ocp.cost.yref = np.zeros((COST_DIM, ))
   ocp.cost.yref_e = np.zeros((COST_E_DIM, ))
 
-  desired_dist_comfort = get_safe_obstacle_distance(v_ego)
+  desired_dist_comfort = get_safe_obstacle_distance(v_ego, desired_tf, 0)
 
   # The main cost in normal operation is how close you are to the "desired" distance
   # from an obstacle at every timestep. This obstacle can be a lead car
@@ -136,7 +161,7 @@ def gen_long_mpc_solver():
            x_ego,
            v_ego,
            a_ego,
-           20*(a_ego - prev_a),
+           a_ego - prev_a,
            j_ego]
   ocp.model.cost_y_expr = vertcat(*costs)
   ocp.model.cost_y_expr_e = vertcat(*costs[:-1])
@@ -147,13 +172,13 @@ def gen_long_mpc_solver():
   constraints = vertcat(v_ego,
                         (a_ego - a_min),
                         (a_max - a_ego),
-                        ((x_obstacle - x_ego) - (3/4) * (desired_dist_comfort)) / (v_ego + 10.))
+                        ((x_obstacle - x_ego) - lead_danger_factor * (desired_dist_comfort)) / (v_ego + 10.))
   ocp.model.con_h_expr = constraints
   ocp.model.con_h_expr_e = vertcat(np.zeros(CONSTR_DIM))
 
   x0 = np.zeros(X_DIM)
   ocp.constraints.x0 = x0
-  ocp.parameter_values = np.array([-1.2, 1.2, 0.0, 0.0])
+  ocp.parameter_values = np.array([-1.2, 1.2, 0.0, 0.0, T_FOLLOW_CHILL, LEAD_DANGER_FACTOR])
 
   # We put all constraint cost weights to 0 and only set them at runtime
   cost_weights = np.zeros(CONSTR_DIM)
@@ -176,11 +201,12 @@ def gen_long_mpc_solver():
   ocp.solver_options.hessian_approx = 'GAUSS_NEWTON'
   ocp.solver_options.integrator_type = 'ERK'
   ocp.solver_options.nlp_solver_type = 'SQP_RTI'
-  ocp.solver_options.qp_solver_cond_N = N//4
+  ocp.solver_options.qp_solver_cond_N = 1
 
   # More iterations take too much time and less lead to inaccurate convergence in
   # some situations. Ideally we would run just 1 iteration to ensure fixed runtime.
   ocp.solver_options.qp_solver_iter_max = 10
+  ocp.solver_options.qp_tol = 1e-3
 
   # set prediction horizon
   ocp.solver_options.tf = Tf
@@ -193,8 +219,10 @@ def gen_long_mpc_solver():
 class LongitudinalMpc:
   def __init__(self, e2e=False):
     self.e2e = e2e
+    self.desired_tf = T_FOLLOW_NORMAL
     self.reset()
     self.source = SOURCES[2]
+    self.stop_distance_offset = float(Params().get("StoppingDistanceOffset"))
 
   def reset(self):
     self.solver = AcadosOcpSolverFast('long', N, EXPORT_DIR)
@@ -228,17 +256,29 @@ class LongitudinalMpc:
     else:
       self.set_weights_for_lead_policy()
 
+  # make sure the multipliers are simulated for reliability
+  # test them using test/test_longitudinal.py
+  def get_cost_multipliers(self):
+    tfs = [T_FOLLOW_AGGRO, T_FOLLOW_NORMAL, T_FOLLOW_CHILL]
+    a_change_tf = interp(self.desired_tf, tfs, [0.5, 0.8, 1.])
+    j_ego_tf = interp(self.desired_tf, tfs, [0.5, 0.8, 1.])
+    d_zone_tf = interp(self.desired_tf, tfs, [2., 1.5, 1.])
+    return (a_change_tf, j_ego_tf, d_zone_tf)
+
   def set_weights_for_lead_policy(self):
-    W = np.asfortranarray(np.diag([X_EGO_OBSTACLE_COST, X_EGO_COST, V_EGO_COST, A_EGO_COST, A_CHANGE_COST, J_EGO_COST]))
+    cost_mult = self.get_cost_multipliers()
+    W = np.asfortranarray(np.diag([X_EGO_OBSTACLE_COST, X_EGO_COST, V_EGO_COST,
+                                   A_EGO_COST, A_CHANGE_COST * cost_mult[0],
+                                   J_EGO_COST * cost_mult[1]]))
     for i in range(N):
-      W[4,4] = A_CHANGE_COST * np.interp(T_IDXS[i], [0.0, 1.0, 2.0], [1.0, 1.0, 0.0])
+      W[4,4] = A_CHANGE_COST * cost_mult[0] * np.interp(T_IDXS[i], [0.0, 1.0, 2.0], [1.0, 1.0, 0.0])
       self.solver.cost_set(i, 'W', W)
     # Setting the slice without the copy make the array not contiguous,
     # causing issues with the C interface.
     self.solver.cost_set(N, 'W', np.copy(W[:COST_E_DIM, :COST_E_DIM]))
 
     # Set L2 slack cost on lower bound constraints
-    Zl = np.array([LIMIT_COST, LIMIT_COST, LIMIT_COST, DANGER_ZONE_COST])
+    Zl = np.array([LIMIT_COST, LIMIT_COST, LIMIT_COST, DANGER_ZONE_COST * cost_mult[2]])
     for i in range(N):
       self.solver.cost_set(i, 'Zl', Zl)
 
@@ -301,6 +341,8 @@ class LongitudinalMpc:
     self.cruise_max_a = max_a
 
   def update(self, carstate, radarstate, v_cruise, prev_accel_constraint=False):
+    self.desired_tf = get_desired_tf(carstate.cruiseState.setDistance)
+    self.set_weights()
     v_ego = self.x0[1]
     a_ego = self.x0[2]
     self.status = radarstate.leadOne.status or radarstate.leadTwo.status
@@ -325,7 +367,7 @@ class LongitudinalMpc:
     v_cruise_clipped = np.clip(v_cruise * np.ones(N+1),
                                v_lower,
                                v_upper)
-    cruise_obstacle = np.cumsum(T_DIFFS * v_cruise_clipped) + get_safe_obstacle_distance(v_cruise_clipped)
+    cruise_obstacle = np.cumsum(T_DIFFS * v_cruise_clipped) + get_safe_obstacle_distance(v_cruise_clipped, self.desired_tf, self.stop_distance_offset)
 
     x_obstacles = np.column_stack([lead_0_obstacle, lead_1_obstacle, cruise_obstacle])
     self.source = SOURCES[np.argmin(x_obstacles[0])]
@@ -334,6 +376,8 @@ class LongitudinalMpc:
       self.params[:,3] = np.copy(self.prev_a)
     else:
       self.params[:,3] = a_ego
+    self.params[:,4] = self.desired_tf
+    self.params[:,5] = LEAD_DANGER_FACTOR
 
     self.run()
     if (np.any(lead_xv_0[:,0] - self.x_sol[:,0] < CRASH_DISTANCE) and

@@ -17,11 +17,11 @@ from selfdrive.swaglog import cloudlog
 LON_MPC_STEP = 0.2  # first step is 0.2s
 AWARENESS_DECEL = -0.2  # car smoothly decel at .2m/s^2 when user is distracted
 A_CRUISE_MIN = -1.2
-A_CRUISE_MAX_VALS = [1.2, 1.2, 0.8, 0.6]
+A_CRUISE_MAX_VALS = [1.2, 1.0, 0.8, 0.6]
 A_CRUISE_MAX_BP = [0., 15., 25., 40.]
 
 # Lookup table for turns
-_A_TOTAL_MAX_V = [1.7, 3.2]
+_A_TOTAL_MAX_V = [2.7, 3.7]
 _A_TOTAL_MAX_BP = [20., 40.]
 
 
@@ -68,7 +68,7 @@ class Planner:
     force_slow_decel = sm['controlsState'].forceDecel
 
     prev_accel_constraint = True
-    if long_control_state == LongCtrlState.off or sm['carState'].gasPressed:
+    if long_control_state == LongCtrlState.off:
       self.v_desired_filter.x = v_ego
       self.a_desired = a_ego
       # Smoothly changing between accel trajectory is only relevant when OP is driving
