@@ -20,8 +20,7 @@ CAR_CHARGING_RATE_W = 45
 
 VBATT_PAUSE_CHARGING = 11.0           # Lower limit on the LPF car battery voltage
 VBATT_INSTANT_PAUSE_CHARGING = 7.0    # Lower limit on the instant car battery voltage measurements to avoid triggering on instant power loss
-MAX_TIME_OFFROAD_S = 30*3600
-MIN_ON_TIME_S = 3600
+MIN_ON_TIME_S = 10 * 60
 
 class PowerMonitoring:
   def __init__(self):
@@ -33,6 +32,7 @@ class PowerMonitoring:
     self.car_voltage_mV = 12e3                  # Low-passed version of peripheralState voltage
     self.car_voltage_instant_mV = 12e3          # Last value of peripheralState voltage
     self.integration_lock = threading.Lock()
+    self.max_time_offroad_s = float(self.params.get("PowerSaverEntryDuration")) * 60
 
     car_battery_capacity_uWh = self.params.get("CarBatteryCapacity")
     if car_battery_capacity_uWh is None:
@@ -166,12 +166,9 @@ class PowerMonitoring:
 
     now = sec_since_boot()
     disable_charging = False
-    disable_charging |= (now - offroad_timestamp) > MAX_TIME_OFFROAD_S
-    disable_charging |= (self.car_voltage_mV < (VBATT_PAUSE_CHARGING * 1e3)) and (self.car_voltage_instant_mV > (VBATT_INSTANT_PAUSE_CHARGING * 1e3))
-    disable_charging |= (self.car_battery_capacity_uWh <= 0)
+    disable_charging |= (now - offroad_timestamp) > self.max_time_offroad_s
     disable_charging &= not ignition
     disable_charging &= (not self.params.get_bool("DisablePowerDown"))
-    disable_charging &= in_car
     disable_charging |= self.params.get_bool("ForcePowerDown")
     return disable_charging
 
@@ -188,5 +185,6 @@ class PowerMonitoring:
     # Wait until we have shut down charging before powering down
     should_shutdown |= (not panda_charging and self.should_disable_charging(ignition, in_car, offroad_timestamp))
     should_shutdown |= ((HARDWARE.get_battery_capacity() < BATT_PERC_OFF) and (not HARDWARE.get_battery_charging()) and ((now - offroad_timestamp) > 60))
+    should_shutdown &= not panda_charging
     should_shutdown &= started_seen or (now > MIN_ON_TIME_S)
     return should_shutdown
