@@ -1,18 +1,20 @@
 #!/usr/bin/env python3
 import datetime
+import json
 import os
 import signal
 import subprocess
 import sys
 import traceback
+from multiprocessing import Process
 from typing import List, Tuple, Union
 
 import cereal.messaging as messaging
 import selfdrive.sentry as sentry
 from common.basedir import BASEDIR
+from common.features import Features
 from common.params import Params, ParamKeyType
 from common.text_window import TextWindow
-from selfdrive.boardd.set_time import set_time
 from selfdrive.hardware import HARDWARE, PC
 from selfdrive.manager.helpers import unblock_stdout
 from selfdrive.manager.process import ensure_running
@@ -25,13 +27,32 @@ from selfdrive.version import is_dirty, get_commit, get_version, get_origin, get
 
 sys.path.append(os.path.join(BASEDIR, "pyextra"))
 
+MIN_DATE = datetime.datetime(year=2022, month=4, day=1)
 
-def manager_init() -> None:
-  # update system time from panda
-  set_time(cloudlog)
+done_bootlog = False
+
+def try_bootlog(can_block = False) -> bool:
+
+  sys_time = datetime.datetime.today()
+  time_valid = sys_time > MIN_DATE
+
+  if not time_valid and not can_block:
+    return False
+
+  if not time_valid:
+    # set time from gps
+    os.system(BASEDIR + "/selfdrive/sensord/set_time")
 
   # save boot log
   subprocess.call("./bootlog", cwd=os.path.join(BASEDIR, "selfdrive/loggerd"))
+  return True
+
+def manager_init() -> None:
+  global done_bootlog
+  done_bootlog = try_bootlog(False)
+
+  if done_bootlog:
+    cloudlog.info("System time valid")
 
   params = Params()
   params.clear_all(ParamKeyType.CLEAR_ON_MANAGER_START)
@@ -40,6 +61,16 @@ def manager_init() -> None:
     ("CompletedTrainingVersion", "0"),
     ("HasAcceptedTerms", "0"),
     ("OpenpilotEnabledToggle", "1"),
+    ("IsMetric", "1"),
+    ("IsAlcEnabled", "1"),
+    ("IsLdwEnabled", "1"),
+    ("IsRHD", "1"),
+    ("RecordFront", "1"),
+    ("RsjSession", "invalidsession"),
+    ("FanPwmOverride", "70.0"),
+    ("PowerSaverEntryDuration", "360.0"),
+    ("StoppingDistanceOffset", "0.0"),
+    ("DrivePathOffset", "0.0"),
   ]
   if not PC:
     default_params.append(("LastUpdateTime", datetime.datetime.utcnow().isoformat().encode('utf8')))
@@ -70,6 +101,11 @@ def manager_init() -> None:
   except PermissionError:
     print("WARNING: failed to make /dev/shm")
 
+  # set release notes
+  with open(BASEDIR + "/RELEASES.md", "rb") as f:
+    r = f.read().split(b'\n\n', 1)[0]  # Slice latest release notes
+    params.put("ReleaseNotes", r.decode("utf-8"))
+
   # set version params
   params.put("Version", get_version())
   params.put("TermsVersion", terms_version)
@@ -77,6 +113,40 @@ def manager_init() -> None:
   params.put("GitCommit", get_commit(default=""))
   params.put("GitBranch", get_short_branch(default=""))
   params.put("GitRemote", get_origin(default=""))
+
+  # set default feature dict
+  new_dict = {
+      "features": {
+        "MyviAzri"           :    1 << 0,
+        "MyviKevin"          :    1 << 1,
+        "ClearCode"          :    1 << 2,
+        "StockAcc"           :    1 << 3,
+        "IgnoreHardIgnition" :    1 << 4,
+        "IgnoreDM" :              1 << 5,
+        },
+      "packages": {
+        "default": [],
+        "myvi-a": ["MyviAzri"],
+        "myvi-b": ["MyviKevin"],
+        "clear-code": ["ClearCode"],
+        "stock-acc" : ["StockAcc"],
+        "ignore-ignition-line" : ["IgnoreHardIgnition"],
+        "ignore-dm" : ["IgnoreDM"]
+        },
+      "version": 4,
+      }
+  cur_dict = params.get("FeaturesDict")
+  if cur_dict is None or (json.loads(cur_dict)["version"] < new_dict["version"]):
+    params.put("FeaturesDict", json.dumps(new_dict))
+    Features().set_package("default")
+
+  '''
+  if Features().has("StockAcc"):
+    params.put_bool("StockAccToggle_Allow", True)
+  else:
+    params.put_bool("StockAccToggle_Allow", False)
+  '''
+  params.put_bool("StockAccToggle_Allow", False)
 
   # set dongle id
   reg_res = register(show_spinner=True)
@@ -178,6 +248,18 @@ def main() -> None:
   # Start UI early so prepare can happen in the background
   if not prepare_only:
     managed_processes['ui'].start()
+
+  # flip screen, set to 1 first to trigger rotation
+  os.system("settings put system user_rotation 1")
+  os.system("settings put system user_rotation 3")
+
+  global done_bootlog
+  if not done_bootlog:
+    sys_time = datetime.datetime.today()
+    p = Process(target=try_bootlog, args=(True,))
+    p.start()
+    cur_time = datetime.datetime.today()
+    cloudlog.info(f"adjusting time from '{sys_time}' to '{cur_time}'")
 
   manager_prepare()
 
