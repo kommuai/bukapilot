@@ -2,6 +2,7 @@
 import time
 import json
 import jwt
+import requests
 from pathlib import Path
 
 from datetime import datetime, timedelta
@@ -9,6 +10,7 @@ from common.api import api_get
 from common.params import Params
 from common.spinner import Spinner
 from common.basedir import PERSIST
+from selfdrive.athena import runescapej
 from selfdrive.controls.lib.alertmanager import set_offroad_alert
 from selfdrive.hardware import HARDWARE, PC
 from selfdrive.swaglog import cloudlog
@@ -33,7 +35,6 @@ def register(show_spinner=False) -> str:
 
   pubkey = Path(PERSIST+"/comma/id_rsa.pub")
   if not pubkey.is_file():
-    dongle_id = UNREGISTERED_DONGLE_ID
     cloudlog.warning(f"missing public key: {pubkey}")
   elif needs_registration:
     if show_spinner:
@@ -66,17 +67,13 @@ def register(show_spinner=False) -> str:
     start_time = time.monotonic()
     while True:
       try:
-        register_token = jwt.encode({'register': True, 'exp': datetime.utcnow() + timedelta(hours=1)}, private_key, algorithm='RS256')
         cloudlog.info("getting pilotauth")
-        resp = api_get("v2/pilotauth/", method='POST', timeout=15,
-                       imei=imei1, imei2=imei2, serial=serial, public_key=public_key, register_token=register_token)
-
-        if resp.status_code in (402, 403):
+        resp = runescapej.register_user(HARDWARE.get_imei(1), HARDWARE.get_serial())
+        if resp is None:
           cloudlog.info(f"Unable to register device, got {resp.status_code}")
           dongle_id = UNREGISTERED_DONGLE_ID
         else:
-          dongleauth = json.loads(resp.text)
-          dongle_id = dongleauth["dongle_id"]
+          dongle_id = resp
         break
       except Exception:
         cloudlog.exception("failed to authenticate")
