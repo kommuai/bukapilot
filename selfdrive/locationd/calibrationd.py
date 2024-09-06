@@ -63,8 +63,8 @@ class Calibrator():
     self.param_put = param_put
 
     # Read saved calibration
-    params = Params()
-    calibration_params = params.get("CalibrationParams")
+    self.params = Params()
+    calibration_params = self.params.get("CalibrationParams")
     self.wide_camera = TICI and params.get_bool('EnableWideCamera')
     rpy_init = RPY_INIT
     valid_blocks = 0
@@ -147,6 +147,11 @@ class Calibrator():
       return self.rpy
 
   def handle_cam_odom(self, trans, rot, trans_std, rot_std):
+    if (self.cal_status == Calibration.INVALID or self.cal_status == Calibration.CALIBRATED) and self.params.get("CalibrationParams") == None:
+      self.valid_blocks = 0
+      self.reset(RPY_INIT, self.valid_blocks)
+      self.update_status()
+
     self.old_rpy_weight = min(0.0, self.old_rpy_weight - 1/SMOOTH_CYCLES)
 
     straight_and_fast = ((self.v_ego > MIN_SPEED_FILTER) and (trans[0] > MIN_SPEED_FILTER) and (abs(rot[2]) < MAX_YAW_RATE_FILTER))
