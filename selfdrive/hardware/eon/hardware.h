@@ -13,7 +13,9 @@
 class HardwareEon : public HardwareNone {
 public:
   static constexpr float MAX_VOLUME = 1.0;
+  static constexpr float MAX_VOLUME_QUIET_MODE = 0.4;
   static constexpr float MIN_VOLUME = 0.5;
+  static constexpr float MIN_VOLUME_QUIET_MODE = 0.2;
 
   static bool EON() { return true; }
   static std::string get_os_version() {
