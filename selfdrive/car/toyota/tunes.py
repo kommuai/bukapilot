@@ -6,6 +6,9 @@ class LongTunes(Enum):
   PEDAL = 0
   TSS2 = 1
   TSS = 2
+  SPECIAL = 3
+  LEXUS = 4
+  CROSS_HYBRID = 5
 
 class LatTunes(Enum):
   INDI_PRIUS = 0
@@ -29,11 +32,32 @@ class LatTunes(Enum):
 ###### LONG ######
 def set_long_tune(tune, name):
   # Improved longitudinal tune
-  if name == LongTunes.TSS2 or name == LongTunes.PEDAL:
+  if name == LongTunes.SPECIAL:
+    tune.deadzoneBP = [0., 8.05]
+    tune.deadzoneV = [.0, .14]
+    tune.kpBP = [0., 5., 20.]
+    tune.kpV = [0.5, 0.4, 0.2]
+    itune.kiBP = [0., 5., 12., 20., 27.]
+    tune.kiV = [.35, .28, .20, .17, .1]
+  elif name == LongTunes.LEXUS:
+    tune.deadzoneBP = [0., 8.05]
+    tune.deadzoneV = [.0, .14]
+    tune.kpBP = [0., 5., 20.]
+    tune.kpV = [2.5, 2.0, 1.3]
+    tune.kiBP = [0., 5., 12., 20., 27.]
+    tune.kiV = [.65, .45, .37, .25, .12]
+  elif name == LongTunes.TSS2 or name == LongTunes.PEDAL:
     tune.deadzoneBP = [0., 8.05]
     tune.deadzoneV = [.0, .14]
     tune.kpBP = [0., 5., 20.]
     tune.kpV = [1.3, 1.0, 0.7]
+    tune.kiBP = [0., 5., 12., 20., 27.]
+    tune.kiV = [.35, .23, .20, .17, .1]
+  elif name == LongTunes.CROSS_HYBRID:
+    tune.deadzoneBP = [0., 8.05]
+    tune.deadzoneV = [.0, .14]
+    tune.kpBP = [0., 5., 20.]
+    tune.kpV = [1.4, 1.2, 0.7]
     tune.kiBP = [0., 5., 12., 20., 27.]
     tune.kiV = [.35, .23, .20, .17, .1]
   # Default longitudinal tune

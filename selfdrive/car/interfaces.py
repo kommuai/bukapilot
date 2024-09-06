@@ -12,7 +12,10 @@ from selfdrive.controls.lib.drive_helpers import V_CRUISE_MAX
 from selfdrive.controls.lib.events import Events
 from selfdrive.controls.lib.vehicle_model import VehicleModel
 
+from common.features import Features
+
 GearShifter = car.CarState.GearShifter
+SetDistance = car.CarState.CruiseState.SetDistance
 EventName = car.CarEvent.EventName
 
 MAX_CTRL_SPEED = (V_CRUISE_MAX + 4) * CV.KPH_TO_MS
@@ -32,6 +35,9 @@ class CarInterfaceBase(ABC):
     self.steering_unpressed = 0
     self.low_speed_alert = False
     self.silent_steer_warning = True
+
+    f = Features()
+    self.mads = f.has("StockAcc")
 
     if CarState is not None:
       self.CS = CarState(CP)
@@ -99,6 +105,7 @@ class CarInterfaceBase(ABC):
     ret.longitudinalActuatorDelayLowerBound = 0.15
     ret.longitudinalActuatorDelayUpperBound = 0.15
     ret.steerLimitTimer = 1.0
+    ret.speedControlled = False
     return ret
 
   @abstractmethod
@@ -125,7 +132,7 @@ class CarInterfaceBase(ABC):
       events.add(EventName.wrongCarMode)
     if cs_out.espDisabled:
       events.add(EventName.espDisabled)
-    if cs_out.gasPressed:
+    if cs_out.gasPressed and not self.mads:
       events.add(EventName.gasPressed)
     if cs_out.stockFcw:
       events.add(EventName.stockFcw)
@@ -153,9 +160,8 @@ class CarInterfaceBase(ABC):
     if cs_out.steerError:
       events.add(EventName.steerUnavailable)
 
-    # Disable on rising edge of gas or brake. Also disable on brake when speed > 0.
-    if (cs_out.gasPressed and not self.CS.out.gasPressed) or \
-       (cs_out.brakePressed and (not self.CS.out.brakePressed or not cs_out.standstill)):
+    # Disable on rising edge of brake. Also disable on brake when speed > 0.
+    if cs_out.brakePressed and (not self.CS.out.brakePressed or not cs_out.standstill):
       events.add(EventName.pedalPressed)
 
     # we engage when pcm is active (rising edge)
@@ -257,6 +263,14 @@ class CarStateBase(ABC):
         'S': GearShifter.sport, 'L': GearShifter.low, 'B': GearShifter.brake
     }
     return d.get(gear, GearShifter.unknown)
+
+  @staticmethod
+  def parse_set_distance(val_str: str) -> car.CarState.CruiseState.SetDistance:
+    d: Dict[str, car.CarState.CruiseState.SetDistance] = {
+        '1BAR': SetDistance.aggresive, '2BAR': SetDistance.normal, '3BAR': SetDistance.chill,
+        '4BAR': SetDistance.auto,
+    }
+    return d.get(val_str, SetDistance.normal)
 
   @staticmethod
   def get_cam_can_parser(CP):

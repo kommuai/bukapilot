@@ -5,10 +5,48 @@ from selfdrive.car.toyota.toyotacan import create_steer_command, create_ui_comma
                                            create_accel_command, create_acc_cancel_command, \
                                            create_fcw_command, create_lta_steer_command
 from selfdrive.car.toyota.values import CAR, STATIC_DSU_MSGS, NO_STOP_TIMER_CAR, TSS2_CAR, \
-                                        MIN_ACC_SPEED, PEDAL_TRANSITION, CarControllerParams
+                                        MIN_ACC_SPEED, PEDAL_TRANSITION, CarControllerParams, EV_HYBRID_CAR
 from opendbc.can.packer import CANPacker
+from common.realtime import DT_CTRL
 VisualAlert = car.CarControl.HUDControl.VisualAlert
 
+# EPS faults if you apply torque while the steering rate is above 100deg/s for too long
+MAX_STEER_RATE = 100
+MAX_STEER_RATE_FRAMES = 18
+
+# EPS allows user torque above threshold for 50 frames before permanently faulting
+MAX_USER_TORQUE = 500
+
+PUMP_RESET_INTERVAL = 1.5
+PUMP_RESET_DURATION = 0.1
+
+class BrakingStatus():
+  STANDSTILL_INIT = 0
+  BRAKE_HOLD = 1
+  PUMP_RESET = 2
+
+# reset pump every PUMP_RESET_INTERVAL seconds for. Reset to zero for PUMP_RESET_DURATION
+def standstill_brake(min_accel, ts_last, ts_now, prev_status):
+  brake = min_accel
+  status = prev_status
+
+  dt = ts_now - ts_last
+  if prev_status == BrakingStatus.PUMP_RESET and dt > PUMP_RESET_DURATION:
+    status = BrakingStatus.BRAKE_HOLD
+    ts_last = ts_now
+
+  if prev_status == BrakingStatus.BRAKE_HOLD and dt > PUMP_RESET_INTERVAL:
+    status = BrakingStatus.PUMP_RESET
+    ts_last = ts_now
+
+  if prev_status == BrakingStatus.STANDSTILL_INIT and dt > PUMP_RESET_INTERVAL:
+    status = BrakingStatus.PUMP_RESET
+    ts_last = ts_now
+
+  if status == BrakingStatus.PUMP_RESET:
+    brake = 0
+
+  return brake, status, ts_last
 
 class CarController():
   def __init__(self, dbc_name, CP, VM):
@@ -17,13 +55,22 @@ class CarController():
     self.last_standstill = False
     self.standstill_req = False
     self.steer_rate_limited = False
+    self.steer_rate_counter = 0
 
     self.packer = CANPacker(dbc_name)
     self.gas = 0
     self.accel = 0
 
+    # standstill globals
+    self.prev_ts = 0.
+    self.standstill_status = BrakingStatus.STANDSTILL_INIT
+    self.min_standstill_accel = 0
+
   def update(self, enabled, active, CS, frame, actuators, pcm_cancel_cmd, hud_alert,
-             left_line, right_line, lead, left_lane_depart, right_lane_depart):
+             left_line, right_line, lead, left_lane_depart, right_lane_depart, laneActive):
+
+    ts = frame * DT_CTRL
+    lat_active = active and laneActive and abs(CS.out.steeringTorque) < MAX_USER_TORQUE
 
     # gas and brake
     if CS.CP.enableGasInterceptor and active:
@@ -43,17 +90,34 @@ class CarController():
       interceptor_gas_cmd = 0.
     pcm_accel_cmd = clip(actuators.accel, CarControllerParams.ACCEL_MIN, CarControllerParams.ACCEL_MAX)
 
+    # throttle accel if it goes above 3200 rpm, happens with Toyota Alphards and Vellfires
+    if CS.rpm > 3200 and active and CS.CP.carFingerprint not in EV_HYBRID_CAR:
+      pcm_accel_cmd = 0.2
+
     # steer torque
     new_steer = int(round(actuators.steer * CarControllerParams.STEER_MAX))
     apply_steer = apply_toyota_steer_torque_limits(new_steer, self.last_steer, CS.out.steeringTorqueEps, CarControllerParams)
     self.steer_rate_limited = new_steer != apply_steer
 
-    # Cut steering while we're in a known fault state (2s)
-    if not active or CS.steer_state in (9, 25):
+    # allow stock lane departure prevention passthrough
+    stockLdw = CS.out.stockAdas.laneDepartureHUD
+    if stockLdw:
+      apply_steer = CS.out.stockAdas.ldpSteerV
+
+
+    # count up to MAX_STEER_RATE_FRAMES, at which point we need to cut torque to avoid a steering fault
+    if lat_active and abs(CS.out.steeringRateDeg) >= MAX_STEER_RATE:
+      self.steer_rate_counter += 1
+    else:
+      self.steer_rate_counter = 0
+
+    apply_steer_req = 1
+    if not stockLdw and not lat_active:
       apply_steer = 0
       apply_steer_req = 0
-    else:
-      apply_steer_req = 1
+    elif self.steer_rate_counter > MAX_STEER_RATE_FRAMES:
+      apply_steer_req = 0
+      self.steer_rate_counter = 0
 
     # TODO: probably can delete this. CS.pcm_acc_status uses a different signal
     # than CS.cruiseState.enabled. confirm they're not meaningfully different
@@ -71,6 +135,9 @@ class CarController():
     self.last_standstill = CS.out.standstill
 
     can_sends = []
+
+    if frame < 1000:
+      can_sends.append(make_can_msg(2015, b'\x01\x04\x00\x00\x00\x00\x00\x00', 0))
 
     #*** control msgs ***
     #print("steer {0} {1} {2} {3}".format(apply_steer, min_lim, max_lim, CS.steer_torque_motor)
@@ -94,11 +161,26 @@ class CarController():
       # Lexus IS uses a different cancellation message
       if pcm_cancel_cmd and CS.CP.carFingerprint in (CAR.LEXUS_IS, CAR.LEXUS_RC):
         can_sends.append(create_acc_cancel_command(self.packer))
+      # Lexus 2018 no unplug DSU + using KommuActuator
+      elif CS.CP.carFingerprint in (CAR.LEXUS_NX):
+        if CS.out.standstill and (pcm_accel_cmd > 0):
+          # Send a quick gas command to resume SNG
+          can_sends.append(make_can_msg(512, b'\x01\x2F\x01\x2F\x00\x01\x00\x00', 0))
       elif CS.CP.openpilotLongitudinalControl:
-        can_sends.append(create_accel_command(self.packer, pcm_accel_cmd, pcm_cancel_cmd, self.standstill_req, lead, CS.acc_type))
+
+        # standstill logic
+        if enabled and pcm_accel_cmd > 0 and CS.out.standstill and CS.CP.carFingerprint == CAR.COROLLA_TSS2:
+          if self.standstill_status == BrakingStatus.STANDSTILL_INIT:
+            self.min_standstill_accel = pcm_accel_cmd - 0.1
+          pcm_accel_cmd, self.standstill_status, self.prev_ts = standstill_brake(self.min_standstill_accel, self.prev_ts, ts, self.standstill_status)
+        else:
+          self.standstill_status = BrakingStatus.STANDSTILL_INIT
+          self.prev_ts = ts
+
+        can_sends.append(create_accel_command(self.packer, pcm_accel_cmd, pcm_cancel_cmd, self.standstill_req, lead, CS.acc_type, CS.distance_btn))
         self.accel = pcm_accel_cmd
       else:
-        can_sends.append(create_accel_command(self.packer, 0, pcm_cancel_cmd, False, lead, CS.acc_type))
+        can_sends.append(create_accel_command(self.packer, 0, pcm_cancel_cmd, False, lead, CS.acc_type, CS.distance_btn))
 
     if frame % 2 == 0 and CS.CP.enableGasInterceptor and CS.CP.openpilotLongitudinalControl:
       # send exactly zero if gas cmd is zero. Interceptor will send the max between read value and gas cmd.
@@ -110,7 +192,7 @@ class CarController():
     # - there is something to display
     # - there is something to stop displaying
     fcw_alert = hud_alert == VisualAlert.fcw
-    steer_alert = hud_alert in (VisualAlert.steerRequired, VisualAlert.ldw)
+    steer_alert = hud_alert in (VisualAlert.steerRequired, VisualAlert.ldw) or stockLdw
 
     send_ui = False
     if ((fcw_alert or steer_alert) and not self.alert_active) or \

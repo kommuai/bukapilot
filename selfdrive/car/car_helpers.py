@@ -2,7 +2,7 @@ import os
 from common.params import Params
 from common.basedir import BASEDIR
 from selfdrive.version import is_comma_remote, is_tested_branch
-from selfdrive.car.fingerprints import eliminate_incompatible_cars, all_legacy_fingerprint_cars
+from selfdrive.car.fingerprints import eliminate_incompatible_cars, all_legacy_fingerprint_cars, get_shortest_from_subset
 from selfdrive.car.vin import get_vin, VIN_UNKNOWN
 from selfdrive.car.fw_versions import get_fw_versions, match_fw_to_car
 from selfdrive.swaglog import cloudlog
@@ -14,8 +14,10 @@ EventName = car.CarEvent.EventName
 
 
 def get_startup_event(car_recognized, controller_available, fw_seen):
-  if is_comma_remote() and is_tested_branch():
+  if is_tested_branch():
     event = EventName.startup
+  elif Params().get("QC_Test"):
+    event = EventName.startupQC
   else:
     event = EventName.startupMaster
 
@@ -82,6 +84,13 @@ interfaces = load_interfaces(interface_names)
 # **** for use live only ****
 def fingerprint(logcan, sendcan):
   fixed_fingerprint = os.environ.get('FINGERPRINT', "")
+  if not fixed_fingerprint:
+    fixed_fingerprint = Params().get("FixFingerprint")
+    fixed_fingerprint = fixed_fingerprint.upper() if fixed_fingerprint is not None else None
+
+    if fixed_fingerprint:
+      fixed_fingerprint = fixed_fingerprint.decode('ascii')
+
   skip_fw_query = os.environ.get('SKIP_FW_QUERY', False)
 
   if not fixed_fingerprint and not skip_fw_query:
@@ -141,12 +150,16 @@ def fingerprint(logcan, sendcan):
         # fingerprint done
         car_fingerprint = candidate_cars[b][0]
 
-    # bail if no cars left or we've been waiting for more than 2s
-    failed = (all(len(cc) == 0 for cc in candidate_cars.values()) and frame > frame_fingerprint) or frame > 200
+    # bail if no cars left or we've been waiting for more than 1s
+    failed = (all(len(cc) == 0 for cc in candidate_cars.values()) and frame > frame_fingerprint) or frame > 100
     succeeded = car_fingerprint is not None
     done = failed or succeeded
 
     frame += 1
+
+  # if more than 1 match, we have to get the shortest fingerprint match of the subset
+  if len(candidate_cars[0]) > 1 and car_fingerprint is None:
+    car_fingerprint = get_shortest_from_subset(candidate_cars[0])
 
   exact_match = True
   source = car.CarParams.FingerprintSource.can

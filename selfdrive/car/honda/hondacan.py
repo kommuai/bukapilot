@@ -135,9 +135,12 @@ def create_ui_commands(packer, CP, pcm_speed, hud, is_metric, idx, stock_hud):
       }
     commands.append(packer.make_can_msg("ACC_HUD", bus_pt, acc_hud_values, idx))
 
+  # Todo: Right now Honda City Malaysia can work by not blocking 0x33d (LKAS_HUD) but it faults once awhile.
+  # If we do block it, it keeps faulting. For some reason, 0x33d has a constant value of b'\x00\x00\x80\x48\x00'
+  # It could be that the bus which 0x33d is sent is wrong, it should be sent to into the camera instead
   lkas_hud_values = {
     'SET_ME_X41': 0x41,
-    'SET_ME_X48': 0x48,
+  #  'SET_ME_X48': 0x48,
     'STEERING_REQUIRED': hud.steer_required,
     'SOLID_LANES': hud.lanes,
     'BEEP': 0,
@@ -151,6 +154,7 @@ def create_ui_commands(packer, CP, pcm_speed, hud, is_metric, idx, stock_hud):
     commands.append(packer.make_can_msg('LKAS_HUD_B', bus_lkas, lkas_hud_values, idx))
   else:
     commands.append(packer.make_can_msg('LKAS_HUD', bus_lkas, lkas_hud_values, idx))
+
 
   if radar_disabled and CP.carFingerprint in HONDA_BOSCH:
     radar_hud_values = {
@@ -171,4 +175,7 @@ def spam_buttons_command(packer, button_val, idx, car_fingerprint):
     'CRUISE_SETTING': 0,
   }
   bus = get_pt_bus(car_fingerprint)
+
+  # fake to bus 0
+  bus = 0
   return packer.make_can_msg("SCM_BUTTONS", bus, values, idx)

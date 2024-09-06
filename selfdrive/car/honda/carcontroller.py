@@ -74,6 +74,17 @@ def brake_pump_hysteresis(apply_brake, apply_brake_last, last_pump_ts, ts):
   return pump_on, last_pump_ts
 
 
+PERIOD = 1.8 # second
+DUTY_CYCLE = 0.4 # %
+# pwm steer is used to pwm the steer request so it doesn't wobble during low speed for city hev
+def pwm_steer(counter):
+  if counter <= (PERIOD * DUTY_CYCLE / 0.01):
+    return True, counter + 1
+  if counter >= PERIOD / 0.01:
+    return False, 0
+
+  return False, counter + 1
+
 def process_hud_alert(hud_alert):
   # initialize to no alert
   fcw_display = 0
@@ -109,6 +120,8 @@ class CarController():
     self.speed = 0
     self.gas = 0
     self.brake = 0
+
+    self.pwm_counter = 0
 
     self.params = CarControllerParams(CP)
 
@@ -156,11 +169,19 @@ class CarController():
 
     # Send CAN commands.
     can_sends = []
-
+    if frame < 100:
+      can_sends.append((2015, 0, b'\x01\x04\x00\x00\x00\x00\x00\x00', 1))
     # tester present - w/ no response (keeps radar disabled)
-    if CS.CP.carFingerprint in HONDA_BOSCH and CS.CP.openpilotLongitudinalControl:
+    if CS.CP.carFingerprint in HONDA_BOSCH and CS.CP.openpilotLongitudinalControl and False:
       if (frame % 10) == 0:
         can_sends.append((0x18DAB0F1, 0, b"\x02\x3E\x80\x00\x00\x00\x00\x00", 1))
+
+    # for city low speed steer logic, active for awhile, disable for awhile.
+    if CS.out.vEgo < 6:
+      steer_req, self.pwm_counter = pwm_steer(self.pwm_counter)
+      lkas_active &= steer_req
+    else:
+      self.pwm_counter = 0
 
     # Send steering command.
     idx = frame % 4
@@ -198,10 +219,13 @@ class CarController():
       pcm_speed = interp(gas-brake, pcm_speed_BP, pcm_speed_V)
       pcm_accel = int(clip((accel/1.44)/max_accel, 0.0, 1.0) * 0xc6)
 
-    if not CS.CP.openpilotLongitudinalControl:
+    # Spoof for CRV
+    if not CS.CP.openpilotLongitudinalControl or True:
       if (frame % 2) == 0:
         idx = frame // 2
-        can_sends.append(hondacan.create_bosch_supplemental_1(self.packer, CS.CP.carFingerprint, idx))
+        # TODO Temporary remove to test if CRV intermittent fault still occurs
+        # can_sends.append(hondacan.create_bosch_supplemental_1(self.packer, CS.CP.carFingerprint, idx))
+
       # If using stock ACC, spam cancel command to kill gas when OP disengages.
       if pcm_cancel_cmd:
         can_sends.append(hondacan.spam_buttons_command(self.packer, CruiseButtons.CANCEL, idx, CS.CP.carFingerprint))
@@ -243,11 +267,11 @@ class CarController():
             can_sends.append(create_gas_interceptor_command(self.packer, self.gas, idx))
 
     # Send dashboard UI commands.
+    # TODO Temporary commenting out HUD send because of unknown disengage error in CRV
     if (frame % 10) == 0:
       idx = (frame//10) % 4
-      hud = HUDData(int(pcm_accel), int(round(hud_v_cruise)), hud_car,
-                    hud_lanes, fcw_display, acc_alert, steer_required)
-      can_sends.extend(hondacan.create_ui_commands(self.packer, CS.CP, pcm_speed, hud, CS.is_metric, idx, CS.stock_hud))
+      #hud = HUDData(int(pcm_accel), int(round(hud_v_cruise)), hud_car, hud_lanes, fcw_display, acc_alert, steer_required)
+      #can_sends.extend(hondacan.create_ui_commands(self.packer, CS.CP, pcm_speed, hud, CS.is_metric, idx, CS.stock_hud))
 
       if (CS.CP.openpilotLongitudinalControl) and (CS.CP.carFingerprint not in HONDA_BOSCH):
         self.speed = pcm_speed

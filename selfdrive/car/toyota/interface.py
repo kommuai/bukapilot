@@ -2,7 +2,7 @@
 from cereal import car
 from selfdrive.config import Conversions as CV
 from selfdrive.car.toyota.tunes import LatTunes, LongTunes, set_long_tune, set_lat_tune
-from selfdrive.car.toyota.values import Ecu, CAR, ToyotaFlags, TSS2_CAR, NO_DSU_CAR, MIN_ACC_SPEED, EPS_SCALE, CarControllerParams
+from selfdrive.car.toyota.values import Ecu, CAR, ToyotaFlags, TSS2_CAR, RADAR_ACC_CAR, NO_DSU_CAR, MIN_ACC_SPEED, EPS_SCALE, EV_HYBRID_CAR, CarControllerParams
 from selfdrive.car import STD_CARGO_KG, scale_rot_inertia, scale_tire_stiffness, gen_empty_fingerprint, get_safety_config
 from selfdrive.car.interfaces import CarInterfaceBase
 
@@ -132,6 +132,14 @@ class CarInterface(CarInterfaceBase):
       ret.mass = 3060. * CV.LB_TO_KG + STD_CARGO_KG
       set_lat_tune(ret.lateralTuning, LatTunes.PID_D)
 
+    elif candidate in (CAR.CROSSH_TSS2):
+      stop_and_go = True
+      ret.wheelbase = 2.64
+      ret.steerRatio = 13.9
+      tire_stiffness_factor = 0.444  # not optimized yet
+      ret.mass = 1430. + STD_CARGO_KG
+      set_lat_tune(ret.lateralTuning, LatTunes.PID_D)
+
     elif candidate in (CAR.LEXUS_ES_TSS2, CAR.LEXUS_ESH_TSS2, CAR.LEXUS_ESH):
       stop_and_go = True
       ret.wheelbase = 2.8702
@@ -163,13 +171,13 @@ class CarInterface(CarInterfaceBase):
       ret.mass = 3108 * CV.LB_TO_KG + STD_CARGO_KG  # mean between min and max
       set_lat_tune(ret.lateralTuning, LatTunes.PID_M)
 
-    elif candidate in (CAR.LEXUS_NXH, CAR.LEXUS_NX, CAR.LEXUS_NX_TSS2):
+    elif candidate in (CAR.LEXUS_NXH, CAR.LEXUS_NX, CAR.LEXUS_NX_TSS2, CAR.LEXUS_NXH_TSS2):
       stop_and_go = True
       ret.wheelbase = 2.66
-      ret.steerRatio = 14.7
+      ret.steerRatio = 13.7
       tire_stiffness_factor = 0.444  # not optimized yet
       ret.mass = 4070 * CV.LB_TO_KG + STD_CARGO_KG
-      set_lat_tune(ret.lateralTuning, LatTunes.PID_C)
+      set_lat_tune(ret.lateralTuning, LatTunes.PID_L)
 
     elif candidate == CAR.PRIUS_TSS2:
       stop_and_go = True
@@ -187,12 +195,13 @@ class CarInterface(CarInterfaceBase):
       ret.mass = 4300. * CV.LB_TO_KG + STD_CARGO_KG
       set_lat_tune(ret.lateralTuning, LatTunes.PID_C)
 
-    elif candidate == CAR.ALPHARD_TSS2:
+    elif candidate in (CAR.ALPHARD_TSS2, CAR.ALPHARDH_TSS2):
       stop_and_go = True
       ret.wheelbase = 3.00
       ret.steerRatio = 14.2
+      ret.wheelSpeedFactor = 1.0
       tire_stiffness_factor = 0.444
-      ret.mass = 4305. * CV.LB_TO_KG + STD_CARGO_KG
+      ret.mass = 4705. * CV.LB_TO_KG + STD_CARGO_KG
       set_lat_tune(ret.lateralTuning, LatTunes.PID_J)
 
     ret.steerRateCost = 1.
@@ -215,9 +224,11 @@ class CarInterface(CarInterfaceBase):
     ret.enableDsu = (len(found_ecus) > 0) and (Ecu.dsu not in found_ecus) and (candidate not in NO_DSU_CAR) and (not smartDsu)
     ret.enableGasInterceptor = 0x201 in fingerprint[0]
     # if the smartDSU is detected, openpilot can send ACC_CMD (and the smartDSU will block it from the DSU) or not (the DSU is "connected")
-    ret.openpilotLongitudinalControl = smartDsu or ret.enableDsu or candidate in TSS2_CAR
+    ret.openpilotLongitudinalControl = smartDsu or ret.enableDsu or candidate in (TSS2_CAR - RADAR_ACC_CAR) or candidate in (CAR.LEXUS_NX)
 
-    if 0x245 in fingerprint[0]:
+    # we can't use the fingerprint to detect this reliably, since
+    # the EV gas pedal signal can take a couple seconds to appear
+    if candidate in EV_HYBRID_CAR:
       ret.flags |= ToyotaFlags.HYBRID.value
 
     # min speed to enable ACC. if car can do stop and go, then set enabling speed
@@ -226,6 +237,15 @@ class CarInterface(CarInterfaceBase):
 
     if ret.enableGasInterceptor:
       set_long_tune(ret.longitudinalTuning, LongTunes.PEDAL)
+    elif candidate == (CAR.ALPHARD_TSS2, CAR.ALPHARDH_TSS2):
+      ret.stoppingDecelRate = 0.3  # reach stopping target smoothly
+      set_long_tune(ret.longitudinalTuning, LongTunes.SPECIAL)
+    elif candidate == (CAR.LEXUS_NX_TSS2):
+      ret.stoppingDecelRate = 0.3  # reach stopping target smoothly
+      set_long_tune(ret.longitudinalTuning, LongTunes.LEXUS)
+    elif candidate == (CAR.CROSSH_TSS2):
+      ret.stoppingDecelRate = 0.3  # reach stopping target smoothly
+      set_long_tune(ret.longitudinalTuning, LongTunes.CROSS_HYBRID)
     elif candidate in TSS2_CAR:
       set_long_tune(ret.longitudinalTuning, LongTunes.TSS2)
       ret.stoppingDecelRate = 0.3  # reach stopping target smoothly
@@ -272,7 +292,8 @@ class CarInterface(CarInterfaceBase):
                          c.actuators, c.cruiseControl.cancel,
                          hud_control.visualAlert, hud_control.leftLaneVisible,
                          hud_control.rightLaneVisible, hud_control.leadVisible,
-                         hud_control.leftLaneDepart, hud_control.rightLaneDepart)
+                         hud_control.leftLaneDepart, hud_control.rightLaneDepart,
+                         c.laneActive)
 
     self.frame += 1
     return ret
