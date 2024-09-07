@@ -134,6 +134,13 @@ class ChangeBranchSelect : public ButtonControl {
   Q_OBJECT
 
 public:
+  // Set upstream to match the branch given
+  std::string setUpstream(const std::string& branch) {
+    return "git config remote.origin.fetch '+refs/heads/" + branch +
+      ":refs/remotes/origin/" + branch +
+      "' && git fetch origin '" + branch +
+      "' && git branch -u origin/" + branch;
+  }
   ChangeBranchSelect() : ButtonControl("Change Branch", "SET", "Warning: Untested branches may cause unexpected behaviours.") {
     selection_label = new QLabel();
     selection_label->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
@@ -142,6 +149,7 @@ public:
     std::string currentBranchName = util::check_output("git symbolic-ref --short HEAD");
     currentBranchName.pop_back(); // Remove the last character (line feed)
     selection_label->setText(QString::fromStdString(currentBranchName));
+    system(setUpstream(currentBranchName).c_str());
     hlayout->insertWidget(1, selection_label);
     connect(this, &ButtonControl::clicked, [=] {
       QString package = InputDialog::getText("Enter Branch Name", this);
@@ -156,14 +164,14 @@ public:
           std::string changeBranchCommand = "git branch -D " + branchName + "; git fetch origin " + branchName + ":" + branchName + " && git checkout " + branchName + " --force";
 
           // After change, update config fetch, set upstream (for update), then reboot.
-          std::string changeBranchConfigReboot = changeBranchCommand + " && git config remote.origin.fetch '+refs/heads/" + branchName + ":refs/remotes/origin/" + branchName + "' && git fetch origin '" + branchName + "' && git branch -u origin/" + branchName + " && reboot";
+          std::string changeBranchConfigReboot = changeBranchCommand + " && " + setUpstream(branchName) + " && reboot";
           int branchChanged = system(changeBranchConfigReboot.c_str());
 		      if (branchChanged != 0) { // If branch not found (error/fatal)
 			      QString failedPrompt = QString::fromStdString("Branch " + branchName + " not found.\n\nPlease make sure the branch name is correct and the device is connected to the Internet.");
 		        (ConfirmationDialog::alert(failedPrompt, this));
           }
         }
-                }
+      }
     });
   }
 
