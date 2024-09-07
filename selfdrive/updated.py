@@ -240,6 +240,8 @@ def finalize_update() -> None:
   """Take the current OverlayFS merged view and finalize a copy outside of
   OverlayFS, ready to be swapped-in at BASEDIR. Copy using shutil.copytree"""
 
+  params = Params()
+  params.put("UpdateStatus", "installing")
   # Remove the update ready flag and any old updates
   cloudlog.info("creating finalized version of the overlay")
   set_consistent_flag(False)
@@ -267,7 +269,7 @@ def handle_agnos_update(wait_helper: WaitTimeHelper) -> None:
   if cur_version == updated_version:
     return
 
-  # prevent an openpilot getting swapped in with a mismatched or partially downloaded agnos
+  # prevent a bukapilot getting swapped in with a mismatched or partially downloaded agnos
   set_consistent_flag(False)
 
   cloudlog.info(f"Beginning background installation for AGNOS {updated_version}")
@@ -290,6 +292,8 @@ def handle_neos_update(wait_helper: WaitTimeHelper) -> None:
   if cur_neos == updated_neos:
     return
 
+  params = Params()
+  params.put("UpdateStatus", "downloading")
   cloudlog.info(f"Beginning background download for NEOS {updated_neos}")
   set_offroad_alert("Offroad_NeosUpdate", True)
 
@@ -330,6 +334,8 @@ def check_for_update() -> Tuple[bool, bool]:
 
 
 def fetch_update(wait_helper: WaitTimeHelper) -> bool:
+  params = Params()
+  params.put("UpdateStatus", "checking")
   cloudlog.info("attempting git fetch inside staging overlay")
 
   setup_git_options(OVERLAY_MERGED)
@@ -355,6 +361,7 @@ def fetch_update(wait_helper: WaitTimeHelper) -> bool:
         run(["git", "submodule", "update"], OVERLAY_MERGED, low_priority=True),
       ]
       cloudlog.info("git reset success: %s", '\n'.join(r))
+      params.put("UpdateStatus", "prepareDownload")
 
       if EON:
         handle_neos_update(wait_helper)
@@ -363,8 +370,10 @@ def fetch_update(wait_helper: WaitTimeHelper) -> bool:
 
     # Create the finalized, ready-to-swap update
     finalize_update()
-    cloudlog.info("openpilot update successful!")
+    params.put("UpdateStatus", "success")
+    cloudlog.info("bukapilot update successful!")
   else:
+    params.put("UpdateStatus", "latest")
     cloudlog.info("nothing new from git at this time")
 
   return new_version
@@ -424,7 +433,7 @@ def main() -> None:
     wait_helper.ready_event.clear()
 
     # Don't run updater while onroad or if the time's wrong
-    time_wrong = datetime.datetime.utcnow().year < 2019
+    time_wrong = datetime.datetime.utcnow().year < 2022
     is_onroad = not params.get_bool("IsOffroad")
     if is_onroad or time_wrong:
       wait_helper.sleep(30)
@@ -441,6 +450,9 @@ def main() -> None:
       internet_ok, update_available = check_for_update()
       if internet_ok and not update_available:
         update_failed_count = 0
+
+      if not internet_ok:
+        params.put("UpdateStatus", "noInternet")
 
       # Fetch updates at most every 10 minutes
       if internet_ok and (update_now or time.monotonic() - last_fetch_time > 60*10):

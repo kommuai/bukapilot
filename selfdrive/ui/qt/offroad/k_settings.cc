@@ -269,7 +269,7 @@ SoftwarePanel::SoftwarePanel(QWidget* parent) : ListWidget(parent) {
   gitCommitLbl = new LabelControl("Git Commit");
   osVersionLbl = new LabelControl("OS Version");
   versionLbl = new LabelControl("Version", "", getVersion());
-  lastUpdateLbl = new LabelControl("Last Update Check", "", "The last time bukapilot successfully checked for an update. The updater only runs while the car is off.");
+  lastUpdateLbl = new LabelControl("Last Update Status", "", "The status bukapilot last checked for an update. The updater only runs while the car is off.");
   updateBtn = new ButtonControl("Check for Update", "");
   featuresInput = new FeaturesControl();
   fingerprintInput = new FixFingerprintSelect();
@@ -279,7 +279,8 @@ SoftwarePanel::SoftwarePanel(QWidget* parent) : ListWidget(parent) {
     if (params.getBool("IsOffroad")) {
       fs_watch->addPath(QString::fromStdString(params.getParamPath("LastUpdateTime")));
       fs_watch->addPath(QString::fromStdString(params.getParamPath("UpdateFailedCount")));
-      updateBtn->setText("CHECKING");
+      fs_watch->addPath(QString::fromStdString(params.getParamPath("UpdateStatus")));
+      updateBtn->setText("UPDATING");
       updateBtn->setEnabled(false);
     }
     std::system("pkill -1 -f selfdrive.updated");
@@ -293,10 +294,11 @@ SoftwarePanel::SoftwarePanel(QWidget* parent) : ListWidget(parent) {
   fs_watch = new QFileSystemWatcher(this);
   QObject::connect(fs_watch, &QFileSystemWatcher::fileChanged, [=](const QString path) {
     if (path.contains("UpdateFailedCount") && std::atoi(params.get("UpdateFailedCount").c_str()) > 0) {
-      lastUpdateLbl->setText("failed to fetch update");
+      lastUpdateLbl->setText("Failed to fetch update");
       updateBtn->setText("CHECK");
       updateBtn->setEnabled(true);
-    } else if (path.contains("LastUpdateTime")) {
+      if (params.get("UpdateStatus") == "noInternet") {updateLabels();}
+    } else if (path.contains("LastUpdateTime") || path.contains("UpdateStatus")) {
       updateLabels();
     }
   });
@@ -307,16 +309,44 @@ void SoftwarePanel::showEvent(QShowEvent *event) {
 }
 
 void SoftwarePanel::updateLabels() {
-  QString lastUpdate = "";
+  QString lastUpdate = QString();
+  QString btnText = "CHECK";
+  bool allowed = false;
+  std::string status = params.get("UpdateStatus");
   auto tm = params.get("LastUpdateTime");
-  if (!tm.empty()) {
-    lastUpdate = timeAgo(QDateTime::fromString(QString::fromStdString(tm + "Z"), Qt::ISODate));
+  if (std::stoi(util::check_output("date +%Y")) < 2022) {
+    lastUpdate = "Invalid date and time settings";
+  } else if (not params.getBool("IsOffroad")) {
+    lastUpdate = "Turn off the car to check for update";
+  } else if (status == "success") {
+    lastUpdate = "Successful, reboot to apply update";
+    btnText = "REBOOT";
+    allowed = params.getBool("IsOffroad");
+    connect(updateBtn, &ButtonControl::clicked, [=]() {
+      updateBtn->setText("REBOOTING");
+      Params().putBool("DoReboot", true);
+    });
+  } else if (status == "checking" || status == "prepareDownload"
+      || status == "downloading" || status == "installing") {
+    lastUpdate = "Updating";
+    btnText = "UPDATING";
+  } else if(!tm.empty()) {
+    lastUpdate = "Checked " + timeAgo(QDateTime::fromString(QString::fromStdString(tm + "Z"), Qt::ISODate));
+    allowed = true;
+    btnText = "CHECK";
+    if (status == "noInternet") {
+      lastUpdate += ", no internet";
+    } else if (status == "latest") {
+      lastUpdate += ", up to date";
+    } else {
+      lastUpdate = QString();
+    }
   }
 
   versionLbl->setText(getVersion());
   lastUpdateLbl->setText(lastUpdate);
-  updateBtn->setText("CHECK");
-  updateBtn->setEnabled(true);
+  updateBtn->setText(btnText);
+  updateBtn->setEnabled(allowed);
   gitCommitLbl->setText(QString::fromStdString(params.get("GitCommit")).left(10));
   osVersionLbl->setText(QString::fromStdString(Hardware::get_os_version()).trimmed());
 }
