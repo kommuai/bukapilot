@@ -5,7 +5,7 @@ DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null && pwd)"
 
 ARCHNAME="x86_64"
 MAPLIBRE_FLAGS="-DMLN_QT_WITH_LOCATION=OFF"
-if [ -f /AGNOS ]; then
+if [ -f /AGNOS ] && [ -f /KA2 ]; then
   ARCHNAME="larch64"
   #MAPLIBRE_FLAGS="$MAPLIBRE_FLAGS -DCMAKE_SYSTEM_NAME=Android -DANDROID_ABI=arm64-v8a"
 fi

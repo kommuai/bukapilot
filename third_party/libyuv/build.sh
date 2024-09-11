@@ -5,6 +5,14 @@ git clone https://chromium.googlesource.com/libyuv/libyuv
 cd libyuv
 git reset --hard 4a14cb2e81235ecd656e799aecaaf139db8ce4a2
 cmake .
+make
+
+if [ -f /KA2 ]; then
+  mv libyuv.a ../larch64/lib/
+fi
+
+# remove the libyuv repo
+cd .. && rm -rf libyuv/
 
 ## To create universal binary on Darwin:
 ## ```
