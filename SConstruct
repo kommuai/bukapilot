@@ -143,6 +143,7 @@ else:
     libpath = [
       f"#third_party/acados/{arch}/lib",
       f"#third_party/libyuv/{arch}/lib",
+      f"#third_party/rknpu/{arch}",
       "/usr/lib",
       "/usr/local/lib",
     ]
@@ -202,6 +203,7 @@ env = Environment(
     "#third_party/acados/include/hpipm/include",
     "#third_party/catch2/include",
     "#third_party/libyuv/include",
+    "#third_party/rknpu/include",
     "#third_party/json11",
     "#third_party/linux/include",
     "#third_party/snpe/include",

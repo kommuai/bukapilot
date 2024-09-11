@@ -21,7 +21,8 @@ NAV_DESIRE_LEN = 32
 NAV_OUTPUT_SIZE = 2*2*ModelConstants.IDX_N + NAV_DESIRE_LEN + NAV_FEATURE_LEN
 MODEL_PATHS = {
   ModelRunner.SNPE: Path(__file__).parent / 'models/navmodel_q.dlc',
-  ModelRunner.ONNX: Path(__file__).parent / 'models/navmodel.onnx'}
+  ModelRunner.ONNX: Path(__file__).parent / 'models/navmodel.onnx',
+  ModelRunner.RKNN: Path(__file__).parent / 'models/navmodel.onnx'}
 
 class NavModelOutputXY(ctypes.Structure):
   _fields_ = [

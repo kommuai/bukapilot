@@ -28,7 +28,8 @@ SEND_RAW_PRED = os.getenv('SEND_RAW_PRED')
 
 MODEL_PATHS = {
   ModelRunner.THNEED: Path(__file__).parent / 'models/supercombo.thneed',
-  ModelRunner.ONNX: Path(__file__).parent / 'models/supercombo.onnx'}
+  ModelRunner.ONNX: Path(__file__).parent / 'models/supercombo.onnx',
+  ModelRunner.RKNN: Path(__file__).parent / 'models/supercombo.rknn'}
 
 METADATA_PATH = Path(__file__).parent / 'models/supercombo_metadata.pkl'
 
@@ -71,7 +72,7 @@ class ModelState:
     self.output = np.zeros(net_output_size, dtype=np.float32)
     self.parser = Parser()
 
-    self.model = ModelRunner(MODEL_PATHS, self.output, Runtime.GPU, False, context)
+    self.model, self.runner_type = ModelRunner(MODEL_PATHS, self.output, Runtime.GPU, False, context)
     self.model.addInput("input_imgs", None)
     self.model.addInput("big_input_imgs", None)
     for k,v in self.inputs.items():
@@ -97,9 +98,18 @@ class ModelState:
     self.inputs['nav_instructions'][:] = inputs['nav_instructions']
 
     # if getCLBuffer is not None, frame will be None
-    self.model.setInputBuffer("input_imgs", self.frame.prepare(buf, transform.flatten(), self.model.getCLBuffer("input_imgs")))
+    if self.runner_type == 'RKNN':
+      buf_nhwc = self.frame.prepare(buf, transform.flatten(), self.model.getCLBuffer("input_imgs")).reshape(1, 12, 128, 256).transpose(0,2,3,1).flatten()
+      self.model.setInputBuffer("input_imgs", buf_nhwc)
+    else:
+      self.model.setInputBuffer("input_imgs", self.frame.prepare(buf, transform.flatten(), self.model.getCLBuffer("input_imgs")))
+
     if wbuf is not None:
-      self.model.setInputBuffer("big_input_imgs", self.wide_frame.prepare(wbuf, transform_wide.flatten(), self.model.getCLBuffer("big_input_imgs")))
+      if self.runner_type == 'RKNN':
+        wbuf_nhwc = self.wide_frame.prepare(wbuf, transform_wide.flatten(), self.model.getCLBuffer("big_input_imgs")).reshape(1, 12, 128, 256).transpose(0,2,3,1).flatten()
+        self.model.setInputBuffer("big_input_imgs", wbuf_nhwc)
+      else:
+        self.model.setInputBuffer("big_input_imgs", self.wide_frame.prepare(wbuf, transform_wide.flatten(), self.model.getCLBuffer("big_input_imgs")))
 
     if prepare_only:
       return None

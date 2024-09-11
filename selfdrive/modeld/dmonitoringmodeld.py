@@ -24,7 +24,8 @@ OUTPUT_SIZE = 84
 SEND_RAW_PRED = os.getenv('SEND_RAW_PRED')
 MODEL_PATHS = {
   ModelRunner.SNPE: Path(__file__).parent / 'models/dmonitoring_model_q.dlc',
-  ModelRunner.ONNX: Path(__file__).parent / 'models/dmonitoring_model.onnx'}
+  ModelRunner.ONNX: Path(__file__).parent / 'models/dmonitoring_model.onnx',
+  ModelRunner.RKNN: Path(__file__).parent / 'models/dmonitoring_model.rknn'}
 
 class DriverStateResult(ctypes.Structure):
   _fields_ = [
@@ -59,22 +60,25 @@ class ModelState:
   def __init__(self):
     assert ctypes.sizeof(DMonitoringModelResult) == OUTPUT_SIZE * ctypes.sizeof(ctypes.c_float)
     self.output = np.zeros(OUTPUT_SIZE, dtype=np.float32)
+    self.model, self.runner_type = ModelRunner(MODEL_PATHS, self.output, Runtime.DSP, True, None)
     self.inputs = {
-      'input_img': np.zeros(MODEL_HEIGHT * MODEL_WIDTH, dtype=np.uint8),
+      'input_img': np.zeros(MODEL_HEIGHT * MODEL_WIDTH, dtype=np.float32 if self.runner_type == 'RKNN' else np.uint8),
       'calib': np.zeros(CALIB_LEN, dtype=np.float32)}
 
-    self.model = ModelRunner(MODEL_PATHS, self.output, Runtime.DSP, True, None)
     self.model.addInput("input_img", None)
     self.model.addInput("calib", self.inputs['calib'])
 
   def run(self, buf:VisionBuf, calib:np.ndarray) -> tuple[np.ndarray, float]:
     self.inputs['calib'][:] = calib
-
     v_offset = buf.height - MODEL_HEIGHT
     h_offset = (buf.width - MODEL_WIDTH) // 2
     buf_data = buf.data.reshape(-1, buf.stride)
     input_data = self.inputs['input_img'].reshape(MODEL_HEIGHT, MODEL_WIDTH)
     input_data[:] = buf_data[v_offset:v_offset+MODEL_HEIGHT, h_offset:h_offset+MODEL_WIDTH]
+
+    # Added to let rknn work
+    if self.runner_type == 'RKNN':
+      input_data[:] = input_data[:] / 255.
 
     t1 = time.perf_counter()
     self.model.setInputBuffer("input_img", self.inputs['input_img'].view(np.float32))
