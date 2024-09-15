@@ -65,6 +65,7 @@ def manager_init() -> None:
     ("IsAlcEnabled", "1"),
     ("IsLdwEnabled", "1"),
     ("IsRHD", "1"),
+    ("LogVideoWifiOnly", "0"),
     ("RecordFront", "1"),
     ("RsjSession", "invalidsession"),
     ("FanPwmOverride", "70.0"),

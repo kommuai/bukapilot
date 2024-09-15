@@ -78,7 +78,7 @@ class Uploader():
       return self.immediate_priority[name]
     return 1000
 
-  def list_upload_files(self):
+  def list_upload_files(self, network_type):
     if not os.path.isdir(self.root):
       return
 
@@ -107,6 +107,10 @@ class Uploader():
         if is_uploaded:
           continue
 
+        # Skip video files if the toggle is on and the device is not connected to WiFi
+        if Params().get_bool("LogVideoWifiOnly") and network_type != NetworkType.wifi and name.endswith(".ts"):
+          continue
+
         try:
           if name in self.immediate_priority:
             self.immediate_count += 1
@@ -116,8 +120,8 @@ class Uploader():
 
         yield (name, key, fn)
 
-  def next_file_to_upload(self):
-    upload_files = list(self.list_upload_files())
+  def next_file_to_upload(self, network_type):
+    upload_files = list(self.list_upload_files(network_type))
 
     for name, key, fn in upload_files:
       if any(f in fn for f in self.immediate_folders):
@@ -235,7 +239,7 @@ def uploader_fn(exit_event):
         time.sleep(60 if offroad else 5)
       continue
 
-    d = uploader.next_file_to_upload()
+    d = uploader.next_file_to_upload(network_type)
     if d is None:  # Nothing to upload
       if allow_sleep:
         time.sleep(60 if offroad else 5)

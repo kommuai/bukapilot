@@ -56,6 +56,12 @@ TogglesPanel::TogglesPanel(SettingsWindow *parent) : ListWidget(parent) {
       "Receive only safety critical alerts.",
       "../assets/kommu/quiet_mode.png",
     },
+    {
+      "LogVideoWifiOnly",
+      "Upload Drive Video via Wi-Fi Only",
+      "Enable upload of on-the-road driving footage via Wi-Fi only, mobile data will not be used for uploading driving footage.",
+      "../assets/offroad/icon_road.png",
+    },
   };
 
   Params params;
