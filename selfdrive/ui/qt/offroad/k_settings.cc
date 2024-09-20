@@ -371,6 +371,9 @@ C2NetworkPanel::C2NetworkPanel(QWidget *parent) : ListWidget(parent) {
   ipaddress = new LabelControl("IP Address", "");
   addItem(ipaddress);
 
+  networkType = new LabelControl("Network Type", "");
+  addItem(networkType);
+
   // SSH key management
   addItem(new SshToggle());
   addItem(new SshControl());
@@ -378,6 +381,7 @@ C2NetworkPanel::C2NetworkPanel(QWidget *parent) : ListWidget(parent) {
 
 void C2NetworkPanel::showEvent(QShowEvent *event) {
   ipaddress->setText(getIPAddress());
+  networkType->setText(getNetworkType());
 }
 
 QString C2NetworkPanel::getIPAddress() {
@@ -393,6 +397,20 @@ QString C2NetworkPanel::getIPAddress() {
   if (end == std::string::npos) return "";
 
   return result.substr(begin, end - begin).c_str();
+}
+
+QString C2NetworkPanel::getNetworkType() {
+  const QMap<cereal::DeviceState::NetworkType, QString> network_type = {
+    {cereal::DeviceState::NetworkType::NONE, ""},
+    {cereal::DeviceState::NetworkType::WIFI, "Wi-Fi"},
+    {cereal::DeviceState::NetworkType::ETHERNET, "ETH"},
+    {cereal::DeviceState::NetworkType::CELL2_G, "2G"},
+    {cereal::DeviceState::NetworkType::CELL3_G, "3G"},
+    {cereal::DeviceState::NetworkType::CELL4_G, "4G"},
+    {cereal::DeviceState::NetworkType::CELL5_G, "5G"}
+  };
+  auto &sm = *(uiState()->sm);
+  return network_type[sm["deviceState"].getDeviceState().getNetworkType()];
 }
 
 QWidget *network_panel(QWidget *parent) {
