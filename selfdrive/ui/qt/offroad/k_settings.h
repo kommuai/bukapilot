@@ -209,6 +209,8 @@ public:
 private:
   void showEvent(QShowEvent *event) override;
   QString getIPAddress();
+  QString getNetworkType();
   LabelControl *ipaddress;
+  LabelControl *networkType;
 };
 
