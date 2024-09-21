@@ -77,6 +77,7 @@ class Controls:
     cooldown = LANE_CHANGE_COOLDOWN # Steering cooldown
     end_time = 2.0 # The time where the steering becomes 100% again
     start_val = 0.25 # The percentage of steering when steering starts again
+    rate = 0.0015  # Between 0 and 0.1, higher value means steeper curve. When rate is 0, the curve becomes linear.
 
     blinker_diff = self.time_diff(self.last_blinker_frame)
     resume_diff = self.time_diff(self.last_resume_frame)
@@ -90,7 +91,8 @@ class Controls:
 
     if diff < end_time:
       def out(ste):
-        mul = min(1, (diff / (end_time - cooldown)) * (1 - start_val) + start_val)
+        scaled_time = diff / (end_time - cooldown)
+        mul = min(1, start_val + (1 - start_val) * (scaled_time ** (1-rate))) # Non-linear increment equation
         return ste * mul
       return out(steer), out(steeringAngle)
     return steer, steeringAngle
