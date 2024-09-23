@@ -40,6 +40,7 @@ class CarState(CarStateBase):
     self.stock_lks_settings2 = cp.vl["ADAS_LKAS"]["SET_ME_1_1"]
     self.steer_dir = cp.vl["ADAS_LKAS"]["STEER_DIR"]
     self.stock_ldp = bool(cp.vl["LKAS"]["LANE_DEPARTURE_WARNING_RIGHT"]) or bool(cp.vl["LKAS"]["LANE_DEPARTURE_WARNING_LEFT"])
+    self.leadDistance = cp.vl["ADAS_LEAD_DETECT"]['LEAD_DISTANCE']
     # If cruise mode is ICC, make bukapilot control steering so it won't disengage.
     ret.lkaDisabled = not (bool(cp.vl["ADAS_LKAS"]["LKS_ENABLE"]) or self.is_icc_on)
 
@@ -144,10 +145,6 @@ class CarState(CarStateBase):
       # used for lane change so its okay for the chime to work on both side.
       ret.leftBlindspot = bool(cp.vl["BSM_ADAS"]["LEFT_APPROACH"]) or bool(cp.vl["BSM_ADAS"]["LEFT_APPROACH_WARNING"])
       ret.rightBlindspot = bool(cp.vl["BSM_ADAS"]["RIGHT_APPROACH"]) or bool(cp.vl["BSM_ADAS"]["RIGHT_APPROACH_WARNING"])
-
-    # to delete
-    ret.cruiseState.speedOffset = cp.vl["ADAS_LEAD_DETECT"]['LEAD_DISTANCE']
-
     return ret
 
 

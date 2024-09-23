@@ -11,6 +11,9 @@ import cereal.messaging as messaging
 
 from common.features import Features
 
+RES_INTERVAL = 300
+RES_LEN = 2 # Press resume for 2 frames
+
 def apply_proton_steer_torque_limits(apply_torque, apply_torque_last, driver_torque, LIMITS):
 
   # limits due to driver torque
@@ -50,6 +53,9 @@ class CarController():
     self.packer = CANPacker(DBC[CP.carFingerprint]['pt'])
     self.disable_radar = Params().get_bool("DisableRadar")
     self.num_cruise_btn_sent = 0
+    self.temp_lead_dist = 0       # The last lead distance before standstill
+    self.last_res_press_frame = 0 # The frame where the last resume press was finished
+    self.resume_counter = 0       # Counter for tracking the progress of a resume press
 
     f = Features()
     self.mads = f.has("StockAcc")
@@ -93,10 +99,24 @@ class CarController():
       #  fake_enable = False
       #can_sends.append(create_acc_cmd(self.packer, actuators.accel, fake_enable, (frame/2) % 16))
 
-    if CS.out.standstill and enabled and (frame % 29 == 0):
-      # Spam resume button to resume from standstill at max freq of 34.48 Hz.
-      if not self.mads or CS.acc_req:
-        can_sends.append(send_buttons(self.packer, frame % 16, False))
+    # For resume
+    if CS.out.standstill and enabled and self.resume_counter == 0 and \
+        frame > (self.last_res_press_frame + RES_INTERVAL) and CS.leadDistance > self.temp_lead_dist:
+      # Only start a new resume if the last one was finished, with an interval
+      self.resume_counter = 1 # Start a new resume press
+    elif not enabled or (enabled and not CS.out.standstill):
+      # cruise control not enabled or moving with cruise control, record the distance
+      self.temp_lead_dist = CS.leadDistance
+
+    if self.resume_counter > 0 and self.resume_counter <= RES_LEN and CS.out.standstill:
+      if not self.mads or CS.acc_req: # Send resume press signal
+          can_sends.append(send_buttons(self.packer, frame % 16, False))
+      self.resume_counter += 1
+
+    if self.resume_counter > RES_LEN or not CS.out.standstill:
+       # If resume press is finished or car is moving
+       self.last_res_press_frame = frame # Store the frame where last resume press was finished
+       self.resume_counter = 0 # Reset resume counter
 
     self.last_steer = apply_steer
     new_actuators = actuators.copy()
