@@ -46,7 +46,7 @@ bool set_date(char *datestr) {
     return false;
   char y[3] = {0}, m[3] = {0}, d[3] = {0};
   sscanf(datestr, "%c%c%c%c%c%c", &d[0], &d[1], &m[0], &m[1], &y[0], &y[1]);
-  sprintf(dcmd, "date +%%F -s \"20%s-%s-%s\"", y, m, d);
+  sprintf(dcmd, "export TZ=UTC && date +%%F -s \"20%s-%s-%s\"", y, m, d);
   return true;
 }
 
