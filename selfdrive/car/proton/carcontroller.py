@@ -78,13 +78,10 @@ class CarController():
 
     # CAN controlled lateral running at 50hz
     if (frame % 2) == 0:
-      # Lane Departure Prevention and stock Lane Keep Assist
-      # STOCK_LKS_SETTINGS (LKA mode):
-      # warn only, 144 units
-      # auxiliary, 152 units
-      if not lat_active and (CS.stock_ldp or (CS.stock_lks_settings is 152 and CS.stock_ldp_cmd is not 0)):
+      # Lane Departure Prevention
+      if not lat_active and CS.stock_ldp:
         steer_dir = -1 if CS.steer_dir else 1
-        apply_steer = CS.stock_ldp_cmd * steer_dir * 0.00015 # Reduce value because stock command was strong
+        apply_steer = CS.stock_ldp_cmd * steer_dir * 0.0002 # Reduce value because stock command was strong
         lat_active = True
       can_sends.append(create_can_steer_command(self.packer, apply_steer, lat_active, CS.hand_on_wheel_warning and CS.is_icc_on, (frame/2) % 16, CS.stock_lks_settings,  CS.stock_lks_settings2))
 
