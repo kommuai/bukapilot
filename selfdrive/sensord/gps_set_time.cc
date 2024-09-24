@@ -46,7 +46,14 @@ bool set_date(char *datestr) {
     return false;
   char y[3] = {0}, m[3] = {0}, d[3] = {0};
   sscanf(datestr, "%c%c%c%c%c%c", &d[0], &d[1], &m[0], &m[1], &y[0], &y[1]);
-  sprintf(dcmd, "export TZ=UTC && date +%%F -s \"20%s-%s-%s\"", y, m, d);
+
+  struct tm tm = {0};
+  tm.tm_year = atoi(y) + 100; // years since 1900
+  tm.tm_mon = atoi(m) - 1;    // months since January
+  tm.tm_mday = atoi(d);
+
+  if (mktime(&tm) == -1) return false;
+  strftime(dcmd, sizeof(dcmd), "export TZ=UTC && date +%F -s \"%Y-%m-%d\"", &tm);
   return true;
 }
 
