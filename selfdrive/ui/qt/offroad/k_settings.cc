@@ -303,7 +303,8 @@ SoftwarePanel::SoftwarePanel(QWidget* parent) : ListWidget(parent) {
       lastUpdateLbl->setText("Failed to fetch update");
       updateBtn->setText("CHECK");
       updateBtn->setEnabled(true);
-      if (params.get("UpdateStatus") == "noInternet") {updateLabels();}
+      std::string failedStatus = params.get("UpdateStatus");
+      if ((failedStatus == "noInternet") || (failedStatus == "unsavedChanges")) {updateLabels();}
     } else if (path.contains("LastUpdateTime") || path.contains("UpdateStatus")) {
       updateLabels();
     }
@@ -324,6 +325,9 @@ void SoftwarePanel::updateLabels() {
     lastUpdate = "Invalid date and time settings";
   } else if (not params.getBool("IsOffroad")) {
     lastUpdate = "Turn off the car to check for update";
+  } else if (status == "unsavedChanges") {
+    lastUpdate = "Changes unsaved, cannot update";
+    allowed = true;
   } else if (status == "success") {
     lastUpdate = "Successful, reboot to apply update";
     btnText = "REBOOT";
