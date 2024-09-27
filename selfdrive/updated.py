@@ -440,6 +440,20 @@ def main() -> None:
       cloudlog.info("not running updater, not offroad")
       continue
 
+    def check_git_saved():
+        try:
+            if subprocess.check_output(['git', 'diff']) or \
+                subprocess.check_output(['git', 'diff', '--cached']) or \
+                subprocess.check_output(['git', 'cherry', '-v']):
+                return False
+            return True
+        except subprocess.CalledProcessError:
+            return False
+
+    saved = check_git_saved() or is_tested_branch()
+    if not saved:
+      params.put("UpdateStatus", "unsavedChanges")
+
     # Attempt an update
     exception = None
     new_version = False
@@ -455,7 +469,7 @@ def main() -> None:
         params.put("UpdateStatus", "noInternet")
 
       # Fetch updates at most every 10 minutes
-      if internet_ok and (update_now or time.monotonic() - last_fetch_time > 60*10):
+      if saved and internet_ok and (update_now or time.monotonic() - last_fetch_time > 60*10):
         new_version = fetch_update(wait_helper)
         update_failed_count = 0
         last_fetch_time = time.monotonic()
