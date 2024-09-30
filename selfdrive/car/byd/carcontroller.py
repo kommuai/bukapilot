@@ -7,6 +7,9 @@ from common.numpy_fast import clip
 
 import cereal.messaging as messaging
 
+RES_INTERVAL = 130
+RES_LEN = 5
+
 def apply_byd_steer_angle_limits(apply_angle, actual_angle, v_ego, LIMITS):
   # pick angle rate limits based on wind up/down
   steer_up = actual_angle * apply_angle >= 0. and abs(apply_angle) > abs(actual_angle)
@@ -25,8 +28,8 @@ class CarController():
     self.packer = CANPacker(DBC[CP.carFingerprint]['pt'])
     self.steer_rate_limited = False
     self.lka_active = False
-    self.send_resume = False
-    self.resume_counter = 0
+    self.last_res_press_frame = (0 - RES_INTERVAL)  # The frame where the last resume press was finished
+    self.resume_counter = 0                         # Counter for tracking the progress of a resume press
 
   def update(self, enabled, CS, frame, actuators, lead_visible, rlane_visible, llane_visible, pcm_cancel, ldw, laneActive):
     can_sends = []
@@ -53,18 +56,22 @@ class CarController():
 #      can_sends.append(create_accel_command(self.packer, actuators.accel, enabled, brake_hold, (frame/2) % 16))
       can_sends.append(create_lkas_hud(self.packer, enabled, CS.lss_state, CS.lss_alert, CS.tsr, CS.abh, CS.passthrough, CS.HMA, CS.pt2, CS.pt3, CS.pt4, CS.pt5, self.lka_active, frame % 16))
 
-    # frequency doesn't matter (original 20hz), but the counter must match + 1 else it will fault
-    if (CS.out.standstill or CS.out.cruiseState.standstill) and enabled and (frame % 50 == 0):
-      self.send_resume = True
+    # For resume
+    if (CS.out.standstill or CS.out.cruiseState.standstill) and enabled and \
+        self.resume_counter == 0 and frame > (self.last_res_press_frame + RES_INTERVAL):
+      # Only start a new resume if the last one was finished, with an interval
+      self.resume_counter = 1 # Start a new resume press
 
-    # send 3 consecutive resume command
-    if (frame % 10) == 0 and self.send_resume:
-      if self.resume_counter >= 2:
-        self.send_resume = False
-        self.resume_counter = 0
+    if self.resume_counter > 0 and self.resume_counter <= RES_LEN and \
+        (CS.out.standstill or CS.out.cruiseState.standstill):
+      # Send resume press signal
       can_sends.append(send_buttons(self.packer, 1, (CS.counter_pcm_buttons + 1) % 16))
       self.resume_counter += 1
 
+    if self.resume_counter > RES_LEN or not (CS.out.standstill or CS.out.cruiseState.standstill):
+      # If resume press is finished or car is moving
+      self.last_res_press_frame = frame # Store the frame where last resume press was finished
+      self.resume_counter = 0 # Reset resume counter
 
     new_actuators = actuators.copy()
     new_actuators.steeringAngleDeg = apply_angle
