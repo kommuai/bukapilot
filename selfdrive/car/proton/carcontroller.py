@@ -74,21 +74,20 @@ class CarController():
 
     # steer
     new_steer = int(round(actuators.steer * self.params.STEER_MAX))
-    apply_steer = apply_proton_steer_torque_limits(new_steer, self.last_steer, 0, self.params)
 
+    if not lat_active and CS.stock_ldp: # Lane Departure Prevention
+      steer_dir = -1 if CS.steer_dir else 1
+      new_steer = CS.stock_ldp_cmd * steer_dir * 0.0002 # Reduce value because stock command was strong
+      lat_active = True
+
+    apply_steer = apply_proton_steer_torque_limits(new_steer, self.last_steer, 0, self.params)
     self.steer_rate_limited = (new_steer != apply_steer) and (apply_steer != 0)
 
     ts = frame * DT_CTRL
-
     self.is_alc_enabled = Params().get_bool("IsAlcEnabled")
 
     # CAN controlled lateral running at 50hz
     if (frame % 2) == 0:
-      # Lane Departure Prevention
-      if not lat_active and CS.stock_ldp:
-        steer_dir = -1 if CS.steer_dir else 1
-        apply_steer = CS.stock_ldp_cmd * steer_dir * 0.0002 # Reduce value because stock command was strong
-        lat_active = True
       can_sends.append(create_can_steer_command(self.packer, apply_steer, lat_active, CS.hand_on_wheel_warning and CS.is_icc_on, (frame/2) % 16, CS.stock_lks_settings,  CS.stock_lks_settings2))
 
       #can_sends.append(create_hud(self.packer, apply_steer, enabled, ldw, rlane_visible, llane_visible))
