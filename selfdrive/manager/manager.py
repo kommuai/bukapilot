@@ -38,6 +38,7 @@ def manager_init() -> None:
     ("GsmMetered", "1"),
     ("HasAcceptedTerms", "0"),
     ("LanguageSetting", "main_en"),
+    ("RsjSession", "invalidsession"),
     ("OpenpilotEnabledToggle", "1"),
     ("LongitudinalPersonality", str(log.LongitudinalPersonality.standard)),
   ]

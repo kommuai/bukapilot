@@ -16,9 +16,11 @@ from cereal import log
 import cereal.messaging as messaging
 from openpilot.common.api import Api
 from openpilot.common.params import Params
+from openpilot.common.kommu import *
 from openpilot.common.realtime import set_core_affinity
 from openpilot.system.hardware.hw import Paths
 from openpilot.system.loggerd.xattr_cache import getxattr, setxattr
+from openpilot.system.loggerd.kommu import fia_upload
 from openpilot.common.swaglog import cloudlog
 
 NetworkType = log.DeviceState.NetworkType
@@ -72,7 +74,6 @@ def clear_locks(root: str) -> None:
 class Uploader:
   def __init__(self, dongle_id: str, root: str):
     self.dongle_id = dongle_id
-    self.api = Api(dongle_id)
     self.root = root
 
     self.params = Params()
@@ -136,27 +137,19 @@ class Uploader:
     return None
 
   def do_upload(self, key: str, fn: str):
-    url_resp = self.api.get("v1.4/" + self.dongle_id + "/upload_url/", timeout=10, path=key, access_token=self.api.get_token())
-    if url_resp.status_code == 412:
-      return url_resp
+    key, ext = os.path.splitext(key.replace("/", "---"))
 
-    url_resp_json = json.loads(url_resp.text)
-    url = url_resp_json['url']
-    headers = url_resp_json['headers']
-    cloudlog.debug("upload_url v1.4 %s %s", url, str(headers))
+    if "boot" in key or "crash" in key:
+      key = "---".join([self.dongle_id] + list(reversed(key.split("---")))) + ext
+    else:
+      key = self.dongle_id + "---" + key + ext
+
+    cloudlog.info("upload_kommu s4-v1 %s, %s", key, fn)
 
     if fake_upload:
       return FakeResponse()
-
-    with open(fn, "rb") as f:
-      data: BinaryIO
-      if key.endswith('.bz2') and not fn.endswith('.bz2'):
-        compressed = bz2.compress(f.read())
-        data = io.BytesIO(compressed)
-      else:
-        data = f
-
-      return requests.put(url, data=data, headers=headers, timeout=10)
+    else:
+      return fia_upload(key, fn)
 
   def upload(self, name: str, key: str, fn: str, network_type: int, metered: bool) -> bool:
     try:
