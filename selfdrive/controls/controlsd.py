@@ -65,13 +65,13 @@ class Controls:
   # Check if blinker was used within specified seconds.
   def recent_blinker(self, sec):
     return self.time_diff(self.last_blinker_frame) < sec
-  # Check if cruise control was resumed within specified seconds.
-  def recent_resume(self, sec):
-    return self.time_diff(self.last_resume_frame) < sec
+  # Check if steering was resumed within specified seconds.
+  def recent_steer_resume(self, sec):
+    return self.time_diff(self.last_steer_resume_frame) < sec
   def recent_blinker_2s(self):
     return self.recent_blinker(2.0)
-  def recent_resume_2s(self):
-    return self.recent_resume(2.0)
+  def recent_steer_resume_2s(self):
+    return self.recent_steer_resume(2.0)
 
   def reduce_steer(self, steer, steeringAngle):
     cooldown = LANE_CHANGE_COOLDOWN # Steering cooldown
@@ -80,7 +80,7 @@ class Controls:
     rate = 0.0015  # Between 0 and 0.1, higher value means steeper curve. When rate is 0, the curve becomes linear.
 
     blinker_diff = self.time_diff(self.last_blinker_frame)
-    resume_diff = self.time_diff(self.last_resume_frame)
+    resume_diff = self.time_diff(self.last_steer_resume_frame)
     diff = min(blinker_diff, resume_diff) # The last performed action
 
     if diff is blinker_diff:
@@ -190,7 +190,7 @@ class Controls:
     self.cruise_mismatch_counter = 0
     self.can_rcv_error_counter = 0
     self.last_blinker_frame = 0
-    self.last_resume_frame = 0
+    self.last_steer_resume_frame = 0
     self.distance_traveled = 0
     self.last_functional_fan_frame = 0
     self.events_prev = []
@@ -222,8 +222,8 @@ class Controls:
     self.rk = Ratekeeper(100, print_delay_threshold=None)
     self.prof = Profiler(False)  # off by default
 
-    # Resume status for checking the last resume frame
-    self.resumed = False
+    # Resume status for checking the last steering resume frame
+    self.steer_resumed = False
 
   def update_events(self, CS):
     """Compute carEvents from carState"""
@@ -535,14 +535,6 @@ class Controls:
     if CS.leftBlinker or CS.rightBlinker:
       self.last_blinker_frame = self.sm.frame
 
-    # If resume
-    if not self.resumed and self.active:
-      self.resumed = True
-      self.last_resume_frame = self.sm.frame
-    # If cancel
-    if self.resumed and not self.active:
-      self.resumed = False
-
     # State specific actions
 
     if not self.active:
@@ -576,6 +568,14 @@ class Controls:
         lac_log.output = steer
         lac_log.saturated = abs(steer) >= 0.9
 
+    # If steer resume
+    if not self.steer_resumed and lat_active:
+      self.steer_resumed = True
+      self.last_steer_resume_frame = self.sm.frame
+    # If steer cancel
+    if self.steer_resumed and not lat_active:
+      self.steer_resumed = False
+
     # Reduce steering after resume/manual lance change
     if lat_active:
       actuators.steer, actuators.steeringAngleDeg = self.reduce_steer(actuators.steer, actuators.steeringAngleDeg)
@@ -593,7 +593,7 @@ class Controls:
         # Within 2 seconds of manual lane change, do not show this warning.
         manual_LC_2s = not self.is_alc_enabled and self.recent_blinker_2s()
         if (left_deviation or right_deviation) and not manual_LC_2s \
-            and not CS.lkaDisabled and not self.recent_resume_2s():
+            and not CS.lkaDisabled and not self.recent_steer_resume_2s():
           self.events.add(EventName.steerSaturated)
 
     # Ensure no NaNs/Infs
@@ -650,7 +650,7 @@ class Controls:
       CC.laneActive = False
 
     ldw_allowed = self.is_ldw_enabled and CS.vEgo > LDW_MIN_SPEED \
-                    and not self.recent_blinker_2s() and not self.recent_resume_2s() \
+                    and not self.recent_blinker_2s() and not self.recent_steer_resume_2s() \
                     and (not self.active or not CC.laneActive) \
                     and self.sm['liveCalibration'].calStatus == Calibration.CALIBRATED
 
