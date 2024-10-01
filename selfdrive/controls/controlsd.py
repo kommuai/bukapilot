@@ -68,10 +68,15 @@ class Controls:
   # Check if steering was resumed within specified seconds.
   def recent_steer_resume(self, sec):
     return self.time_diff(self.last_steer_resume_frame) < sec
+  def recent_lka_on(self, sec):
+    return self.time_diff(self.last_lka_on_frame) < sec
+
   def recent_blinker_2s(self):
     return self.recent_blinker(2.0)
   def recent_steer_resume_2s(self):
     return self.recent_steer_resume(2.0)
+  def recent_lka_on_2s(self):
+    return self.recent_lka_on(2.0)
 
   def reduce_steer(self, steer, steeringAngle):
     cooldown = LANE_CHANGE_COOLDOWN # Steering cooldown
@@ -81,12 +86,13 @@ class Controls:
 
     blinker_diff = self.time_diff(self.last_blinker_frame)
     resume_diff = self.time_diff(self.last_steer_resume_frame)
-    diff = min(blinker_diff, resume_diff) # The last performed action
+    lka_diff = self.time_diff(self.last_lka_on_frame)
+    diff = min(blinker_diff, resume_diff, lka_diff) # The last performed action
 
-    if diff is blinker_diff:
+    if diff == blinker_diff:
       if self.is_alc_enabled:
         diff = resume_diff # Only reduce steering for resume
-    if diff is resume_diff:
+    if diff == resume_diff or diff == lka_diff:
       cooldown = 0 # Resume has no cooldown
 
     if diff < end_time:
@@ -191,6 +197,7 @@ class Controls:
     self.can_rcv_error_counter = 0
     self.last_blinker_frame = 0
     self.last_steer_resume_frame = 0
+    self.last_lka_on_frame = 0
     self.distance_traveled = 0
     self.last_functional_fan_frame = 0
     self.events_prev = []
@@ -224,6 +231,7 @@ class Controls:
 
     # Resume status for checking the last steering resume frame
     self.steer_resumed = False
+    self.lka_switched_on = True
 
   def update_events(self, CS):
     """Compute carEvents from carState"""
@@ -576,6 +584,14 @@ class Controls:
     if self.steer_resumed and not lat_active:
       self.steer_resumed = False
 
+    # If LKA switch on
+    if not self.lka_switched_on and not CS.lkaDisabled:
+      self.lka_switched_on = True
+      self.last_lka_on_frame = self.sm.frame
+    # If LKA switch off
+    if self.lka_switched_on and CS.lkaDisabled:
+      self.lka_switched_on = False
+
     # Reduce steering after resume/manual lance change
     if lat_active:
       actuators.steer, actuators.steeringAngleDeg = self.reduce_steer(actuators.steer, actuators.steeringAngleDeg)
@@ -593,7 +609,8 @@ class Controls:
         # Within 2 seconds of manual lane change, do not show this warning.
         manual_LC_2s = not self.is_alc_enabled and self.recent_blinker_2s()
         if (left_deviation or right_deviation) and not manual_LC_2s \
-            and not CS.lkaDisabled and not self.recent_steer_resume_2s():
+            and not CS.lkaDisabled and not self.recent_steer_resume_2s() \
+            and not self.recent_lka_on_2s():
           self.events.add(EventName.steerSaturated)
 
     # Ensure no NaNs/Infs
@@ -651,7 +668,7 @@ class Controls:
 
     ldw_allowed = self.is_ldw_enabled and CS.vEgo > LDW_MIN_SPEED \
                     and not self.recent_blinker_2s() and not self.recent_steer_resume_2s() \
-                    and (not self.active or not CC.laneActive) \
+                    and (not self.active or not CC.laneActive) and not self.recent_lka_on_2s() \
                     and self.sm['liveCalibration'].calStatus == Calibration.CALIBRATED
 
     model_v2 = self.sm['modelV2']
