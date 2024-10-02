@@ -136,10 +136,11 @@ class ChangeBranchSelect : public ButtonControl {
 public:
   // Set upstream to match the branch given
   std::string setUpstream(const std::string& branch) {
-    return "git config remote.origin.fetch '+refs/heads/" + branch +
-      ":refs/remotes/origin/" + branch +
-      "' && git fetch origin '" + branch +
-      "' && git branch -u origin/" + branch;
+    std::string b = branch.empty() ? "release" : branch;
+    return "git config remote.origin.fetch '+refs/heads/" + b +
+      ":refs/remotes/origin/" + b +
+      "' && git fetch origin '" + b +
+      "' && git branch -u origin/" + b;
   }
   ChangeBranchSelect() : ButtonControl("Change Branch", "SET", "Warning: Untested branches may cause unexpected behaviours.") {
     selection_label = new QLabel();
