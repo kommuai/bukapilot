@@ -39,7 +39,7 @@ def create_can_steer_command(packer, steer, steer_req, wheel_touch_warning, raw_
   """Creates a CAN message for the Perodua LKA Steer Command."""
   values = {
     "LKAS_ENGAGED1": steer_req,
-    "LKAS_ENGAGED2": steer_req,
+    "LKAS_LINE_ACTIVE": steer_req,
     "STEER_CMD": abs(steer) if steer_req else 0,
     "STEER_DIR": 1 if steer <= 0 else 0,
     "COUNTER": raw_cnt,
