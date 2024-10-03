@@ -7,7 +7,7 @@ from common.numpy_fast import clip
 
 import cereal.messaging as messaging
 
-RES_INTERVAL = 200
+RES_INTERVAL = 300
 RES_LEN = 3
 
 def apply_byd_steer_angle_limits(apply_angle, actual_angle, v_ego, LIMITS):
