@@ -7,8 +7,8 @@ from common.numpy_fast import clip
 
 import cereal.messaging as messaging
 
-RES_INTERVAL = 130
-RES_LEN = 5
+RES_INTERVAL = 200
+RES_LEN = 3
 
 def apply_byd_steer_angle_limits(apply_angle, actual_angle, v_ego, LIMITS):
   # pick angle rate limits based on wind up/down
@@ -28,8 +28,8 @@ class CarController():
     self.packer = CANPacker(DBC[CP.carFingerprint]['pt'])
     self.steer_rate_limited = False
     self.lka_active = False
-    self.last_res_press_frame = (0 - RES_INTERVAL)  # The frame where the last resume press was finished
-    self.resume_counter = 0                         # Counter for tracking the progress of a resume press
+    self.last_res_press_frame = 0 # The frame where the last resume press was finished
+    self.resume_counter = 0       # Counter for tracking the progress of a resume press
 
   def update(self, enabled, CS, frame, actuators, lead_visible, rlane_visible, llane_visible, pcm_cancel, ldw, laneActive):
     can_sends = []
