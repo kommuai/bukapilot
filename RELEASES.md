@@ -1,10 +1,16 @@
-Version 9.6.6  (2024-08-21)
+Version 9.7.0  (2024-10-07)
 =========================
-* Added Change Branch feature
-* UI text improvements
-* Fixed the behaviour of lane change when Assisted Lane Change is off
-* Perodua LKA on by default
-* Perodua can now use combined stock ACC and bukapilot ACC (Feature Package: stock-acc)
+* Smoother steering after resume/lane change with ALC off
+* Added "Upload Drive Video via Wi-Fi Only" toggle
+* UI improvements
+* Fix GPS date
+* Lane Departure Warning improvements
+* Proton SNG fix
+* BYD SNG fix
+* Proton LKA follows LKS on/off
+* Proton Lane Departure Prevention
+* Bypass Honda City HEV low speed steer
+* Removed steering limit warning when LKA is off
 
 Version 9.6  (2024-02-06)
 =========================
