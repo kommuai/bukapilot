@@ -7,8 +7,9 @@ from common.numpy_fast import clip
 
 import cereal.messaging as messaging
 
-RES_INTERVAL = 300
+RES_INTERVAL = 130
 RES_LEN = 3
+SNG_WAIT = 500
 
 def apply_byd_steer_angle_limits(apply_angle, actual_angle, v_ego, LIMITS):
   # pick angle rate limits based on wind up/down
@@ -30,6 +31,8 @@ class CarController():
     self.lka_active = False
     self.last_res_press_frame = 0 # The frame where the last resume press was finished
     self.resume_counter = 0       # Counter for tracking the progress of a resume press
+    self.last_sng_stop_frame = 0
+    self.is_sng_stop = False
 
   def update(self, enabled, CS, frame, actuators, lead_visible, rlane_visible, llane_visible, pcm_cancel, ldw, laneActive):
     can_sends = []
@@ -57,8 +60,18 @@ class CarController():
       can_sends.append(create_lkas_hud(self.packer, enabled, CS.lss_state, CS.lss_alert, CS.tsr, CS.abh, CS.passthrough, CS.HMA, CS.pt2, CS.pt3, CS.pt4, CS.pt5, self.lka_active, frame % 16))
 
     # For resume
+
+    # If SNG stop
+    if not self.is_sng_stop and (CS.out.standstill or CS.out.cruiseState.standstill):
+      self.is_sng_stop = True
+      self.last_sng_stop_frame = frame
+    # If SNG moved
+    if self.is_sng_stop and not (CS.out.standstill or CS.out.cruiseState.standstill):
+      self.is_sng_stop = False
+
     if (CS.out.standstill or CS.out.cruiseState.standstill) and enabled and \
-        self.resume_counter == 0 and frame > (self.last_res_press_frame + RES_INTERVAL):
+        self.resume_counter == 0 and frame > (self.last_res_press_frame + RES_INTERVAL) \
+        and frame > (self.last_sng_stop_frame + SNG_WAIT):
       # Only start a new resume if the last one was finished, with an interval
       self.resume_counter = 1 # Start a new resume press
 
