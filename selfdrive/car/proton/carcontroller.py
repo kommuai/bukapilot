@@ -11,7 +11,7 @@ import cereal.messaging as messaging
 
 from common.features import Features
 
-RES_INTERVAL = 300
+RES_INTERVAL = 500
 RES_LEN = 2 # Press resume for 2 frames
 
 def apply_proton_steer_torque_limits(apply_torque, apply_torque_last, driver_torque, LIMITS):
