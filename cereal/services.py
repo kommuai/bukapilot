@@ -80,6 +80,7 @@ services: dict[str, tuple] = {
   "qRoadEncodeIdx": (False, 20.),
   "userFlag": (True, 0., 1),
   "microphone": (True, 10., 10),
+  "settings": (True, 10.),
 
   # debug
   "uiDebug": (True, 0., 1),

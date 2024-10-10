@@ -49,11 +49,12 @@ inline std::string& trim(std::string& s, const char* t = " \t\n\r\f\v") {
   return s.erase(0, s.find_first_not_of(t));
 }
 
+// checksum_size, counter_size, checksum_start_bit, counter_start_bit, little_endian;
 ChecksumState* get_checksum(const std::string& dbc_name) {
   ChecksumState* s = nullptr;
   if (startswith(dbc_name, {"honda_", "acura_"})) {
     s = new ChecksumState({4, 2, 3, 5, false, HONDA_CHECKSUM, &honda_checksum});
-  } else if (startswith(dbc_name, {"toyota_", "lexus_"})) {
+  } else if (startswith(dbc_name, {"toyota_", "lexus_", "dnga_"})) {
     s = new ChecksumState({8, -1, 7, -1, false, TOYOTA_CHECKSUM, &toyota_checksum});
   } else if (startswith(dbc_name, "hyundai_canfd")) {
     s = new ChecksumState({16, -1, 0, -1, true, HKG_CAN_FD_CHECKSUM, &hkg_can_fd_checksum});
@@ -67,7 +68,12 @@ ChecksumState* get_checksum(const std::string& dbc_name) {
     s = new ChecksumState({8, -1, 7, -1, false, CHRYSLER_CHECKSUM, &chrysler_checksum});
   } else if (startswith(dbc_name, "comma_body")) {
     s = new ChecksumState({8, 4, 7, 3, false, PEDAL_CHECKSUM, &pedal_checksum});
+  } else if (startswith(dbc_name, "byd_")) {
+    s = new ChecksumState({8, 4, 7, -1, false, BYD_CHECKSUM, &byd_checksum});
+  } else if (startswith(dbc_name, "proton_")) {
+    s = new ChecksumState({8, 4, 7, -1, false, PROTON_CHECKSUM, &proton_checksum});
   }
+
   return s;
 }
 

@@ -10,32 +10,33 @@ class TestCanChecksums(unittest.TestCase):
 
   def test_honda_checksum(self):
     """Test checksums for Honda standard and extended CAN ids"""
-    dbc_file = "honda_accord_2018_can_generated"
-    msgs = [("LKAS_HUD", 0), ("LKAS_HUD_A", 0)]
+    dbc_file = "byd_general_pt"
+    msgs = [("LKAS_HUD_ADAS", 0)]
     parser = CANParser(dbc_file, msgs, 0)
     packer = CANPacker(dbc_file)
 
     values = {
-      'SET_ME_X41': 0x41,
-      'STEERING_REQUIRED': 1,
-      'SOLID_LANES': 1,
-      'BEEP': 0,
+      'SET_ME_XFF': 255,
+      'SET_ME_X5F': 95,
+      'SET_ME_1_2': 1,
+      'SETTINGS': 12,
+      'HMA': 2,
+      'COUNTER': 11,
     }
 
     # known correct checksums according to the above values
-    checksum_std = [11, 10, 9, 8]
-    checksum_ext = [4, 3, 2, 1]
+    counters = [11, 6, 1, 8]
+    answers = [226, 50, 130, 18]
 
-    for std, ext in zip(checksum_std, checksum_ext):
+    for counter, answer in zip(counters, answers):
+      values["COUNTER"] = counter
       msgs = [
-        packer.make_can_msg("LKAS_HUD", 0, values),
-        packer.make_can_msg("LKAS_HUD_A", 0, values),
+        packer.make_can_msg("LKAS_HUD_ADAS", 0, values),
       ]
       can_strings = [can_list_to_can_capnp(msgs), ]
       parser.update_strings(can_strings)
 
-      self.assertEqual(parser.vl['LKAS_HUD']['CHECKSUM'], std)
-      self.assertEqual(parser.vl['LKAS_HUD_A']['CHECKSUM'], ext)
+      self.assertEqual(parser.vl['LKAS_HUD_ADAS']['CHECKSUM'], answer)
 
 
 if __name__ == "__main__":

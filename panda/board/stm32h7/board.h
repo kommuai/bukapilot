@@ -15,6 +15,7 @@
 #include "drivers/rtc.h"
 #include "drivers/clock_source.h"
 #include "boards/red.h"
+#include "boards/kedua.h"
 #include "boards/red_chiplet.h"
 #include "boards/tres.h"
 #include "boards/cuatro.h"
@@ -42,6 +43,9 @@ void detect_board_type(void) {
   } else if (board_id == 3U) {
     hw_type = HW_TYPE_CUATRO;
     current_board = &board_tres;
+  } else if (board_id == 15U) {
+    hw_type = HW_TYPE_KEDUA;
+    current_board = &board_kedua;
   } else {
     hw_type = HW_TYPE_UNKNOWN;
     print("Hardware type is UNKNOWN!\n");

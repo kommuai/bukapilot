@@ -9,6 +9,53 @@ using Custom = import "custom.capnp";
 
 const logVersion :Int32 = 1;
 
+struct Settings {
+  # Always send
+  doReboot @0 :Bool;
+  resetCalibration @1 :Bool;
+  connectivityStatus @2 :Text;
+  deviceStatus @3 :Text;
+  alerts @4 :Text;
+  remainingDataUpload @5 :Text;
+  uploadStatus @6 :Text;
+  gitCommit @7 :Text;
+  checkUpdate @8:Bool;
+  updateStatus @9:Text;
+
+  # Send if settings open
+  enableBukapilot @10:Bool;
+  quietMode @11:Bool;
+  enableAssistedLaneChange @12:Bool;
+  enableLaneDepartureWarning @13:Bool;
+  uploadVideoWiFiOnly @14:Bool;
+  apn @15:Text;
+  enableRoaming @16:Bool;
+  driverPersonality @17:Text;
+  useMetricSystem @18:Bool;
+  enableSSH @19:Bool;
+  experimentalModel @20:Bool;
+  stopDistanceOffset @21:Float32;
+  pathSkewOffset @22:Float32;
+  devicePowerOffTime @23:Int32;
+  wifiConnect @24:Text;
+  changeBranchName @25:Text;
+  changeBranchStatus @26:Text;
+  featurePackage @27:Text;
+  fixFingerprint @28:Text;
+
+  # Send if requested
+  dongleID @29:Text;
+  serial @30:Text;
+  ipAddress @31:Text;
+  hostname @32:Text;
+  currentVersion @33:Text;
+  currentBranch @34:Text;
+  currentChangelog @35:Text;
+
+  requestDeviceInfo @36:Bool;
+  settingsOpen @37:Bool;
+}
+
 struct Map(Key, Value) {
   entries @0 :List(Entry);
   struct Entry {
@@ -58,6 +105,7 @@ struct InitData {
     pc @5;
     tizi @6;
     mici @7;
+    ka2 @8;
   }
 
   struct PandaInfo {
@@ -521,6 +569,7 @@ struct PandaState @0xa7649e2575e4591e {
     redPandaV2 @8;
     tres @9;
     cuatro @10;
+    kedua @11;
   }
 
   enum HarnessStatus {
@@ -2302,6 +2351,9 @@ struct Event {
     navRoute @83 :NavRoute;
     navThumbnail @84: Thumbnail;
     mapRenderState @105: MapRenderState;
+
+    # settings
+    settings @127 :Settings;
 
     # UI services
     userFlag @93 :UserFlag;

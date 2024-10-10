@@ -8,9 +8,11 @@ while True:
   p.set_safety_mode(Panda.SAFETY_TOYOTA)
   p.send_heartbeat()
   print("ON")
-  time.sleep(1)
+  for i in range(50):
+    p.send_heartbeat()
+    time.sleep(0.1)
   p.set_safety_mode(Panda.SAFETY_NOOUTPUT)
   p.send_heartbeat()
   print("OFF")
-  time.sleep(1)
+  time.sleep(5)
 

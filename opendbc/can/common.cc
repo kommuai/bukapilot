@@ -189,6 +189,19 @@ unsigned int volkswagen_mqb_checksum(uint32_t address, const Signal &sig, const 
   return crc ^ 0xFF; // Return after standard final XOR for CRC8 8H2F/AUTOSAR
 }
 
+unsigned int proton_checksum(uint32_t address, const Signal &sig, const std::vector<uint8_t> &d) {
+  uint8_t crc = 0xFF; // Standard init value for CRC8 8H2F/AUTOSAR
+
+  // CRC the payload first, skipping over the last byte where the CRC lives.
+  for (int i = 0; i < d.size() - 1; i++) {
+    crc ^= d[i];
+    crc = crc8_lut_8h2f[crc];
+  }
+
+  return crc ^ 0xFF; // Return after standard final XOR for CRC8 8H2F/AUTOSAR
+}
+
+
 unsigned int xor_checksum(uint32_t address, const Signal &sig, const std::vector<uint8_t> &d) {
   uint8_t checksum = 0;
   int checksum_byte = sig.start_bit / 8;
@@ -243,4 +256,28 @@ unsigned int hkg_can_fd_checksum(uint32_t address, const Signal &sig, const std:
   }
 
   return crc;
+}
+
+unsigned int byd_checksum(uint32_t address, const Signal &sig, const std::vector<uint8_t> &d) {
+    const uint8_t byte_key = 0xAF;
+
+    int sum_first = 0;   // Sum for upper 4-bit nibbles.
+    int sum_second = 0;  // Sum for lower 4-bit nibbles.
+
+    // skip checksum at the last byte
+    for (size_t i = 0; i < d.size() - 1; i++) {
+        sum_first  += d[i] >> 4;   // Extract upper nibble.
+        sum_second += d[i] & 0xF;    // Extract lower nibble.
+    }
+
+    uint8_t remainder = static_cast<uint8_t>(sum_second >> 4);
+    sum_first  += (byte_key & 0xF);   // Low nibble of byte_key.
+    sum_second += (byte_key >> 4);     // High nibble of byte_key.
+
+    // Inline inverse computation for each sum: inv = (-sum + 0x9) & 0xF.
+    uint8_t inv_first  = static_cast<uint8_t>((-sum_first + 0x9) & 0xF);
+    uint8_t inv_second = static_cast<uint8_t>((-sum_second + 0x9) & 0xF);
+
+    unsigned int checksum = (((inv_first + (5 - remainder)) << 4) + inv_second) & 0xFF;
+    return checksum;
 }

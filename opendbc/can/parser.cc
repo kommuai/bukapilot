@@ -50,6 +50,7 @@ bool MessageState::parse(uint64_t nanos, const std::vector<uint8_t> &dat) {
 
     if (!ignore_checksum) {
       if (sig.calc_checksum != nullptr && sig.calc_checksum(address, sig, dat) != tmp) {
+        LOGE("0x%X message checks failed, %u, %ld, %s", address, sig.calc_checksum(address, sig, dat),tmp, sig.name.c_str());
         checksum_failed = true;
       }
     }
