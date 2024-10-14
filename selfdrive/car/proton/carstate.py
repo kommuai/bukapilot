@@ -94,6 +94,7 @@ class CarState(CarStateBase):
     ret.steerError = False
     self.hand_on_wheel_warning = bool(cp.vl["ADAS_LKAS"]["HAND_ON_WHEEL_WARNING"])
     self.is_icc_on = bool(cp.vl["PCM_BUTTONS"]["ICC_ON"])
+    self.steeringTorqueCounter = cp.vl["STEERING_TORQUE"]["COUNTER"]
 
     ret.vEgoCluster = ret.vEgo * HUD_MULTIPLIER
 
@@ -194,7 +195,8 @@ class CarState(CarStateBase):
       ("LANE_DEPARTURE_WARNING_RIGHT", "LKAS", 1),
       ("LANE_DEPARTURE_WARNING_LEFT", "LKAS", 1),
       ("STOCK_FCW_TRIGGERED", "FCW", 1),
-      ("LKS_ENABLE", "ADAS_LKAS", 1)
+      ("LKS_ENABLE", "ADAS_LKAS", 1),
+      ("COUNTER", "STEERING_TORQUE", 0),
     ]
     checks = []
 

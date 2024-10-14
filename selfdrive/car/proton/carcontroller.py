@@ -1,6 +1,6 @@
 from cereal import car
 from selfdrive.car import make_can_msg
-from selfdrive.car.proton.protoncan import create_can_steer_command, create_hud, create_lead_detect, send_buttons, create_acc_cmd
+from selfdrive.car.proton.protoncan import create_can_steer_command, create_hud, create_lead_detect, send_buttons, create_acc_cmd, spoof_touch
 from selfdrive.car.proton.values import CAR, DBC
 from selfdrive.controls.lib.desire_helper import LANE_CHANGE_SPEED_MIN
 from opendbc.can.packer import CANPacker
@@ -10,6 +10,9 @@ from common.params import Params
 import cereal.messaging as messaging
 
 from common.features import Features
+
+ICC_SPOOF_INTERVAL = 100
+ICC_SPOOF_LEN = 2000
 
 RES_INTERVAL = 500
 RES_LEN = 2 # Press resume for 2 frames
@@ -56,6 +59,8 @@ class CarController():
     self.temp_lead_dist = 0       # The last lead distance before standstill
     self.last_res_press_frame = 0 # The frame where the last resume press was finished
     self.resume_counter = 0       # Counter for tracking the progress of a resume press
+    self.icc_spoof_counter = 0
+    self.last_icc_spoof_frame = 0
 
     f = Features()
     self.mads = f.has("StockAcc")
@@ -85,6 +90,23 @@ class CarController():
 
     ts = frame * DT_CTRL
     self.is_alc_enabled = Params().get_bool("IsAlcEnabled")
+
+    # ICC touch spoof
+    if lat_active and CS.is_icc_on and not CS.out.standstill: # Moving
+      if self.icc_spoof_counter == 0:
+        self.icc_spoof_counter = 1
+
+      if frame > (self.last_icc_spoof_frame + ICC_SPOOF_INTERVAL) \
+          and self.icc_spoof_counter > 0 and self.icc_spoof_counter <= ICC_SPOOF_LEN:
+            print("Spoofing:", self.icc_spoof_counter)
+            self.icc_spoof_counter += 1
+            if frame % 2 == 0:
+              can_sends.append(spoof_touch(self.packer, (CS.steeringTorqueCounter + 1) % 16))
+
+    if (self.icc_spoof_counter > ICC_SPOOF_LEN) or (CS.is_icc_on and CS.out.standstill):
+        self.icc_spoof_counter = 0 # Reset spoof counter
+        if not CS.out.standstill:
+          self.last_icc_spoof_frame = frame
 
     # CAN controlled lateral running at 50hz
     if (frame % 2) == 0:

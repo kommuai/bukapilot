@@ -158,4 +158,13 @@ def send_buttons(packer, count, send_cruise):
 
   return packer.make_can_msg("ACC_BUTTONS", 0, values)
 
+def spoof_touch(packer, count):
+  """Spoof touch for ICC."""
+  values = {
+    "MAIN_TORQUE": 70,
+    "COUNTER": count,
+  }
+  dat = packer.make_can_msg("STEERING_TORQUE", 0, values)[2]
+  return packer.make_can_msg("STEERING_TORQUE", 0, values)
+
 init_lut_crc8_8h2f()
