@@ -47,7 +47,7 @@ class CarController():
       # logic to activate and deactivate lane keep, cannot tie to the lka_on state because it will occasionally deactivate itself
       if CS.lka_on:
         self.lka_active = True
-      if not CS.lka_on and CS.lkas_rdy_btn:
+      if (not CS.lka_on and CS.lkas_rdy_btn) or not CS.out.cruiseState.enabled:
         self.lka_active = False
 
       if CS.out.steeringTorqueEps > 15:
