@@ -405,7 +405,7 @@ QString C2NetworkPanel::getIPAddress() {
 
 QString C2NetworkPanel::getNetworkType() {
   const QMap<cereal::DeviceState::NetworkType, QString> network_type = {
-    {cereal::DeviceState::NetworkType::NONE, ""},
+    {cereal::DeviceState::NetworkType::NONE, "None"},
     {cereal::DeviceState::NetworkType::WIFI, "Wi-Fi"},
     {cereal::DeviceState::NetworkType::ETHERNET, "ETH"},
     {cereal::DeviceState::NetworkType::CELL2_G, "2G"},

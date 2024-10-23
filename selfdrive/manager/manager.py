@@ -137,7 +137,8 @@ def manager_init() -> None:
       "version": 4,
       }
   cur_dict = params.get("FeaturesDict")
-  if cur_dict is None or (json.loads(cur_dict)["version"] < new_dict["version"]):
+  if cur_dict is None or (json.loads(cur_dict)["version"] < new_dict["version"]) \
+      or params.get("FeaturesPackageNames") is None:
     params.put("FeaturesDict", json.dumps(new_dict))
     Features().set_package("default")
 

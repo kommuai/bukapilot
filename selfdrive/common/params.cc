@@ -191,6 +191,7 @@ std::unordered_map<std::string, uint32_t> keys = {
     {"UseStockAcc", PERSISTENT},
     {"QuietMode", PERSISTENT},
     {"QC_Test", CLEAR_ON_MANAGER_START},
+    {"FeaturesPackageNames", PERSISTENT},
 };
 
 } // namespace

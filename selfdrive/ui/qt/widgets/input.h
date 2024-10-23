@@ -32,6 +32,7 @@ public:
   void setMessage(const QString &message, bool clearInputField = true);
   void setMinLength(int length);
   void show();
+  void updateDefaultText(const QString &newDefaultText);
 
 private:
   int minLength;
@@ -68,3 +69,5 @@ public:
   explicit RichTextDialog(const QString &prompt_text, const QString &btn_text, QWidget* parent);
   static bool alert(const QString &prompt_text, QWidget *parent);
 };
+
+void setElidedText(QLabel *label, const QString &text);

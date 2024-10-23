@@ -85,17 +85,26 @@ class FeaturesControl : public ButtonControl {
   Q_OBJECT
 
 public:
-  FeaturesControl() : ButtonControl("Features Package", "SET", "Warning: Only use under guidance of a support staff.") {
+  FeaturesControl() : ButtonControl("Features Package", "EDIT", "Warning: Only use under guidance of a support staff.") {
     package_label = new QLabel();
     package_label->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
     package_label->setStyleSheet("color: #aaaaaa");
-    package_label->setText(Params().get("FeaturesPackage").c_str());
+    setElidedText(package_label, Params().get("FeaturesPackageNames").c_str());
     hlayout->insertWidget(1, package_label);
     connect(this, &ButtonControl::clicked, [=] {
-      QString package = InputDialog::getText("Enter Feature Package Name", this);
-      if (package.length() > 0) {
-        Features().set_package(package.toStdString());
-        package_label->setText(Params().get("FeaturesPackage").c_str());
+      InputDialog dialog("Enter Feature Package Names", this,
+        "Feature package names are separated by commas ( \u2009<b>,</b>\u2009 ).<br>Empty to use the default feature package.");
+      dialog.setMinLength(0);
+      QString currentFeatures = Params().get("FeaturesPackageNames").c_str();
+      if (currentFeatures != "default") dialog.updateDefaultText(currentFeatures + ", ");
+      int ret = dialog.exec();
+      if (ret == QDialog::Accepted) {
+        QString packages = dialog.text();
+        int result = Features().set_package(packages.toStdString());
+        setElidedText(package_label, Params().get("FeaturesPackageNames").c_str());
+        if (result == -1) {
+          ConfirmationDialog::alert("\nSome feature package names\nare invalid and were not added.", this);
+        }
       }
     });
   }
@@ -112,7 +121,7 @@ public:
     selection_label = new QLabel();
     selection_label->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
     selection_label->setStyleSheet("color: #aaaaaa");
-    selection_label->setText(Params().get("FixFingerprint").c_str());
+    setElidedText(selection_label, Params().get("FixFingerprint").c_str());
     hlayout->insertWidget(1, selection_label);
     connect(this, &ButtonControl::clicked, [=] {
       QString package = InputDialog::getText("Enter Car Model", this);
@@ -122,7 +131,7 @@ public:
       else {
         Params().put("FixFingerprint", "");
       }
-      selection_label->setText(Params().get("FixFingerprint").c_str());
+      setElidedText(selection_label, Params().get("FixFingerprint").c_str());
     });
   }
 
@@ -149,7 +158,7 @@ public:
     // Display current branch name
     std::string currentBranchName = util::check_output("git symbolic-ref --short HEAD");
     currentBranchName.pop_back(); // Remove the last character (line feed)
-    selection_label->setText(QString::fromStdString(currentBranchName));
+    setElidedText(selection_label, QString::fromStdString(currentBranchName));
     system(setUpstream(currentBranchName).c_str());
     hlayout->insertWidget(1, selection_label);
     connect(this, &ButtonControl::clicked, [=] {
@@ -169,7 +178,7 @@ public:
           int branchChanged = system(changeBranchConfigReboot.c_str());
 		      if (branchChanged != 0) { // If branch not found (error/fatal)
 			      QString failedPrompt = QString::fromStdString("Branch " + branchName + " not found.\n\nPlease make sure the branch name is correct and the device is connected to the Internet.");
-		        (ConfirmationDialog::alert(failedPrompt, this));
+		        ConfirmationDialog::alert(failedPrompt, this);
           }
         }
       }

@@ -179,6 +179,10 @@ void InputDialog::setMinLength(int length) {
   minLength = length;
 }
 
+void InputDialog::updateDefaultText(const QString &newDefaultText) {
+  if (line) line->setText(newDefaultText);
+}
+
 // ConfirmationDialog
 
 ConfirmationDialog::ConfirmationDialog(const QString &prompt_text, const QString &confirm_text, const QString &cancel_text,
@@ -256,4 +260,9 @@ RichTextDialog::RichTextDialog(const QString &prompt_text, const QString &btn_te
 bool RichTextDialog::alert(const QString &prompt_text, QWidget *parent) {
   auto d = RichTextDialog(prompt_text, "OK", parent);
   return d.exec();
+}
+
+void setElidedText(QLabel *label, const QString &text) {
+  label->setFixedWidth(550);
+  label->setText(QFontMetrics(label->font()).elidedText(text, Qt::ElideRight, label->width()));
 }
