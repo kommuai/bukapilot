@@ -80,8 +80,13 @@ class ModelState:
     if self.runner_type == 'RKNN':
       input_data[:] = input_data[:] / 255.
 
+    step1 = self.inputs['input_img'].reshape(1, 960, 720, 2)
+    step2 = np.transpose(step1, (0, 2, 1, 3))
+    step3 = step2.reshape(1, 720, 480, 4)
+    original_final = np.transpose(step3, (0, 3, 2, 1)).flatten()
+    self.model.setInputBuffer("input_img", original_final)
+
     t1 = time.perf_counter()
-    self.model.setInputBuffer("input_img", self.inputs['input_img'].view(np.float32))
     self.model.execute()
     t2 = time.perf_counter()
     return self.output, t2 - t1

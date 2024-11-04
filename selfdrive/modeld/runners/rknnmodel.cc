@@ -25,11 +25,11 @@ RKNNModel::RKNNModel(const std::string path, float *_output, size_t _output_size
   assert(model_len > 0);
 
   // load model
-  RKNN_CHECK(rknn_init(&ctx, (void *) modelptr, model_len, 0, NULL));
+  RKNN_CHECK(rknn_init(&ctx, (void *) modelptr, model_len, RKNN_FLAG_EXECUTE_FALLBACK_PRIOR_DEVICE_GPU, NULL));
 
   // TODO: NPU core, supercombo CORE0, dmonitoring CORE1, nav CORE2, does it get speed up?
   if (runtime == 1) {
-    rknn_set_core_mask(ctx, RKNN_NPU_CORE_0_1);
+    rknn_set_core_mask(ctx, RKNN_NPU_CORE_0);
   }
   else {
     rknn_set_core_mask(ctx, RKNN_NPU_CORE_2);
@@ -86,12 +86,6 @@ void RKNNModel::addInput(const std::string name, float *buffer, int size) {
 
 void RKNNModel::execute() {
   for (uint32_t i = 0; i < io_num.n_input; i++) {
-    //float* data_fp16[inputs[i]->size / 2];
-    //half data_fp16[inputs[i]->size];
-    //rknn_app_dtype_convert((unsigned char *) inputs[i]->buffer, RKNN_TENSOR_FLOAT32, (unsigned char *) data_fp16, RKNN_TENSOR_FLOAT16, inputs[i]->size, 0.0, 0, false);
-    //float_to_half_array(inputs[i]->buffer, data_fp16, inputs[i]->size);
-    //rknn_inputs[i].buf = data_fp16;
-
     rknn_inputs[i].buf = (unsigned char *) inputs[i]->buffer;
   }
 
