@@ -294,6 +294,8 @@ struct SensorEventData {
     rpr0521 @9;
     lsm6ds3trc @10;
     mmc5603nj @11;
+    icm42670 @12;
+    lis2mdl @13;
   }
 }
 
@@ -395,6 +397,7 @@ struct DeviceState @0xa4d8b5af2aa492eb {
   memoryUsagePercent @19 :Int8;
   gpuUsagePercent @33 :Int8;
   cpuUsagePercent @34 :List(Int8);  # per-core cpu usage
+  npuUsagePercent @45 :List(Int8);  # per-core npu usage
 
   # power
   offroadPowerUsageUwh @23 :UInt32;

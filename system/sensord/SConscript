@@ -1,3 +1,4 @@
+import os
 Import('env', 'arch', 'common', 'cereal', 'messaging')
 
 sensors = [
@@ -11,7 +12,22 @@ sensors = [
   'sensors/lsm6ds3_temp.cc',
   'sensors/mmc5603nj_magn.cc',
 ]
+
+sensors_ka2 = [
+  'sensors/i2c_sensor.cc',
+  'sensors/icm42670_accel.cc',
+  'sensors/icm42670_gyro.cc',
+  'sensors/icm42670_temp.cc',
+  'sensors/lis2mdl_magn.cc',
+  'sensors/lis2mdl_temp.cc',
+]
+
 libs = [common, cereal, messaging, 'capnp', 'zmq', 'kj', 'pthread']
-if arch == "larch64":
+if arch == "larch64" or os.path.isfile('/KA2'):
   libs.append('i2c')
-env.Program('sensord', ['sensors_qcom2.cc'] + sensors, LIBS=libs)
+#env.Program('sensord', ['sensors_qcom2.cc'] + sensors, LIBS=libs)
+
+
+env.Program('sensord', ['sensors_ka2.cc'] + sensors_ka2, LIBS=libs)
+#env.Append(CPPPATH=['sensors'])
+#env.Program('sensord_rk', ['sensor_icm.c', 'sensors/icm42670.c'], LIBS=libs)

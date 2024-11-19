@@ -13,7 +13,7 @@
 
 #define UNUSED(x) (void)(x)
 
-#ifdef QCOM2
+#if defined(QCOM2) || defined(RK3588)
 // TODO: decide if we want to install libi2c-dev everywhere
 extern "C" {
   #include <linux/i2c-dev.h>
@@ -23,7 +23,7 @@ extern "C" {
 I2CBus::I2CBus(uint8_t bus_id) {
   char bus_name[20];
   snprintf(bus_name, 20, "/dev/i2c-%d", bus_id);
-
+  
   i2c_fd = HANDLE_EINTR(open(bus_name, O_RDWR));
   if (i2c_fd < 0) {
     throw std::runtime_error("Failed to open I2C bus");
