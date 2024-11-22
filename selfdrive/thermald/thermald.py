@@ -17,7 +17,7 @@ from openpilot.common.filter_simple import FirstOrderFilter
 from openpilot.common.params import Params
 from openpilot.common.realtime import DT_TRML
 from openpilot.selfdrive.controls.lib.alertmanager import set_offroad_alert
-from openpilot.system.hardware import HARDWARE, TICI, AGNOS
+from openpilot.system.hardware import HARDWARE, TICI, AGNOS, KA2
 from openpilot.system.loggerd.config import get_available_percent
 from openpilot.selfdrive.statsd import statlog
 from openpilot.common.swaglog import cloudlog
@@ -114,7 +114,7 @@ def hw_state_thread(end_event, hw_queue):
           modem_temps = prev_hw_state.modem_temps
 
         # Log modem version once
-        if AGNOS and ((modem_version is None) or (modem_nv is None)):
+        if (AGNOS and KA2) and ((modem_version is None) or (modem_nv is None)):
           modem_version = HARDWARE.get_modem_version()
           modem_nv = HARDWARE.get_modem_nv()
 
@@ -244,6 +244,7 @@ def thermald_thread(end_event, hw_queue) -> None:
     msg.deviceState.freeSpacePercent = get_available_percent(default=100.0)
     msg.deviceState.memoryUsagePercent = int(round(psutil.virtual_memory().percent))
     msg.deviceState.gpuUsagePercent = int(round(HARDWARE.get_gpu_usage_percent()))
+    msg.deviceState.npuUsagePercent = HARDWARE.get_npu_usage_percent()
     online_cpu_usage = [int(round(n)) for n in psutil.cpu_percent(percpu=True)]
     offline_cpu_usage = [0., ] * (len(msg.deviceState.cpuTempC) - len(online_cpu_usage))
     msg.deviceState.cpuUsagePercent = online_cpu_usage + offline_cpu_usage

@@ -8,6 +8,9 @@
 #if QCOM2
 #include "system/hardware/tici/hardware.h"
 #define Hardware HardwareTici
+#elif RK3588
+#include "system/hardware/ka2/hardware.h"
+#define Hardware HardwareKa2
 #else
 #include "system/hardware/pc/hardware.h"
 #define Hardware HardwarePC

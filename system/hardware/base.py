@@ -108,6 +108,10 @@ class HardwareBase(ABC):
   def get_gpu_usage_percent(self):
     pass
 
+  @abstractmethod
+  def get_npu_usage_percent(self):
+    pass
+
   def get_modem_version(self):
     return None
 

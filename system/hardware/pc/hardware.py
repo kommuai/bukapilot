@@ -71,6 +71,9 @@ class Pc(HardwareBase):
   def get_gpu_usage_percent(self):
     return 0
 
+  def get_npu_usage_percent(self):
+    return []
+
   def get_modem_temperatures(self):
     return []
 
