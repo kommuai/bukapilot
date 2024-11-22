@@ -2,7 +2,7 @@
 
 #include "system/loggerd/loggerd.h"
 
-#ifdef QCOM2
+#if defined(QCOM2) || defined(RK3588)
 #include "system/loggerd/encoder/v4l_encoder.h"
 #define Encoder V4LEncoder
 #else

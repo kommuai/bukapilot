@@ -1,4 +1,4 @@
-Import('env', 'envCython', 'arch', 'common')
+Import('env', 'envCython', 'arch', 'device', 'common')
 
 import shutil
 
@@ -50,7 +50,7 @@ vipc_sources = [
   'visionipc/visionbuf.cc',
 ]
 
-if arch == "larch64":
+if arch == "larch64" and device == 'TICI':
   vipc_sources += ['visionipc/visionbuf_ion.cc']
 else:
   vipc_sources += ['visionipc/visionbuf_cl.cc']

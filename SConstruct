@@ -13,7 +13,11 @@ SCons.Warnings.warningAsException(True)
 #SetOption('warn', 'all')
 
 TICI = os.path.isfile('/TICI')
+KA2 = os.path.isfile('/KA2')
 AGNOS = TICI
+
+device = 'TICI' if TICI else 'KA2'
+assert device in ['TICI','KA2']
 
 Decider('MD5-timestamp')
 
@@ -50,7 +54,6 @@ AddOption('--ccflags',
           help='pass arbitrary flags over the command line')
 
 AddOption('--snpe',
-          action='store_true',
           help='use SNPE on PC')
 
 AddOption('--external-sconscript',
@@ -71,16 +74,17 @@ AddOption('--minimal',
           help='the minimum build to run openpilot. no tests, tools, etc.')
 
 ## Architecture name breakdown (arch)
-## - larch64: linux tici aarch64
-## - aarch64: linux pc aarch64
+## - larch64: linux tici aarch64 or ka2 aarch64
+## - aarch64: linux pc
 ## - x86_64:  linux pc x64
 ## - Darwin:  mac x64 or arm64
 real_arch = arch = subprocess.check_output(["uname", "-m"], encoding='utf8').rstrip()
 if platform.system() == "Darwin":
   arch = "Darwin"
   brew_prefix = subprocess.check_output(['brew', '--prefix'], encoding='utf8').strip()
-elif arch == "aarch64" and AGNOS:
+elif arch == "aarch64" and (AGNOS or KA2):
   arch = "larch64"
+
 assert arch in ["larch64", "aarch64", "x86_64", "Darwin"]
 
 lenv = {
@@ -108,12 +112,19 @@ if arch == "larch64":
   ]
 
   libpath += [
-    "#third_party/snpe/larch64",
     "#third_party/libyuv/larch64/lib",
     "/usr/lib/aarch64-linux-gnu"
   ]
-  cflags = ["-DQCOM2", "-mcpu=cortex-a57"]
-  cxxflags = ["-DQCOM2", "-mcpu=cortex-a57"]
+
+  if KA2:
+    cflags = ["-DRK3588"]
+    cxxflags = ["-DRK3588"]
+    libpath.append(f"#third_party/rknpu/{arch}")
+  else:
+    cflags = ["-DQCOM2", "-mcpu=cortex-a57"]
+    cxxflags = ["-DQCOM2", "-mcpu=cortex-a57"]
+    libpath.append("#third_party/snpe/larch64")
+
   rpath += ["/usr/local/lib"]
 else:
   cflags = []
@@ -143,7 +154,6 @@ else:
     libpath = [
       f"#third_party/acados/{arch}/lib",
       f"#third_party/libyuv/{arch}/lib",
-      f"#third_party/rknpu/{arch}",
       "/usr/lib",
       "/usr/local/lib",
     ]
@@ -306,7 +316,9 @@ else:
 
   qt_libs = [f"Qt5{m}" for m in qt_modules]
   if arch == "larch64":
-    qt_libs += ["GLESv2", "wayland-client"]
+    qt_libs += ["GLESv2"]
+    if device == "TICI":
+      qt_libs += ["wayland-client"]
     qt_env.PrependENVPath('PATH', Dir("#third_party/qt5/larch64/bin/").abspath)
   elif arch != "Darwin":
     qt_libs += ["GL"]
@@ -346,7 +358,7 @@ if GetOption("clazy"):
   qt_env['ENV']['CLAZY_IGNORE_DIRS'] = qt_dirs[0]
   qt_env['ENV']['CLAZY_CHECKS'] = ','.join(checks)
 
-Export('env', 'qt_env', 'arch', 'real_arch')
+Export('env', 'qt_env', 'arch', 'device', 'real_arch')
 
 # Build common module
 SConscript(['common/SConscript'])

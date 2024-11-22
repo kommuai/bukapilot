@@ -1,9 +1,9 @@
-Import('qt_env', 'arch', 'common', 'messaging', 'visionipc', 'cereal', 'transformations')
+Import('qt_env', 'arch', 'device', 'common', 'messaging', 'visionipc', 'cereal', 'transformations')
 
 map_env = qt_env.Clone()
 libs = ['qt_widgets', 'qt_util', 'QMapLibre', common, messaging, cereal, visionipc, transformations,
         'zmq', 'capnp', 'kj', 'm', 'OpenCL', 'ssl', 'crypto', 'pthread', 'json11'] + map_env["LIBS"]
-if arch == 'larch64':
+if arch == 'larch64' and device == 'TICI':
   libs.append(':libEGL_mesa.so.0')
 
 if arch in ['larch64', 'aarch64', 'x86_64']:
