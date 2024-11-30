@@ -90,7 +90,7 @@ class Controls:
     diff = min(blinker_diff, resume_diff, lka_diff) # The last performed action
 
     if diff == blinker_diff:
-      if self.is_alc_enabled:
+      if self.is_alc_active():
         diff = resume_diff # Only reduce steering for resume
     if diff == resume_diff or diff == lka_diff:
       cooldown = 0 # Resume has no cooldown
@@ -147,7 +147,6 @@ class Controls:
     # read params
     self.is_metric = params.get_bool("IsMetric")
     self.is_ldw_enabled = params.get_bool("IsLdwEnabled")
-    self.is_alc_enabled = params.get_bool("IsAlcEnabled")
     openpilot_enabled_toggle = params.get_bool("OpenpilotEnabledToggle")
     passive = params.get_bool("Passive") or not openpilot_enabled_toggle
 
@@ -232,6 +231,9 @@ class Controls:
     # Resume status for checking the last steering resume frame
     self.steer_resumed = False
     self.lka_switched_on = True
+
+  def is_alc_active(self):
+    return self.sm['lateralPlan'].laneChangeState != LaneChangeState.off
 
   def update_events(self, CS):
     """Compute carEvents from carState"""
@@ -607,7 +609,7 @@ class Controls:
 
         # Condition to show steering limit warning
         # Within 2 seconds of manual lane change, do not show this warning.
-        manual_LC_2s = not self.is_alc_enabled and self.recent_blinker_2s()
+        manual_LC_2s = not self.is_alc_active() and self.recent_blinker_2s()
         if (left_deviation or right_deviation) and not manual_LC_2s \
             and not CS.lkaDisabled and not self.recent_steer_resume_2s() \
             and not self.recent_lka_on_2s():
@@ -663,7 +665,7 @@ class Controls:
     hudControl.leftLaneVisible = True
 
     # 0.1s blinker cooldown after lane change, (for ALC disabled) lane keep will be activated again after cooldown
-    if self.recent_blinker(LANE_CHANGE_COOLDOWN) and not self.is_alc_enabled or CS.lkaDisabled:
+    if (self.recent_blinker(LANE_CHANGE_COOLDOWN) and not self.is_alc_active()) or CS.lkaDisabled:
       CC.laneActive = False
 
     ldw_allowed = self.is_ldw_enabled and CS.vEgo > LDW_MIN_SPEED \
