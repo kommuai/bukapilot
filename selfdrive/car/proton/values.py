@@ -12,6 +12,7 @@ HUD_MULTIPLIER = 1.035
 class CAR:
   S70 = "PROTON S70"
   X50 = "PROTON X50"
+  X70 = "PROTON X70"
   X90 = "PROTON X90"
 
 FINGERPRINTS = {
@@ -23,6 +24,7 @@ FINGERPRINTS = {
 DBC = {
   CAR.S70: dbc_dict('proton_general_pt', None),
   CAR.X50: dbc_dict('proton_general_pt', None),
+  CAR.X70: dbc_dict('proton_general_pt', None),
   CAR.X90: dbc_dict('proton_general_pt', None),
 }
 

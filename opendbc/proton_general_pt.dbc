@@ -202,12 +202,14 @@ BO_ 432 ADAS_LKAS: 8 XXX
  SG_ LKS_LDW : 0|8@1+ (1,0) [0|255] "" XXX
  SG_ SET_ME_1_2 : 9|1@0+ (1,0) [0|1] "" XXX
  SG_ LKS_STATUS : 24|1@0+ (1,0) [0|1] "" XXX
- SG_ STEER_CMD : 47|11@0+ (1,0) [0|15] "" XXX
- SG_ STEER_DIR : 52|1@0+ (1,0) [0|1] "" XXX
  SG_ STOCK_LKS_AUX : 19|1@0+ (1,0) [0|1] "" XXX
  SG_ LKS_WARNING_AUDIO : 22|1@0+ (1,0) [0|1] "" XXX
  SG_ LKS_WARNING_TACTILE : 23|1@0+ (1,0) [0|1] "" XXX
  SG_ LKS_ENABLE_MAIN : 20|1@0+ (1,0) [0|1] "" XXX
+ SG_ STEER_CMD : 40|7@1+ (1,0) [0|74] "" XXX
+ SG_ STEER_DIR : 52|1@0+ (1,0) [0|1] "" XXX
+ SG_ LKAS_DIR_2 : 55|1@0+ (1,0) [0|1] "" XXX
+ SG_ LKAS_DIR_1 : 54|1@0+ (1,0) [0|1] "" XXX
 
 BO_ 422 ADAS_LEAD_DETECT: 8 XXX
  SG_ LEAD_DISTANCE : 7|8@0+ (1,0) [0|255] "" XXX
