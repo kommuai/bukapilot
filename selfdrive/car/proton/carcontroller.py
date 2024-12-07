@@ -75,15 +75,14 @@ class CarController():
     # steer
     new_steer = int(round(actuators.steer * self.params.STEER_MAX))
 
-    # stock Lane Departure Prevention (blue line)
-    # Code was fixed, commented because it could be dangerous without working with stock LKA at the same time.
-    '''
-    if not lat_active and (CS.lks_aux and CS.lks_tactile) and \
-        (CS.stock_ldp_left or CS.stock_ldp_right) and CS.stock_ldp_cmd != 0:
-      steer_dir = 1 if CS.stock_ldp_right else -1
-      new_steer = CS.stock_ldp_cmd * steer_dir * 0.5 # Reduced value because stock command was strong
+    # stock Lane Departure Prevention (blue line, LKS Auxiliary mode)
+    if not enabled and not lat_active and not (CS.stock_ldp_left and CS.stock_ldp_right) \
+        and ((CS.stock_ldp_left and not CS.out.leftBlinker) or (CS.stock_ldp_right and not CS.out.rightBlinker)) \
+        and CS.stock_ldp_cmd > 0:
+      steer_dir = -1 if CS.steer_dir else 1
+      # Limit the value to the maximum value of the stock command and apply direction
+      new_steer = min(CS.stock_ldp_cmd, 74) * steer_dir
       lat_active = True
-    '''
 
     apply_steer = apply_proton_steer_torque_limits(new_steer, self.last_steer, 0, self.params)
     self.steer_rate_limited = (new_steer != apply_steer) and (apply_steer != 0)
@@ -95,7 +94,7 @@ class CarController():
     if (frame % 2) == 0:
       can_sends.append(create_can_steer_command(self.packer, apply_steer, lat_active, \
           CS.hand_on_wheel_warning and CS.is_icc_on, (frame/2) % 16, \
-          CS.lks_aux, CS.lks_audio, CS.lks_tactile, CS.lks_enable_main, CS.stock_ldw))
+          CS.lks_aux, CS.lks_audio, CS.lks_tactile, CS.lks_enable_main, CS.stock_ldw, enabled))
 
       #can_sends.append(create_hud(self.packer, apply_steer, enabled, ldw, rlane_visible, llane_visible))
       #can_sends.append(create_lead_detect(self.packer, lead_visible, enabled))
