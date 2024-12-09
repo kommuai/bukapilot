@@ -2,6 +2,7 @@ from cereal import log
 from common.realtime import DT_MDL
 from selfdrive.config import Conversions as CV
 from common.params import Params
+from enum import Enum, auto
 
 LaneChangeState = log.LateralPlan.LaneChangeState
 LaneChangeDirection = log.LateralPlan.LaneChangeDirection
@@ -30,6 +31,9 @@ DESIRES = {
   },
 }
 
+class Dir(Enum):
+  LEFT = auto()
+  RIGHT = auto()
 
 class DesireHelper:
   def __init__(self):
@@ -39,6 +43,7 @@ class DesireHelper:
     self.lane_change_ll_prob = 1.0
     self.keep_pulse_timer = 0.0
     self.prev_one_blinker = False
+    self.prev_blinker = None # Handle direction change
     self.desire = log.LateralPlan.Desire.none
     self.is_alc_enabled = Params().get_bool("IsAlcEnabled")
 
@@ -47,11 +52,32 @@ class DesireHelper:
     one_blinker = carstate.leftBlinker != carstate.rightBlinker
     below_lane_change_speed = v_ego < LANE_CHANGE_SPEED_MIN
 
+    blindspot_detected = ((carstate.leftBlindspot and self.lane_change_direction == LaneChangeDirection.left) or
+                          (carstate.rightBlindspot and self.lane_change_direction == LaneChangeDirection.right))
+
+    blinker_dir_changed = ((self.prev_blinker == Dir.LEFT and carstate.rightBlinker) or
+                           (self.prev_blinker == Dir.RIGHT and carstate.leftBlinker))
+
     # If ALC is disabled or LKA is disabled, do not start assisted lane change.
     if not active or self.lane_change_timer > LANE_CHANGE_TIME_MAX \
         or not self.is_alc_enabled or carstate.lkaDisabled:
       self.lane_change_state = LaneChangeState.off
       self.lane_change_direction = LaneChangeDirection.none
+
+    # If blinker off/blinker direction change or blindspot detected during Assisted Lane Change, finish the lane change.
+    elif self.lane_change_state == LaneChangeState.laneChangeStarting and \
+        ((not one_blinker) or blinker_dir_changed or blindspot_detected):
+      # fade out over .5s
+      self.lane_change_ll_prob = max(self.lane_change_ll_prob - 2 * DT_MDL, 0.0)
+
+      # If not 75% certainty, move back to the original lane.
+      if not (lane_change_prob < 0.25 and self.lane_change_ll_prob < 0.01):
+        if self.lane_change_direction == LaneChangeDirection.right:
+          self.lane_change_direction = LaneChangeDirection.left
+        else:
+          self.lane_change_direction = LaneChangeDirection.right
+      self.lane_change_state = LaneChangeState.laneChangeFinishing
+
     else:
       # LaneChangeState.off
       if self.lane_change_state == LaneChangeState.off and one_blinker and not self.prev_one_blinker and not below_lane_change_speed:
@@ -67,9 +93,6 @@ class DesireHelper:
         torque_applied = carstate.steeringPressed and \
                          ((carstate.steeringTorque > 0 and self.lane_change_direction == LaneChangeDirection.left) or
                           (carstate.steeringTorque < 0 and self.lane_change_direction == LaneChangeDirection.right))
-
-        blindspot_detected = ((carstate.leftBlindspot and self.lane_change_direction == LaneChangeDirection.left) or
-                              (carstate.rightBlindspot and self.lane_change_direction == LaneChangeDirection.right))
 
         if not one_blinker or below_lane_change_speed:
           self.lane_change_state = LaneChangeState.off
@@ -101,6 +124,11 @@ class DesireHelper:
       self.lane_change_timer = 0.0
     else:
       self.lane_change_timer += DT_MDL
+
+    if not one_blinker:
+      self.prev_blinker = None
+    else:
+      self.prev_blinker = Dir.LEFT if carstate.leftBlinker else Dir.RIGHT
 
     self.prev_one_blinker = one_blinker
 

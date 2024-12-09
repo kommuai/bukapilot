@@ -289,19 +289,22 @@ class Controls:
         self.events.add(EventName.calibrationInvalid)
 
     # Handle lane change
-    if self.sm['lateralPlan'].laneChangeState == LaneChangeState.preLaneChange:
+    lc_state = self.sm['lateralPlan'].laneChangeState
+
+    if lc_state in (LaneChangeState.preLaneChange, LaneChangeState.laneChangeStarting, LaneChangeState.laneChangeFinishing):
       direction = self.sm['lateralPlan'].laneChangeDirection
-      if (CS.leftBlindspot and direction == LaneChangeDirection.left) or \
-         (CS.rightBlindspot and direction == LaneChangeDirection.right):
+      # Show blindspot event only for preLaneChange and Starting
+      if lc_state in (LaneChangeState.preLaneChange, LaneChangeState.laneChangeStarting) \
+          and ((CS.leftBlindspot and direction == LaneChangeDirection.left) or \
+          (CS.rightBlindspot and direction == LaneChangeDirection.right)):
         self.events.add(EventName.laneChangeBlocked)
-      else:
+      elif lc_state == LaneChangeState.preLaneChange:
         if direction == LaneChangeDirection.left:
           self.events.add(EventName.preLaneChangeLeft)
         else:
           self.events.add(EventName.preLaneChangeRight)
-    elif self.sm['lateralPlan'].laneChangeState in (LaneChangeState.laneChangeStarting,
-                                                    LaneChangeState.laneChangeFinishing):
-      self.events.add(EventName.laneChange)
+      else:
+        self.events.add(EventName.laneChange)
 
     if not CS.canValid:
       self.events.add(EventName.canError)
