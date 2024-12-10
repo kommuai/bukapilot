@@ -127,7 +127,7 @@ class CarInterface(CarInterfaceBase):
     # events
     events = self.create_common_events(ret)
 
-    if self.CS.hand_on_wheel_warning and self.CS.is_icc_on:
+    if (self.CS.hand_on_wheel_warning or self.CS.hand_on_wheel_warning_2) and self.CS.is_icc_on:
       events.add(EventName.protonHandOnWheelWarning)
 
     ret.events = events.to_msg()

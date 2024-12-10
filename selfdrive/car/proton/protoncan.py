@@ -35,7 +35,7 @@ def compute_set_distance(state):
   else:
     return 0
 
-def create_can_steer_command(packer, steer, steer_req, wheel_touch_warning, raw_cnt,\
+def create_can_steer_command(packer, steer, steer_req, wheel_touch_warning, wheel_touch_warning_2, raw_cnt,\
     lks_aux, lks_audio, lks_tactile, lks_enable_main, stock_ldw, enabled):
   """Creates a CAN message for the Proton LKA Steer Command."""
   values = {
@@ -53,7 +53,7 @@ def create_can_steer_command(packer, steer, steer_req, wheel_touch_warning, raw_
     "LKS_WARNING_TACTILE": lks_tactile,
     "LKS_ENABLE_MAIN" : lks_enable_main,
     "HAND_ON_WHEEL_WARNING": wheel_touch_warning,
-    "WHEEL_WARNING_CHIME": 0,
+    "WHEEL_WARNING_CHIME": wheel_touch_warning_2,
   }
 
   dat = packer.make_can_msg("ADAS_LKAS", 0, values)[2]

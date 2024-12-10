@@ -20,6 +20,7 @@ class CarState(CarStateBase):
     self.is_cruise_latch = False
     self.acc_req = False
     self.hand_on_wheel_warning = False
+    self.hand_on_wheel_warning_2 = False
     self.is_icc_on = False
     self.prev_angle = 0
 
@@ -102,6 +103,7 @@ class CarState(CarStateBase):
     ret.steerWarning = False
     ret.steerError = False
     self.hand_on_wheel_warning = bool(cp.vl["ADAS_LKAS"]["HAND_ON_WHEEL_WARNING"])
+    self.hand_on_wheel_warning_2 = bool(cp.vl["ADAS_LKAS"]["WHEEL_WARNING_CHIME"])
     self.is_icc_on = bool(cp.vl["PCM_BUTTONS"]["ICC_ON"])
 
     ret.vEgoCluster = ret.vEgo * HUD_MULTIPLIER
@@ -196,6 +198,7 @@ class CarState(CarStateBase):
       ("CRUISE_ENABLE", "ACC_CMD", 1),
       ("ACC_REQ", "ACC_CMD", 1),
       ("HAND_ON_WHEEL_WARNING", "ADAS_LKAS", 1),
+      ("WHEEL_WARNING_CHIME", "ADAS_LKAS", 1),
       ("STOCK_LKS_AUX", "ADAS_LKAS", 0),
       ("LKS_WARNING_AUDIO", "ADAS_LKAS", 0),
       ("LKS_WARNING_TACTILE", "ADAS_LKAS", 0),
