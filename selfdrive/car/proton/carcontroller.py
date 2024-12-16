@@ -106,7 +106,7 @@ class CarController():
 
     # For resume
     if CS.out.standstill and enabled and self.resume_counter == 0 and \
-        frame > (self.last_res_press_frame + RES_INTERVAL) and CS.leadDistance > self.temp_lead_dist:
+        frame > (self.last_res_press_frame + RES_INTERVAL) and min(CS.leadDistance, 8) > self.temp_lead_dist:
       # Only start a new resume if the last one was finished, with an interval
       self.resume_counter = 1 # Start a new resume press
     elif not enabled or (enabled and not CS.out.standstill):
