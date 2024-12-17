@@ -8,8 +8,15 @@ from selfdrive.config import Conversions as CV
 from selfdrive.car.interfaces import CarStateBase
 from selfdrive.car.proton.values import DBC, CAR, HUD_MULTIPLIER
 from time import time
+from enum import Enum, auto
 
 from common.features import Features
+
+BLINKER_MIN = 3.5 # Minimum turn signal length in seconds
+
+class Dir(Enum):
+  LEFT = auto()
+  RIGHT = auto()
 
 class CarState(CarStateBase):
   def __init__(self, CP):
@@ -36,6 +43,11 @@ class CarState(CarStateBase):
     self.stock_ldp_right = 0
     self.stock_ldp_cmd = 0
     self.steer_dir = 0
+
+    self.rightBlinker = False
+    self.leftBlinker = False
+    self.cur_blinker = None
+    self.blinker_start_time = 0
 
   def update(self, cp):
     ret = car.CarState.new_message()
@@ -144,11 +156,32 @@ class CarState(CarStateBase):
 
     ret.cruiseState.enabled = self.is_cruise_latch
 
-    # button presses
-    ret.leftBlinker = bool(cp.vl["LEFT_STALK"]["LEFT_SIGNAL"])
-    ret.rightBlinker = bool(cp.vl["LEFT_STALK"]["RIGHT_SIGNAL"])
-    ret.genericToggle = bool(cp.vl["LEFT_STALK"]["GENERIC_TOGGLE"]) # High beam toggle
+    # Turn signal with a required minimum time
+    self.leftBlinker = bool(cp.vl["LEFT_STALK"]["LEFT_SIGNAL"])
+    self.rightBlinker = bool(cp.vl["LEFT_STALK"]["RIGHT_SIGNAL"])
 
+    def set_cur_blinker(): # Reset time and set cur_blinker
+      self.blinker_start_time = time()
+      self.cur_blinker = Dir.RIGHT if self.rightBlinker else Dir.LEFT
+
+    one_blinker = self.leftBlinker != self.rightBlinker
+
+    if self.cur_blinker is None:
+      if one_blinker: # Turn signal was off and is now on
+        set_cur_blinker()
+    else:
+      # cur_blinker is left or right
+      if not one_blinker and (time() - self.blinker_start_time) >= BLINKER_MIN:
+        self.cur_blinker = None
+      elif (self.cur_blinker == Dir.LEFT and self.rightBlinker) or (self.cur_blinker == Dir.RIGHT and self.leftBlinker):
+        # Change in blinker direction
+        set_cur_blinker()
+
+    ret.leftBlinker = self.cur_blinker == Dir.LEFT
+    ret.rightBlinker = self.cur_blinker == Dir.RIGHT
+
+    # button presses
+    ret.genericToggle = bool(cp.vl["LEFT_STALK"]["GENERIC_TOGGLE"]) # High beam toggle
     ret.espDisabled = bool(cp.vl["PARKING_BRAKE"]["ESC_ON"]) != 1
 
     # blindspot sensors
