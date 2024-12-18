@@ -9,8 +9,9 @@ from selfdrive.car.interfaces import CarStateBase
 from selfdrive.car.proton.values import DBC, CAR, HUD_MULTIPLIER
 from time import time
 from enum import Enum, auto
-
+from selfdrive.controls.lib.desire_helper import LANE_CHANGE_SPEED_MIN
 from common.features import Features
+from common.params import Params
 
 BLINKER_MIN = 3.5 # Minimum turn signal length in seconds
 
@@ -177,8 +178,11 @@ class CarState(CarStateBase):
         # Change in blinker direction
         set_cur_blinker()
 
-    ret.leftBlinker = self.cur_blinker == Dir.LEFT
-    ret.rightBlinker = self.cur_blinker == Dir.RIGHT
+    # Use minimum blinker time only if ALC is not active
+    alc_not_active = ret.vEgo < LANE_CHANGE_SPEED_MIN or not Params().get_bool("IsAlcEnabled")
+
+    ret.leftBlinker = (self.cur_blinker == Dir.LEFT) if alc_not_active else self.leftBlinker
+    ret.rightBlinker = (self.cur_blinker == Dir.RIGHT) if alc_not_active else self.rightBlinker
 
     # button presses
     ret.genericToggle = bool(cp.vl["LEFT_STALK"]["GENERIC_TOGGLE"]) # High beam toggle
