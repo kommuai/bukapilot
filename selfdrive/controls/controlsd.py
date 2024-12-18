@@ -89,10 +89,9 @@ class Controls:
     lka_diff = self.time_diff(self.last_lka_on_frame)
     diff = min(blinker_diff, resume_diff, lka_diff) # The last performed action
 
-    if diff == blinker_diff:
-      if self.is_alc_active():
-        diff = resume_diff # Only reduce steering for resume
-    if diff == resume_diff or diff == lka_diff:
+    if diff == blinker_diff and self.is_alc_active():
+      diff = resume_diff # Only reduce steering for resume
+    if diff != blinker_diff:
       cooldown = 0 # Resume has no cooldown
 
     if float(diff) < end_time:
@@ -582,11 +581,11 @@ class Controls:
         lac_log.saturated = abs(steer) >= 0.9
 
     # If steer resume
-    if not self.steer_resumed and lat_active:
+    if (not self.steer_resumed and lat_active) and (not CS.standstill):
       self.steer_resumed = True
       self.last_steer_resume_frame = self.sm.frame
     # If steer cancel
-    if self.steer_resumed and not lat_active:
+    if (self.steer_resumed and not lat_active) or CS.standstill:
       self.steer_resumed = False
 
     # If LKA switch on
