@@ -81,8 +81,8 @@ class Controls:
   def reduce_steer(self, steer, steeringAngle):
     cooldown = LANE_CHANGE_COOLDOWN # Steering cooldown
     end_time = 1.75   # The time where the steering becomes 100% again
-    start_val = 0.075 # The percentage of steering when steering starts again
-    rate = 0.0015     # Higher value means steeper curve. When rate is 0, the curve becomes linear.
+    start_val = 0.00  # The percentage of steering when steering starts again
+    rate = 0.003      # Higher value means steeper curve. When rate is 0, the curve becomes linear.
 
     blinker_diff = self.time_diff(self.last_blinker_frame)
     resume_diff = self.time_diff(self.last_steer_resume_frame)
