@@ -3,12 +3,14 @@ from common.realtime import DT_MDL
 from selfdrive.config import Conversions as CV
 from common.params import Params
 from enum import Enum, auto
+import time
 
 LaneChangeState = log.LateralPlan.LaneChangeState
 LaneChangeDirection = log.LateralPlan.LaneChangeDirection
 
 LANE_CHANGE_SPEED_MIN = 30 * CV.MPH_TO_MS
 LANE_CHANGE_TIME_MAX = 10.
+ALC_CANCEL_DELAY = 1.75 # In seconds
 
 DESIRES = {
   LaneChangeDirection.none: {
@@ -42,10 +44,10 @@ class DesireHelper:
     self.lane_change_timer = 0.0
     self.lane_change_ll_prob = 1.0
     self.keep_pulse_timer = 0.0
+    self.last_alc_cancel = 0
     self.prev_one_blinker = False
     self.prev_blinker = None # Handle direction change
     self.desire = log.LateralPlan.Desire.none
-    self.is_alc_enabled = Params().get_bool("IsAlcEnabled")
 
   def update(self, carstate, active, lane_change_prob):
     v_ego = carstate.vEgo
@@ -60,7 +62,7 @@ class DesireHelper:
 
     # If ALC is disabled or LKA is disabled, do not start assisted lane change.
     if not active or self.lane_change_timer > LANE_CHANGE_TIME_MAX \
-        or not self.is_alc_enabled or carstate.lkaDisabled:
+        or not Params().get_bool("IsAlcEnabled") or carstate.lkaDisabled:
       self.lane_change_state = LaneChangeState.off
       self.lane_change_direction = LaneChangeDirection.none
 
@@ -77,10 +79,14 @@ class DesireHelper:
         else:
           self.lane_change_direction = LaneChangeDirection.right
       self.lane_change_state = LaneChangeState.laneChangeFinishing
+      self.last_alc_cancel = time.monotonic()
 
     else:
+      wait_for_delay = time.monotonic() - self.last_alc_cancel < ALC_CANCEL_DELAY
+
       # LaneChangeState.off
-      if self.lane_change_state == LaneChangeState.off and one_blinker and not self.prev_one_blinker and not below_lane_change_speed:
+      if self.lane_change_state == LaneChangeState.off and one_blinker and not self.prev_one_blinker and not below_lane_change_speed \
+          and not wait_for_delay:
         self.lane_change_state = LaneChangeState.preLaneChange
         self.lane_change_ll_prob = 1.0
 
@@ -115,7 +121,7 @@ class DesireHelper:
 
         if self.lane_change_ll_prob > 0.99:
           self.lane_change_direction = LaneChangeDirection.none
-          if one_blinker:
+          if one_blinker and not wait_for_delay:
             self.lane_change_state = LaneChangeState.preLaneChange
           else:
             self.lane_change_state = LaneChangeState.off

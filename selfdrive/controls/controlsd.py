@@ -27,6 +27,7 @@ from selfdrive.controls.lib.vehicle_model import VehicleModel
 from selfdrive.locationd.calibrationd import Calibration
 from selfdrive.hardware import HARDWARE, TICI, EON
 from selfdrive.manager.process_config import managed_processes
+from selfdrive.controls.lib.desire_helper import LANE_CHANGE_SPEED_MIN
 
 SOFT_DISABLE_TIME = 3  # seconds
 LDW_MIN_SPEED = 31 * CV.MPH_TO_MS
@@ -78,7 +79,7 @@ class Controls:
   def recent_lka_on_2s(self):
     return self.recent_lka_on(2.0)
 
-  def reduce_steer(self, steer, steeringAngle):
+  def reduce_steer(self, steer, steeringAngle, CS):
     cooldown = LANE_CHANGE_COOLDOWN # Steering cooldown
     end_time = 1.75   # The time where the steering becomes 100% again
     start_val = 0.00  # The percentage of steering when steering starts again
@@ -89,7 +90,7 @@ class Controls:
     lka_diff = self.time_diff(self.last_lka_on_frame)
     diff = min(blinker_diff, resume_diff, lka_diff) # The last performed action
 
-    if diff == blinker_diff and self.is_alc_active():
+    if diff == blinker_diff and self.is_alc_active(CS):
       diff = resume_diff # Only reduce steering for resume
     if diff != blinker_diff:
       cooldown = 0 # Resume has no cooldown
@@ -233,8 +234,8 @@ class Controls:
     self.steer_resumed = False
     self.lka_switched_on = True
 
-  def is_alc_active(self):
-    return self.sm['lateralPlan'].laneChangeState != LaneChangeState.off
+  def is_alc_active(self, CS):
+    return CS.vEgo >= LANE_CHANGE_SPEED_MIN and Params().get_bool("IsAlcEnabled")
 
   def update_events(self, CS):
     """Compute carEvents from carState"""
@@ -600,7 +601,7 @@ class Controls:
 
     # Reduce steering after resume/manual lance change
     if lat_active:
-      actuators.steer, actuators.steeringAngleDeg = self.reduce_steer(actuators.steer, actuators.steeringAngleDeg)
+      actuators.steer, actuators.steeringAngleDeg = self.reduce_steer(actuators.steer, actuators.steeringAngleDeg, CS)
 
     # Send a "steering required alert" if saturation count has reached the limit
     if lac_log.active and lac_log.saturated and not CS.steeringPressed:
@@ -613,7 +614,7 @@ class Controls:
 
         # Condition to show steering limit warning
         # Within 2 seconds of manual lane change, do not show this warning.
-        manual_LC_2s = not self.is_alc_active() and self.recent_blinker_2s()
+        manual_LC_2s = not self.is_alc_active(CS) and self.recent_blinker_2s()
         if (left_deviation or right_deviation) and not manual_LC_2s \
             and not CS.lkaDisabled and not self.recent_steer_resume_2s() \
             and not self.recent_lka_on_2s():
@@ -669,7 +670,7 @@ class Controls:
     hudControl.leftLaneVisible = True
 
     # 0.1s blinker cooldown after lane change, (for ALC disabled) lane keep will be activated again after cooldown
-    if (self.recent_blinker(LANE_CHANGE_COOLDOWN) and not self.is_alc_active()) or CS.lkaDisabled:
+    if (self.recent_blinker(LANE_CHANGE_COOLDOWN) and not self.is_alc_active(CS)) or CS.lkaDisabled:
       CC.laneActive = False
 
     ldw_allowed = self.is_ldw_enabled and CS.vEgo > LDW_MIN_SPEED \
