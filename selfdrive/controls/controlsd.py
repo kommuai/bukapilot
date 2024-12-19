@@ -91,7 +91,7 @@ class Controls:
     diff = min(blinker_diff, resume_diff, lka_diff) # The last performed action
 
     if diff == blinker_diff and self.is_alc_active(CS):
-      diff = resume_diff # Only reduce steering for resume
+      diff = min(resume_diff, lka_diff) # Only reduce steering for resume and LKA resume
     if diff != blinker_diff:
       cooldown = 0 # Resume has no cooldown
 
