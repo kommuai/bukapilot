@@ -94,12 +94,14 @@ class Controls:
     if diff != blinker_diff:
       cooldown = 0 # Resume has no cooldown
 
+    angle_reduce = steeringAngle - CS.steeringAngleDeg
+
     if float(diff) < end_time:
       def out(ste):
         scaled_time = diff / (end_time - cooldown)
         mul = min(1, start_val + (1 - start_val) * (scaled_time ** (1-rate))) # Non-linear increment equation
         return ste * mul
-      return out(steer), out(steeringAngle)
+      return out(steer), (CS.steeringAngleDeg + out(angle_reduce))
     return steer, steeringAngle
 
   def __init__(self, sm=None, pm=None, can_sock=None):
