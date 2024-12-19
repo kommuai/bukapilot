@@ -45,6 +45,7 @@ class DesireHelper:
     self.lane_change_ll_prob = 1.0
     self.keep_pulse_timer = 0.0
     self.last_alc_cancel = 0
+    self.last_blinker_on = 0
     self.prev_one_blinker = False
     self.prev_blinker = None # Handle direction change
     self.desire = log.LateralPlan.Desire.none
@@ -59,6 +60,9 @@ class DesireHelper:
 
     blinker_dir_changed = ((self.prev_blinker == Dir.LEFT and carstate.rightBlinker) or
                            (self.prev_blinker == Dir.RIGHT and carstate.leftBlinker))
+
+    if one_blinker and not self.prev_one_blinker: # Record time of the last blinker on
+      self.last_blinker_on = time.monotonic()
 
     # If ALC is disabled or LKA is disabled, do not start assisted lane change.
     if not active or self.lane_change_timer > LANE_CHANGE_TIME_MAX \
@@ -83,9 +87,10 @@ class DesireHelper:
 
     else:
       wait_for_delay = time.monotonic() - self.last_alc_cancel < ALC_CANCEL_DELAY
+      blinker_length_enough = round((time.monotonic() - self.last_blinker_on), 2) > 0.20
 
       # LaneChangeState.off
-      if self.lane_change_state == LaneChangeState.off and one_blinker and not self.prev_one_blinker and not below_lane_change_speed \
+      if self.lane_change_state == LaneChangeState.off and one_blinker and blinker_length_enough and not below_lane_change_speed \
           and not wait_for_delay:
         self.lane_change_state = LaneChangeState.preLaneChange
         self.lane_change_ll_prob = 1.0
