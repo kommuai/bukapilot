@@ -234,8 +234,12 @@ class Controls:
     self.steer_resumed = False
     self.lka_switched_on = True
 
+    # Check if blinker was last on below ALC speed
+    self.blinker_below_lane_change_speed = False
+    self.prev_one_blinker = False
+
   def is_alc_active(self, CS):
-    return CS.vEgo >= LANE_CHANGE_SPEED_MIN and Params().get_bool("IsAlcEnabled")
+    return CS.vEgo >= LANE_CHANGE_SPEED_MIN and not self.blinker_below_lane_change_speed and Params().get_bool("IsAlcEnabled")
 
   def update_events(self, CS):
     """Compute carEvents from carState"""
@@ -547,8 +551,16 @@ class Controls:
     actuators = car.CarControl.Actuators.new_message()
     actuators.longControlState = self.LoC.long_control_state
 
-    if CS.leftBlinker or CS.rightBlinker:
+    one_blinker = CS.leftBlinker != CS.rightBlinker
+    if one_blinker:
       self.last_blinker_frame = self.sm.frame
+
+    # Check if blinker was on below lane change speed for ALC
+    if one_blinker and not self.prev_one_blinker:
+      self.blinker_below_lane_change_speed = CS.vEgo < LANE_CHANGE_SPEED_MIN
+    elif not one_blinker:
+      self.blinker_below_lane_change_speed = False
+    self.prev_one_blinker = one_blinker
 
     # State specific actions
 
@@ -587,8 +599,8 @@ class Controls:
     if (not self.steer_resumed and lat_active) and (not CS.standstill):
       self.steer_resumed = True
       self.last_steer_resume_frame = self.sm.frame
-    # If steer cancel
-    if (self.steer_resumed and not lat_active) or CS.standstill:
+    # If steer not active
+    if not lat_active or CS.standstill:
       self.steer_resumed = False
 
     # If LKA switch on
@@ -669,7 +681,7 @@ class Controls:
     hudControl.rightLaneVisible = True
     hudControl.leftLaneVisible = True
 
-    # 0.1s blinker cooldown after lane change, (for ALC disabled) lane keep will be activated again after cooldown
+    # 0.1s blinker cooldown after lane change, (for ALC not active) lane keep will be activated again after cooldown
     if (self.recent_blinker(LANE_CHANGE_COOLDOWN) and not self.is_alc_active(CS)) or CS.lkaDisabled:
       CC.laneActive = False
 
