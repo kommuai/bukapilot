@@ -185,6 +185,7 @@ class Controls:
     elif self.CP.lateralTuning.which() == 'lqr':
       self.LaC = LatControlLQR(self.CP, self.CI)
 
+    self.laneActive = False
     self.initialized = False
     self.state = State.disabled
     self.enabled = False
@@ -574,7 +575,7 @@ class Controls:
       actuators.accel, actuators.speed = self.LoC.update(self.active, CS, self.CP, long_plan, pid_accel_limits)
 
       # Steering PID loop and lateral MPC
-      lat_active = self.active and not CS.steerWarning and not CS.steerError and CS.vEgo > self.CP.minSteerSpeed
+      lat_active = self.active and not CS.steerWarning and not CS.steerError and CS.vEgo > self.CP.minSteerSpeed and self.laneActive
       desired_curvature, desired_curvature_rate = get_lag_adjusted_curvature(self.CP, CS.vEgo,
                                                                              lat_plan.psis,
                                                                              lat_plan.curvatures,
@@ -684,6 +685,7 @@ class Controls:
     # 0.1s blinker cooldown after lane change, (for ALC not active) lane keep will be activated again after cooldown
     if (self.recent_blinker(LANE_CHANGE_COOLDOWN) and not self.is_alc_active(CS)) or CS.lkaDisabled:
       CC.laneActive = False
+    self.laneActive = CC.laneActive
 
     ldw_allowed = self.is_ldw_enabled and CS.vEgo > LDW_MIN_SPEED \
                     and not self.recent_blinker_2s() and not self.recent_steer_resume_2s() \
