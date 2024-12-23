@@ -56,7 +56,6 @@ SafetyModel = car.CarParams.SafetyModel
 
 IGNORED_SAFETY_MODES = [SafetyModel.silent, SafetyModel.noOutput]
 CSID_MAP = {"0": EventName.roadCameraError, "1": EventName.wideRoadCameraError, "2": EventName.driverCameraError}
-LANE_CHANGE_COOLDOWN = 0.1
 
 class Controls:
 
@@ -64,41 +63,30 @@ class Controls:
    return (self.sm.frame - frame_type) * DT_CTRL
 
   # Check if blinker was used within specified seconds.
-  def recent_blinker(self, sec):
+  def recent_blinker(self, sec=2.0):
     return self.time_diff(self.last_blinker_frame) < sec
   # Check if steering was resumed within specified seconds.
-  def recent_steer_resume(self, sec):
+  def recent_steer_resume(self, sec=2.0):
     return self.time_diff(self.last_steer_resume_frame) < sec
 
-  def recent_blinker_2s(self):
-    return self.recent_blinker(2.0)
-  def recent_steer_resume_2s(self):
-    return self.recent_steer_resume(2.0)
-
   def reduce_steer(self, steer, steeringAngle, CS):
-    cooldown = LANE_CHANGE_COOLDOWN # Steering cooldown
     end_time = 1.75   # The time where the steering becomes 100% again
     start_val = 0.00  # The percentage of steering when steering starts again
     rate = 0.003      # Higher value means steeper curve. When rate is 0, the curve becomes linear.
 
-    blinker_diff = self.time_diff(self.last_blinker_frame)
     resume_diff = self.time_diff(self.last_steer_resume_frame)
-    diff = min(blinker_diff, resume_diff) # The last performed action
-
-    if diff == blinker_diff and self.is_alc_active(CS):
-      diff = resume_diff # Only reduce steering for resume
-    if diff != blinker_diff:
-      cooldown = 0 # Resume has no cooldown
-
     angle_reduce = steeringAngle - CS.steeringAngleDeg
 
-    if float(diff) < end_time:
+    if float(resume_diff) < end_time:
       def out(ste):
-        scaled_time = diff / (end_time - cooldown)
+        scaled_time = resume_diff / end_time
         mul = min(1, start_val + (1 - start_val) * (scaled_time ** (1-rate))) # Non-linear increment equation
         return ste * mul
       return out(steer), (CS.steeringAngleDeg + out(angle_reduce))
     return steer, steeringAngle
+
+  def is_one_blinker(self, CS):
+    return CS.leftBlinker != CS.rightBlinker
 
   def __init__(self, sm=None, pm=None, can_sock=None):
     config_realtime_process(4 if TICI else 3, Priority.CTRL_HIGH)
@@ -144,6 +132,7 @@ class Controls:
     # read params
     self.is_metric = params.get_bool("IsMetric")
     self.is_ldw_enabled = params.get_bool("IsLdwEnabled")
+    self.is_alc_enabled = params.get_bool("IsAlcEnabled")
     openpilot_enabled_toggle = params.get_bool("OpenpilotEnabledToggle")
     passive = params.get_bool("Passive") or not openpilot_enabled_toggle
 
@@ -233,7 +222,7 @@ class Controls:
     self.prev_one_blinker = False
 
   def is_alc_active(self, CS):
-    return CS.vEgo >= LANE_CHANGE_SPEED_MIN and not self.blinker_below_lane_change_speed and Params().get_bool("IsAlcEnabled")
+    return CS.vEgo >= LANE_CHANGE_SPEED_MIN and not self.blinker_below_lane_change_speed and self.is_alc_enabled
 
   def update_events(self, CS):
     """Compute carEvents from carState"""
@@ -545,11 +534,11 @@ class Controls:
     actuators = car.CarControl.Actuators.new_message()
     actuators.longControlState = self.LoC.long_control_state
 
-    one_blinker = CS.leftBlinker != CS.rightBlinker
+    # Check if blinker was on below lane change speed for ALC
+    one_blinker = self.is_one_blinker(CS)
     if one_blinker:
       self.last_blinker_frame = self.sm.frame
 
-    # Check if blinker was on below lane change speed for ALC
     if one_blinker and not self.prev_one_blinker:
       self.blinker_below_lane_change_speed = CS.vEgo < LANE_CHANGE_SPEED_MIN
     elif not one_blinker:
@@ -557,7 +546,6 @@ class Controls:
     self.prev_one_blinker = one_blinker
 
     # State specific actions
-
     if not self.active:
       self.LaC.reset()
       self.LoC.reset(v_pid=CS.vEgo)
@@ -597,7 +585,7 @@ class Controls:
     if not lat_active or CS.standstill:
       self.steer_resumed = False
 
-    # Reduce steering after resume/manual lance change
+    # Reduce steering after resume
     if lat_active:
       actuators.steer, actuators.steeringAngleDeg = self.reduce_steer(actuators.steer, actuators.steeringAngleDeg, CS)
 
@@ -611,10 +599,7 @@ class Controls:
         right_deviation = actuators.steer < 0 and dpath_points[0] > 0.20
 
         # Condition to show steering limit warning
-        # Within 2 seconds of manual lane change, do not show this warning.
-        manual_LC_2s = not self.is_alc_active(CS) and self.recent_blinker_2s()
-        if (left_deviation or right_deviation) and not manual_LC_2s \
-            and not CS.lkaDisabled and not self.recent_steer_resume_2s():
+        if (left_deviation or right_deviation) and lat_active and not self.recent_steer_resume():
           self.events.add(EventName.steerSaturated)
 
     # Ensure no NaNs/Infs
@@ -646,7 +631,9 @@ class Controls:
     CC.enabled = self.enabled
     CC.active = self.active
     CC.actuators = actuators
-    CC.laneActive = True
+
+    CC.laneActive = not (CS.lkaDisabled or (self.is_one_blinker(CS) and not self.is_alc_active(CS)))
+    self.laneActive = CC.laneActive
 
     orientation_value = self.sm['liveLocationKalman'].orientationNED.value
     if len(orientation_value) > 2:
@@ -666,14 +653,8 @@ class Controls:
     hudControl.rightLaneVisible = True
     hudControl.leftLaneVisible = True
 
-    # 0.1s blinker cooldown after lane change, (for ALC not active) lane keep will be activated again after cooldown
-    if (self.recent_blinker(LANE_CHANGE_COOLDOWN) and not self.is_alc_active(CS)) or CS.lkaDisabled:
-      CC.laneActive = False
-    self.laneActive = CC.laneActive
-
     ldw_allowed = self.is_ldw_enabled and CS.vEgo > LDW_MIN_SPEED \
-                    and not self.recent_blinker_2s() and not self.recent_steer_resume_2s() \
-                    and (not self.active or not CC.laneActive) \
+                    and not self.recent_blinker() and (not self.active or not CC.laneActive) \
                     and self.sm['liveCalibration'].calStatus == Calibration.CALIBRATED
 
     model_v2 = self.sm['modelV2']
