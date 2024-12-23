@@ -458,7 +458,7 @@ EVENTS: Dict[int, Dict[str, Union[Alert, AlertCallbackType]]] = {
   EventName.protonHandOnWheelWarning: {
     ET.WARNING: Alert(
       "Touch Steering Wheel",
-      "Set Proton ICC to ACC to remove warning",
+      "Set Proton ICC to ACC to Remove Warning",
       AlertStatus.userPrompt, AlertSize.mid,
       Priority.LOW, VisualAlert.none, AudibleAlert.none, .2),
   },
