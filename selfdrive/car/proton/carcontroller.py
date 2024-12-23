@@ -88,7 +88,6 @@ class CarController():
     self.steer_rate_limited = (new_steer != apply_steer) and (apply_steer != 0)
 
     ts = frame * DT_CTRL
-    self.is_alc_enabled = Params().get_bool("IsAlcEnabled")
 
     # CAN controlled lateral running at 50hz
     if (frame % 2) == 0:

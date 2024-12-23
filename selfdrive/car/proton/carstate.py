@@ -34,6 +34,7 @@ class CarState(CarStateBase):
 
     f = Features()
     self.mads = f.has("StockAcc")
+    self.is_alc_enabled = Params().get_bool("IsAlcEnabled")
 
     self.lks_aux = 0
     self.lks_audio = 0
@@ -179,7 +180,7 @@ class CarState(CarStateBase):
         set_cur_blinker()
 
     # Use minimum blinker time only if ALC is not active
-    alc_not_active = ret.vEgo < LANE_CHANGE_SPEED_MIN or not Params().get_bool("IsAlcEnabled")
+    alc_not_active = ret.vEgo < LANE_CHANGE_SPEED_MIN or not self.is_alc_enabled
 
     ret.leftBlinker = (self.cur_blinker == Dir.LEFT) if alc_not_active else self.leftBlinker
     ret.rightBlinker = (self.cur_blinker == Dir.RIGHT) if alc_not_active else self.rightBlinker
