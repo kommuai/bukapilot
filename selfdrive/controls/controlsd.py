@@ -78,11 +78,9 @@ class Controls:
     angle_reduce = steeringAngle - CS.steeringAngleDeg
 
     if float(resume_diff) < end_time:
-      def out(ste):
-        scaled_time = resume_diff / end_time
-        mul = min(1, start_val + (1 - start_val) * (scaled_time ** (1-rate))) # Non-linear increment equation
-        return ste * mul
-      return out(steer), (CS.steeringAngleDeg + out(angle_reduce))
+      scaled_time = resume_diff / end_time
+      mul = min(1, start_val + (1 - start_val) * (scaled_time ** (1-rate))) # Non-linear increment equation
+      return (steer * mul), (CS.steeringAngleDeg + (angle_reduce * mul))
     return steer, steeringAngle
 
   def is_one_blinker(self, CS):
