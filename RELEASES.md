@@ -1,3 +1,17 @@
+Version 9.8.0  (2024-12-24)
+=========================
+* Allow Assisted Lane Change to be cancelled if turn signal is off, or blind spot detected during a lane change
+* Allow driver steering control when turn signal is on and below Assisted Lane Change speed
+* Smoother steering for stop and go traffic
+* Allow lower minimum screen brightness
+* Allow multiple features to be set in features package
+* Proton bukapilot lane keep follows LKS enable, to use bukapilot lane keep without stock LDW, set LKS to Warn Only and Tactile
+* Proton Lane Departure Prevention fix (LKS Auxiliary mode)
+* Proton one-touch turn signal of 3.5 seconds when Assisted Lane Change is not active
+* Improvements and new tuning for Proton port
+* UI improvements
+* Code optimisation
+
 Version 9.7.0  (2024-10-07)
 =========================
 * Smoother steering after resume/lane change with ALC off
