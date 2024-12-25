@@ -588,6 +588,9 @@ class Controls:
         lac_log.output = steer
         lac_log.saturated = abs(steer) >= 0.9
 
+    if self.is_alc_enabled and self.active and one_blinker and not (lat_active or CS.lkaDisabled or CS.standstill):
+      self.events.add(EventName.belowLaneChangeSpeed)
+
     # If steer resume
     if (not self.steer_resumed and lat_active) and (not CS.standstill):
       self.steer_resumed = True

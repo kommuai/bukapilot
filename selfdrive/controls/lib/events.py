@@ -478,8 +478,8 @@ EVENTS: Dict[int, Dict[str, Union[Alert, AlertCallbackType]]] = {
 
   EventName.belowLaneChangeSpeed: {
     ET.WARNING: Alert(
-      "Below Auto Lane Change Speed",
-      "Manually Steer to Change Lane",
+      "Steer Manually",
+      "Turn Signal on Below Assisted Lane Change Speed",
       AlertStatus.userPrompt, AlertSize.mid,
       Priority.MID, VisualAlert.steerRequired, AudibleAlert.none, .1),
   },
