@@ -53,9 +53,8 @@ class DesireHelper:
     self.blinker_below_lane_change_speed = False
 
   def update(self, carstate, active, lane_change_prob):
-    v_ego = carstate.vEgo
     one_blinker = carstate.leftBlinker != carstate.rightBlinker
-    below_lane_change_speed = v_ego < LANE_CHANGE_SPEED_MIN
+    below_lane_change_speed = carstate.vEgo < LANE_CHANGE_SPEED_MIN
 
     blindspot_detected = ((carstate.leftBlindspot and self.lane_change_direction == LaneChangeDirection.left) or
                           (carstate.rightBlindspot and self.lane_change_direction == LaneChangeDirection.right))
