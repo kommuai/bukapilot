@@ -1,7 +1,7 @@
-Version 9.8.0  (2024-12-24)
+Version 9.8.0  (2024-12-26)
 =========================
+* **ALERT**: If Assisted Lane Change is enabled, below Assisted Lane Change speed, and turn signal is on, lane keep will be deactivated to allow manual steering control.
 * Allow Assisted Lane Change to be cancelled if turn signal is off, or blind spot detected during a lane change
-* Allow driver steering control when turn signal is on and below Assisted Lane Change speed
 * Smoother steering for stop and go traffic
 * Allow lower minimum screen brightness
 * Allow multiple features to be set in features package
