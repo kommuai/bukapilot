@@ -87,8 +87,6 @@ class CarController():
     apply_steer = apply_proton_steer_torque_limits(new_steer, self.last_steer, 0, self.params)
     self.steer_rate_limited = (new_steer != apply_steer) and (apply_steer != 0)
 
-    ts = frame * DT_CTRL
-
     # CAN controlled lateral running at 50hz
     if (frame % 2) == 0:
       can_sends.append(create_can_steer_command(self.packer, apply_steer, lat_active, \
