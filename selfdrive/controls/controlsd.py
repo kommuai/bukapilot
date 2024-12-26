@@ -70,18 +70,16 @@ class Controls:
     return self.time_diff(self.last_steer_resume_frame) < sec
 
   def reduce_steer(self, steer, steeringAngle, CS):
+    resume_diff = float(self.time_diff(self.last_steer_resume_frame))
     end_time = 1.75   # The time where the steering becomes 100% again
+    if resume_diff >= end_time:
+      return steer, steeringAngle
+
     start_val = 0.00  # The percentage of steering when steering starts again
     rate = 0.003      # Higher value means steeper curve. When rate is 0, the curve becomes linear.
-
-    resume_diff = self.time_diff(self.last_steer_resume_frame)
-    angle_reduce = steeringAngle - CS.steeringAngleDeg
-
-    if float(resume_diff) < end_time:
-      scaled_time = resume_diff / end_time
-      mul = min(1, start_val + (1 - start_val) * (scaled_time ** (1-rate))) # Non-linear increment equation
-      return (steer * mul), (CS.steeringAngleDeg + (angle_reduce * mul))
-    return steer, steeringAngle
+    # Non-linear increment equation
+    mul = min(1, start_val + (1 - start_val) * ((resume_diff / end_time) ** (1-rate)))
+    return steer * mul, (steeringAngle - CS.steeringAngleDeg) * mul + CS.steeringAngleDeg
 
   def is_one_blinker(self, CS):
     return CS.leftBlinker != CS.rightBlinker
