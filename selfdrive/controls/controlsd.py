@@ -29,9 +29,10 @@ from selfdrive.hardware import HARDWARE, TICI, EON
 from selfdrive.manager.process_config import managed_processes
 from selfdrive.controls.lib.desire_helper import LANE_CHANGE_SPEED_MIN
 
-SOFT_DISABLE_TIME = 3  # seconds
+SOFT_DISABLE_TIME = 3 # seconds
 LDW_MIN_SPEED = 31 * CV.MPH_TO_MS
 LANE_DEPARTURE_THRESHOLD = 0.01
+TIME_THRESHOLD = 2.0  # Time threshold for recent blinker and steer events (in seconds)
 
 REPLAY = "REPLAY" in os.environ
 SIMULATION = "SIMULATION" in os.environ
@@ -62,15 +63,7 @@ class Controls:
   def time_diff(self, frame_type):
    return (self.sm.frame - frame_type) * DT_CTRL
 
-  # Check if blinker was used within specified seconds.
-  def recent_blinker(self, sec=2.0):
-    return self.time_diff(self.last_blinker_frame) < sec
-  # Check if steering was resumed within specified seconds.
-  def recent_steer_resume(self, sec=2.0):
-    return self.time_diff(self.last_steer_resume_frame) < sec
-
-  def reduce_steer(self, steer, steeringAngle, CS):
-    resume_diff = float(self.time_diff(self.last_steer_resume_frame))
+  def reduce_steer(self, steer, steeringAngle, CS, resume_diff):
     end_time = 1.75   # The time where the steering becomes 100% again
     if resume_diff >= end_time:
       return steer, steeringAngle
@@ -588,17 +581,20 @@ class Controls:
     if self.is_alc_enabled and self.active and one_blinker and not (lat_active or CS.lkaDisabled or CS.standstill):
       self.events.add(EventName.belowLaneChangeSpeed)
 
-    # If steer resume
-    if (not self.steer_resumed and lat_active) and (not CS.standstill):
-      self.steer_resumed = True
-      self.last_steer_resume_frame = self.sm.frame
-    # If steer not active
+    # If steer not active or standstill
     if not lat_active or CS.standstill:
       self.steer_resumed = False
+    # If steer resume
+    elif not self.steer_resumed:
+      self.steer_resumed = True
+      self.last_steer_resume_frame = self.sm.frame
+
+    resume_diff = self.time_diff(self.last_steer_resume_frame)
+    recent_steer_resume = resume_diff < TIME_THRESHOLD
 
     # Reduce steering after resume
-    if lat_active:
-      actuators.steer, actuators.steeringAngleDeg = self.reduce_steer(actuators.steer, actuators.steeringAngleDeg, CS)
+    if recent_steer_resume:
+      actuators.steer, actuators.steeringAngleDeg = self.reduce_steer(actuators.steer, actuators.steeringAngleDeg, CS, resume_diff)
 
     # Send a "steering required alert" if saturation count has reached the limit
     if lac_log.active and lac_log.saturated and not CS.steeringPressed:
@@ -610,7 +606,7 @@ class Controls:
         right_deviation = actuators.steer < 0 and dpath_points[0] > 0.20
 
         # Condition to show steering limit warning
-        if (left_deviation or right_deviation) and lat_active and not self.recent_steer_resume():
+        if (left_deviation or right_deviation) and lat_active and not recent_steer_resume:
           self.events.add(EventName.steerSaturated)
 
     # Ensure no NaNs/Infs
@@ -662,9 +658,10 @@ class Controls:
     hudControl.rightLaneVisible = True
     hudControl.leftLaneVisible = True
 
-    ldw_allowed = self.is_ldw_enabled and CS.vEgo > LDW_MIN_SPEED \
-                    and not self.recent_blinker() and (not self.active or not CC.laneActive) \
-                    and self.sm['liveCalibration'].calStatus == Calibration.CALIBRATED
+    ldw_allowed = (self.is_ldw_enabled and CS.vEgo > LDW_MIN_SPEED
+                  and (not self.active or not CC.laneActive)
+                  and self.sm['liveCalibration'].calStatus == Calibration.CALIBRATED
+                  and self.time_diff(self.last_blinker_frame) >= TIME_THRESHOLD)
 
     model_v2 = self.sm['modelV2']
     desire_prediction = model_v2.meta.desirePrediction
