@@ -433,7 +433,8 @@ class CarInterface(CarInterfaceBase):
                          hud_v_cruise,
                          hud_control.lanesVisible,
                          hud_show_car=hud_control.leadVisible,
-                         hud_alert=hud_control.visualAlert)
+                         hud_alert=hud_control.visualAlert,
+                         laneActive=c.laneActive)
 
     self.frame += 1
     return ret

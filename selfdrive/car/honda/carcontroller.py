@@ -126,7 +126,7 @@ class CarController():
     self.params = CarControllerParams(CP)
 
   def update(self, enabled, active, CS, frame, actuators, pcm_cancel_cmd,
-             hud_v_cruise, hud_show_lanes, hud_show_car, hud_alert):
+             hud_v_cruise, hud_show_lanes, hud_show_car, hud_alert, laneActive):
 
     P = self.params
 
@@ -186,7 +186,7 @@ class CarController():
     # Send steering command.
     idx = frame % 4
     can_sends.append(hondacan.create_steering_control(self.packer, apply_steer,
-      lkas_active, CS.CP.carFingerprint, idx, CS.CP.openpilotLongitudinalControl))
+      lkas_active and laneActive, CS.CP.carFingerprint, idx, CS.CP.openpilotLongitudinalControl))
 
     stopping = actuators.longControlState == LongCtrlState.stopping
 
