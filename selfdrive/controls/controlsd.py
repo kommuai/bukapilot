@@ -642,7 +642,7 @@ class Controls:
     CC.enabled = self.enabled
     CC.active = self.active
     CC.actuators = actuators
-    CC.laneActive = self.laneActive = not (CS.lkaDisabled or (self.is_one_blinker(CS) and not self.is_alc_active(CS)))
+    CC.laneActive = self.laneActive = not (CS.lkaDisabled or CS.standstill or (self.is_one_blinker(CS) and not self.is_alc_active(CS)))
 
     orientation_value = self.sm['liveLocationKalman'].orientationNED.value
     if len(orientation_value) > 2:
