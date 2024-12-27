@@ -220,7 +220,8 @@ class Controls:
     self.prev_enough_lane_change_speed = False # If the previous speed was enough for ALC
 
   def is_alc_active(self, CS):
-    return self.is_alc_enabled and (self.alc_speed_below or (CS.vEgo >= LANE_CHANGE_SPEED_MIN and not self.blinker_below_lane_change_speed))
+    return self.is_alc_enabled and self.active and \
+           (self.alc_speed_below or (CS.vEgo >= LANE_CHANGE_SPEED_MIN and not self.blinker_below_lane_change_speed))
 
   def update_events(self, CS):
     """Compute carEvents from carState"""
@@ -275,23 +276,21 @@ class Controls:
       else:
         self.events.add(EventName.calibrationInvalid)
 
-    # Handle lane change
+    # Handle lane change events
     lat_plan = self.sm['lateralPlan']
     lc_state = lat_plan.laneChangeState
 
-    if lc_state in (LaneChangeState.preLaneChange, LaneChangeState.laneChangeStarting, LaneChangeState.laneChangeFinishing):
-      direction = lat_plan.laneChangeDirection
-      # Show blindspot event only for preLaneChange and Starting
-      if lc_state in (LaneChangeState.preLaneChange, LaneChangeState.laneChangeStarting) \
-          and ((CS.leftBlindspot and direction == LaneChangeDirection.left) or \
-          (CS.rightBlindspot and direction == LaneChangeDirection.right)):
+    if self.is_alc_active(CS) and (lc_state != LaneChangeState.off or CS.vEgo >= LANE_CHANGE_SPEED_MIN) and not CS.lkaDisabled:
+      if self.is_one_blinker(CS) and ((CS.leftBlindspot and CS.leftBlinker) or (CS.rightBlindspot and CS.rightBlinker)):
         self.events.add(EventName.laneChangeBlocked)
+
       elif lc_state == LaneChangeState.preLaneChange:
-        if direction == LaneChangeDirection.left:
+        if lat_plan.laneChangeDirection == LaneChangeDirection.left:
           self.events.add(EventName.preLaneChangeLeft)
         else:
           self.events.add(EventName.preLaneChangeRight)
-      else:
+
+      elif lc_state != LaneChangeState.off:
         self.events.add(EventName.laneChange)
 
     if not CS.canValid:
@@ -643,9 +642,7 @@ class Controls:
     CC.enabled = self.enabled
     CC.active = self.active
     CC.actuators = actuators
-
-    CC.laneActive = not (CS.lkaDisabled or (self.is_one_blinker(CS) and not self.is_alc_active(CS)))
-    self.laneActive = CC.laneActive
+    CC.laneActive = self.laneActive = not (CS.lkaDisabled or (self.is_one_blinker(CS) and not self.is_alc_active(CS)))
 
     orientation_value = self.sm['liveLocationKalman'].orientationNED.value
     if len(orientation_value) > 2:
