@@ -172,6 +172,7 @@ class Controls:
     self.can_rcv_error_counter = 0
     self.last_blinker_frame = 0
     self.last_steer_resume_frame = 0
+    self.steer_resumed = False # Resume status for checking the last steering resume frame
     self.distance_traveled = 0
     self.last_functional_fan_frame = 0
     self.events_prev = []
@@ -179,6 +180,10 @@ class Controls:
     self.logged_comm_issue = False
     self.button_timers = {ButtonEvent.Type.decelCruise: 0, ButtonEvent.Type.accelCruise: 0}
     self.last_actuators = car.CarControl.Actuators.new_message()
+    self.blinker_below_lane_change_speed = False # Check if blinker was last on below ALC speed
+    self.prev_one_blinker = False
+    self.alc_speed_below = False # If ALC was doing lane change when speed changed to below min speed
+    self.prev_enough_lane_change_speed = False # If the previous speed was enough for ALC
 
     # TODO: no longer necessary, aside from process replay
     self.sm['liveParameters'].valid = True
@@ -203,14 +208,7 @@ class Controls:
     self.rk = Ratekeeper(100, print_delay_threshold=None)
     self.prof = Profiler(False)  # off by default
 
-    # Resume status for checking the last steering resume frame
-    self.steer_resumed = False
 
-    # Check if blinker was last on below ALC speed
-    self.blinker_below_lane_change_speed = False
-    self.prev_one_blinker = False
-    self.alc_speed_below = False # If ALC was doing lane change when speed changed to below min speed
-    self.prev_enough_lane_change_speed = False # If the previous speed was enough for ALC
 
   def is_alc_active(self, CS):
     return self.is_alc_enabled and self.active and \
