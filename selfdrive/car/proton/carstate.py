@@ -52,6 +52,12 @@ class CarState(CarStateBase):
     self.blinker_on_alc_active = False
     self.blinker_start_time = 0
 
+  def set_cur_blinker(self, alc_not_active):
+    """Reset time and set cur_blinker"""
+    self.blinker_start_time = time()
+    self.cur_blinker = Dir.RIGHT if self.rightBlinker else Dir.LEFT
+    self.blinker_on_alc_active = not alc_not_active # Check when blinker on / direction change, if ALC was active
+
   def update(self, cp):
     ret = car.CarState.new_message()
 
@@ -165,26 +171,20 @@ class CarState(CarStateBase):
 
     # Use minimum blinker time if ALC is not active
     alc_not_active = ret.vEgo < LANE_CHANGE_SPEED_MIN or not self.is_alc_enabled
-
-    def set_cur_blinker(): # Reset time and set cur_blinker
-      self.blinker_start_time = time()
-      self.cur_blinker = Dir.RIGHT if self.rightBlinker else Dir.LEFT
-      self.blinker_on_alc_active = not alc_not_active # Check when blinker on / direction change, if ALC was active
-
     one_blinker = self.leftBlinker != self.rightBlinker
 
     if self.cur_blinker is None:
       self.blinker_on_alc_active = False
       if one_blinker: # Turn signal was off and is now on
-        set_cur_blinker()
+        self.set_cur_blinker(alc_not_active)
     else:
       # cur_blinker is left or right
       if not one_blinker and \
-      ((time() - self.blinker_start_time) >= BLINKER_MIN or self.blinker_on_alc_active):
+      (self.blinker_on_alc_active or (time() - self.blinker_start_time) >= BLINKER_MIN):
         self.cur_blinker = None
       elif (self.cur_blinker == Dir.LEFT and self.rightBlinker) or (self.cur_blinker == Dir.RIGHT and self.leftBlinker):
         # Change in blinker direction
-        set_cur_blinker()
+        self.set_cur_blinker(alc_not_active)
 
     ret.leftBlinker = (self.cur_blinker == Dir.LEFT) if alc_not_active else self.leftBlinker
     ret.rightBlinker = (self.cur_blinker == Dir.RIGHT) if alc_not_active else self.rightBlinker
