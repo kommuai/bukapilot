@@ -98,9 +98,8 @@ public:
       if (currentFeatures != "default") dialog.updateDefaultText(currentFeatures + ", ");
       if (dialog.exec() == QDialog::Accepted) {
         QString packageText = dialog.text().trimmed();
-        int result = Features().set_package(packageText.toStdString());
+        if (Features().set_package(packageText.toStdString()) == -1) ConfirmationDialog::alert("\nSome feature package names\nare invalid and were not added.", this);
         setElidedText(package_label, Params().get("FeaturesPackage").c_str());
-        if (result == -1) ConfirmationDialog::alert("\nSome feature package names\nare invalid and were not added.", this);
       }
     });
   }
@@ -121,7 +120,7 @@ public:
     hlayout->insertWidget(1, selection_label);
     connect(this, &ButtonControl::clicked, [=] {
       QString package = InputDialog::getText("Enter Car Model", this).trimmed();
-      Params().put("FixFingerprint", package.isEmpty() ? "" : package.toStdString());
+      Params().put("FixFingerprint", package.toStdString());
       setElidedText(selection_label, Params().get("FixFingerprint").c_str());
     });
   }
@@ -141,12 +140,7 @@ public:
     // Get the current branch name
     std::string currentBranchName = util::check_output("git symbolic-ref --short HEAD");
     currentBranchName.erase(currentBranchName.find_last_not_of("\n") + 1); // Remove line feed
-    // Display the current branch name even if it's invalid or empty
     setElidedText(selection_label, QString::fromStdString(currentBranchName));
-
-    // Only use fallback if branch is empty or not found remotely
-    if (currentBranchName.empty() || !isBranchInRemote(currentBranchName)) currentBranchName = "snapshot";
-
     system(setUpstream(currentBranchName).c_str());
     hlayout->insertWidget(1, selection_label);
     connect(this, &ButtonControl::clicked, [=] {
@@ -160,27 +154,17 @@ public:
   }
 
 private:
-  // Check if the branch exists in the remote repository
-  bool isBranchInRemote(const std::string& branch) {
-    return (std::system(("git ls-remote --heads origin " + branch + " | grep -q refs/heads/" + branch).c_str()) == 0);
-  }
-
-  // Set upstream for the current branch
   std::string setUpstream(const std::string& branch) {
-    return "git config remote.origin.fetch '+refs/heads/" + branch + ":refs/remotes/origin/" + branch + "'; "
-           "git fetch origin '" + branch + "'; git branch -u origin/" + branch + "; "
+    return "git config remote.origin.fetch '+refs/heads/" + branch + ":refs/remotes/origin/" + branch + "';"
+           "git branch -u origin/" + branch + ";"
            "git config branch." + branch + ".merge refs/heads/" + branch;
   }
 
-  // Confirm the branch change and perform the action
   void confirmAndChangeBranch(const std::string& branchName) {
     if (ConfirmationDialog::confirm("Are you sure to Change Branch?\nAny unsaved changes will be lost.\n\nReboot required, please wait.", this)) {
       QString errorMessage = "Branch " + QString::fromStdString(branchName) + " not found.\n\nPlease make sure the branch name is correct and the device is connected to the Internet.";
-      // Check if the branch exists remotely and attempt the branch change and upstream setup
       std::string changeBranchCommand = "git branch -D " + branchName + "; git fetch origin " + branchName + ":" + branchName + " && git checkout " + branchName + " --force";
-      std::string changeBranchConfigReboot = changeBranchCommand + " && " + setUpstream(branchName) + " && reboot";
-      // If the branch doesn't exist remotely or the change command fails, show the error message
-      if (!isBranchInRemote(branchName) || system(changeBranchConfigReboot.c_str()) != 0) ConfirmationDialog::alert(errorMessage, this);
+      if (system((changeBranchCommand + " && " + setUpstream(branchName) + " && reboot").c_str()) != 0) ConfirmationDialog::alert(errorMessage, this);
     }
   }
 
