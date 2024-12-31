@@ -42,7 +42,7 @@ def create_can_steer_command(packer, steer, steer_req, wheel_touch_warning, whee
     "LKAS_ENGAGED1": steer_req,
     "LKAS_LINE_ACTIVE": steer_req,
     "STEER_CMD": abs(steer) if steer_req else 0,
-    "STEER_DIR": int(steer <= 0),
+    "STEER_DIR": steer <= 0,
     "COUNTER": raw_cnt,
     # Disable steering vibration for LDW if LKS set to Warn Only mode and Tactile feedback type
     "LKS_LDW": 0 if (not lks_aux and lks_tactile and not enabled) else stock_ldw,
@@ -63,7 +63,7 @@ def create_can_steer_command(packer, steer, steer_req, wheel_touch_warning, whee
 
 def create_hud(packer, steer, steer_req, ldw, rlane, llane):
   """Creates a CAN message for the Proton LKA Steer Command."""
-  steer_dir = steer >= 0
+  steer_dir = steer <= 0
   values = {
     "LANE_DEPARTURE_AUDIO_RIGHT": ldw and not steer_dir,
     "LANE_DEPARTURE_AUDIO_LEFT": ldw and steer_dir,

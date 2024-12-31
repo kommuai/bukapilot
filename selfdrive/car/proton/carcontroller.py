@@ -81,7 +81,7 @@ class CarController():
         and CS.stock_ldp_cmd > 0:
       steer_dir = -1 if CS.steer_dir else 1
       # Limit the value to the maximum value of the stock command and apply direction
-      new_steer = min(CS.stock_ldp_cmd, 74) * steer_dir
+      new_steer = min(CS.stock_ldp_cmd, 299) * steer_dir
       lat_active = True
 
     apply_steer = apply_proton_steer_torque_limits(new_steer, self.last_steer, 0, self.params)
