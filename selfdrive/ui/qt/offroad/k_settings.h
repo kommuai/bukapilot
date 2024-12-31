@@ -163,8 +163,12 @@ private:
   void confirmAndChangeBranch(const std::string& branchName) {
     if (ConfirmationDialog::confirm("Are you sure to Change Branch?\nAny unsaved changes will be lost.\n\nReboot required, please wait.", this)) {
       QString errorMessage = "Branch " + QString::fromStdString(branchName) + " not found.\n\nPlease make sure the branch name is correct and the device is connected to the Internet.";
-      std::string changeBranchCommand = "git branch -D " + branchName + "; git fetch origin " + branchName + ":" + branchName + " && git checkout " + branchName + " --force";
-      if (system((changeBranchCommand + " && " + setUpstream(branchName) + " && reboot").c_str()) != 0) ConfirmationDialog::alert(errorMessage, this);
+      std::string changeBranchCommand =
+        "git branch -D " + branchName + "; "
+        + "git fetch origin " + branchName + ":" + branchName + " || exit 1; "
+        + "git checkout " + branchName + " --force && "
+        + setUpstream(branchName) + " && reboot";
+      if (system(changeBranchCommand.c_str()) != 0) ConfirmationDialog::alert(errorMessage, this);
     }
   }
 
