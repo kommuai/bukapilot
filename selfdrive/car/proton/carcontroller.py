@@ -48,7 +48,6 @@ class CarController():
   def __init__(self, dbc_name, CP, VM):
     self.last_steer = 0
     self.steer_rate_limited = False
-    self.steering_direction = False
     self.params = CarControllerParams(CP)
     self.packer = CANPacker(DBC[CP.carFingerprint]['pt'])
     self.disable_radar = Params().get_bool("DisableRadar")
@@ -74,18 +73,17 @@ class CarController():
 
     # steer
     new_steer = int(round(actuators.steer * self.params.STEER_MAX))
+    apply_steer = apply_proton_steer_torque_limits(new_steer, self.last_steer, 0, self.params)
+    self.steer_rate_limited = (new_steer != apply_steer) and (apply_steer != 0)
 
     # stock Lane Departure Prevention (blue line, LKS Auxiliary mode)
     if not enabled and not lat_active and not (CS.stock_ldp_left and CS.stock_ldp_right) \
         and ((CS.stock_ldp_left and not CS.out.leftBlinker) or (CS.stock_ldp_right and not CS.out.rightBlinker)) \
         and CS.stock_ldp_cmd > 0:
       steer_dir = -1 if CS.steer_dir else 1
-      # Limit the value to the maximum value of the stock command and apply direction
-      new_steer = min(CS.stock_ldp_cmd, 299) * steer_dir
-      lat_active = True
-
-    apply_steer = apply_proton_steer_torque_limits(new_steer, self.last_steer, 0, self.params)
-    self.steer_rate_limited = (new_steer != apply_steer) and (apply_steer != 0)
+      ldp_cmd = int(CS.stock_ldp_cmd / 2) &~1 # Ensure LSB 0 for 11-bit cmd and divide by 2
+      apply_steer = ldp_cmd * steer_dir
+      lat_active, self.steer_rate_limited = True, False
 
     # CAN controlled lateral running at 50hz
     if (frame % 2) == 0:
