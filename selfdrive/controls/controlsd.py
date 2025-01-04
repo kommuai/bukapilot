@@ -29,10 +29,9 @@ from selfdrive.hardware import HARDWARE, TICI, EON
 from selfdrive.manager.process_config import managed_processes
 from selfdrive.controls.lib.desire_helper import LANE_CHANGE_SPEED_MIN
 
-SOFT_DISABLE_TIME = 3 # seconds
+SOFT_DISABLE_TIME = 3  # seconds
 LDW_MIN_SPEED = 31 * CV.MPH_TO_MS
 LANE_DEPARTURE_THRESHOLD = 0.01
-TIME_THRESHOLD = 2.0  # Time threshold for recent blinker and steer events (in seconds)
 
 REPLAY = "REPLAY" in os.environ
 SIMULATION = "SIMULATION" in os.environ
@@ -59,23 +58,18 @@ IGNORED_SAFETY_MODES = [SafetyModel.silent, SafetyModel.noOutput]
 CSID_MAP = {"0": EventName.roadCameraError, "1": EventName.wideRoadCameraError, "2": EventName.driverCameraError}
 
 class Controls:
-
   def time_diff(self, frame_type):
    return (self.sm.frame - frame_type) * DT_CTRL
 
   def reduce_steer(self, steer, steeringAngle, CS, resume_diff):
-    end_time = 1.75   # The time where the steering becomes 100% again
+    end_time = 1.75 # The time where the steering becomes 100% again
     if resume_diff >= end_time:
       return steer, steeringAngle
 
-    start_val = 0.00  # The percentage of steering when steering starts again
-    rate = 0.003      # Higher value means steeper curve. When rate is 0, the curve becomes linear.
     # Non-linear increment equation
-    mul = min(1, start_val + (1 - start_val) * ((resume_diff / end_time) ** (1-rate)))
+    rate = 0.003    # Higher value means steeper curve. When rate is 0, the curve becomes linear.
+    mul = min(1, (resume_diff / end_time) ** (1-rate))
     return steer * mul, (steeringAngle - CS.steeringAngleDeg) * mul + CS.steeringAngleDeg
-
-  def is_one_blinker(self, CS):
-    return CS.leftBlinker != CS.rightBlinker
 
   def __init__(self, sm=None, pm=None, can_sock=None):
     config_realtime_process(4 if TICI else 3, Priority.CTRL_HIGH)
@@ -158,7 +152,6 @@ class Controls:
     elif self.CP.lateralTuning.which() == 'lqr':
       self.LaC = LatControlLQR(self.CP, self.CI)
 
-    self.laneActive = False
     self.initialized = False
     self.state = State.disabled
     self.enabled = False
@@ -171,8 +164,6 @@ class Controls:
     self.cruise_mismatch_counter = 0
     self.can_rcv_error_counter = 0
     self.last_blinker_frame = 0
-    self.last_steer_resume_frame = 0
-    self.steer_resumed = False # Resume status for checking the last steering resume frame
     self.distance_traveled = 0
     self.last_functional_fan_frame = 0
     self.events_prev = []
@@ -180,10 +171,13 @@ class Controls:
     self.logged_comm_issue = False
     self.button_timers = {ButtonEvent.Type.decelCruise: 0, ButtonEvent.Type.accelCruise: 0}
     self.last_actuators = car.CarControl.Actuators.new_message()
-    self.blinker_below_lane_change_speed = False # Check if blinker was last on below ALC speed
+    self.lat_active = False
+    self.last_steer_resume_frame = 0
+    self.steer_resumed = False                    # Resume status for checking the last steering resume frame
+    self.blinker_below_lane_change_speed = False  # Check if blinker was last on below ALC speed
     self.prev_one_blinker = False
-    self.alc_speed_below = False # If ALC was doing lane change when speed changed to below min speed
-    self.prev_enough_lane_change_speed = False # If the previous speed was enough for ALC
+    self.alc_speed_below = False                  # If ALC was doing lane change when speed changed to below min speed
+    self.prev_enough_lane_change_speed = False    # If the previous speed was enough for ALC
 
     # TODO: no longer necessary, aside from process replay
     self.sm['liveParameters'].valid = True
@@ -207,12 +201,6 @@ class Controls:
     # controlsd is driven by can recv, expected at 100Hz
     self.rk = Ratekeeper(100, print_delay_threshold=None)
     self.prof = Profiler(False)  # off by default
-
-
-
-  def is_alc_active(self, CS):
-    return self.is_alc_enabled and self.active and \
-           (self.alc_speed_below or (CS.vEgo >= LANE_CHANGE_SPEED_MIN and not self.blinker_below_lane_change_speed))
 
   def update_events(self, CS):
     """Compute carEvents from carState"""
@@ -254,7 +242,7 @@ class Controls:
     # Alert if fan isn't spinning for 5 seconds
     if self.sm['peripheralState'].pandaType in (PandaType.uno, PandaType.dos):
       if self.sm['peripheralState'].fanSpeedRpm == 0 and self.sm['deviceState'].fanSpeedPercentDesired > 50:
-        if (self.sm.frame - self.last_functional_fan_frame) * DT_CTRL > 5.0:
+        if self.time_diff(self.last_functional_fan_frame) > 5.0:
           self.events.add(EventName.fanMalfunction)
       else:
         self.last_functional_fan_frame = self.sm.frame
@@ -266,23 +254,6 @@ class Controls:
         self.events.add(EventName.calibrationIncomplete)
       else:
         self.events.add(EventName.calibrationInvalid)
-
-    # Handle lane change events
-    lat_plan = self.sm['lateralPlan']
-    lc_state = lat_plan.laneChangeState
-
-    if self.is_alc_active(CS) and (lc_state != LaneChangeState.off or CS.vEgo >= LANE_CHANGE_SPEED_MIN) and not CS.lkaDisabled:
-      if self.is_one_blinker(CS) and ((CS.leftBlindspot and CS.leftBlinker) or (CS.rightBlindspot and CS.rightBlinker)):
-        self.events.add(EventName.laneChangeBlocked)
-
-      elif lc_state == LaneChangeState.preLaneChange:
-        if lat_plan.laneChangeDirection == LaneChangeDirection.left:
-          self.events.add(EventName.preLaneChangeLeft)
-        else:
-          self.events.add(EventName.preLaneChangeRight)
-
-      elif lc_state != LaneChangeState.off:
-        self.events.add(EventName.laneChange)
 
     if not CS.canValid:
       self.events.add(EventName.canError)
@@ -519,30 +490,50 @@ class Controls:
 
     lat_plan = self.sm['lateralPlan']
     long_plan = self.sm['longitudinalPlan']
+    lc_state = lat_plan.laneChangeState
 
     actuators = car.CarControl.Actuators.new_message()
     actuators.longControlState = self.LoC.long_control_state
 
-    # Check if blinker was on below lane change speed for ALC
+    # Assisted Lane Change and blinker checks
     below_lane_change_speed = CS.vEgo < LANE_CHANGE_SPEED_MIN
-    one_blinker = self.is_one_blinker(CS)
+    lane_change_speed_enough = not below_lane_change_speed
+    one_blinker = CS.leftBlinker != CS.rightBlinker
+
+    # Check if blinker was on below lane change speed for ALC
     if one_blinker:
       self.last_blinker_frame = self.sm.frame
-
-    if one_blinker and not self.prev_one_blinker:
-      self.blinker_below_lane_change_speed = below_lane_change_speed
-    elif not one_blinker:
+      if not self.prev_one_blinker:
+        self.blinker_below_lane_change_speed = below_lane_change_speed
+    else:
       self.blinker_below_lane_change_speed = False
     self.prev_one_blinker = one_blinker
 
     # Check if ALC was doing lane change when speed changed to below min speed
-    lc_state = lat_plan.laneChangeState
     if (self.prev_enough_lane_change_speed and below_lane_change_speed) and \
     lc_state in (LaneChangeState.laneChangeStarting, LaneChangeState.laneChangeFinishing):
       self.alc_speed_below = True
     elif not one_blinker and lc_state == LaneChangeState.off:
       self.alc_speed_below = False
-    self.prev_enough_lane_change_speed = not below_lane_change_speed
+    self.prev_enough_lane_change_speed = lane_change_speed_enough
+
+    # Check if ALC is active
+    is_alc_active = (self.is_alc_enabled and self.active and
+                    (self.alc_speed_below or (lane_change_speed_enough and not self.blinker_below_lane_change_speed)))
+
+    # Handle lane change events after ALC check
+    if is_alc_active and (lc_state != LaneChangeState.off or lane_change_speed_enough) and not CS.lkaDisabled:
+      if one_blinker and ((CS.leftBlindspot and CS.leftBlinker) or (CS.rightBlindspot and CS.rightBlinker)):
+        self.events.add(EventName.laneChangeBlocked)
+
+      elif lc_state == LaneChangeState.preLaneChange:
+        if lat_plan.laneChangeDirection == LaneChangeDirection.left:
+          self.events.add(EventName.preLaneChangeLeft)
+        else:
+          self.events.add(EventName.preLaneChangeRight)
+
+      elif lc_state != LaneChangeState.off:
+        self.events.add(EventName.laneChange)
 
     # State specific actions
     if not self.active:
@@ -555,12 +546,13 @@ class Controls:
       actuators.accel, actuators.speed = self.LoC.update(self.active, CS, self.CP, long_plan, pid_accel_limits)
 
       # Steering PID loop and lateral MPC
-      lat_active = self.active and not CS.steerWarning and not CS.steerError and CS.vEgo > self.CP.minSteerSpeed and self.laneActive
+      self.lat_active = self.active and not CS.steerWarning and not CS.steerError and CS.vEgo > self.CP.minSteerSpeed \
+                        and not (CS.lkaDisabled or CS.standstill or (one_blinker and not is_alc_active))
       desired_curvature, desired_curvature_rate = get_lag_adjusted_curvature(self.CP, CS.vEgo,
                                                                              lat_plan.psis,
                                                                              lat_plan.curvatures,
                                                                              lat_plan.curvatureRates)
-      actuators.steer, actuators.steeringAngleDeg, lac_log = self.LaC.update(lat_active, CS, self.CP, self.VM, params, self.last_actuators,
+      actuators.steer, actuators.steeringAngleDeg, lac_log = self.LaC.update(self.lat_active, CS, self.CP, self.VM, params, self.last_actuators,
                                                                              desired_curvature, desired_curvature_rate)
     else:
       lac_log = log.ControlsState.LateralDebugState.new_message()
@@ -576,11 +568,11 @@ class Controls:
         lac_log.output = steer
         lac_log.saturated = abs(steer) >= 0.9
 
-    if self.is_alc_enabled and self.active and one_blinker and not (lat_active or CS.lkaDisabled or CS.standstill):
+    if self.is_alc_enabled and self.active and one_blinker and not (self.lat_active or CS.lkaDisabled or CS.standstill):
       self.events.add(EventName.belowLaneChangeSpeed)
 
-    # If steer not active or standstill
-    if not lat_active or CS.standstill:
+    # If steer not active
+    if not self.lat_active:
       self.steer_resumed = False
     # If steer resume
     elif not self.steer_resumed:
@@ -588,7 +580,7 @@ class Controls:
       self.last_steer_resume_frame = self.sm.frame
 
     resume_diff = self.time_diff(self.last_steer_resume_frame)
-    recent_steer_resume = resume_diff < TIME_THRESHOLD
+    recent_steer_resume = resume_diff < 2.0
 
     # Reduce steering after resume
     if recent_steer_resume:
@@ -604,7 +596,7 @@ class Controls:
         right_deviation = actuators.steer < 0 and dpath_points[0] > 0.20
 
         # Condition to show steering limit warning
-        if (left_deviation or right_deviation) and lat_active and not recent_steer_resume:
+        if (left_deviation or right_deviation) and self.lat_active and not recent_steer_resume:
           self.events.add(EventName.steerSaturated)
 
     # Ensure no NaNs/Infs
@@ -636,7 +628,7 @@ class Controls:
     CC.enabled = self.enabled
     CC.active = self.active
     CC.actuators = actuators
-    CC.laneActive = self.laneActive = not (CS.lkaDisabled or CS.standstill or (self.is_one_blinker(CS) and not self.is_alc_active(CS)))
+    CC.laneActive = self.lat_active
 
     orientation_value = self.sm['liveLocationKalman'].orientationNED.value
     if len(orientation_value) > 2:
@@ -657,9 +649,9 @@ class Controls:
     hudControl.leftLaneVisible = True
 
     ldw_allowed = (self.is_ldw_enabled and CS.vEgo > LDW_MIN_SPEED
-                  and (not self.active or not CC.laneActive)
+                  and (not self.active or not self.lat_active)
                   and self.sm['liveCalibration'].calStatus == Calibration.CALIBRATED
-                  and self.time_diff(self.last_blinker_frame) >= TIME_THRESHOLD)
+                  and self.time_diff(self.last_blinker_frame) >= 5.0) # 5s blinker cooldown
 
     model_v2 = self.sm['modelV2']
     desire_prediction = model_v2.meta.desirePrediction
@@ -799,7 +791,6 @@ class Controls:
 
     # Compute actuators (runs PID loops and lateral MPC)
     actuators, lac_log = self.state_control(CS)
-
     self.prof.checkpoint("State Control")
 
     # Publish data
@@ -817,7 +808,6 @@ class Controls:
 def main(sm=None, pm=None, logcan=None):
   controls = Controls(sm, pm, logcan)
   controls.controlsd_thread()
-
 
 if __name__ == "__main__":
   main()
