@@ -38,6 +38,26 @@ class Dir(Enum):
   RIGHT = auto()
 
 class DesireHelper:
+  def is_road_edge_blinker(self, carstate, md):
+    if md is None: return False
+
+    # road_edge_stat calculation adapted from
+    # https://github.com/kisapilot/openpilot/blob/93c8046/selfdrive/controls/lib/desire_helper.py
+
+    # WARNING: No threshold can determine all road edges correctly. Driver check is still required.
+    edge_threshold = 0.47  # Higher value filters out low-confidence road edges
+    left_edge_prob = max(0.0, min(1.0 - md.roadEdgeStds[0], 1.0))
+    right_edge_prob = max(0.0, min(1.0 - md.roadEdgeStds[1], 1.0))
+    left_nearside_prob, right_nearside_prob = md.laneLineProbs[0], md.laneLineProbs[3]
+
+    if right_edge_prob > edge_threshold and right_nearside_prob < 0.2 and left_nearside_prob >= right_nearside_prob:
+      road_edge_stat = Dir.RIGHT
+    elif left_edge_prob > edge_threshold and left_nearside_prob < 0.2 and right_nearside_prob >= left_nearside_prob:
+      road_edge_stat = Dir.LEFT
+    else:
+      return False
+    return (carstate.leftBlinker and road_edge_stat == Dir.LEFT) or (carstate.rightBlinker and road_edge_stat == Dir.RIGHT)
+
   def __init__(self):
     self.lane_change_state = LaneChangeState.off
     self.lane_change_direction = LaneChangeDirection.none
@@ -52,7 +72,7 @@ class DesireHelper:
     self.is_alc_enabled = Params().get_bool("IsAlcEnabled")
     self.blinker_below_lane_change_speed = False
 
-  def update(self, carstate, active, lane_change_prob):
+  def update(self, carstate, active, lane_change_prob, md=None):
     current_time = time.monotonic()
     one_blinker = carstate.leftBlinker != carstate.rightBlinker
     below_lane_change_speed = carstate.vEgo < LANE_CHANGE_SPEED_MIN
@@ -92,7 +112,8 @@ class DesireHelper:
 
       # LaneChangeState.off
       if self.lane_change_state == LaneChangeState.off and one_blinker and blinker_length_enough \
-         and not below_lane_change_speed and not wait_for_delay and not self.blinker_below_lane_change_speed:
+         and not below_lane_change_speed and not wait_for_delay and not self.blinker_below_lane_change_speed \
+         and not self.is_road_edge_blinker(carstate, md):
         self.lane_change_state = LaneChangeState.preLaneChange
         self.lane_change_ll_prob = 1.0
 
@@ -126,7 +147,7 @@ class DesireHelper:
 
         if self.lane_change_ll_prob > 0.99:
           self.lane_change_direction = LaneChangeDirection.none
-          if one_blinker and not wait_for_delay:
+          if one_blinker and not wait_for_delay and not self.is_road_edge_blinker(carstate, md):
             self.lane_change_state = LaneChangeState.preLaneChange
           else:
             self.lane_change_state = LaneChangeState.off
