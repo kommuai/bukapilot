@@ -86,7 +86,7 @@ class CarController():
       lat_active, self.steer_rate_limited = True, False
 
     # CAN controlled lateral running at 50hz
-    if (frame % 2) == 0:
+    if (frame % 2) == 0 and (CS.lks_audio is not None and CS.lks_tactile is not None): # Ensure LKS values are read
       can_sends.append(create_can_steer_command(self.packer, apply_steer, lat_active, \
       CS.hand_on_wheel_warning and CS.is_icc_on, CS.hand_on_wheel_warning_2 and CS.is_icc_on, \
       (frame/2) % 16, CS.lks_aux, CS.lks_audio, CS.lks_tactile, CS.lks_enable_main, CS.stock_ldw, enabled))
