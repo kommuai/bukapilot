@@ -292,8 +292,7 @@ class CarInterface(CarInterfaceBase):
                          c.actuators, c.cruiseControl.cancel,
                          hud_control.visualAlert, hud_control.leftLaneVisible,
                          hud_control.rightLaneVisible, hud_control.leadVisible,
-                         hud_control.leftLaneDepart, hud_control.rightLaneDepart,
-                         c.laneActive)
+                         hud_control.leftLaneDepart, hud_control.rightLaneDepart)
 
     self.frame += 1
     return ret

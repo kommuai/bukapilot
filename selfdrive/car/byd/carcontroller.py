@@ -34,7 +34,7 @@ class CarController():
     self.last_sng_stop_frame = 0
     self.is_sng_stop = False
 
-  def update(self, enabled, CS, frame, actuators, lead_visible, rlane_visible, llane_visible, pcm_cancel, ldw, laneActive):
+  def update(self, enabled, CS, frame, actuators, lead_visible, rlane_visible, llane_visible, pcm_cancel, ldw):
     can_sends = []
 
     # steer
@@ -55,7 +55,7 @@ class CarController():
 
       lat_active = enabled and abs(CS.out.steeringAngleDeg) < 90 and self.lka_active and not CS.out.standstill # temporary hardcode 60 because if 90 degrees it will fault
       brake_hold = False
-      can_sends.append(create_can_steer_command(self.packer, apply_angle, lat_active and laneActive, CS.out.standstill, (frame/2) % 16))
+      can_sends.append(create_can_steer_command(self.packer, apply_angle, lat_active, CS.out.standstill, (frame/2) % 16))
 #      can_sends.append(create_accel_command(self.packer, actuators.accel, enabled, brake_hold, (frame/2) % 16))
       can_sends.append(create_lkas_hud(self.packer, enabled, CS.lss_state, CS.lss_alert, CS.tsr, CS.abh, CS.passthrough, CS.HMA, CS.pt2, CS.pt3, CS.pt4, CS.pt5, self.lka_active, frame % 16))
 

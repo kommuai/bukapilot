@@ -59,9 +59,9 @@ class CarController():
     f = Features()
     self.mads = f.has("StockAcc")
 
-  def update(self, enabled, CS, frame, actuators, lead_visible, rlane_visible, llane_visible, pcm_cancel, ldw, laneActive):
+  def update(self, enabled, CS, frame, actuators, lead_visible, rlane_visible, llane_visible, pcm_cancel, ldw):
     can_sends = []
-    lat_active = enabled and laneActive
+    lat_active = enabled
     # tester present - w/ no response (keeps radar disabled)
     if CS.CP.openpilotLongitudinalControl and self.disable_radar:
       if (frame % 10) == 0:

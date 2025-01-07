@@ -71,10 +71,10 @@ class CarController():
     self.force_use_stock_acc = f.has("StockAcc")
 
   def update(self, enabled, active, CS, frame, actuators, pcm_cancel_cmd, hud_alert,
-             left_line, right_line, lead, left_lane_depart, right_lane_depart, laneActive):
+             left_line, right_line, lead, left_lane_depart, right_lane_depart):
 
     ts = frame * DT_CTRL
-    lat_active = active and laneActive and abs(CS.out.steeringTorque) < MAX_USER_TORQUE
+    lat_active = active and abs(CS.out.steeringTorque) < MAX_USER_TORQUE
 
     # gas and brake
     if CS.CP.enableGasInterceptor and active:
