@@ -178,6 +178,7 @@ class Controls:
     self.prev_one_blinker = False
     self.alc_speed_below = False                  # If ALC was doing lane change when speed changed to below min speed
     self.prev_enough_lane_change_speed = False    # If the previous speed was enough for ALC
+    self.blinker_has_lane_change = False          # If there was any ALC lane change while the blinker was on
 
     # TODO: no longer necessary, aside from process replay
     self.sm['liveParameters'].valid = True
@@ -491,6 +492,7 @@ class Controls:
     lat_plan = self.sm['lateralPlan']
     long_plan = self.sm['longitudinalPlan']
     lc_state = lat_plan.laneChangeState
+    changing_lanes = lc_state in (LaneChangeState.laneChangeStarting, LaneChangeState.laneChangeFinishing)
 
     actuators = car.CarControl.Actuators.new_message()
     actuators.longControlState = self.LoC.long_control_state
@@ -503,17 +505,21 @@ class Controls:
     # Check if blinker was on below lane change speed for ALC
     if one_blinker:
       self.last_blinker_frame = self.sm.frame
+      if changing_lanes: # If there is any ALC lane change while blinker is on
+        self.blinker_has_lane_change = True
       if not self.prev_one_blinker:
         self.blinker_below_lane_change_speed = below_lane_change_speed
     else:
       self.blinker_below_lane_change_speed = False
+
+    if not self.active or not one_blinker: # If not active, reset check for lane change even if blinker is on
+      self.blinker_has_lane_change = False
     self.prev_one_blinker = one_blinker
 
-    # Check if ALC was doing lane change when speed changed to below min speed
-    if (self.prev_enough_lane_change_speed and below_lane_change_speed) and \
-    lc_state in (LaneChangeState.laneChangeStarting, LaneChangeState.laneChangeFinishing):
+    # Check if there was any ALC lane change while blinker on/ALC was doing lane change, when speed changed to below min speed
+    if (self.prev_enough_lane_change_speed and below_lane_change_speed) and (self.blinker_has_lane_change or changing_lanes):
       self.alc_speed_below = True
-    elif not one_blinker and lc_state == LaneChangeState.off:
+    elif not self.active or (not one_blinker and lc_state == LaneChangeState.off):
       self.alc_speed_below = False
     self.prev_enough_lane_change_speed = lane_change_speed_enough
 
