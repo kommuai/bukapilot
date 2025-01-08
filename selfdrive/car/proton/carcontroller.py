@@ -76,13 +76,12 @@ class CarController():
     apply_steer = apply_proton_steer_torque_limits(new_steer, self.last_steer, 0, self.params)
     self.steer_rate_limited = (new_steer != apply_steer) and (apply_steer != 0)
 
-    # stock Lane Departure Prevention (blue line, LKS Auxiliary mode)
-    if not enabled and not lat_active and not (CS.stock_ldp_left and CS.stock_ldp_right) \
-        and ((CS.stock_ldp_left and not CS.out.leftBlinker) or (CS.stock_ldp_right and not CS.out.rightBlinker)) \
-        and CS.stock_ldp_cmd > 0:
-      steer_dir = -1 if CS.steer_dir else 1
-      ldp_cmd = int(CS.stock_ldp_cmd) &~1 # Ensure LSB 0 for 11-bit cmd
-      apply_steer = ldp_cmd * steer_dir
+    # Stock Lane Departure Prevention / Centering Control (LKS Auxiliary / Blue line)
+    if not enabled and CS.stock_ldp_cmd > 0 and \
+        not ((CS.out.leftBlinker and CS.stock_ldp_left) or (CS.out.rightBlinker and CS.stock_ldp_right)):
+      apply_stock_dir = -1 if CS.steer_dir else 1
+      stock_cmd = int(CS.stock_ldp_cmd) &~1 # Ensure LSB 0 for 11-bit cmd
+      apply_steer = stock_cmd * apply_stock_dir
       lat_active, self.steer_rate_limited = True, False
 
     # CAN controlled lateral running at 50hz
