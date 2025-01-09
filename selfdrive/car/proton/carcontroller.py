@@ -8,8 +8,8 @@ from common.numpy_fast import clip, interp
 from common.realtime import DT_CTRL
 from common.params import Params
 import cereal.messaging as messaging
-
 from common.features import Features
+import time
 
 RES_INTERVAL = 550
 RES_LEN = 2 # Press resume for 2 frames
@@ -55,6 +55,8 @@ class CarController():
     self.temp_lead_dist = 0       # The last lead distance before standstill
     self.last_res_press_frame = 0 # The frame where the last resume press was finished
     self.resume_counter = 0       # Counter for tracking the progress of a resume press
+    self.last_steer_disable = 0         # The time of last steer disable
+    self.prev_steer_enabled = False
 
     f = Features()
     self.mads = f.has("StockAcc")
@@ -77,18 +79,28 @@ class CarController():
     self.steer_rate_limited = (new_steer != apply_steer) and (apply_steer != 0)
 
     # Stock Lane Departure Prevention / Centering Control (LKS Auxiliary / Blue line)
-    if not enabled and CS.stock_ldp_cmd > 0 and \
+    steer_enabled = enabled and not CS.out.lkaDisabled
+    if not steer_enabled and self.prev_steer_enabled:
+      self.last_steer_disable = time.monotonic()
+    self.prev_steer_enabled = steer_enabled
+
+    stock_cmd = CS.stock_ldp_cmd
+    if not steer_enabled and stock_cmd > 0 and \
         not ((CS.out.leftBlinker and CS.stock_ldp_left) or (CS.out.rightBlinker and CS.stock_ldp_right)):
       apply_stock_dir = -1 if CS.steer_dir else 1
-      stock_cmd = int(CS.stock_ldp_cmd) &~1 # Ensure LSB 0 for 11-bit cmd
-      apply_steer = stock_cmd * apply_stock_dir
+
+      # After disable, keep steering at 0 for the first 0.55 seconds, then increase from 0% to 100% over increase_duration.
+      increase_duration = 0.5 # Duration in seconds for steering torque to increase from 0% to 100%
+      disable_diff = time.monotonic() - self.last_steer_disable
+      mul = max(0, min((disable_diff - 0.55) / increase_duration, 1))
+      apply_steer = int(round(stock_cmd * apply_stock_dir * mul)) &~1 # Ensure LSB 0 for 11-bit cmd
       lat_active, self.steer_rate_limited = True, False
 
     # CAN controlled lateral running at 50hz
     if (frame % 2) == 0 and (CS.lks_audio is not None and CS.lks_tactile is not None): # Ensure LKS values are read
       can_sends.append(create_can_steer_command(self.packer, apply_steer, lat_active, \
       CS.hand_on_wheel_warning and CS.is_icc_on, CS.hand_on_wheel_warning_2 and CS.is_icc_on, \
-      (frame/2) % 16, CS.lks_aux, CS.lks_audio, CS.lks_tactile, CS.lks_assist_mode, CS.lka_enable, CS.stock_ldw, enabled))
+      (frame/2) % 16, CS.lks_aux, CS.lks_audio, CS.lks_tactile, CS.lks_assist_mode, CS.lka_enable, CS.stock_ldw, steer_enabled))
 
       #can_sends.append(create_hud(self.packer, apply_steer, enabled, ldw, rlane_visible, llane_visible))
       #can_sends.append(create_lead_detect(self.packer, lead_visible, enabled))
