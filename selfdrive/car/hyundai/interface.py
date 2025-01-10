@@ -25,10 +25,9 @@ class CarInterface(CarInterfaceBase):
     ret.safetyConfigs = [get_safety_config(car.CarParams.SafetyModel.hyundai, 0)]
     ret.radarOffCan = RADAR_START_ADDR not in fingerprint[1]
 
-    # WARNING: disabling radar also disables AEB (and we show the same warning on the instrument cluster as if you manually disabled AEB)
-    ret.openpilotLongitudinalControl = Params().get_bool("DisableRadar") and (candidate not in LEGACY_SAFETY_MODE_CAR)
+    ret.openpilotLongitudinalControl = True
 
-    ret.pcmCruise = not ret.openpilotLongitudinalControl
+    ret.pcmCruise = True
 
     ret.steerActuatorDelay = 0.1  # Default delay
     ret.steerRateCost = 0.5
@@ -275,15 +274,11 @@ class CarInterface(CarInterfaceBase):
 
     ret.enableBsm = 0x58b in fingerprint[0]
 
-    if ret.openpilotLongitudinalControl:
-      ret.safetyConfigs[0].safetyParam |= Panda.FLAG_HYUNDAI_LONG
-
     return ret
 
   @staticmethod
   def init(CP, logcan, sendcan):
-    if CP.openpilotLongitudinalControl:
-      disable_ecu(logcan, sendcan, addr=0x7d0, com_cont_req=b'\x28\x83\x01')
+    pass
 
   def update(self, c, can_strings):
     self.cp.update_strings(can_strings)
@@ -300,37 +295,6 @@ class CarInterface(CarInterfaceBase):
     if self.CS.park_brake:
       events.add(EventName.parkBrake)
 
-    if self.CS.CP.openpilotLongitudinalControl:
-      buttonEvents = []
-
-      if self.CS.cruise_buttons != self.CS.prev_cruise_buttons:
-        be = car.CarState.ButtonEvent.new_message()
-        be.type = ButtonType.unknown
-        if self.CS.cruise_buttons != 0:
-          be.pressed = True
-          but = self.CS.cruise_buttons
-        else:
-          be.pressed = False
-          but = self.CS.prev_cruise_buttons
-        if but == Buttons.RES_ACCEL:
-          be.type = ButtonType.accelCruise
-        elif but == Buttons.SET_DECEL:
-          be.type = ButtonType.decelCruise
-        elif but == Buttons.GAP_DIST:
-          be.type = ButtonType.gapAdjustCruise
-        elif but == Buttons.CANCEL:
-          be.type = ButtonType.cancel
-        buttonEvents.append(be)
-
-        ret.buttonEvents = buttonEvents
-
-        for b in ret.buttonEvents:
-          # do enable on both accel and decel buttons
-          if b.type in (ButtonType.accelCruise, ButtonType.decelCruise) and not b.pressed:
-            events.add(EventName.buttonEnable)
-          # do disable on button down
-          if b.type == ButtonType.cancel and b.pressed:
-            events.add(EventName.buttonCancel)
 
     # low speed steer alert hysteresis logic (only for cars with steer cut off above 10 m/s)
     self.operational_speed = False
