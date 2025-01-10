@@ -101,39 +101,8 @@ def create_bosch_supplemental_1(packer, car_fingerprint, idx):
 def create_ui_commands(packer, CP, pcm_speed, hud, is_metric, idx, stock_hud):
   commands = []
   bus_pt = get_pt_bus(CP.carFingerprint)
-  radar_disabled = CP.carFingerprint in HONDA_BOSCH and CP.openpilotLongitudinalControl
+  radar_disabled = False
   bus_lkas = get_lkas_cmd_bus(CP.carFingerprint, radar_disabled)
-
-  if CP.openpilotLongitudinalControl:
-    if CP.carFingerprint in HONDA_BOSCH:
-      acc_hud_values = {
-        'CRUISE_SPEED': hud.v_cruise,
-        'ENABLE_MINI_CAR': 1,
-        'SET_TO_1': 1,
-        'HUD_LEAD': hud.car,
-        'HUD_DISTANCE': 3,
-        'ACC_ON': hud.car != 0,
-        'SET_TO_X1': 1,
-        'IMPERIAL_UNIT': int(not is_metric),
-        'FCM_OFF': 1,
-      }
-    else:
-      acc_hud_values = {
-        'PCM_SPEED': pcm_speed * CV.MS_TO_KPH,
-        'PCM_GAS': hud.pcm_accel,
-        'CRUISE_SPEED': hud.v_cruise,
-        'ENABLE_MINI_CAR': 1,
-        'HUD_LEAD': hud.car,
-        'HUD_DISTANCE': 3,    # max distance setting on display
-        'IMPERIAL_UNIT': int(not is_metric),
-        'SET_ME_X01_2': 1,
-        'SET_ME_X01': 1,
-        "FCM_OFF": stock_hud["FCM_OFF"],
-        "FCM_OFF_2": stock_hud["FCM_OFF_2"],
-        "FCM_PROBLEM": stock_hud["FCM_PROBLEM"],
-        "ICONS": stock_hud["ICONS"],
-      }
-    commands.append(packer.make_can_msg("ACC_HUD", bus_pt, acc_hud_values, idx))
 
   # Todo: Right now Honda City Malaysia can work by not blocking 0x33d (LKAS_HUD) but it faults once awhile.
   # If we do block it, it keeps faulting. For some reason, 0x33d has a constant value of b'\x00\x00\x80\x48\x00'
@@ -149,7 +118,7 @@ def create_ui_commands(packer, CP, pcm_speed, hud, is_metric, idx, stock_hud):
   if not (CP.flags & HondaFlags.BOSCH_EXT_HUD):
     lkas_hud_values['SET_ME_X48'] = 0x48
 
-  if CP.flags & HondaFlags.BOSCH_EXT_HUD and not CP.openpilotLongitudinalControl:
+  if CP.flags & HondaFlags.BOSCH_EXT_HUD:
     commands.append(packer.make_can_msg('LKAS_HUD_A', bus_lkas, lkas_hud_values, idx))
     commands.append(packer.make_can_msg('LKAS_HUD_B', bus_lkas, lkas_hud_values, idx))
   else:
