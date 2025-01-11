@@ -1,15 +1,11 @@
-from cereal import car
-from selfdrive.car import make_can_msg
-from selfdrive.car.byd.bydcan import create_can_steer_command, create_accel_command, send_buttons, create_lkas_hud
-from selfdrive.car.byd.values import CAR, DBC
+from selfdrive.car.byd.bydcan import create_can_steer_command, send_buttons, create_lkas_hud
+from selfdrive.car.byd.values import DBC
 from opendbc.can.packer import CANPacker
 from common.numpy_fast import clip
 
-import cereal.messaging as messaging
-
-RES_INTERVAL = 130
+RES_INTERVAL = 125
+SNG_WAIT = 350
 RES_LEN = 3
-SNG_WAIT = 500
 
 def apply_byd_steer_angle_limits(apply_angle, actual_angle, v_ego, LIMITS):
   # pick angle rate limits based on wind up/down
@@ -29,10 +25,10 @@ class CarController():
     self.packer = CANPacker(DBC[CP.carFingerprint]['pt'])
     self.steer_rate_limited = False
     self.lka_active = False
-    self.last_res_press_frame = 0 # The frame where the last resume press was finished
+    self.sng_next_press_frame = 0 # The frame where the next resume press is allowed
     self.resume_counter = 0       # Counter for tracking the progress of a resume press
-    self.last_sng_stop_frame = 0
-    self.is_sng_stop = False
+    self.is_sng_check = False
+    self.lead_valid = False
 
   def update(self, enabled, CS, frame, actuators, lead_visible, rlane_visible, llane_visible, pcm_cancel, ldw):
     can_sends = []
@@ -59,32 +55,30 @@ class CarController():
 #      can_sends.append(create_accel_command(self.packer, actuators.accel, enabled, brake_hold, (frame/2) % 16))
       can_sends.append(create_lkas_hud(self.packer, enabled, CS.lss_state, CS.lss_alert, CS.tsr, CS.abh, CS.passthrough, CS.HMA, CS.pt2, CS.pt3, CS.pt4, CS.pt5, self.lka_active, frame % 16))
 
-    # For resume
+    # For SNG auto resume
+    auto_resume_allowed = enabled and (CS.out.standstill or CS.out.cruiseState.standstill)
 
-    # If SNG stop
-    if not self.is_sng_stop and (CS.out.standstill or CS.out.cruiseState.standstill):
-      self.is_sng_stop = True
-      self.last_sng_stop_frame = frame
-    # If SNG moved
-    if self.is_sng_stop and not (CS.out.standstill or CS.out.cruiseState.standstill):
-      self.is_sng_stop = False
+    if not auto_resume_allowed:
+      self.is_sng_check = False
+    else:
+      self.lead_valid &= lead_visible
 
-    if (CS.out.standstill or CS.out.cruiseState.standstill) and enabled and \
-        self.resume_counter == 0 and frame > (self.last_res_press_frame + RES_INTERVAL) \
-        and frame > (self.last_sng_stop_frame + SNG_WAIT):
-      # Only start a new resume if the last one was finished, with an interval
-      self.resume_counter = 1 # Start a new resume press
+      if not self.is_sng_check:
+        # SNG auto resume check start
+        self.is_sng_check = True
+        self.lead_valid = lead_visible
+        self.sng_next_press_frame = frame + SNG_WAIT
+        self.resume_counter = 0
 
-    if self.resume_counter > 0 and self.resume_counter <= RES_LEN and \
-        (CS.out.standstill or CS.out.cruiseState.standstill):
-      # Send resume press signal
-      can_sends.append(send_buttons(self.packer, 1, (CS.counter_pcm_buttons + 1) % 16))
-      self.resume_counter += 1
+      elif (CS.res_btn_pressed or CS.out.gasPressed) or self.resume_counter >= RES_LEN:
+        # Manual press or auto resume finished
+        self.sng_next_press_frame = frame + RES_INTERVAL
+        self.resume_counter = 0
 
-    if self.resume_counter > RES_LEN or not (CS.out.standstill or CS.out.cruiseState.standstill):
-      # If resume press is finished or car is moving
-      self.last_res_press_frame = frame # Store the frame where last resume press was finished
-      self.resume_counter = 0 # Reset resume counter
+      elif self.lead_valid and frame > self.sng_next_press_frame:
+        # Send resume press signal
+        can_sends.append(send_buttons(self.packer, 1, (CS.counter_pcm_buttons + 1) % 16))
+        self.resume_counter += 1
 
     new_actuators = actuators.copy()
     new_actuators.steeringAngleDeg = apply_angle

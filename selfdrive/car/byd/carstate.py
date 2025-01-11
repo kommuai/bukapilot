@@ -26,6 +26,7 @@ class CarState(CarStateBase):
     self.pt4 = 0
     self.pt5 = 0
     self.lkas_rdy_btn = False
+    self.res_btn_pressed = False
 
   def update(self, cp):
     ret = car.CarState.new_message()
@@ -100,9 +101,10 @@ class CarState(CarStateBase):
 
     distance_val = int(cp.vl["ACC_HUD_ADAS"]['SET_DISTANCE'])
     ret.cruiseState.setDistance = self.parse_set_distance(self.set_distance_values.get(distance_val, None))
+    self.res_btn_pressed = cp.vl["PCM_BUTTONS"]["SET_BTN"] != 0 or cp.vl["PCM_BUTTONS"]["RES_BTN"] != 0
 
-    # engage and disengage logic, do we still need this?
-    if (cp.vl["PCM_BUTTONS"]["SET_BTN"] != 0 or cp.vl["PCM_BUTTONS"]["RES_BTN"] != 0) and not ret.brakePressed:
+    # engage and disengage logic
+    if self.res_btn_pressed and not ret.brakePressed:
       self.is_cruise_latch = True
 
     # byd speedCluster will follow wheelspeed if cruiseState is not available
