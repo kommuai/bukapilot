@@ -49,6 +49,7 @@ class CarState(CarStateBase):
     self.hand_on_wheel_warning_2 = False
     self.is_icc_on = False
     self.prev_angle = 0
+    self.res_btn_pressed = False
 
     f = Features()
     self.mads = f.has("StockAcc")
@@ -119,7 +120,8 @@ class CarState(CarStateBase):
     ret.steerError = False
     self.hand_on_wheel_warning = bool(cp.vl["ADAS_LKAS"]["HAND_ON_WHEEL_WARNING"])
     self.hand_on_wheel_warning_2 = bool(cp.vl["ADAS_LKAS"]["WHEEL_WARNING_CHIME"])
-    self.leadDistance = cp.vl["ADAS_LEAD_DETECT"]['LEAD_DISTANCE']
+    self.leadDistance = cp.vl["ADAS_LEAD_DETECT"]["LEAD_DISTANCE"]
+    self.hasAnyLead = bool(cp.vl["ADAS_LEAD_DETECT"]["IS_LEAD2"])
     self.is_icc_on = bool(cp.vl["PCM_BUTTONS"]["ICC_ON"])
     self.lka_enable = bool(cp.vl["ADAS_LKAS"]["LKA_ENABLE"])
     # If cruise mode is ICC, make bukapilot control steering so it won't disengage.
@@ -136,6 +138,7 @@ class CarState(CarStateBase):
 
     distance_val = int(cp.vl["PCM_BUTTONS"]['SET_DISTANCE'])
     ret.cruiseState.setDistance = self.parse_set_distance(self.set_distance_values.get(distance_val, None))
+    self.res_btn_pressed = bool(cp.vl["ACC_BUTTONS"]["RES_BUTTON"])
 
     # engage and disengage logic
     if self.mads:
@@ -216,7 +219,9 @@ class CarState(CarStateBase):
   def get_can_parser(CP):
     signals = [
       # sig_name, sig_address, default
+      ("RES_BUTTON", "ACC_BUTTONS", 0),
       ("LEAD_DISTANCE", "ADAS_LEAD_DETECT", 0.),
+      ("IS_LEAD2", "ADAS_LEAD_DETECT", 0),
       ("WHEELSPEED_F", "WHEEL_SPEED", 0.),
       ("WHEELSPEED_B", "WHEEL_SPEED", 0.),
       ("SET_DISTANCE", "PCM_BUTTONS", 0.),
