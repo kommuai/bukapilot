@@ -384,6 +384,25 @@ def fetch_update(wait_helper: WaitTimeHelper) -> bool:
 
   return new_version
 
+
+def check_git_saved():
+  try:
+    # Check for uncommitted changes in the working directory or staged changes
+    if subprocess.check_output(['git', 'diff']) or subprocess.check_output(['git', 'diff', '--cached']):
+      return False
+    try:
+      # Check for unpushed commits
+      cherry_output = subprocess.check_output(['git', 'cherry', '-v'])
+      if cherry_output:
+        return False
+    except subprocess.CalledProcessError:
+      return True
+    # If there are no uncommitted or unpushed changes, return True
+    return True
+  except subprocess.CalledProcessError:
+    return False
+
+
 MIN_DATE = datetime.datetime(year=2022, month=4, day=1)
 
 def main() -> None:
@@ -445,23 +464,6 @@ def main() -> None:
       wait_helper.sleep(30)
       cloudlog.info("not running updater, not offroad")
       continue
-
-    def check_git_saved():
-      try:
-        # Check for uncommitted changes in the working directory or staged changes
-        if subprocess.check_output(['git', 'diff']) or subprocess.check_output(['git', 'diff', '--cached']):
-          return False
-        try:
-          # Check for unpushed commits
-          cherry_output = subprocess.check_output(['git', 'cherry', '-v'])
-          if cherry_output:
-            return False
-        except subprocess.CalledProcessError:
-          return True
-        # If there are no uncommitted or unpushed changes, return True
-        return True
-      except subprocess.CalledProcessError:
-        return False
 
     saved = check_git_saved() or is_tested_branch()
     if not saved:
