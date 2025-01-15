@@ -328,6 +328,8 @@ void SoftwarePanel::updateLabels() {
   } else if (status == "unsavedChanges") {
     lastUpdate = "Changes unsaved, cannot update";
     allowed = true;
+  } else if (status == "waiting") {
+    allowed = true;
   } else if (status == "success") {
     lastUpdate = "Successful, reboot to apply update";
     btnText = "REBOOT";

@@ -465,9 +465,11 @@ def main() -> None:
       cloudlog.info("not running updater, not offroad")
       continue
 
-    saved = check_git_saved() or is_tested_branch()
+    saved = is_tested_branch() or check_git_saved()
     if not saved:
-      params.put("UpdateStatus", "unsavedChanges")
+      # If updater has not run for enough time, do not show unsaved
+      # Git saved can still be False with no changes if checked early
+      params.put("UpdateStatus", "unsavedChanges" if time.monotonic() > 65 else "waiting")
 
     # Attempt an update
     exception = None
