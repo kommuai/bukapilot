@@ -103,10 +103,6 @@ class CarState(CarStateBase):
     ret.cruiseState.setDistance = self.parse_set_distance(self.set_distance_values.get(distance_val, None))
     self.res_btn_pressed = cp.vl["PCM_BUTTONS"]["SET_BTN"] != 0 or cp.vl["PCM_BUTTONS"]["RES_BTN"] != 0
 
-    # engage and disengage logic
-    if self.res_btn_pressed and not ret.brakePressed:
-      self.is_cruise_latch = True
-
     # byd speedCluster will follow wheelspeed if cruiseState is not available
     if ret.cruiseState.available:
       ret.cruiseState.speedCluster = max(int(cp.vl["ACC_HUD_ADAS"]['SET_SPEED']), 30) * CV.KPH_TO_MS
@@ -117,13 +113,16 @@ class CarState(CarStateBase):
     ret.cruiseState.standstill = bool(cp.vl["ACC_CMD"]["STANDSTILL_STATE"])
     ret.cruiseState.nonAdaptive = False
 
+    # engage and disengage logic
+    if self.res_btn_pressed and (ret.brakePressed == ret.cruiseState.standstill):
+      self.is_cruise_latch = True
+
     # this can override the above engage disengage logic
     if bool(cp.vl["ACC_CMD"]["ACC_REQ_NOT_STANDSTILL"]):
       self.is_cruise_latch = True
     else:
       if not ret.cruiseState.standstill:
         self.is_cruise_latch = False
-
 
     stock_acc_on =  bool(cp.vl["ACC_CMD"]["ACC_CONTROLLABLE_AND_ON"])
     if not ret.cruiseState.available or ret.brakePressed or not stock_acc_on:
