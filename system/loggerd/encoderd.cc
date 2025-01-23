@@ -2,9 +2,12 @@
 
 #include "system/loggerd/loggerd.h"
 
-#if defined(QCOM2) || defined(RK3588)
+#if defined(QCOM2)
 #include "system/loggerd/encoder/v4l_encoder.h"
 #define Encoder V4LEncoder
+#elif defined(RK3588)
+#include "system/loggerd/encoder/mpp_encoder.h"
+#define Encoder MppEncoder
 #else
 #include "system/loggerd/encoder/ffmpeg_encoder.h"
 #define Encoder FfmpegEncoder

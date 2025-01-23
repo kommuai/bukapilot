@@ -2,7 +2,7 @@
 
 #include "common/swaglog.h"
 #include "system/camerad/cameras/camera_common.h"
-#include "system/camerad/cameras/camera_qcom2.h"
+#include "system/camerad/cameras/camera_rk.h"
 #include "system/camerad/sensors/sensor.h"
 
 namespace {
