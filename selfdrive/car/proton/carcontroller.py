@@ -6,9 +6,9 @@ from common.params import Params
 from common.features import Features
 import time
 
-RES_INTERVAL = 600
-SNG_WAIT = 400
-RES_LEN = 2
+RES_INTERVAL = 500
+SNG_WAIT = 500
+RES_LEN = 8
 
 def apply_proton_steer_torque_limits(apply_torque, apply_torque_last, driver_torque, LIMITS):
 
@@ -55,7 +55,7 @@ class CarController():
     self.is_sng_check = False
     self.lead_valid = False
     self.prev_lead_dist = 0
-    self.send_res_press = False
+    self.lead_moved = True
 
     f = Features()
     self.mads = f.has("StockAcc")
@@ -109,33 +109,32 @@ class CarController():
       #  fake_enable = False
       #can_sends.append(create_acc_cmd(self.packer, actuators.accel, fake_enable, (frame/2) % 16))
 
-    # For SNG auto resume
+    # SNG auto resume
     auto_resume_allowed = enabled and CS.out.standstill
 
     if not auto_resume_allowed:
       self.is_sng_check = False
     else:
-      self.lead_valid &= CS.hasAnyLead
+      self.lead_valid = self.lead_valid and CS.hasAnyLead
       lead_dist = CS.leadDistance
-      self.send_res_press = self.lead_valid and \
-                            (self.send_res_press or (lead_dist > self.prev_lead_dist and frame > self.sng_next_press_frame))
+      self.lead_moved = self.lead_valid and (self.lead_moved or lead_dist > max(2, self.prev_lead_dist))
       self.prev_lead_dist = lead_dist
 
       if not self.is_sng_check:
         # SNG auto resume check start
         self.is_sng_check = True
+        self.lead_valid = True
         self.sng_next_press_frame = frame + SNG_WAIT
-        self.lead_valid = CS.hasAnyLead
         self.resume_counter = 0
-        self.send_res_press = False
+        self.lead_moved = False
 
       elif (CS.res_btn_pressed or CS.out.gasPressed) or self.resume_counter >= RES_LEN:
         # Manual press or auto resume finished
-        self.sng_next_press_frame = frame + RES_INTERVAL
+        self.sng_next_press_frame = max(self.sng_next_press_frame, frame + RES_INTERVAL)
         self.resume_counter = 0
-        self.send_res_press = False
+        self.lead_moved = False
 
-      elif self.send_res_press:
+      elif self.lead_moved and frame > self.sng_next_press_frame:
         # Send resume press signal
         if not self.mads or CS.acc_req:
           can_sends.append(send_buttons(self.packer, frame % 16, False))
