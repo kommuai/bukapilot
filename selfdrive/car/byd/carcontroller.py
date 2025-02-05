@@ -4,8 +4,8 @@ from opendbc.can.packer import CANPacker
 from common.numpy_fast import clip
 
 RES_INTERVAL = 125
-SNG_WAIT = 350
-RES_LEN = 3
+SNG_WAIT = 310
+RES_LEN = 8
 
 def apply_byd_steer_angle_limits(apply_angle, actual_angle, v_ego, LIMITS):
   # pick angle rate limits based on wind up/down
@@ -55,24 +55,24 @@ class CarController():
 #      can_sends.append(create_accel_command(self.packer, actuators.accel, enabled, brake_hold, (frame/2) % 16))
       can_sends.append(create_lkas_hud(self.packer, enabled, CS.lss_state, CS.lss_alert, CS.tsr, CS.abh, CS.passthrough, CS.HMA, CS.pt2, CS.pt3, CS.pt4, CS.pt5, self.lka_active, frame % 16))
 
-    # For SNG auto resume
+    # SNG auto resume
     auto_resume_allowed = enabled and (CS.out.standstill or CS.out.cruiseState.standstill)
 
     if not auto_resume_allowed:
       self.is_sng_check = False
     else:
-      self.lead_valid &= lead_visible
+      self.lead_valid = self.lead_valid and lead_visible
 
       if not self.is_sng_check:
         # SNG auto resume check start
         self.is_sng_check = True
-        self.lead_valid = lead_visible
+        self.lead_valid = True
         self.sng_next_press_frame = frame + SNG_WAIT
         self.resume_counter = 0
 
       elif (CS.res_btn_pressed or CS.out.gasPressed) or self.resume_counter >= RES_LEN:
         # Manual press or auto resume finished
-        self.sng_next_press_frame = frame + RES_INTERVAL
+        self.sng_next_press_frame = max(self.sng_next_press_frame, frame + RES_INTERVAL)
         self.resume_counter = 0
 
       elif self.lead_valid and frame > self.sng_next_press_frame:
