@@ -52,6 +52,23 @@ class CarState(CarStateBase):
     ret.steeringPressed = abs(ret.steeringTorque) > STEER_THRESHOLD
     ret.steerWarning = cp.vl["MDPS12"]["CF_Mdps_ToiUnavail"] != 0 or cp.vl["MDPS12"]["CF_Mdps_ToiFlt"] != 0
 
+    # cruise state
+    if self.CP.openpilotLongitudinalControl:
+      # These are not used for engage/disengage since openpilot keeps track of state using the buttons
+      ret.cruiseState.available = cp.vl["TCS13"]["ACCEnable"] == 0
+      ret.cruiseState.enabled = cp.vl["TCS13"]["ACC_REQ"] == 1
+      ret.cruiseState.standstill = False
+    else:
+      ret.cruiseState.available = cp.vl["SCC11"]["MainMode_ACC"] == 1
+      ret.cruiseState.enabled = cp.vl["SCC12"]["ACCMode"] != 0
+      ret.cruiseState.standstill = cp.vl["SCC11"]["SCCInfoDisplay"] == 4.
+
+      if ret.cruiseState.enabled:
+        speed_conv = CV.MPH_TO_MS if cp.vl["CLU11"]["CF_Clu_SPEED_UNIT"] else CV.KPH_TO_MS
+        ret.cruiseState.speed = cp.vl["SCC11"]["VSetDis"] * speed_conv
+      else:
+        ret.cruiseState.speed = 0
+
     # TODO: Find brake pressure
     ret.brake = 0
     ret.brakePressed = cp.vl["TCS13"]["DriverBraking"] != 0
@@ -80,7 +97,7 @@ class CarState(CarStateBase):
 
     ret.gearShifter = self.parse_gear_shifter(self.shifter_values.get(gear))
 
-    if True:
+    if not self.CP.openpilotLongitudinalControl:
       if self.CP.carFingerprint in FEATURES["use_fca"]:
         ret.stockAeb = cp.vl["FCA11"]["FCA_CmdAct"] != 0
         ret.stockFcw = cp.vl["FCA11"]["CF_VSM_Warn"] == 2
@@ -173,7 +190,7 @@ class CarState(CarStateBase):
       ("SAS11", 0),
     ]
 
-    if True:
+    if not CP.openpilotLongitudinalControl:
       signals += [
         ("MainMode_ACC", "SCC11"),
         ("VSetDis", "SCC11"),
