@@ -83,23 +83,25 @@ class CarController():
       self.last_steer_disable = time.monotonic()
     self.prev_steer_enabled = steer_enabled
 
-    stock_cmd = CS.stock_ldp_cmd
-    if not steer_enabled and stock_cmd > 0 and \
-        not ((CS.out.leftBlinker and CS.stock_ldp_left) or (CS.out.rightBlinker and CS.stock_ldp_right)):
+    stock_steer_cmd = CS.stock_ldp_cmd
+    if not steer_enabled and stock_steer_cmd > 0 and \
+       not ((CS.out.leftBlinker and CS.stock_ldp_left) or (CS.out.rightBlinker and CS.stock_ldp_right)):
       apply_stock_dir = -1 if CS.steer_dir else 1
 
-      # After disable, keep steering at 0 for the first 0.55 seconds, then increase from 0% to 100% over increase_duration.
+      # After steer disable, keep steering at 0 for the first 0.55 seconds, then increase from 0% to 100% over increase_duration.
       increase_duration = 0.5 # Duration in seconds for steering torque to increase from 0% to 100%
       disable_diff = time.monotonic() - self.last_steer_disable
       mul = max(0, min((disable_diff - 0.55) / increase_duration, 1))
-      apply_steer = int(round(stock_cmd * apply_stock_dir * mul)) &~1 # Ensure LSB 0 for 11-bit cmd
+      apply_steer = int(round(stock_steer_cmd * apply_stock_dir * mul)) &~1 # Ensure LSB 0 for 11-bit cmd
       lat_active, self.steer_rate_limited = True, False
 
     # CAN controlled lateral running at 50hz
-    if (frame % 2) == 0 and (CS.lks_audio is not None and CS.lks_tactile is not None): # Ensure LKS values are read
-      can_sends.append(create_can_steer_command(self.packer, apply_steer, lat_active, \
-      CS.hand_on_wheel_warning and CS.is_icc_on, CS.hand_on_wheel_warning_2 and CS.is_icc_on, \
-      (frame/2) % 16, CS.lks_aux, CS.lks_audio, CS.lks_tactile, CS.lks_assist_mode, CS.lka_enable, CS.stock_ldw, steer_enabled))
+    if frame % 2 == 0:
+      lks_audio, lks_tactile, is_icc_on = CS.lks_audio, CS.lks_tactile, CS.is_icc_on
+      if lks_audio is not None and lks_tactile is not None: # Ensure LKS values are read
+        can_sends.append(create_can_steer_command(self.packer, apply_steer, lat_active, \
+        CS.hand_on_wheel_warning and is_icc_on, CS.hand_on_wheel_warning_2 and is_icc_on, \
+        (frame//2) % 16, CS.lks_aux, lks_audio, lks_tactile, CS.lks_assist_mode, CS.lka_enable, CS.stock_ldw, steer_enabled))
 
       #can_sends.append(create_hud(self.packer, apply_steer, enabled, ldw, rlane_visible, llane_visible))
       #can_sends.append(create_lead_detect(self.packer, lead_visible, enabled))
@@ -107,7 +109,7 @@ class CarController():
       #  fake_enable = True
       #else:
       #  fake_enable = False
-      #can_sends.append(create_acc_cmd(self.packer, actuators.accel, fake_enable, (frame/2) % 16))
+      #can_sends.append(create_acc_cmd(self.packer, actuators.accel, fake_enable, (frame//2) % 16))
 
     # SNG auto resume
     auto_resume_allowed = enabled and CS.out.standstill
