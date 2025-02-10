@@ -1,11 +1,10 @@
-Version 9.8.2  (2025-02-03)
+Version 9.8.2  (2025-02-12)
 =========================
 * ALERT: ALL Proton models lane keep follows LKS/LKA enable, to use bukapilot lane keep without stock LDW, set LKS/LKA to Warn Only and Tactile.
 * ALERT: If Assisted Lane Change is enabled, below Assisted Lane Change speed, and turn signal is on, lane keep will be deactivated to allow manual steering control.
 * Improved edge case handling for Assisted Lane Change (WARNING: Driver attention is always required)
 * Proton X70 FL/S70 fix LKA settings and Centering Control LKA mode
 * Increased torque for Proton X50/S70
-* Display lead car triangle for Honda and Hyundai
 * Proton and BYD improved stop and go auto resume
 
 Version 9.8.0  (2024-12-26)
