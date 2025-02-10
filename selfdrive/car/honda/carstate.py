@@ -87,7 +87,7 @@ def get_can_signals(CP, gearbox_msg, main_on_sig_msg):
         ("EPB_STATUS", 0),
       ]
 
-    if True:
+    if not CP.openpilotLongitudinalControl:
       signals += [
         ("CRUISE_CONTROL_LABEL", "ACC_HUD"),
         ("CRUISE_SPEED", "ACC_HUD"),
@@ -138,6 +138,13 @@ def get_can_signals(CP, gearbox_msg, main_on_sig_msg):
     signals.append(("INTERCEPTOR_GAS", "GAS_SENSOR"))
     signals.append(("INTERCEPTOR_GAS2", "GAS_SENSOR"))
     checks.append(("GAS_SENSOR", 0))
+
+  if CP.openpilotLongitudinalControl:
+    signals += [
+      ("BRAKE_ERROR_1", "STANDSTILL"),
+      ("BRAKE_ERROR_2", "STANDSTILL")
+    ]
+    checks.append(("STANDSTILL", 0))
 
   return signals, checks
 
@@ -195,6 +202,8 @@ class CarState(CarStateBase):
     # LOW_SPEED_LOCKOUT is not worth a warning
     ret.steerWarning = steer_status not in ("NORMAL", "LOW_SPEED_LOCKOUT", "NO_TORQUE_ALERT_2")
 
+    if self.CP.openpilotLongitudinalControl:
+      self.brake_error = cp.vl["STANDSTILL"]["BRAKE_ERROR_1"] or cp.vl["STANDSTILL"]["BRAKE_ERROR_2"]
     ret.espDisabled = cp.vl["VSA_STATUS"]["ESP_DISABLED"] != 0
 
     ret.wheelSpeeds = self.get_wheel_speeds(
@@ -245,7 +254,7 @@ class CarState(CarStateBase):
       ret.steeringPressed |= abs(ret.steeringTorqueEps) > 4
       sign = -1 if ret.steeringRateDeg < 0 else 1
       ret.steeringTorque = ret.steeringTorqueEps * sign
-      if True:
+      if not self.CP.openpilotLongitudinalControl:
         ret.cruiseState.nonAdaptive = cp.vl["ACC_HUD"]["CRUISE_CONTROL_LABEL"] != 0
         ret.cruiseState.standstill = cp.vl["ACC_HUD"]["CRUISE_SPEED"] == 252.
 
@@ -290,7 +299,7 @@ class CarState(CarStateBase):
       self.is_metric = False
 
     if self.CP.carFingerprint in HONDA_BOSCH:
-      ret.stockAeb = bool(cp.vl["ACC_CONTROL"]["AEB_STATUS"] and cp.vl["ACC_CONTROL"]["ACCEL_COMMAND"] < -1e-5)
+      ret.stockAeb = (not self.CP.openpilotLongitudinalControl) and bool(cp.vl["ACC_CONTROL"]["AEB_STATUS"] and cp.vl["ACC_CONTROL"]["ACCEL_COMMAND"] < -1e-5)
     else:
       ret.stockAeb = bool(cp_cam.vl["BRAKE_COMMAND"]["AEB_REQ_1"] and cp_cam.vl["BRAKE_COMMAND"]["COMPUTER_BRAKE"] > 1e-5)
 

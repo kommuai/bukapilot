@@ -31,15 +31,21 @@ class CarInterface(CarInterfaceBase):
   def get_params(candidate, fingerprint=gen_empty_fingerprint(), car_fw=[]):  # pylint: disable=dangerous-default-value
     ret = CarInterfaceBase.get_std_params(candidate, fingerprint)
     ret.carName = "honda"
-    ret.openpilotLongitudinalControl = True
 
     if candidate in HONDA_BOSCH:
       ret.safetyConfigs = [get_safety_config(car.CarParams.SafetyModel.hondaBosch)]
       ret.radarOffCan = True
-      ret.pcmCruise = True
+
+      # Disable the radar and let openpilot control longitudinal
+      # WARNING: THIS DISABLES AEB!
+      ret.openpilotLongitudinalControl = Params().get_bool("DisableRadar")
+
+      ret.pcmCruise = not ret.openpilotLongitudinalControl
     else:
       ret.safetyConfigs = [get_safety_config(car.CarParams.SafetyModel.hondaNidec)]
       ret.enableGasInterceptor = 0x201 in fingerprint[0]
+      ret.openpilotLongitudinalControl = True
+
       ret.pcmCruise = not ret.enableGasInterceptor
 
     if candidate == CAR.CRV_5G:
@@ -272,6 +278,9 @@ class CarInterface(CarInterfaceBase):
     if candidate in HONDA_NIDEC_ALT_SCM_MESSAGES:
       ret.safetyConfigs[0].safetyParam |= Panda.FLAG_HONDA_NIDEC_ALT
 
+    if ret.openpilotLongitudinalControl and candidate in HONDA_BOSCH:
+      ret.safetyConfigs[0].safetyParam |= Panda.FLAG_HONDA_BOSCH_LONG
+
     # min speed to enable ACC. if car can do stop and go, then set enabling speed
     # to a negative value, so it won't matter. Otherwise, add 0.5 mph margin to not
     # conflict with PCM acc
@@ -294,7 +303,8 @@ class CarInterface(CarInterfaceBase):
 
   @staticmethod
   def init(CP, logcan, sendcan):
-    pass
+    if CP.carFingerprint in HONDA_BOSCH and CP.openpilotLongitudinalControl:
+      disable_ecu(logcan, sendcan, bus=1, addr=0x18DAB0F1, com_cont_req=b'\x28\x83\x03')
 
   # returns a car.CarState
   def update(self, c, can_strings):
@@ -306,7 +316,7 @@ class CarInterface(CarInterfaceBase):
 
     ret = self.CS.update(self.cp, self.cp_cam, self.cp_body)
 
-    ret.canValid = True
+    ret.canValid = True or self.cp.can_valid and self.cp_cam.can_valid and (self.cp_body is None or self.cp_body.can_valid)
 
     buttonEvents = []
 
@@ -358,7 +368,7 @@ class CarInterface(CarInterfaceBase):
       # we engage when pcm is active (rising edge)
       if ret.cruiseState.enabled and not self.CS.out.cruiseState.enabled:
         events.add(EventName.pcmEnable)
-      elif not ret.cruiseState.enabled:
+      elif not ret.cruiseState.enabled and (c.actuators.accel >= 0. or not self.CP.openpilotLongitudinalControl):
         # it can happen that car cruise disables while comma system is enabled: need to
         # keep braking if needed or if the speed is very low
         if ret.vEgo < self.CP.minEnableSpeed + 2.:
