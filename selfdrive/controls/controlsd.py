@@ -500,7 +500,8 @@ class Controls:
     # Assisted Lane Change and blinker checks
     below_lane_change_speed = CS.vEgo < LANE_CHANGE_SPEED_MIN
     lane_change_speed_enough = not below_lane_change_speed
-    one_blinker = CS.leftBlinker != CS.rightBlinker
+    leftBlinker, rightBlinker = CS.leftBlinker, CS.rightBlinker
+    one_blinker = leftBlinker != rightBlinker
 
     # Check if blinker was on below lane change speed for ALC
     if one_blinker:
@@ -529,11 +530,11 @@ class Controls:
 
     # Handle lane change events after ALC check
     if is_alc_active and (lc_state != LaneChangeState.off or lane_change_speed_enough) and not CS.lkaDisabled:
-      if one_blinker and ((CS.leftBlindspot and CS.leftBlinker) or (CS.rightBlindspot and CS.rightBlinker)):
+      if one_blinker and ((CS.leftBlindspot and leftBlinker) or (CS.rightBlindspot and rightBlinker)):
         self.events.add(EventName.laneChangeBlocked)
 
-      elif lc_state == LaneChangeState.preLaneChange:
-        if lat_plan.laneChangeDirection == LaneChangeDirection.left:
+      elif one_blinker and lc_state == LaneChangeState.preLaneChange:
+        if leftBlinker:
           self.events.add(EventName.preLaneChangeLeft)
         else:
           self.events.add(EventName.preLaneChangeRight)
