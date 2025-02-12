@@ -45,7 +45,7 @@ class DesireHelper:
     # https://github.com/kisapilot/openpilot/blob/93c8046/selfdrive/controls/lib/desire_helper.py
 
     # WARNING: No threshold can determine all road edges correctly. Driver check is still required.
-    edge_threshold = 0.47  # Higher value filters out low-confidence road edges
+    edge_threshold = 0.475  # Higher value filters out low-confidence road edges
     left_edge_prob = max(0.0, min(1.0 - md.roadEdgeStds[0], 1.0))
     right_edge_prob = max(0.0, min(1.0 - md.roadEdgeStds[1], 1.0))
     left_nearside_prob, right_nearside_prob = md.laneLineProbs[0], md.laneLineProbs[3]
