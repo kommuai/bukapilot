@@ -6,8 +6,8 @@ from common.params import Params
 from common.features import Features
 import time
 
-RES_INTERVAL = 500
-SNG_WAIT = 500
+RES_INTERVAL = 150
+SNG_WAIT = RES_INTERVAL
 RES_LEN = 8
 
 def apply_proton_steer_torque_limits(apply_torque, apply_torque_last, driver_torque, LIMITS):
@@ -112,14 +112,14 @@ class CarController():
       #can_sends.append(create_acc_cmd(self.packer, actuators.accel, fake_enable, (frame//2) % 16))
 
     # SNG auto resume
-    auto_resume_allowed = enabled and CS.out.standstill
+    auto_resume_allowed = enabled and CS.out.cruiseState.standstill
 
     if not auto_resume_allowed:
       self.is_sng_check = False
     else:
-      self.lead_valid = self.lead_valid and CS.hasAnyLead
+      self.lead_valid = self.lead_valid and lead_visible
       lead_dist = CS.leadDistance
-      self.lead_moved = self.lead_valid and (self.lead_moved or lead_dist > max(2, self.prev_lead_dist))
+      self.lead_moved = self.lead_valid and (self.lead_moved or lead_dist > max(1, self.prev_lead_dist))
       self.prev_lead_dist = lead_dist
 
       if not self.is_sng_check:

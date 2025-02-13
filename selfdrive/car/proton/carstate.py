@@ -121,7 +121,6 @@ class CarState(CarStateBase):
     self.hand_on_wheel_warning = bool(cp.vl["ADAS_LKAS"]["HAND_ON_WHEEL_WARNING"])
     self.hand_on_wheel_warning_2 = bool(cp.vl["ADAS_LKAS"]["WHEEL_WARNING_CHIME"])
     self.leadDistance = cp.vl["ADAS_LEAD_DETECT"]["LEAD_DISTANCE"]
-    self.hasAnyLead = bool(cp.vl["ADAS_LEAD_DETECT"]["IS_LEAD2"])
     self.is_icc_on = bool(cp.vl["PCM_BUTTONS"]["ICC_ON"])
     self.lka_enable = bool(cp.vl["ADAS_LKAS"]["LKA_ENABLE"])
     # If cruise mode is ICC, make bukapilot control steering so it won't disengage.
@@ -221,7 +220,6 @@ class CarState(CarStateBase):
       # sig_name, sig_address, default
       ("RES_BUTTON", "ACC_BUTTONS", 0),
       ("LEAD_DISTANCE", "ADAS_LEAD_DETECT", 0.),
-      ("IS_LEAD2", "ADAS_LEAD_DETECT", 0),
       ("WHEELSPEED_F", "WHEEL_SPEED", 0.),
       ("WHEELSPEED_B", "WHEEL_SPEED", 0.),
       ("SET_DISTANCE", "PCM_BUTTONS", 0.),
