@@ -56,7 +56,7 @@ class CarController():
       can_sends.append(create_lkas_hud(self.packer, enabled, CS.lss_state, CS.lss_alert, CS.tsr, CS.abh, CS.passthrough, CS.HMA, CS.pt2, CS.pt3, CS.pt4, CS.pt5, self.lka_active, frame % 16))
 
     # SNG auto resume
-    auto_resume_allowed = enabled and (CS.out.standstill or CS.out.cruiseState.standstill)
+    auto_resume_allowed = enabled and CS.out.cruiseState.standstill
 
     if not auto_resume_allowed:
       self.is_sng_check = False
