@@ -5,7 +5,7 @@ from common.numpy_fast import clip
 
 RES_INTERVAL = 125
 SNG_WAIT = 310
-RES_LEN = 8
+RES_LEN = 3
 
 def apply_byd_steer_angle_limits(apply_angle, actual_angle, v_ego, LIMITS):
   # pick angle rate limits based on wind up/down
