@@ -178,10 +178,12 @@ int Event::fd() const {
 }
 
 int Event::wait_for_one(const std::vector<Event>& events, int timeout_sec) {
-  struct pollfd fds[events.size()];
-  for (size_t i = 0; i < events.size(); i++) {
-    fds[i] = { events[i].fd(), POLLIN, 0 };
-  }
+  //struct pollfd fds[events.size()];
+  //for (size_t i = 0; i < events.size(); i++) {
+  //  fds[i] = { events[i].fd(), POLLIN, 0 };
+  //}
+
+  std::vector<struct pollfd> fds(events.size());
 
   struct timespec timeout = { timeout_sec, 0 };
 
@@ -192,7 +194,8 @@ int Event::wait_for_one(const std::vector<Event>& events, int timeout_sec) {
   sigdelset(&signals, SIGTERM);
   sigdelset(&signals, SIGQUIT);
 
-  int event_count = ppoll(fds, events.size(), timeout_sec < 0 ? nullptr : &timeout, &signals);
+  //int event_count = ppoll(fds, events.size(), timeout_sec < 0 ? nullptr : &timeout, &signals);
+  int event_count = ppoll(fds.data(), fds.size(), timeout_sec < 0 ? nullptr : &timeout, &signals);
 
   if (event_count == 0) {
     throw std::runtime_error("Event timed out pid: " + std::to_string(getpid()));

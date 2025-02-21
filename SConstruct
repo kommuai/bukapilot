@@ -121,6 +121,7 @@ if arch == "larch64":
     cxxflags = ["-DRK3588"]
     libpath.append(f"#third_party/rknpu/{arch}")
     cpppath.append("/usr/include/rockchip")
+    cpppath.append("/usr/local/include/rockchip")
   else:
     cflags = ["-DQCOM2", "-mcpu=cortex-a57"]
     cxxflags = ["-DQCOM2", "-mcpu=cortex-a57"]
