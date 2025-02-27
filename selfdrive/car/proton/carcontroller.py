@@ -97,11 +97,12 @@ class CarController():
 
     # CAN controlled lateral running at 50hz
     if frame % 2 == 0:
+      raw_cnt = (frame // 2) % 16
       lks_audio, lks_tactile, is_icc_on = CS.lks_audio, CS.lks_tactile, CS.is_icc_on
       if lks_audio is not None and lks_tactile is not None: # Ensure LKS values are read
         can_sends.append(create_can_steer_command(self.packer, apply_steer, lat_active, \
         CS.hand_on_wheel_warning and is_icc_on, CS.hand_on_wheel_warning_2 and is_icc_on, \
-        (frame//2) % 16, CS.lks_aux, lks_audio, lks_tactile, CS.lks_assist_mode, CS.lka_enable, CS.stock_ldw, steer_enabled))
+        raw_cnt, CS.lks_aux, lks_audio, lks_tactile, CS.lks_assist_mode, CS.lka_enable, CS.stock_ldw, steer_enabled))
 
       #can_sends.append(create_hud(self.packer, apply_steer, enabled, ldw, rlane_visible, llane_visible))
       #can_sends.append(create_lead_detect(self.packer, lead_visible, enabled))
@@ -109,7 +110,7 @@ class CarController():
       #  fake_enable = True
       #else:
       #  fake_enable = False
-      #can_sends.append(create_acc_cmd(self.packer, actuators.accel, fake_enable, (frame//2) % 16))
+      #can_sends.append(create_acc_cmd(self.packer, actuators.accel, fake_enable, raw_cnt))
 
     # SNG auto resume
     auto_resume_allowed = enabled and CS.out.cruiseState.standstill
