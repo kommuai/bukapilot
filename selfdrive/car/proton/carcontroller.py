@@ -7,8 +7,8 @@ from common.features import Features
 import time
 
 RES_INTERVAL = 150
-SNG_WAIT = RES_INTERVAL
-RES_LEN = 8
+SNG_WAIT = 450
+RES_LEN = 5
 
 def apply_proton_steer_torque_limits(apply_torque, apply_torque_last, driver_torque, LIMITS):
 
