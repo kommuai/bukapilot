@@ -208,8 +208,6 @@ BO_ 432 ADAS_LKAS: 8 XXX
  SG_ LKAS_LINE_ACTIVE : 25|1@0+ (1,0) [0|1] "" XXX
  SG_ LKAS_ENGAGED1 : 12|1@0+ (1,0) [0|1] "" XXX
  SG_ LKA_ENABLE : 13|1@0+ (1,0) [0|1] "" XXX
- SG_ LKS_LDW : 0|8@1+ (1,0) [0|255] "" XXX
- SG_ SET_ME_1_2 : 9|1@0+ (1,0) [0|1] "" XXX
  SG_ LKS_STATUS : 24|1@0+ (1,0) [0|1] "" XXX
  SG_ STOCK_LKS_AUX : 19|1@0+ (1,0) [0|1] "" XXX
  SG_ LKS_WARNING_AUDIO : 22|1@0+ (1,0) [0|1] "" XXX
@@ -217,6 +215,9 @@ BO_ 432 ADAS_LKAS: 8 XXX
  SG_ LKS_ASSIST_MODE : 20|1@0+ (1,0) [0|1] "" XXX
  SG_ STEER_CMD : 47|11@0+ (1,0) [0|598] "" XXX
  SG_ STEER_DIR : 52|1@0+ (1,0) [0|1] "" XXX
+ SG_ LDW_READY : 0|1@0+ (1,0) [0|1] "" XXX
+ SG_ SET_ME_1 : 9|1@0+ (1,0) [0|1] "" XXX
+ SG_ LDW_STEERING : 4|1@0+ (1,0) [0|1] "" XXX
 
 BO_ 422 ADAS_LEAD_DETECT: 8 XXX
  SG_ LEAD_DISTANCE : 7|8@0+ (1,0) [0|255] "" XXX

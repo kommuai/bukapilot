@@ -89,13 +89,11 @@ class CarController():
 
     stock_steer_cmd = CS.stock_ldp_cmd
     if not steer_enabled and stock_steer_cmd > 0 and \
-       not ((CS.out.leftBlinker and CS.stock_ldp_left) or (CS.out.rightBlinker and CS.stock_ldp_right)):
+       not ((CS.out.rightBlinker and CS.stock_ldp_right) or (CS.out.leftBlinker and CS.stock_ldp_left)):
       apply_stock_dir = -1 if CS.steer_dir else 1
 
-      # After steer disable, keep steering at 0 for the first 0.55 seconds, then increase from 0% to 100% over increase_duration.
-      increase_duration = 0.5 # Duration in seconds for steering torque to increase from 0% to 100%
-      disable_diff = time.monotonic() - self.last_steer_disable
-      mul = max(0, min((disable_diff - 0.55) / increase_duration, 1))
+      # After steer disable, keep steering at 0 for the first 0.55 seconds, then increase from 0% to 100% over 0.5 seconds.
+      mul = clip((time.monotonic() - self.last_steer_disable - 0.55) / 0.5, 0, 1)
       apply_steer = int(round(stock_steer_cmd * apply_stock_dir * mul)) &~1 # Ensure LSB 0 for 11-bit cmd
       lat_active = True
       self.steer_rate_limited = False
@@ -111,7 +109,7 @@ class CarController():
 
         can_sends.append(create_can_steer_command(self.packer, apply_steer, lat_active, \
         is_icc_on and CS.hand_on_wheel_warning, is_icc_on and CS.hand_on_wheel_warning_2, \
-        raw_cnt, CS.lks_aux, self.lks_audio, self.lks_tactile, CS.lks_assist_mode, CS.lka_enable, CS.stock_ldw, steer_enabled))
+        raw_cnt, CS.lks_aux, self.lks_audio, self.lks_tactile, CS.lks_assist_mode, CS.lka_enable, CS.stock_ldw_steering, steer_enabled))
 
       #can_sends.append(create_hud(self.packer, apply_steer, enabled, ldw, rlane_visible, llane_visible))
       #can_sends.append(create_lead_detect(self.packer, lead_visible, enabled))

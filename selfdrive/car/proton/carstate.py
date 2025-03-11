@@ -32,7 +32,7 @@ class CarState(CarStateBase):
     self.lks_assist_mode = 0
     self.lks_aux = 0
     self.lka_enable = 0
-    self.stock_ldw = 0
+    self.stock_ldw_steering = 0
     self.stock_ldp_left = 0
     self.stock_ldp_right = 0
     self.stock_ldp_cmd = 0
@@ -65,7 +65,7 @@ class CarState(CarStateBase):
     ret = car.CarState.new_message()
 
     self.stock_ldp_cmd = cp.vl["ADAS_LKAS"]["STEER_CMD"]
-    self.stock_ldw = cp.vl["ADAS_LKAS"]["LKS_LDW"]
+    self.stock_ldw_steering = cp.vl["ADAS_LKAS"]["LDW_STEERING"]
     self.steer_dir = cp.vl["ADAS_LKAS"]["STEER_DIR"]
     self.stock_ldp_left = bool(cp.vl["LKAS"]["STEER_REQ_LEFT"])
     self.stock_ldp_right = bool(cp.vl["LKAS"]["STEER_REQ_RIGHT"])
@@ -259,7 +259,7 @@ class CarState(CarStateBase):
       ("LKS_WARNING_TACTILE", "ADAS_LKAS", 0),
       ("LKS_ASSIST_MODE", "ADAS_LKAS", 1),
       ("STEER_DIR", "ADAS_LKAS", 1),
-      ("LKS_LDW", "ADAS_LKAS", 1),
+      ("LDW_STEERING", "ADAS_LKAS", 0),
       ("STEER_CMD", "ADAS_LKAS", 1),
       ("LANE_DEPARTURE_WARNING_RIGHT", "LKAS", 1),
       ("LANE_DEPARTURE_WARNING_LEFT", "LKAS", 1),
