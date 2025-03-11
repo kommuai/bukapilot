@@ -33,6 +33,9 @@ class CarState(CarStateBase):
     self.lks_aux = 0
     self.lka_enable = 0
     self.stock_ldw_steering = 0
+    self.audio_ldw_right = 0
+    self.audio_ldw_left = 0
+    self.has_audio_ldw = 0
     self.stock_ldp_left = 0
     self.stock_ldp_right = 0
     self.stock_ldp_cmd = 0
@@ -67,8 +70,11 @@ class CarState(CarStateBase):
     self.stock_ldp_cmd = cp.vl["ADAS_LKAS"]["STEER_CMD"]
     self.stock_ldw_steering = cp.vl["ADAS_LKAS"]["LDW_STEERING"]
     self.steer_dir = cp.vl["ADAS_LKAS"]["STEER_DIR"]
-    self.stock_ldp_left = bool(cp.vl["LKAS"]["STEER_REQ_LEFT"])
-    self.stock_ldp_right = bool(cp.vl["LKAS"]["STEER_REQ_RIGHT"])
+    self.stock_ldp_left = cp.vl["LKAS"]["STEER_REQ_LEFT"]
+    self.stock_ldp_right = cp.vl["LKAS"]["STEER_REQ_RIGHT"]
+    self.audio_ldw_left = cp.vl["LKAS"]["LANE_DEPARTURE_AUDIO_LEFT"]
+    self.audio_ldw_right = cp.vl["LKAS"]["LANE_DEPARTURE_AUDIO_RIGHT"]
+    self.has_audio_ldw = self.audio_ldw_right or self.audio_ldw_left
 
     ret.wheelSpeeds = self.get_wheel_speeds(
       cp.vl["WHEEL_SPEED"]['WHEELSPEED_F'],
@@ -267,6 +273,8 @@ class CarState(CarStateBase):
       ("LKA_ENABLE", "ADAS_LKAS", 1),
       ("STEER_REQ_RIGHT", "LKAS", 0),
       ("STEER_REQ_LEFT", "LKAS", 0),
+      ("LANE_DEPARTURE_AUDIO_RIGHT", "LKAS", 0),
+      ("LANE_DEPARTURE_AUDIO_LEFT", "LKAS", 0),
     ]
     checks = []
 
