@@ -123,7 +123,8 @@ def manager_init() -> None:
         "ClearCode"          :    1 << 2,
         "StockAcc"           :    1 << 3,
         "IgnoreHardIgnition" :    1 << 4,
-        "IgnoreDM" :              1 << 5,
+        "IgnoreDM"           :    1 << 5,
+        "LKSTactile"         :    1 << 6,
         },
       "packages": {
         "default": [],
@@ -132,9 +133,10 @@ def manager_init() -> None:
         "clear-code": ["ClearCode"],
         "stock-acc" : ["StockAcc"],
         "ignore-ignition-line" : ["IgnoreHardIgnition"],
-        "ignore-dm" : ["IgnoreDM"]
+        "ignore-dm" : ["IgnoreDM"],
+        "lks-tactile": ["LKSTactile"],
         },
-      "version": 4,
+      "version": 5,
       }
   cur_dict = params.get("FeaturesDict")
   if cur_dict is None or (json.loads(cur_dict)["version"] < new_dict["version"]) \

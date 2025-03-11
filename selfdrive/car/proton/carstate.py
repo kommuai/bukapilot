@@ -28,6 +28,7 @@ class CarState(CarStateBase):
 
     self.lks_audio = None
     self.lks_tactile = None
+    self.is_icc_on = None
     self.lks_assist_mode = 0
     self.lks_aux = 0
     self.lka_enable = 0
@@ -47,7 +48,6 @@ class CarState(CarStateBase):
     self.acc_req = False
     self.hand_on_wheel_warning = False
     self.hand_on_wheel_warning_2 = False
-    self.is_icc_on = False
     self.prev_angle = 0
     self.res_btn_pressed = False
 
@@ -121,10 +121,7 @@ class CarState(CarStateBase):
     self.hand_on_wheel_warning = bool(cp.vl["ADAS_LKAS"]["HAND_ON_WHEEL_WARNING"])
     self.hand_on_wheel_warning_2 = bool(cp.vl["ADAS_LKAS"]["WHEEL_WARNING_CHIME"])
     self.leadDistance = cp.vl["ADAS_LEAD_DETECT"]["LEAD_DISTANCE"]
-    self.is_icc_on = bool(cp.vl["PCM_BUTTONS"]["ICC_ON"])
     self.lka_enable = bool(cp.vl["ADAS_LKAS"]["LKA_ENABLE"])
-    # If cruise mode is ICC, make bukapilot control steering so it won't disengage.
-    ret.lkaDisabled = not self.lka_enable and not self.is_icc_on
 
     ret.vEgoCluster = ret.vEgo * HUD_MULTIPLIER
 
@@ -205,14 +202,16 @@ class CarState(CarStateBase):
     Departure Prevention: LKS Assist True,  Auxiliary True
     Centering Control:    LKS Assist False, Auxiliary False
     """
-    # LKS audio and tactile initialised to None, ensure they are read last
+    # ICC_ON initialised to None, ensure it is read last
     self.lks_assist_mode = cp.vl["ADAS_LKAS"]["LKS_ASSIST_MODE"]
     self.lks_aux = cp.vl["ADAS_LKAS"]["STOCK_LKS_AUX"]
     self.lks_audio = cp.vl["ADAS_LKAS"]["LKS_WARNING_AUDIO"]
     self.lks_tactile = cp.vl["ADAS_LKAS"]["LKS_WARNING_TACTILE"]
+    self.is_icc_on = cp.vl["PCM_BUTTONS"]["ICC_ON"]
+    # If cruise mode is ICC, make bukapilot control steering so it won't disengage.
+    ret.lkaDisabled = not self.lka_enable and not self.is_icc_on
 
     return ret
-
 
   @staticmethod
   def get_can_parser(CP):
