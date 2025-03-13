@@ -33,8 +33,8 @@ def apply_perodua_steer_torque_limits(apply_torque, apply_torque_last, driver_to
   reduced_torque_mult = 10 if blinkerOn else 1.5
   driver_max_torque = 255 + driver_torque * reduced_torque_mult
   driver_min_torque = -255 - driver_torque * reduced_torque_mult
-  max_steer_allowed = max(min(255, driver_max_torque), 0)
-  min_steer_allowed = min(max(-255, driver_min_torque), 0)
+  max_steer_allowed = clip(driver_max_torque, 0, 255)
+  min_steer_allowed = clip(driver_min_torque, -255, 0)
   apply_torque = clip(apply_torque, min_steer_allowed, max_steer_allowed)
 
   # slow rate if steer torque increases in magnitude

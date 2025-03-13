@@ -2,6 +2,7 @@ from cereal import log
 from common.realtime import DT_MDL
 from selfdrive.config import Conversions as CV
 from common.params import Params
+from common.numpy_fast import clip
 from enum import Enum, auto
 import time
 
@@ -46,8 +47,8 @@ class DesireHelper:
 
     # WARNING: No threshold can determine all road edges correctly. Driver check is still required.
     edge_threshold = 0.475  # Higher value filters out low-confidence road edges
-    left_edge_prob = max(0.0, min(1.0 - md.roadEdgeStds[0], 1.0))
-    right_edge_prob = max(0.0, min(1.0 - md.roadEdgeStds[1], 1.0))
+    left_edge_prob = clip(1.0 - md.roadEdgeStds[0], 0.0, 1.0)
+    right_edge_prob = clip(1.0 - md.roadEdgeStds[1], 0.0, 1.0)
     left_nearside_prob, right_nearside_prob = md.laneLineProbs[0], md.laneLineProbs[3]
 
     if right_edge_prob > edge_threshold and right_nearside_prob < 0.2 and left_nearside_prob >= right_nearside_prob:

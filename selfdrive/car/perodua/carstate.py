@@ -1,7 +1,7 @@
 from cereal import car
 from opendbc.can.parser import CANParser
 from opendbc.can.can_define import CANDefine
-from common.numpy_fast import mean, interp
+from common.numpy_fast import mean, interp, clip
 from selfdrive.config import Conversions as CV
 from selfdrive.car.interfaces import CarStateBase
 from selfdrive.car.perodua.values import DBC, CAR, ACC_CAR, HUD_MULTIPLIER
@@ -245,7 +245,7 @@ class CarState(CarStateBase):
 
     # set speed in range of 30 - 125kmh only
     #print(self.stock_acc_cmd, self.stock_acc_set_speed, self.cruise_speed * 3.6)
-    self.cruise_speed = max(min(self.cruise_speed, 125 * CV.KPH_TO_MS), 30 * CV.KPH_TO_MS)
+    self.cruise_speed = clip(self.cruise_speed, 30 * CV.KPH_TO_MS, 125 * CV.KPH_TO_MS)
     ret.cruiseState.speedCluster = self.cruise_speed
     ret.cruiseState.speed = ret.cruiseState.speedCluster / interp(ret.vEgo, [0,140], [1.0615,1.0170])
 

@@ -16,8 +16,8 @@ def apply_proton_steer_torque_limits(apply_torque, apply_torque_last, driver_tor
   driver_offset = driver_torque * 30
   driver_max_torque = LIMITS.STEER_MAX + driver_offset
   driver_min_torque = -LIMITS.STEER_MAX + driver_offset
-  max_steer_allowed = max(min(LIMITS.STEER_MAX, driver_max_torque), 0)
-  min_steer_allowed = min(max(-LIMITS.STEER_MAX, driver_min_torque), 0)
+  max_steer_allowed = clip(driver_max_torque, 0, LIMITS.STEER_MAX)
+  min_steer_allowed = clip(driver_min_torque, -LIMITS.STEER_MAX, 0)
   apply_torque = clip(apply_torque, min_steer_allowed, max_steer_allowed)
 
   # slow rate if steer torque increases in magnitude
