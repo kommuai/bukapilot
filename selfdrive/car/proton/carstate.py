@@ -211,8 +211,8 @@ class CarState(CarStateBase):
     # ICC_ON initialised to None, ensure it is read last
     self.lks_assist_mode = cp.vl["ADAS_LKAS"]["LKS_ASSIST_MODE"]
     self.lks_aux = cp.vl["ADAS_LKAS"]["STOCK_LKS_AUX"]
-    self.lks_audio = cp.vl["ADAS_LKAS"]["LKS_WARNING_AUDIO"]
-    self.lks_tactile = cp.vl["ADAS_LKAS"]["LKS_WARNING_TACTILE"]
+    self.lks_audio = cp.vl["ADAS_LKAS"]["LKS_WARNING_AUDIO_TYPE"]
+    self.lks_tactile = cp.vl["ADAS_LKAS"]["LKS_WARNING_TACTILE_TYPE"]
     self.is_icc_on = cp.vl["PCM_BUTTONS"]["ICC_ON"]
     # If cruise mode is ICC, make bukapilot control steering so it won't disengage.
     ret.lkaDisabled = not self.lka_enable and not self.is_icc_on
@@ -261,8 +261,8 @@ class CarState(CarStateBase):
       ("HAND_ON_WHEEL_WARNING", "ADAS_LKAS", 1),
       ("WHEEL_WARNING_CHIME", "ADAS_LKAS", 1),
       ("STOCK_LKS_AUX", "ADAS_LKAS", 0),
-      ("LKS_WARNING_AUDIO", "ADAS_LKAS", 0),
-      ("LKS_WARNING_TACTILE", "ADAS_LKAS", 0),
+      ("LKS_WARNING_AUDIO_TYPE", "ADAS_LKAS", 0),
+      ("LKS_WARNING_TACTILE_TYPE", "ADAS_LKAS", 0),
       ("LKS_ASSIST_MODE", "ADAS_LKAS", 1),
       ("STEER_DIR", "ADAS_LKAS", 1),
       ("LDW_STEERING", "ADAS_LKAS", 0),
