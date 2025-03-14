@@ -134,8 +134,8 @@ class CarController():
           self.resume_counter = 0
           self.lead_moved = False
 
-        elif (CS.res_btn_pressed or CS.out.gasPressed) or self.resume_counter >= RES_LEN:
-          # Manual press or auto resume finished
+        elif self.resume_counter >= RES_LEN or CS.out.gasPressed or CS.res_btn_pressed:
+          # Auto resume finished or manual press
           self.sng_next_press_frame = max(self.sng_next_press_frame, frame + RES_INTERVAL)
           self.resume_counter = 0
           self.lead_moved = False
