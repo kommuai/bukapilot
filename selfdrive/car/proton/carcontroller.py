@@ -92,7 +92,7 @@ class CarController():
     if frame % 2 == 0:
       raw_cnt = (frame // 2) % 16
 
-      if frame <= 1000 and self.num_cruise_btn_sent <= 3 and CS.out.cruiseState.available:
+      if frame <= 10 and self.num_cruise_btn_sent <= 3 and CS.out.cruiseState.available:
         self.num_cruise_btn_sent += 1
         can_sends.append(send_buttons(self.packer, raw_cnt, True))
 
