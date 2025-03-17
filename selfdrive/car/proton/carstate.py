@@ -29,15 +29,13 @@ class CarState(CarStateBase):
     self.lks_audio = None
     self.lks_tactile = None
     self.is_icc_on = None
-    self.lks_assist_mode = 0
-    self.lks_aux = 0
-    self.lka_enable = 0
-    self.stock_ldw_steering = 0
-    self.audio_ldw_right = 0
-    self.audio_ldw_left = 0
-    self.has_audio_ldw = 0
-    self.stock_ldp_left = 0
-    self.stock_ldp_right = 0
+    self.lks_assist_mode = False
+    self.lks_aux = False
+    self.lka_enable = False
+    self.stock_ldw_steering = False
+    self.has_audio_ldw = False
+    self.stock_ldp_left = False
+    self.stock_ldp_right = False
     self.stock_ldp_cmd = 0
     self.steer_dir = 0
 
@@ -58,10 +56,10 @@ class CarState(CarStateBase):
     self.mads = f.has("StockAcc")
     self.is_alc_enabled = Params().get_bool("IsAlcEnabled")
 
-  def set_cur_blinker(self, alc_not_active):
+  def set_cur_blinker(self, alc_not_active, rightBlinker):
     """Reset time and set cur_blinker"""
     self.blinker_start_time = time()
-    self.cur_blinker = Dir.RIGHT if self.rightBlinker else Dir.LEFT
+    self.cur_blinker = Dir.RIGHT if rightBlinker else Dir.LEFT
     self.blinker_on_alc_active = not alc_not_active # Check when blinker on / direction change, if ALC was active
 
   def update(self, cp):
@@ -72,9 +70,7 @@ class CarState(CarStateBase):
     self.steer_dir = cp.vl["ADAS_LKAS"]["STEER_DIR"]
     self.stock_ldp_left = cp.vl["LKAS"]["STEER_REQ_LEFT"]
     self.stock_ldp_right = cp.vl["LKAS"]["STEER_REQ_RIGHT"]
-    self.audio_ldw_left = cp.vl["LKAS"]["LANE_DEPARTURE_AUDIO_LEFT"]
-    self.audio_ldw_right = cp.vl["LKAS"]["LANE_DEPARTURE_AUDIO_RIGHT"]
-    self.has_audio_ldw = self.audio_ldw_right or self.audio_ldw_left
+    self.has_audio_ldw = any((cp.vl["LKAS"]["LANE_DEPARTURE_AUDIO_RIGHT"], cp.vl["LKAS"]["LANE_DEPARTURE_AUDIO_LEFT"]))
 
     ret.wheelSpeeds = self.get_wheel_speeds(
       cp.vl["WHEEL_SPEED"]['WHEELSPEED_F'],
@@ -169,32 +165,35 @@ class CarState(CarStateBase):
     ret.cruiseState.enabled = self.is_cruise_latch
 
     # Turn signal with a required minimum time
-    self.leftBlinker = bool(cp.vl["LEFT_STALK"]["LEFT_SIGNAL"])
-    self.rightBlinker = bool(cp.vl["LEFT_STALK"]["RIGHT_SIGNAL"])
+    self.leftBlinker = leftBlinker = bool(cp.vl["LEFT_STALK"]["LEFT_SIGNAL"])
+    self.rightBlinker = rightBlinker = bool(cp.vl["LEFT_STALK"]["RIGHT_SIGNAL"])
+    one_blinker = leftBlinker != rightBlinker
 
     # Use minimum blinker time if ALC is not active
     alc_not_active = ret.vEgo < LANE_CHANGE_SPEED_MIN or not self.is_alc_enabled
-    one_blinker = self.leftBlinker != self.rightBlinker
 
     if self.cur_blinker is None:
       self.blinker_on_alc_active = False
       if one_blinker: # Turn signal was off and is now on
-        self.set_cur_blinker(alc_not_active)
+        self.set_cur_blinker(alc_not_active, rightBlinker)
     else:
       # cur_blinker is left or right
       if not one_blinker and \
       (self.blinker_on_alc_active or (time() - self.blinker_start_time) >= BLINKER_MIN):
         self.cur_blinker = None
-      elif (self.cur_blinker == Dir.LEFT and self.rightBlinker) or (self.cur_blinker == Dir.RIGHT and self.leftBlinker):
+      elif (leftBlinker and self.cur_blinker == Dir.RIGHT) or (rightBlinker and self.cur_blinker == Dir.LEFT):
         # Change in blinker direction
-        self.set_cur_blinker(alc_not_active)
+        self.set_cur_blinker(alc_not_active, rightBlinker)
 
-    ret.leftBlinker = (self.cur_blinker == Dir.LEFT) if alc_not_active else self.leftBlinker
-    ret.rightBlinker = (self.cur_blinker == Dir.RIGHT) if alc_not_active else self.rightBlinker
+    if alc_not_active:
+      cur_blinker = self.cur_blinker
+      ret.leftBlinker, ret.rightBlinker = cur_blinker == Dir.LEFT, cur_blinker == Dir.RIGHT
+    else:
+      ret.leftBlinker, ret.rightBlinker = leftBlinker, rightBlinker
 
     # button presses
     ret.genericToggle = bool(cp.vl["LEFT_STALK"]["GENERIC_TOGGLE"]) # High beam toggle
-    ret.espDisabled = bool(cp.vl["PARKING_BRAKE"]["ESC_ON"]) != 1
+    ret.espDisabled = not bool(cp.vl["PARKING_BRAKE"]["ESC_ON"])
 
     # blindspot sensors
     if self.CP.enableBsm:
@@ -209,11 +208,11 @@ class CarState(CarStateBase):
     Centering Control:    LKS Assist False, Auxiliary False
     """
     # ICC_ON initialised to None, ensure it is read last
-    self.lks_assist_mode = cp.vl["ADAS_LKAS"]["LKS_ASSIST_MODE"]
-    self.lks_aux = cp.vl["ADAS_LKAS"]["STOCK_LKS_AUX"]
-    self.lks_audio = cp.vl["ADAS_LKAS"]["LKS_WARNING_AUDIO_TYPE"]
-    self.lks_tactile = cp.vl["ADAS_LKAS"]["LKS_WARNING_TACTILE_TYPE"]
-    self.is_icc_on = cp.vl["PCM_BUTTONS"]["ICC_ON"]
+    self.lks_assist_mode = bool(cp.vl["ADAS_LKAS"]["LKS_ASSIST_MODE"])
+    self.lks_aux = bool(cp.vl["ADAS_LKAS"]["STOCK_LKS_AUX"])
+    self.lks_audio = bool(cp.vl["ADAS_LKAS"]["LKS_WARNING_AUDIO_TYPE"])
+    self.lks_tactile = bool(cp.vl["ADAS_LKAS"]["LKS_WARNING_TACTILE_TYPE"])
+    self.is_icc_on = bool(cp.vl["PCM_BUTTONS"]["ICC_ON"])
     # If cruise mode is ICC, make bukapilot control steering so it won't disengage.
     ret.lkaDisabled = not self.lka_enable and not self.is_icc_on
 

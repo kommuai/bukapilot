@@ -61,7 +61,7 @@ class Controls:
   def time_diff(self, frame_type):
    return (self.sm.frame - frame_type) * DT_CTRL
 
-  def reduce_steer(self, steer, steeringAngle, CS, resume_diff):
+  def reduce_steer(self, steer, steeringAngle, CSAngleDeg, resume_diff):
     end_time = 1.75 # The time where the steering becomes 100% again
     if resume_diff >= end_time:
       return steer, steeringAngle
@@ -69,7 +69,7 @@ class Controls:
     # Non-linear increment equation
     rate = 0.003    # Higher value means steeper curve. When rate is 0, the curve becomes linear.
     mul = min(1, (resume_diff / end_time) ** (1-rate))
-    return steer * mul, (steeringAngle - CS.steeringAngleDeg) * mul + CS.steeringAngleDeg
+    return steer * mul, (steeringAngle - CSAngleDeg) * mul + CSAngleDeg
 
   def __init__(self, sm=None, pm=None, can_sock=None):
     config_realtime_process(4 if TICI else 3, Priority.CTRL_HIGH)
@@ -117,8 +117,7 @@ class Controls:
     self.is_ldw_enabled = params.get_bool("IsLdwEnabled")
     self.is_alc_enabled = params.get_bool("IsAlcEnabled")
     openpilot_enabled_toggle = params.get_bool("OpenpilotEnabledToggle")
-    passive = params.get_bool("Passive") or not openpilot_enabled_toggle
-
+    passive = not openpilot_enabled_toggle or params.get_bool("Passive")
     # detect sound card presence and ensure successful init
     sounds_available = HARDWARE.get_sound_card_online()
 
@@ -500,8 +499,7 @@ class Controls:
     # Assisted Lane Change and blinker checks
     below_lane_change_speed = CS.vEgo < LANE_CHANGE_SPEED_MIN
     lane_change_speed_enough = not below_lane_change_speed
-    leftBlinker, rightBlinker = CS.leftBlinker, CS.rightBlinker
-    one_blinker = leftBlinker != rightBlinker
+    one_blinker = (leftBlinker := CS.leftBlinker) != (rightBlinker := CS.rightBlinker)
 
     # Check if blinker was on below lane change speed for ALC
     if one_blinker:
@@ -513,23 +511,23 @@ class Controls:
     else:
       self.blinker_below_lane_change_speed = False
 
-    if not self.active or not one_blinker: # If not active, reset check for lane change even if blinker is on
+    if not one_blinker or not self.active: # If not active, reset check for lane change even if blinker is on
       self.blinker_has_lane_change = False
     self.prev_one_blinker = one_blinker
 
     # Check if there was any ALC lane change while blinker on/ALC was doing lane change, when speed changed to below min speed
-    if (self.prev_enough_lane_change_speed and below_lane_change_speed) and (self.blinker_has_lane_change or changing_lanes):
+    if (changing_lanes or self.blinker_has_lane_change) and (below_lane_change_speed and self.prev_enough_lane_change_speed):
       self.alc_speed_below = True
-    elif not self.active or (not one_blinker and lc_state == LaneChangeState.off):
+    elif (not one_blinker and lc_state == LaneChangeState.off) or not self.active:
       self.alc_speed_below = False
     self.prev_enough_lane_change_speed = lane_change_speed_enough
 
     # Check if ALC is active
-    is_alc_active = (self.is_alc_enabled and self.active and
-                    (self.alc_speed_below or (lane_change_speed_enough and not self.blinker_below_lane_change_speed)))
+    is_alc_active = ((self.alc_speed_below or (lane_change_speed_enough and not self.blinker_below_lane_change_speed)) and
+                     self.active and self.is_alc_enabled)
 
     # Handle lane change events after ALC check
-    if is_alc_active and (lc_state != LaneChangeState.off or lane_change_speed_enough) and not CS.lkaDisabled:
+    if is_alc_active and ((lc_is_off := lc_state != LaneChangeState.off) or lane_change_speed_enough) and not CS.lkaDisabled:
       if one_blinker and ((leftBlinker and CS.leftBlindspot) or (rightBlinker and CS.rightBlindspot)):
         self.events.add(EventName.laneChangeBlocked)
 
@@ -539,7 +537,7 @@ class Controls:
         else:
           self.events.add(EventName.preLaneChangeRight)
 
-      elif lc_state != LaneChangeState.off:
+      elif lc_is_off:
         self.events.add(EventName.laneChange)
 
     # State specific actions
@@ -553,7 +551,7 @@ class Controls:
       actuators.accel, actuators.speed = self.LoC.update(self.active, CS, self.CP, long_plan, pid_accel_limits)
 
       # Steering PID loop and lateral MPC
-      self.lat_active = self.active and not ((one_blinker and not is_alc_active) or CS.standstill or CS.lkaDisabled) \
+      self.lat_active = not ((one_blinker and not is_alc_active) or CS.standstill or CS.lkaDisabled) and self.active \
                         and CS.vEgo > self.CP.minSteerSpeed and not CS.steerWarning and not CS.steerError
       desired_curvature, desired_curvature_rate = get_lag_adjusted_curvature(self.CP, CS.vEgo,
                                                                              lat_plan.psis,
@@ -575,7 +573,7 @@ class Controls:
         lac_log.output = steer
         lac_log.saturated = abs(steer) >= 0.9
 
-    if self.is_alc_enabled and self.active and one_blinker and not (self.lat_active or CS.standstill or CS.lkaDisabled):
+    if one_blinker and self.active and self.is_alc_enabled and not (self.lat_active or CS.standstill or CS.lkaDisabled):
       self.events.add(EventName.belowLaneChangeSpeed)
 
     # If steer not active
@@ -591,7 +589,8 @@ class Controls:
 
     # Reduce steering after resume
     if recent_steer_resume:
-      actuators.steer, actuators.steeringAngleDeg = self.reduce_steer(actuators.steer, actuators.steeringAngleDeg, CS, resume_diff)
+      actuators.steer, actuators.steeringAngleDeg = \
+        self.reduce_steer(actuators.steer, actuators.steeringAngleDeg, CS.steeringAngleDeg, resume_diff)
 
     # Send a "steering required alert" if saturation count has reached the limit
     if lac_log.active and lac_log.saturated and not CS.steeringPressed:
@@ -603,7 +602,7 @@ class Controls:
         right_deviation = actuators.steer < 0 and dpath_points[0] > 0.20
 
         # Condition to show steering limit warning
-        if (left_deviation or right_deviation) and self.lat_active and not recent_steer_resume:
+        if (left_deviation or right_deviation) and not recent_steer_resume and self.lat_active:
           self.events.add(EventName.steerSaturated)
 
     # Ensure no NaNs/Infs

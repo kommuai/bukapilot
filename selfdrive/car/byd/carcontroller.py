@@ -61,7 +61,7 @@ class CarController():
     if not auto_resume_allowed:
       self.is_sng_check = False
     else:
-      self.lead_valid = self.lead_valid and lead_visible
+      self.lead_valid = lead_visible and self.lead_valid
 
       if not self.is_sng_check:
         # SNG auto resume check start

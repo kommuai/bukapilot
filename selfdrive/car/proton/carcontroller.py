@@ -60,9 +60,6 @@ class CarController():
     f = Features()
     self.mads = f.has("StockAcc")
     self.always_lks_tactile = f.has("LKSTactile")
-    # Set default warning type for LKS
-    self.lks_tactile = True
-    self.lks_audio = False
 
   def update(self, enabled, CS, frame, actuators, lead_visible, rlane_visible, llane_visible, pcm_cancel, ldw):
     can_sends = []
@@ -71,15 +68,16 @@ class CarController():
     # steer
     new_steer = int(round(actuators.steer * self.params.STEER_MAX))
     apply_steer = apply_proton_steer_torque_limits(new_steer, self.last_steer, 0, self.params)
-    self.steer_rate_limited = (new_steer != apply_steer) and (apply_steer != 0)
+    self.steer_rate_limited = (apply_steer != 0) and (new_steer != apply_steer)
 
+    cs_out = CS.out
     # Stock Lane Departure Prevention / Centering Control (LKS Auxiliary / Blue line)
-    if not (steer_enabled := enabled and not CS.out.lkaDisabled) and self.prev_steer_enabled:
+    if not (steer_enabled := enabled and not cs_out.lkaDisabled) and self.prev_steer_enabled:
       self.last_steer_disable = time.monotonic()
     self.prev_steer_enabled = steer_enabled
 
     if not steer_enabled and (stock_steer_cmd := CS.stock_ldp_cmd) > 0 and \
-       not ((CS.out.rightBlinker and CS.stock_ldp_right) or (CS.out.leftBlinker and CS.stock_ldp_left)):
+       not ((cs_out.rightBlinker and CS.stock_ldp_right) or (cs_out.leftBlinker and CS.stock_ldp_left)):
       apply_stock_dir = -1 if CS.steer_dir else 1
 
       # After steer disable, keep steering at 0 for the first 0.55 seconds, then increase from 0% to 100% over 0.5 seconds.
@@ -92,7 +90,7 @@ class CarController():
     if frame % 2 == 0:
       raw_cnt = (frame // 2) % 16
 
-      if frame <= 10 and self.num_cruise_btn_sent <= 3 and CS.out.cruiseState.available:
+      if frame <= 10 and self.num_cruise_btn_sent <= 3 and cs_out.cruiseState.available:
         self.num_cruise_btn_sent += 1
         can_sends.append(send_buttons(self.packer, raw_cnt, True))
 
@@ -102,13 +100,13 @@ class CarController():
         # Passing LKS mode values do not change car stored values, so also pass LDW value to steering
         if self.always_lks_tactile:
           ldw_steering = ldw_steering or CS.has_audio_ldw
+          lks_audio, lks_tactile = False, True
         else:
-          self.lks_audio = CS.lks_audio
-          self.lks_tactile = CS.lks_tactile
+          lks_audio, lks_tactile = CS.lks_audio, CS.lks_tactile
 
         can_sends.append(create_can_steer_command(self.packer, apply_steer, lat_active, \
         is_icc_on and CS.hand_on_wheel_warning, is_icc_on and CS.hand_on_wheel_warning_2, \
-        raw_cnt, CS.lks_aux, self.lks_audio, self.lks_tactile, CS.lks_assist_mode, \
+        raw_cnt, CS.lks_aux, lks_audio, lks_tactile, CS.lks_assist_mode, \
         CS.lka_enable, ldw_steering, steer_enabled))
 
       #can_sends.append(create_hud(self.packer, apply_steer, enabled, ldw, rlane_visible, llane_visible))
@@ -116,12 +114,12 @@ class CarController():
       #can_sends.append(create_acc_cmd(self.packer, actuators.accel, enabled, raw_cnt))
 
       # SNG auto resume
-      auto_resume_allowed = enabled and CS.out.cruiseState.standstill
+      auto_resume_allowed = enabled and cs_out.cruiseState.standstill
 
       if not auto_resume_allowed:
         self.is_sng_check = False
       else:
-        self.lead_valid = self.lead_valid and lead_visible
+        self.lead_valid = lead_visible and self.lead_valid
         lead_dist = CS.leadDistance
         self.lead_moved = self.lead_valid and (self.lead_moved or lead_dist > max(1, self.prev_lead_dist))
         self.prev_lead_dist = lead_dist
@@ -134,7 +132,7 @@ class CarController():
           self.resume_counter = 0
           self.lead_moved = False
 
-        elif self.resume_counter >= RES_LEN or CS.out.gasPressed or CS.res_btn_pressed:
+        elif self.resume_counter >= RES_LEN or cs_out.gasPressed or CS.res_btn_pressed:
           # Auto resume finished or manual press
           self.sng_next_press_frame = max(self.sng_next_press_frame, frame + RES_INTERVAL)
           self.resume_counter = 0
