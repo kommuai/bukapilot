@@ -66,7 +66,6 @@ class DesireHelper:
     self.lane_change_ll_prob = 1.0
     self.keep_pulse_timer = 0.0
     self.last_alc_cancel = 0
-    self.last_blinker_on = 0
     self.prev_blinker = None # Handle direction change
     self.desire = log.LateralPlan.Desire.none
     self.is_alc_enabled = Params().get_bool("IsAlcEnabled")
@@ -86,7 +85,6 @@ class DesireHelper:
     ready_for_lane_change = active and self.is_alc_enabled and not carstate.lkaDisabled and self.lane_change_timer <= LANE_CHANGE_TIME_MAX
 
     if one_blinker and not self.prev_blinker != None:
-      self.last_blinker_on = current_time # Record time of the last blinker on
       self.blinker_below_lane_change_speed = below_lane_change_speed # Check if blinker was on below lane change speed
     elif not one_blinker:
       self.blinker_below_lane_change_speed = False
@@ -95,8 +93,8 @@ class DesireHelper:
       self.lane_change_state = LaneChangeState.off
       self.lane_change_direction = LaneChangeDirection.none
 
-    # If blinker off/blinker direction change or blindspot detected during Assisted Lane Change, finish the lane change.
-    elif self.lane_change_state == LaneChangeState.laneChangeStarting and (not one_blinker or blinker_dir_changed or blindspot_detected):
+    # If blinker off/blinker direction change during Assisted Lane Change, finish the lane change.
+    elif self.lane_change_state == LaneChangeState.laneChangeStarting and (not one_blinker or blinker_dir_changed):
       # fade out over .5s
       self.lane_change_ll_prob = max(self.lane_change_ll_prob - 2 * DT_MDL, 0.0)
 
@@ -112,8 +110,7 @@ class DesireHelper:
                                and not self.is_road_edge_blinker(carstate, md))
 
       # LaneChangeState.off
-      if self.lane_change_state == LaneChangeState.off and can_start_lane_change \
-          and not self.blinker_below_lane_change_speed and round(current_time - self.last_blinker_on, 2) > 0.20:
+      if self.lane_change_state == LaneChangeState.off and can_start_lane_change and not self.blinker_below_lane_change_speed:
         self.lane_change_state = LaneChangeState.preLaneChange
         self.lane_change_ll_prob = 1.0
 
@@ -147,10 +144,7 @@ class DesireHelper:
 
         if self.lane_change_ll_prob > 0.99:
           self.lane_change_direction = LaneChangeDirection.none
-          if can_start_lane_change:
-            self.lane_change_state = LaneChangeState.preLaneChange
-          else:
-            self.lane_change_state = LaneChangeState.off
+          self.lane_change_state = LaneChangeState.preLaneChange if can_start_lane_change else LaneChangeState.off
 
     if self.lane_change_state in (LaneChangeState.off, LaneChangeState.preLaneChange):
       self.lane_change_timer = 0.0
