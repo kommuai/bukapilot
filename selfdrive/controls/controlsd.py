@@ -527,8 +527,8 @@ class Controls:
                      self.active and self.is_alc_enabled)
 
     # Handle lane change events after ALC check
-    if is_alc_active and ((lc_is_off := lc_state != LaneChangeState.off) or lane_change_speed_enough) and not CS.lkaDisabled:
-      if one_blinker and ((leftBlinker and CS.leftBlindspot) or (rightBlinker and CS.rightBlindspot)):
+    if is_alc_active and ((lc_not_off := lc_state != LaneChangeState.off) or lane_change_speed_enough) and not CS.lkaDisabled:
+      if one_blinker and ((rightBlinker and CS.rightBlindspot) or (leftBlinker and CS.leftBlindspot)):
         self.events.add(EventName.laneChangeBlocked)
 
       elif one_blinker and lc_state == LaneChangeState.preLaneChange:
@@ -537,7 +537,7 @@ class Controls:
         else:
           self.events.add(EventName.preLaneChangeRight)
 
-      elif lc_is_off:
+      elif lc_not_off:
         self.events.add(EventName.laneChange)
 
     # State specific actions
@@ -551,13 +551,13 @@ class Controls:
       actuators.accel, actuators.speed = self.LoC.update(self.active, CS, self.CP, long_plan, pid_accel_limits)
 
       # Steering PID loop and lateral MPC
-      self.lat_active = not ((one_blinker and not is_alc_active) or CS.standstill or CS.lkaDisabled) and self.active \
+      self.lat_active = lat_active = not ((one_blinker and not is_alc_active) or CS.standstill or CS.lkaDisabled) and self.active \
                         and CS.vEgo > self.CP.minSteerSpeed and not CS.steerWarning and not CS.steerError
       desired_curvature, desired_curvature_rate = get_lag_adjusted_curvature(self.CP, CS.vEgo,
                                                                              lat_plan.psis,
                                                                              lat_plan.curvatures,
                                                                              lat_plan.curvatureRates)
-      actuators.steer, actuators.steeringAngleDeg, lac_log = self.LaC.update(self.lat_active, CS, self.CP, self.VM, params, self.last_actuators,
+      actuators.steer, actuators.steeringAngleDeg, lac_log = self.LaC.update(lat_active, CS, self.CP, self.VM, params, self.last_actuators,
                                                                              desired_curvature, desired_curvature_rate)
     else:
       lac_log = log.ControlsState.LateralDebugState.new_message()
@@ -573,22 +573,19 @@ class Controls:
         lac_log.output = steer
         lac_log.saturated = abs(steer) >= 0.9
 
-    if one_blinker and self.active and self.is_alc_enabled and not (self.lat_active or CS.standstill or CS.lkaDisabled):
+    if one_blinker and not (lat_active or CS.standstill or CS.lkaDisabled) and self.active and self.is_alc_enabled:
       self.events.add(EventName.belowLaneChangeSpeed)
 
     # If steer not active
-    if not self.lat_active:
+    if not lat_active:
       self.steer_resumed = False
     # If steer resume
     elif not self.steer_resumed:
       self.steer_resumed = True
       self.last_steer_resume_frame = self.sm.frame
 
-    resume_diff = self.time_diff(self.last_steer_resume_frame)
-    recent_steer_resume = resume_diff < 2.0
-
     # Reduce steering after resume
-    if recent_steer_resume:
+    if recent_steer_resume := ((resume_diff := self.time_diff(self.last_steer_resume_frame)) < 2.0):
       actuators.steer, actuators.steeringAngleDeg = \
         self.reduce_steer(actuators.steer, actuators.steeringAngleDeg, CS.steeringAngleDeg, resume_diff)
 
@@ -598,11 +595,11 @@ class Controls:
       if len(dpath_points):
         # Check if we deviated from the path
         # TODO use desired vs actual curvature
-        left_deviation = actuators.steer > 0 and dpath_points[0] < -0.20
-        right_deviation = actuators.steer < 0 and dpath_points[0] > 0.20
-
         # Condition to show steering limit warning
-        if (left_deviation or right_deviation) and not recent_steer_resume and self.lat_active:
+        if lat_active and not recent_steer_resume and (
+          (left_deviation := actuators.steer > 0 and dpath_points[0] < -0.20) or
+          (right_deviation := actuators.steer < 0 and dpath_points[0] > 0.20)
+        ):
           self.events.add(EventName.steerSaturated)
 
     # Ensure no NaNs/Infs
@@ -658,9 +655,7 @@ class Controls:
                   and self.sm['liveCalibration'].calStatus == Calibration.CALIBRATED
                   and self.time_diff(self.last_blinker_frame) >= 5.0) # 5s blinker cooldown
 
-    model_v2 = self.sm['modelV2']
-    desire_prediction = model_v2.meta.desirePrediction
-    if len(desire_prediction) and ldw_allowed:
+    if ldw_allowed and len(desire_prediction := (model_v2 := self.sm['modelV2']).meta.desirePrediction):
       right_lane_visible = self.sm['lateralPlan'].rProb > 0.5
       left_lane_visible = self.sm['lateralPlan'].lProb > 0.5
       l_lane_change_prob = desire_prediction[Desire.laneChangeLeft - 1]
