@@ -1,13 +1,11 @@
 from cereal import car
-from collections import deque
-from math import ceil
 from opendbc.can.parser import CANParser
 from opendbc.can.can_define import CANDefine
 from common.numpy_fast import mean
 from selfdrive.config import Conversions as CV
 from selfdrive.car.interfaces import CarStateBase
-from selfdrive.car.proton.values import DBC, CAR, HUD_MULTIPLIER
-from time import time
+from selfdrive.car.proton.values import DBC, HUD_MULTIPLIER
+from time import monotonic
 from enum import Enum, auto
 from selfdrive.controls.lib.desire_helper import LANE_CHANGE_SPEED_MIN
 from common.features import Features
@@ -39,8 +37,6 @@ class CarState(CarStateBase):
     self.stock_ldp_cmd = 0
     self.steer_dir = 0
 
-    self.rightBlinker = False
-    self.leftBlinker = False
     self.cur_blinker = None
     self.blinker_on_alc_active = False
     self.blinker_start_time = 0
@@ -58,11 +54,12 @@ class CarState(CarStateBase):
 
   def set_cur_blinker(self, alc_not_active, rightBlinker):
     """Reset time and set cur_blinker"""
-    self.blinker_start_time = time()
+    self.blinker_start_time = monotonic()
     self.cur_blinker = Dir.RIGHT if rightBlinker else Dir.LEFT
     self.blinker_on_alc_active = not alc_not_active # Check when blinker on / direction change, if ALC was active
 
   def update(self, cp):
+    mads = self.mads
     ret = car.CarState.new_message()
 
     self.stock_ldp_cmd = cp.vl["ADAS_LKAS"]["STEER_CMD"]
@@ -70,7 +67,7 @@ class CarState(CarStateBase):
     self.steer_dir = cp.vl["ADAS_LKAS"]["STEER_DIR"]
     self.stock_ldp_left = cp.vl["LKAS"]["STEER_REQ_LEFT"]
     self.stock_ldp_right = cp.vl["LKAS"]["STEER_REQ_RIGHT"]
-    self.has_audio_ldw = any((cp.vl["LKAS"]["LANE_DEPARTURE_AUDIO_RIGHT"], cp.vl["LKAS"]["LANE_DEPARTURE_AUDIO_LEFT"]))
+    self.has_audio_ldw = cp.vl["LKAS"]["LANE_DEPARTURE_AUDIO_RIGHT"] or cp.vl["LKAS"]["LANE_DEPARTURE_AUDIO_LEFT"]
 
     ret.wheelSpeeds = self.get_wheel_speeds(
       cp.vl["WHEEL_SPEED"]['WHEELSPEED_F'],
@@ -78,99 +75,90 @@ class CarState(CarStateBase):
       cp.vl["WHEEL_SPEED"]['WHEELSPEED_B'],
       cp.vl["WHEEL_SPEED"]['WHEELSPEED_B'],
     )
-    ret.vEgoRaw = mean([ret.wheelSpeeds.rr, ret.wheelSpeeds.rl, ret.wheelSpeeds.fr, ret.wheelSpeeds.fl])
+    ret.vEgoRaw = vEgoRaw = mean([ret.wheelSpeeds.rr, ret.wheelSpeeds.rl, ret.wheelSpeeds.fr, ret.wheelSpeeds.fl])
 
     # unfiltered speed from CAN sensors
-    ret.vEgo, ret.aEgo = self.update_speed_kf(ret.vEgoRaw)
-    ret.standstill = ret.vEgoRaw < 0.01
+    ret.vEgo, ret.aEgo = self.update_speed_kf(vEgoRaw)
+    ret.standstill = vEgoRaw < 0.01
 
     # safety checks to engage
     can_gear = int(cp.vl["TRANSMISSION"]['GEAR'])
 
-    ret.doorOpen = any([cp.vl["DOOR_LEFT_SIDE"]['BACK_LEFT_DOOR'],
-                     cp.vl["DOOR_LEFT_SIDE"]['FRONT_LEFT_DOOR'],
-                     cp.vl["DOOR_RIGHT_SIDE"]['BACK_RIGHT_DOOR'],
-                     cp.vl["DOOR_RIGHT_SIDE"]['FRONT_RIGHT_DOOR']])
+    ret.doorOpen = doorOpen = any([cp.vl["DOOR_LEFT_SIDE"]['BACK_LEFT_DOOR'],
+                              cp.vl["DOOR_LEFT_SIDE"]['FRONT_LEFT_DOOR'],
+                              cp.vl["DOOR_RIGHT_SIDE"]['BACK_RIGHT_DOOR'],
+                              cp.vl["DOOR_RIGHT_SIDE"]['FRONT_RIGHT_DOOR']])
 
-    ret.seatbeltUnlatched = cp.vl["SEATBELTS"]['RIGHT_SIDE_SEATBELT_ACTIVE_LOW'] == 1
+    ret.seatbeltUnlatched = seatbeltUnlatched = bool(cp.vl["SEATBELTS"]['RIGHT_SIDE_SEATBELT_ACTIVE_LOW'])
     ret.gearShifter = self.parse_gear_shifter(self.shifter_values.get(can_gear, None))
-    ret.brakeHoldActive = bool(cp.vl["PARKING_BRAKE"]["CAR_ON_HOLD"])
+    ret.brakeHoldActive = brakeHoldActive = bool(cp.vl["PARKING_BRAKE"]["CAR_ON_HOLD"])
 
-    disengage = ret.doorOpen or ret.seatbeltUnlatched or ret.brakeHoldActive
-    if disengage:
+    # disengage
+    if brakeHoldActive or seatbeltUnlatched or doorOpen:
       self.is_cruise_latch = False
 
     # gas pedal
-    ret.gas = cp.vl["GAS_PEDAL"]['APPS_1']
-    ret.gasPressed = ret.gas > 0.01
+    ret.gas = gas = cp.vl["GAS_PEDAL"]['APPS_1']
+    ret.gasPressed = gas > 0.01
 
     # brake pedal
     ret.brake = cp.vl["BRAKE"]['BRAKE_PRESSURE']
-    if self.mads:
-      ret.brakePressed = False
-    else:
-      ret.brakePressed = bool(cp.vl["PARKING_BRAKE"]["BRAKE_PRESSED"])
+    ret.brakePressed = brakePressed = False if mads else bool(cp.vl["PARKING_BRAKE"]["BRAKE_PRESSED"])
 
     # steer
-    ret.steeringAngleDeg = cp.vl["STEERING_MODULE"]['STEER_ANGLE']
-    steer_dir = 1 if (ret.steeringAngleDeg - self.prev_angle >= 0) else -1
-    self.prev_angle = ret.steeringAngleDeg
-    ret.steeringTorque = cp.vl["STEERING_TORQUE"]['MAIN_TORQUE'] * steer_dir
+    ret.steeringAngleDeg = steeringAngleDeg = cp.vl["STEERING_MODULE"]['STEER_ANGLE']
+    steer_dir = 1 if (steeringAngleDeg - self.prev_angle >= 0) else -1
+    self.prev_angle = steeringAngleDeg
+    ret.steeringTorque = steeringTorque = cp.vl["STEERING_TORQUE"]['MAIN_TORQUE'] * steer_dir
     ret.steeringTorqueEps = cp.vl["STEERING_MODULE"]['STEER_RATE'] * steer_dir
-    ret.steeringPressed = bool(abs(ret.steeringTorque) > 124)
+    ret.steeringPressed = abs(steeringTorque) > 124
     ret.steerWarning = False
     ret.steerError = False
-    self.hand_on_wheel_warning = bool(cp.vl["ADAS_LKAS"]["HAND_ON_WHEEL_WARNING"])
-    self.hand_on_wheel_warning_2 = bool(cp.vl["ADAS_LKAS"]["WHEEL_WARNING_CHIME"])
+    self.hand_on_wheel_warning = cp.vl["ADAS_LKAS"]["HAND_ON_WHEEL_WARNING"]
+    self.hand_on_wheel_warning_2 = cp.vl["ADAS_LKAS"]["WHEEL_WARNING_CHIME"]
     self.leadDistance = cp.vl["ADAS_LEAD_DETECT"]["LEAD_DISTANCE"]
-    self.lka_enable = bool(cp.vl["ADAS_LKAS"]["LKA_ENABLE"])
+    self.lka_enable = lka_enable = cp.vl["ADAS_LKAS"]["LKA_ENABLE"]
 
-    ret.vEgoCluster = ret.vEgo * HUD_MULTIPLIER
+    ret.vEgoCluster = (vEgo := ret.vEgo) * HUD_MULTIPLIER
 
     # Todo: get the real value
     ret.stockAeb = False
     ret.stockFcw = bool(cp.vl["FCW"]["STOCK_FCW_TRIGGERED"])
 
-    self.acc_req = bool(cp.vl["ACC_CMD"]["ACC_REQ"])
-    ret.cruiseState.available = any([cp.vl["PCM_BUTTONS"]["ACC_ON_OFF_BUTTON"], cp.vl["PCM_BUTTONS"]["GAS_OVERRIDE"]])
-
-    distance_val = int(cp.vl["PCM_BUTTONS"]['SET_DISTANCE'])
-    ret.cruiseState.setDistance = self.parse_set_distance(self.set_distance_values.get(distance_val, None))
-    self.res_btn_pressed = bool(cp.vl["ACC_BUTTONS"]["RES_BUTTON"])
+    self.acc_req = cp.vl["ACC_CMD"]["ACC_REQ"]
+    ret.cruiseState.available = cruise_available = bool(cp.vl["PCM_BUTTONS"]["ACC_ON_OFF_BUTTON"] or cp.vl["PCM_BUTTONS"]["GAS_OVERRIDE"])
+    ret.cruiseState.setDistance = self.parse_set_distance(self.set_distance_values.get(int(cp.vl["PCM_BUTTONS"]['SET_DISTANCE']), None))
+    self.res_btn_pressed = cp.vl["ACC_BUTTONS"]["RES_BUTTON"]
 
     # engage and disengage logic
-    if self.mads:
-      self.is_cruise_latch = ret.cruiseState.available
-    else:
-       if cp.vl["PCM_BUTTONS"]["ACC_SET"] == 0 and ret.brakePressed:
-         self.is_cruise_latch = False
-
-    if cp.vl["PCM_BUTTONS"]["ACC_SET"] != 0 and not ret.brakePressed:
-      self.is_cruise_latch = True
-
-    # set speed in range of 30 - 130kmh only
-    self.cruise_speed = int(cp.vl["PCM_BUTTONS"]['ACC_SET_SPEED']) * CV.KPH_TO_MS
-    ret.cruiseState.speedCluster = self.cruise_speed
-    ret.cruiseState.speed = ret.cruiseState.speedCluster / HUD_MULTIPLIER
-    ret.cruiseState.standstill = bool(cp.vl["ACC_CMD"]["STANDSTILL2"])
-    ret.cruiseState.nonAdaptive = False
-
-    if not ret.cruiseState.available:
+    if mads:
+      self.is_cruise_latch = cruise_available
+    elif brakePressed and cp.vl["PCM_BUTTONS"]["ACC_SET"] == 0:
       self.is_cruise_latch = False
 
-    if not self.mads:
-      if ret.brakePressed or (not self.acc_req and not ret.cruiseState.standstill):
-        self.is_cruise_latch = False
+    if not brakePressed and cp.vl["PCM_BUTTONS"]["ACC_SET"] != 0:
+      self.is_cruise_latch = True
+
+    # set speed
+    self.cruise_speed = int(cp.vl["PCM_BUTTONS"]['ACC_SET_SPEED']) * CV.KPH_TO_MS
+    ret.cruiseState.speedCluster = cruise_speedCluster =  self.cruise_speed
+    ret.cruiseState.speed = cruise_speedCluster / HUD_MULTIPLIER
+    ret.cruiseState.standstill = cruise_standstill = bool(cp.vl["ACC_CMD"]["STANDSTILL2"])
+    ret.cruiseState.nonAdaptive = False
+
+    if not cruise_available:
+      self.is_cruise_latch = False
+
+    if not mads and (brakePressed or (not cruise_standstill and not self.acc_req)):
+      self.is_cruise_latch = False
 
     ret.cruiseState.enabled = self.is_cruise_latch
 
     # Turn signal with a required minimum time
-    self.leftBlinker = leftBlinker = bool(cp.vl["LEFT_STALK"]["LEFT_SIGNAL"])
-    self.rightBlinker = rightBlinker = bool(cp.vl["LEFT_STALK"]["RIGHT_SIGNAL"])
-    one_blinker = leftBlinker != rightBlinker
+    one_blinker = (leftBlinker := bool(cp.vl["LEFT_STALK"]["LEFT_SIGNAL"])) != (rightBlinker := bool(cp.vl["LEFT_STALK"]["RIGHT_SIGNAL"]))
 
     # Use minimum blinker time if ALC is not active
-    alc_not_active = ret.vEgo < LANE_CHANGE_SPEED_MIN or not self.is_alc_enabled
+    alc_not_active = vEgo < LANE_CHANGE_SPEED_MIN or not self.is_alc_enabled
 
     if self.cur_blinker is None:
       self.blinker_on_alc_active = False
@@ -179,7 +167,7 @@ class CarState(CarStateBase):
     else:
       # cur_blinker is left or right
       if not one_blinker and \
-      (self.blinker_on_alc_active or (time() - self.blinker_start_time) >= BLINKER_MIN):
+      (self.blinker_on_alc_active or (monotonic() - self.blinker_start_time) >= BLINKER_MIN):
         self.cur_blinker = None
       elif (leftBlinker and self.cur_blinker == Dir.RIGHT) or (rightBlinker and self.cur_blinker == Dir.LEFT):
         # Change in blinker direction
@@ -193,13 +181,13 @@ class CarState(CarStateBase):
 
     # button presses
     ret.genericToggle = bool(cp.vl["LEFT_STALK"]["GENERIC_TOGGLE"]) # High beam toggle
-    ret.espDisabled = not bool(cp.vl["PARKING_BRAKE"]["ESC_ON"])
+    ret.espDisabled = bool(not cp.vl["PARKING_BRAKE"]["ESC_ON"])
 
     # blindspot sensors
     if self.CP.enableBsm:
       # used for lane change so its okay for the chime to work on both side.
-      ret.leftBlindspot = bool(cp.vl["BSM_ADAS"]["LEFT_APPROACH"]) or bool(cp.vl["BSM_ADAS"]["LEFT_APPROACH_WARNING"])
-      ret.rightBlindspot = bool(cp.vl["BSM_ADAS"]["RIGHT_APPROACH"]) or bool(cp.vl["BSM_ADAS"]["RIGHT_APPROACH_WARNING"])
+      ret.leftBlindspot = bool(cp.vl["BSM_ADAS"]["LEFT_APPROACH"] or cp.vl["BSM_ADAS"]["LEFT_APPROACH_WARNING"])
+      ret.rightBlindspot = bool(cp.vl["BSM_ADAS"]["RIGHT_APPROACH"] or cp.vl["BSM_ADAS"]["RIGHT_APPROACH_WARNING"])
 
     """
     Lane Keep Assist (LKA)
@@ -207,14 +195,13 @@ class CarState(CarStateBase):
     Departure Prevention: LKS Assist True,  Auxiliary True
     Centering Control:    LKS Assist False, Auxiliary False
     """
-    # ICC_ON initialised to None, ensure it is read last
-    self.lks_assist_mode = bool(cp.vl["ADAS_LKAS"]["LKS_ASSIST_MODE"])
-    self.lks_aux = bool(cp.vl["ADAS_LKAS"]["STOCK_LKS_AUX"])
-    self.lks_audio = bool(cp.vl["ADAS_LKAS"]["LKS_WARNING_AUDIO_TYPE"])
-    self.lks_tactile = bool(cp.vl["ADAS_LKAS"]["LKS_WARNING_TACTILE_TYPE"])
-    self.is_icc_on = bool(cp.vl["PCM_BUTTONS"]["ICC_ON"])
+    self.lks_assist_mode = cp.vl["ADAS_LKAS"]["LKS_ASSIST_MODE"]
+    self.lks_aux = cp.vl["ADAS_LKAS"]["STOCK_LKS_AUX"]
+    self.lks_audio = cp.vl["ADAS_LKAS"]["LKS_WARNING_AUDIO_TYPE"]
+    self.lks_tactile = cp.vl["ADAS_LKAS"]["LKS_WARNING_TACTILE_TYPE"]
+    self.is_icc_on = is_icc_on = cp.vl["PCM_BUTTONS"]["ICC_ON"]
     # If cruise mode is ICC, make bukapilot control steering so it won't disengage.
-    ret.lkaDisabled = not self.lka_enable and not self.is_icc_on
+    ret.lkaDisabled = bool(not lka_enable and not is_icc_on)
 
     return ret
 

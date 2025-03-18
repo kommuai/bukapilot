@@ -1,6 +1,4 @@
-from common.numpy_fast import clip, interp
 from cereal import car
-from selfdrive.config import Conversions as CV
 
 SetDistance = car.CarState.CruiseState.SetDistance
 
@@ -59,8 +57,8 @@ def create_can_steer_command(packer, steer, steer_req, wheel_touch_warning, whee
   }
 
   dat = packer.make_can_msg("ADAS_LKAS", 0, values)[2]
-  crc = get_crc8_8h2f(dat[:-1])
-  values["CHECKSUM"] = crc
+  values["CHECKSUM"] = get_crc8_8h2f(dat[:-1])
+
   return packer.make_can_msg("ADAS_LKAS", 0, values)
 
 def create_hud(packer, steer, steer_req, ldw, rlane, llane):
@@ -108,8 +106,7 @@ def create_pcm(packer, steer, steer_req, raw_cnt):
   }
 
   dat = packer.make_can_msg("PCM_BUTTONS", 0, values)[2]
-  crc = get_crc8_8h2f(dat[:-1])
-  values["CHECKSUM"] = crc
+  values["CHECKSUM"] = get_crc8_8h2f(dat[:-1])
 
   return packer.make_can_msg("PCM_BUTTONS", 0, values)
 
@@ -137,8 +134,7 @@ def create_acc_cmd(packer, accel, enabled, raw_cnt):
   }
 
   dat = packer.make_can_msg("ACC_CMD", 0, values)[2]
-  crc = get_crc8_8h2f(dat[:-1])
-  values["CHECKSUM"] = crc
+  values["CHECKSUM"] = get_crc8_8h2f(dat[:-1])
 
   return packer.make_can_msg("ACC_CMD", 0, values)
 
@@ -163,8 +159,7 @@ def send_buttons(packer, count, send_cruise):
     }
 
   dat = packer.make_can_msg("ACC_BUTTONS", 0, values)[2]
-  crc = get_crc8_8h2f(dat[:-1])
-  values["CHECKSUM"] = crc
+  values["CHECKSUM"] = get_crc8_8h2f(dat[:-1])
 
   return packer.make_can_msg("ACC_BUTTONS", 0, values)
 

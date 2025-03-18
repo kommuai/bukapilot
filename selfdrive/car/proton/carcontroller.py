@@ -14,10 +14,8 @@ def apply_proton_steer_torque_limits(apply_torque, apply_torque_last, driver_tor
 
   # limits due to driver torque
   driver_offset = driver_torque * 30
-  driver_max_torque = LIMITS.STEER_MAX + driver_offset
-  driver_min_torque = -LIMITS.STEER_MAX + driver_offset
-  max_steer_allowed = clip(driver_max_torque, 0, LIMITS.STEER_MAX)
-  min_steer_allowed = clip(driver_min_torque, -LIMITS.STEER_MAX, 0)
+  max_steer_allowed = clip(LIMITS.STEER_MAX + driver_offset, 0, LIMITS.STEER_MAX)
+  min_steer_allowed = clip(-LIMITS.STEER_MAX + driver_offset, -LIMITS.STEER_MAX, 0)
   apply_torque = clip(apply_torque, min_steer_allowed, max_steer_allowed)
 
   # slow rate if steer torque increases in magnitude
@@ -28,7 +26,7 @@ def apply_proton_steer_torque_limits(apply_torque, apply_torque_last, driver_tor
     apply_torque = clip(apply_torque, apply_torque_last - LIMITS.STEER_DELTA_UP,
                         min(apply_torque_last + LIMITS.STEER_DELTA_DOWN, LIMITS.STEER_DELTA_UP))
 
-  return int(round(apply_torque))
+  return round(apply_torque)
 
 class CarControllerParams():
   def __init__(self, CP):
@@ -66,7 +64,7 @@ class CarController():
     lat_active = enabled
 
     # steer
-    new_steer = int(round(actuators.steer * self.params.STEER_MAX))
+    new_steer = round(actuators.steer * self.params.STEER_MAX)
     apply_steer = apply_proton_steer_torque_limits(new_steer, self.last_steer, 0, self.params)
     self.steer_rate_limited = (apply_steer != 0) and (new_steer != apply_steer)
 
@@ -78,11 +76,10 @@ class CarController():
 
     if not steer_enabled and (stock_steer_cmd := CS.stock_ldp_cmd) > 0 and \
        not ((cs_out.rightBlinker and CS.stock_ldp_right) or (cs_out.leftBlinker and CS.stock_ldp_left)):
-      apply_stock_dir = -1 if CS.steer_dir else 1
 
       # After steer disable, keep steering at 0 for the first 0.55 seconds, then increase from 0% to 100% over 0.5 seconds.
       mul = clip((time.monotonic() - self.last_steer_disable - 0.55) / 0.5, 0, 1)
-      apply_steer = int(round(stock_steer_cmd * apply_stock_dir * mul)) &~1 # Ensure LSB 0 for 11-bit cmd
+      apply_steer = round(stock_steer_cmd * (-1 if CS.steer_dir else 1) * mul) &~1 # Ensure LSB 0 for 11-bit cmd
       lat_active = True
       self.steer_rate_limited = False
 
@@ -94,20 +91,18 @@ class CarController():
         self.num_cruise_btn_sent += 1
         can_sends.append(send_buttons(self.packer, raw_cnt, True))
 
-      if (is_icc_on := CS.is_icc_on) is not None: # Ensure LKS values are read
+      ldw_steering = CS.stock_ldw_steering
+      # Passing LKS mode values does not change car stored values, so also pass LDW value to ADAS steering.
+      if self.always_lks_tactile:
+        ldw_steering = ldw_steering or CS.has_audio_ldw
+        lks_audio, lks_tactile = False, True
+      else:
+        lks_audio, lks_tactile = CS.lks_audio, CS.lks_tactile
 
-        ldw_steering = CS.stock_ldw_steering
-        # Passing LKS mode values do not change car stored values, so also pass LDW value to steering
-        if self.always_lks_tactile:
-          ldw_steering = ldw_steering or CS.has_audio_ldw
-          lks_audio, lks_tactile = False, True
-        else:
-          lks_audio, lks_tactile = CS.lks_audio, CS.lks_tactile
-
-        can_sends.append(create_can_steer_command(self.packer, apply_steer, lat_active, \
-        is_icc_on and CS.hand_on_wheel_warning, is_icc_on and CS.hand_on_wheel_warning_2, \
-        raw_cnt, CS.lks_aux, lks_audio, lks_tactile, CS.lks_assist_mode, \
-        CS.lka_enable, ldw_steering, steer_enabled))
+      can_sends.append(create_can_steer_command(self.packer, apply_steer, lat_active, \
+      (is_icc_on := CS.is_icc_on) and CS.hand_on_wheel_warning, is_icc_on and CS.hand_on_wheel_warning_2, \
+      raw_cnt, CS.lks_aux, lks_audio, lks_tactile, CS.lks_assist_mode, \
+      CS.lka_enable, ldw_steering, steer_enabled))
 
       #can_sends.append(create_hud(self.packer, apply_steer, enabled, ldw, rlane_visible, llane_visible))
       #can_sends.append(create_lead_detect(self.packer, lead_visible, enabled))
