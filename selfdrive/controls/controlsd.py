@@ -57,19 +57,19 @@ SafetyModel = car.CarParams.SafetyModel
 IGNORED_SAFETY_MODES = [SafetyModel.silent, SafetyModel.noOutput]
 CSID_MAP = {"0": EventName.roadCameraError, "1": EventName.wideRoadCameraError, "2": EventName.driverCameraError}
 
+def reduce_steer(steer, steeringAngle, CSAngleDeg, resume_diff):
+  end_time = 1.75 # The time where the steering becomes 100% again
+  if resume_diff >= end_time:
+    return steer, steeringAngle
+
+  # Non-linear increment equation
+  rate = 0.003    # Higher value means steeper curve. When rate is 0, the curve becomes linear.
+  mul = min(1, (resume_diff / end_time) ** (1-rate))
+  return steer * mul, (steeringAngle - CSAngleDeg) * mul + CSAngleDeg
+
 class Controls:
   def time_diff(self, frame_type):
    return (self.sm.frame - frame_type) * DT_CTRL
-
-  def reduce_steer(self, steer, steeringAngle, CSAngleDeg, resume_diff):
-    end_time = 1.75 # The time where the steering becomes 100% again
-    if resume_diff >= end_time:
-      return steer, steeringAngle
-
-    # Non-linear increment equation
-    rate = 0.003    # Higher value means steeper curve. When rate is 0, the curve becomes linear.
-    mul = min(1, (resume_diff / end_time) ** (1-rate))
-    return steer * mul, (steeringAngle - CSAngleDeg) * mul + CSAngleDeg
 
   def __init__(self, sm=None, pm=None, can_sock=None):
     config_realtime_process(4 if TICI else 3, Priority.CTRL_HIGH)
@@ -587,7 +587,7 @@ class Controls:
     # Reduce steering after resume
     if recent_steer_resume := ((resume_diff := self.time_diff(self.last_steer_resume_frame)) < 2.0):
       actuators.steer, actuators.steeringAngleDeg = \
-        self.reduce_steer(actuators.steer, actuators.steeringAngleDeg, CS.steeringAngleDeg, resume_diff)
+        reduce_steer(actuators.steer, actuators.steeringAngleDeg, CS.steeringAngleDeg, resume_diff)
 
     # Send a "steering required alert" if saturation count has reached the limit
     if lac_log.active and lac_log.saturated and not CS.steeringPressed:
