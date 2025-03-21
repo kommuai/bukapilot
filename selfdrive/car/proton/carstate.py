@@ -47,6 +47,7 @@ class CarState(CarStateBase):
     self.hand_on_wheel_warning_2 = False
     self.prev_angle = 0
     self.res_btn_pressed = False
+    self.gas_override = False
 
     f = Features()
     self.mads = f.has("StockAcc")
@@ -126,7 +127,8 @@ class CarState(CarStateBase):
     ret.stockFcw = bool(cp.vl["FCW"]["STOCK_FCW_TRIGGERED"])
 
     self.acc_req = cp.vl["ACC_CMD"]["ACC_REQ"]
-    ret.cruiseState.available = cruise_available = bool(cp.vl["PCM_BUTTONS"]["ACC_ON_OFF_BUTTON"] or cp.vl["PCM_BUTTONS"]["GAS_OVERRIDE"])
+    self.gas_override = gas_override = cp.vl["PCM_BUTTONS"]["GAS_OVERRIDE"]
+    ret.cruiseState.available = cruise_available = bool(gas_override or cp.vl["PCM_BUTTONS"]["ACC_ON_OFF_BUTTON"])
     ret.cruiseState.setDistance = self.parse_set_distance(self.set_distance_values.get(int(cp.vl["PCM_BUTTONS"]['SET_DISTANCE']), None))
     self.res_btn_pressed = cp.vl["ACC_BUTTONS"]["RES_BUTTON"]
 

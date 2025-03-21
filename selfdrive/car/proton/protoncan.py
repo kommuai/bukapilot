@@ -110,8 +110,11 @@ def create_pcm(packer, steer, steer_req, raw_cnt):
 
   return packer.make_can_msg("PCM_BUTTONS", 0, values)
 
-def create_acc_cmd(packer, accel, enabled, raw_cnt):
-  accel_cmd = accel * 10
+def create_acc_cmd(packer, accel, enabled, raw_cnt, gas_override, standstill):
+  # Does not work because it can keep car standstill but cannot make car move when lead car moves
+  # keep_standstill = enabled and standstill and accel < 0.21
+  keep_standstill = False
+  accel_cmd = -31 if keep_standstill else accel * 10
   values = {
     "CMD": accel_cmd,
     "CMD_OFFSET1": accel_cmd,
@@ -119,18 +122,18 @@ def create_acc_cmd(packer, accel, enabled, raw_cnt):
     "ACC_REQ": enabled,
     "NOT_ACC_REQ": not enabled,
     "SET_ME_1": 1,
-    "CRUISE_ENABLE": enabled,
+    "CRUISE_ENABLE": enabled and not gas_override,
     "COUNTER": raw_cnt,
 
     # not sure
     "BRAKE_ENGAGED": 0,
     "SET_ME_X6A": 0x6A,
-    "RISING_ENGAGE": 0,
+    "RISING_ENGAGE": gas_override,
     "UNKNOWN1": 0,
-    "STATIONARY": 0,
-    "STANDSTILL2": 0,
-    # 4 = Brake, 3 = Accelerate, 1 = Maintain speed
-    "MOTION_CONTROL": (accel > 0) * 3 + (accel < 0) * 4 + (accel == 0)
+    "STATIONARY": keep_standstill,
+    "STANDSTILL2": keep_standstill or gas_override,
+    # 5 = Keep standstill, 3 = Accelerate, 4 = Brake, 1 = Maintain speed
+    "MOTION_CONTROL": 5 if keep_standstill else 3 if accel > 0 else 4 if accel < 0 else 1
   }
 
   dat = packer.make_can_msg("ACC_CMD", 0, values)[2]
