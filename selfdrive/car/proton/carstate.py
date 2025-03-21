@@ -126,7 +126,7 @@ class CarState(CarStateBase):
     ret.stockAeb = False
     ret.stockFcw = bool(cp.vl["FCW"]["STOCK_FCW_TRIGGERED"])
 
-    self.acc_req = cp.vl["ACC_CMD"]["ACC_REQ"]
+    self.acc_req = acc_req = cp.vl["ACC_CMD"]["ACC_REQ"]
     self.gas_override = gas_override = cp.vl["PCM_BUTTONS"]["GAS_OVERRIDE"]
     ret.cruiseState.available = cruise_available = bool(gas_override or cp.vl["PCM_BUTTONS"]["ACC_ON_OFF_BUTTON"])
     ret.cruiseState.setDistance = self.parse_set_distance(self.set_distance_values.get(int(cp.vl["PCM_BUTTONS"]['SET_DISTANCE']), None))
@@ -134,12 +134,9 @@ class CarState(CarStateBase):
 
     # engage and disengage logic
     if mads:
-      self.is_cruise_latch = cruise_available
-    elif brakePressed and cp.vl["PCM_BUTTONS"]["ACC_SET"] == 0:
-      self.is_cruise_latch = False
-
-    if not brakePressed and cp.vl["PCM_BUTTONS"]["ACC_SET"] != 0:
-      self.is_cruise_latch = True
+      self.is_cruise_latch = cruise_available or (not brakePressed and cp.vl["PCM_BUTTONS"]["ACC_SET"])
+    else:
+      self.is_cruise_latch = not brakePressed and cp.vl["PCM_BUTTONS"]["ACC_SET"]
 
     # set speed
     self.cruise_speed = int(cp.vl["PCM_BUTTONS"]['ACC_SET_SPEED']) * CV.KPH_TO_MS
@@ -148,13 +145,10 @@ class CarState(CarStateBase):
     ret.cruiseState.standstill = cruise_standstill = bool(cp.vl["ACC_CMD"]["STANDSTILL2"])
     ret.cruiseState.nonAdaptive = False
 
-    if not cruise_available:
+    if not cruise_available or (not mads and (brakePressed or (not cruise_standstill and not acc_req))):
       self.is_cruise_latch = False
 
-    if not mads and (brakePressed or (not cruise_standstill and not self.acc_req)):
-      self.is_cruise_latch = False
-
-    ret.cruiseState.enabled = self.is_cruise_latch
+    ret.cruiseState.enabled = bool(self.is_cruise_latch)
 
     # Turn signal with a required minimum time
     one_blinker = (leftBlinker := bool(cp.vl["LEFT_STALK"]["LEFT_SIGNAL"])) != (rightBlinker := bool(cp.vl["LEFT_STALK"]["RIGHT_SIGNAL"]))
