@@ -141,22 +141,22 @@ class CarInterface(CarInterfaceBase):
   # returns a car.CarState
   def update(self, c, can_strings):
     # to receive CAN Messages
-    self.cp.update_strings(can_strings)
+    (cp := self.cp).update_strings(can_strings)
 
-    ret = self.CS.update(self.cp)
-    ret.canValid = self.cp.can_valid
-    ret.steeringRateLimited = self.CC.steer_rate_limited if self.CC is not None else False
+    ret = (cs := self.CS).update(cp)
+    ret.canValid = cp.can_valid
+    cc = self.CC
+    ret.steeringRateLimited = cc.steer_rate_limited if cc else False
 
     # events
     events = self.create_common_events(ret)
 
-    if (self.CS.hand_on_wheel_warning or self.CS.hand_on_wheel_warning_2) and self.CS.is_icc_on:
+    if cs.is_icc_on and (cs.hand_on_wheel_warning or cs.hand_on_wheel_warning_2):
       events.add(EventName.protonHandOnWheelWarning)
 
     ret.events = events.to_msg()
-
-    self.CS.out = ret.as_reader()
-    return self.CS.out
+    cs.out = ret.as_reader()
+    return cs.out
 
   # pass in a car.CarControl to be called at 100hz
   def apply(self, c):
