@@ -6,7 +6,7 @@ from common.params import Params
 from common.features import Features
 import time
 
-RES_INTERVAL = 150
+RES_INTERVAL = 111
 SNG_WAIT = 310
 RES_LEN = 3
 
