@@ -12,7 +12,7 @@ fi
 
 cd $DIR
 if [ ! -d maplibre ]; then
-  git clone git@github.com:maplibre/maplibre-native-qt.git $DIR/maplibre
+  git clone https://github.com/maplibre/maplibre-native-qt.git $DIR/maplibre
 fi
 
 cd maplibre

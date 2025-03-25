@@ -2,19 +2,21 @@
 // Kedua (STM32H7) on-board MCU  //
 // ///////////////////////////// //
 
+// Kedua's MAIN and OBD bus isn't affected by orientation, only RADAR and ADAS needs to flip.
 void kedua_enable_can_transceiver(uint8_t transceiver, bool enabled) {
+  UNUSED(enabled);
   switch (transceiver) {
     case 1U:
-      set_gpio_output(GPIOG, 11, !enabled);
+      set_gpio_output(GPIOG, 11, false);  // CAN3, FDCAN1, MAIN
       break;
     case 2U:
-      set_gpio_output(GPIOB, 11, !enabled);
+      set_gpio_output(GPIOB, 11, false);  // CAN1, FDCAN2, OBD
       break;
     case 3U:
-      set_gpio_output(GPIOD, 7, !enabled);
+      set_gpio_output(GPIOD, 7, false); // CAN4, FDCAN3, CAMERA
       break;
     case 4U:
-      set_gpio_output(GPIOB, 10, !enabled);
+      set_gpio_output(GPIOB, 10, false); // CAN2, FDCAN2, RADAR
       break;
     default:
       break;
@@ -22,7 +24,7 @@ void kedua_enable_can_transceiver(uint8_t transceiver, bool enabled) {
 }
 
 void kedua_enable_can_transceivers(bool enabled) {
-  uint8_t main_bus = (harness.status == HARNESS_STATUS_FLIPPED) ? 3U : 1U;
+  uint8_t main_bus = 1U;
   for (uint8_t i=1U; i<=4U; i++) {
     // Leave main CAN always on for CAN-based ignition detection
     if (i == main_bus) {
@@ -53,13 +55,24 @@ void kedua_set_ir_power(uint8_t percentage){
   pwm_set(TIM3, 4, percentage);
 }
 
+/*
+  MODE NORMAL |   FLIPPED
+  ------------------------------------------------
+  TRUE        !=  TRUE     = FALSE;   radar (3U) & camera (4U) & MAIN (1U) & B5,B6
+  TRUE        !=  FALSE    = TRUE;    radar (4U) & camera (3U) & MAIN (1U) & B5,B6
+  FALSE       !=  TRUE     = TRUE;    obd (2U)   & camera (4U) & MAIN (1U) & B12,B13
+  FALSE       !=  FALSE    = FALSE;   obd (2U)   & camera (3U) & MAIN (1U) & B12,B13
+*/
+
 void kedua_set_can_mode(uint8_t mode) {
   kedua_enable_can_transceiver(2U, false);
+  kedua_enable_can_transceiver(3U, false);
   kedua_enable_can_transceiver(4U, false);
+
   switch (mode) {
     case CAN_MODE_NORMAL:
     case CAN_MODE_OBD_CAN2:
-      if ((bool)(mode == CAN_MODE_NORMAL) != (bool)(harness.status == HARNESS_STATUS_FLIPPED)) {
+      if ((bool)(mode == CAN_MODE_NORMAL)) {
         // B12,B13: disable normal mode
         set_gpio_pullup(GPIOB, 12, PULL_NONE);
         set_gpio_mode(GPIOB, 12, MODE_ANALOG);
@@ -73,8 +86,11 @@ void kedua_set_can_mode(uint8_t mode) {
 
         set_gpio_pullup(GPIOB, 6, PULL_NONE);
         set_gpio_alternate(GPIOB, 6, GPIO_AF9_FDCAN2);
-        kedua_enable_can_transceiver(2U, true);
-      } else {
+
+        kedua_enable_can_transceiver(3U, true);
+        kedua_enable_can_transceiver(4U, true);
+      }
+       /*  else {
         // B5,B6: disable normal mode
         set_gpio_pullup(GPIOB, 5, PULL_NONE);
         set_gpio_mode(GPIOB, 5, MODE_ANALOG);
@@ -87,8 +103,12 @@ void kedua_set_can_mode(uint8_t mode) {
 
         set_gpio_pullup(GPIOB, 13, PULL_NONE);
         set_gpio_alternate(GPIOB, 13, GPIO_AF9_FDCAN2);
-        kedua_enable_can_transceiver(4U, true);
-      }
+
+        uint8_t camera_bus = (harness.status == HARNESS_STATUS_FLIPPED) ? 4U : 3U;
+        kedua_enable_can_transceiver(camera_bus, true);
+        // obd can
+        kedua_enable_can_transceiver(2U, true);
+      }*/
       break;
     default:
       break;
@@ -123,15 +143,19 @@ void kedua_init(void) {
   set_gpio_output(GPIOA, 1, 0);
 
   // G11,B11,D7,B10: transceiver enable
+  set_gpio_output_type(GPIOG, 11, OUTPUT_TYPE_PUSH_PULL);
   set_gpio_pullup(GPIOG, 11, PULL_NONE);
   set_gpio_mode(GPIOG, 11, MODE_OUTPUT);
 
+  set_gpio_output_type(GPIOB, 11, OUTPUT_TYPE_PUSH_PULL);
   set_gpio_pullup(GPIOB, 11, PULL_NONE);
   set_gpio_mode(GPIOB, 11, MODE_OUTPUT);
 
+  set_gpio_output_type(GPIOD, 7, OUTPUT_TYPE_PUSH_PULL);
   set_gpio_pullup(GPIOD, 7, PULL_NONE);
   set_gpio_mode(GPIOD, 7, MODE_OUTPUT);
 
+  set_gpio_output_type(GPIOB, 10, OUTPUT_TYPE_PUSH_PULL);
   set_gpio_pullup(GPIOB, 10, PULL_NONE);
   set_gpio_mode(GPIOB, 10, MODE_OUTPUT);
 
@@ -153,6 +177,9 @@ void kedua_init(void) {
   kedua_set_led(LED_GREEN, false);
   kedua_set_led(LED_BLUE, false);
 
+  // SPI init
+  gpio_spi_init();
+
   // Initialize IR PWM and set to 0%
   set_gpio_alternate(GPIOC, 9, GPIO_AF2_TIM3);
   pwm_init(TIM3, 4);
@@ -162,8 +189,9 @@ void kedua_init(void) {
   kedua_set_can_mode(CAN_MODE_NORMAL);
 
   // change CAN mapping when flipped
+//  can_flip_buses(1, 2);
   if (harness.status == HARNESS_STATUS_FLIPPED) {
-    can_flip_buses(0, 2);
+    can_flip_buses(1, 2);
   }
 }
 

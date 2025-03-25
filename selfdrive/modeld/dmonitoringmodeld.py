@@ -12,7 +12,7 @@ from cereal.messaging import PubMaster, SubMaster
 from cereal.visionipc import VisionIpcClient, VisionStreamType, VisionBuf
 from openpilot.common.swaglog import cloudlog
 from openpilot.common.params import Params
-from openpilot.common.realtime import set_realtime_priority
+from openpilot.common.realtime import set_realtime_priority, config_realtime_process
 from openpilot.selfdrive.modeld.runners import ModelRunner, Runtime
 from openpilot.selfdrive.modeld.models.commonmodel_pyx import sigmoid
 
@@ -126,7 +126,7 @@ def get_driverstate_packet(model_output: np.ndarray, frame_id: int, location_ts:
 
 def main():
   gc.disable()
-  set_realtime_priority(1)
+  config_realtime_process(5, 5)
 
   model = ModelState()
   cloudlog.warning("models loaded, dmonitoringmodeld starting")

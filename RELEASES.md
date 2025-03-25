@@ -1,3 +1,7 @@
+KA2 Version 0.9.7 (2024-03-03)
+========================
+* First release note commit
+
 Version 0.9.7 (2024-XX-XX)
 ========================
 * New driving model

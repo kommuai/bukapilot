@@ -56,7 +56,8 @@ commonmodel_lib = lenv.Library('commonmodel', common_src)
 
 lenvCython.Program('runners/runmodel_pyx.so', 'runners/runmodel_pyx.pyx', LIBS=cython_libs, FRAMEWORKS=frameworks)
 lenvCython.Program('runners/snpemodel_pyx.so', 'runners/snpemodel_pyx.pyx', LIBS=[snpemodel_lib, snpe_lib, *cython_libs], FRAMEWORKS=frameworks, RPATH=snpe_rpath)
-lenvCython.Program('runners/rknnmodel_pyx.so', 'runners/rknnmodel_pyx.pyx', LIBS=[rknnmodel_lib, rknn_lib, *cython_libs], FRAMEWORKS=frameworks, RPATH=f"{Dir('#').abspath}/third_party/rknpu/aarch64")
+if arch == "larch64":
+  lenvCython.Program('runners/rknnmodel_pyx.so', 'runners/rknnmodel_pyx.pyx', LIBS=[rknnmodel_lib, rknn_lib, *cython_libs], FRAMEWORKS=frameworks, RPATH=f"{Dir('#').abspath}/third_party/rknpu/aarch64")
 lenvCython.Program('models/commonmodel_pyx.so', 'models/commonmodel_pyx.pyx', LIBS=[commonmodel_lib, *cython_libs], FRAMEWORKS=frameworks)
 
 # Get model metadata
@@ -66,7 +67,7 @@ files = sum([lenv.Glob("#"+x) for x in open(File("#release/files_common").abspat
 lenv.Command(fn + "_metadata.pkl", [fn + ".onnx"]+files, cmd)
 
 # Build thneed model
-if device == 'TICI' or GetOption('pc_thneed') or device == 'KA2':
+if device == 'TICI' or GetOption('pc_thneed') or device == 'KA2' and arch == "larch64":
   tinygrad_opts = []
   if not GetOption('pc_thneed'):
     # use FLOAT16 on device for speed + don't cache the CL kernels for space

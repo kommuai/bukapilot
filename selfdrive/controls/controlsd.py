@@ -342,7 +342,7 @@ class Controls:
       self.events.add_from_msg(CS.events)
 
     # Create events for temperature, disk space, and memory
-    if self.sm['deviceState'].thermalStatus >= ThermalStatus.red:
+    if self.sm['deviceState'].thermalStatus >= ThermalStatus.yellow:
       self.events.add(EventName.overheat)
     if self.sm['deviceState'].freeSpacePercent < 7 and not SIMULATION:
       # under 7% of space free no enable allowed

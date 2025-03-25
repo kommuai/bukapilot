@@ -8,7 +8,7 @@ import requests
 
 import cereal.messaging as messaging
 from cereal import log
-from openpilot.common.api import Api
+from openpilot.common.kommu import *
 from openpilot.common.params import Params
 from openpilot.common.realtime import Ratekeeper
 from openpilot.selfdrive.navd.helpers import (Coordinate, coordinate_from_param,
@@ -53,11 +53,12 @@ class RouteEngine:
       self.mapbox_host = "https://api.mapbox.com"
     else:
       try:
-        self.mapbox_token = Api(self.params.get("DongleId", encoding='utf8')).get_token(expiry_hours=4 * 7 * 24)
-      except FileNotFoundError:
+        # get the first public key from kommu's mapbox account
+        self.mapbox_token = kapi(requests.get, WEB_BASE + "/tasukaru/get_mapbox_token").json()[0]["token"]
+      except (FileNotFoundError, AuthException) as e:
         cloudlog.exception("Failed to generate mapbox token due to missing private key. Ensure device is registered.")
         self.mapbox_token = ""
-      self.mapbox_host = "https://maps.comma.ai"
+      self.mapbox_host = "https://api.mapbox.com"
 
   def update(self):
     self.sm.update(0)

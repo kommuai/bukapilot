@@ -22,7 +22,7 @@ NAV_OUTPUT_SIZE = 2*2*ModelConstants.IDX_N + NAV_DESIRE_LEN + NAV_FEATURE_LEN
 MODEL_PATHS = {
   ModelRunner.SNPE: Path(__file__).parent / 'models/navmodel_q.dlc',
   ModelRunner.ONNX: Path(__file__).parent / 'models/navmodel.onnx',
-  ModelRunner.RKNN: Path(__file__).parent / 'models/navmodel.onnx'}
+  ModelRunner.RKNN: Path(__file__).parent / 'models/navmodel.rknn'}
 
 class NavModelOutputXY(ctypes.Structure):
   _fields_ = [
@@ -49,7 +49,7 @@ class ModelState:
     assert ctypes.sizeof(NavModelResult) == NAV_OUTPUT_SIZE * ctypes.sizeof(ctypes.c_float)
     self.output = np.zeros(NAV_OUTPUT_SIZE, dtype=np.float32)
     self.inputs = {'input_img': np.zeros(NAV_INPUT_SIZE, dtype=np.uint8)}
-    self.model = ModelRunner(MODEL_PATHS, self.output, Runtime.DSP, True, None)
+    self.model, self.runner_type = ModelRunner(MODEL_PATHS, self.output, Runtime.DSP, True, None)
     self.model.addInput("input_img", None)
 
   def run(self, buf:np.ndarray) -> tuple[np.ndarray, float]:

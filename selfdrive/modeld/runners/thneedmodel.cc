@@ -37,22 +37,22 @@ void* ThneedModel::getCLBuffer(const std::string name) {
 void ThneedModel::execute() {
   if (!recorded) {
     thneed->record = true;
-    float *input_buffers[inputs.size()];
+    std::vector<float*> input_buffers(inputs.size());
     for (int i = 0; i < inputs.size(); i++) {
       input_buffers[inputs.size() - i - 1] = inputs[i]->buffer;
     }
 
-    thneed->copy_inputs(input_buffers);
+    thneed->copy_inputs(input_buffers.data());
     thneed->clexec();
     thneed->copy_output(output);
     thneed->stop();
 
     recorded = true;
   } else {
-    float *input_buffers[inputs.size()];
+    std::vector<float*> input_buffers(inputs.size());
     for (int i = 0; i < inputs.size(); i++) {
       input_buffers[inputs.size() - i - 1] = inputs[i]->buffer;
     }
-    thneed->execute(input_buffers, output);
+    thneed->execute(input_buffers.data(), output);
   }
 }

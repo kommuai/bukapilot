@@ -2,8 +2,8 @@
   {
     "name": "rootfs",
     "url": "https://web.kommu.ai/depot/upload/publicbox/rootfs.simg.xz",
-    "hash": "a398e06413b808592493d32802cc2d284d027853e8b8c6ff64cd129b517a1e5a",
-    "hash_raw": "78d0a9b754b1ddb52fb37b675b89ec85d4ae0e920a16a86c375d337e083d024c",
+    "hash": "96a96295907c5245637275e76903ce8f80ccdda64fb29c1346d12bfa0ad07387",
+    "hash_raw": "052abb4795b096cab9a17057a8eef83beedccaa027c1c6b84a48d085508ec2db",
     "size": 5505286080,
     "sparse": true,
     "full_check": false,
@@ -12,8 +12,8 @@
   {
     "name": "boot",
     "url": "https://web.kommu.ai/depot/upload/publicbox/boot.img.xz",
-    "hash": "31d76ec0671f8cb2c01c59c863bff2d05262ec3e2d2e246526a8bdad1bf3b46b",
-    "hash_raw": "31d76ec0671f8cb2c01c59c863bff2d05262ec3e2d2e246526a8bdad1bf3b46b",
+    "hash": "18d0ae5b0e725ce01d8be84d4c296c15ffc4ffd292e2730715c8916b89ed3697",
+    "hash_raw": "18d0ae5b0e725ce01d8be84d4c296c15ffc4ffd292e2730715c8916b89ed3697",
     "size": 268435456,
     "sparse": false,
     "full_check": true,
