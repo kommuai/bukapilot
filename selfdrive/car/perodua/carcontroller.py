@@ -172,7 +172,7 @@ class CarController():
     apply_brake = clip(apply_brake, 0., 1.56)
 
     if self.using_stock_acc:
-      apply_brake = max(CS.stock_brake_mag * 0.85, apply_brake) # Todo: should try min, it was smooth but brake may fail
+      apply_brake = max(CS.stock_brake_mag * 0.9, apply_brake) # Todo: should try min, it was smooth but brake may fail
 
     if CS.out.gasPressed:
       apply_brake = 0
