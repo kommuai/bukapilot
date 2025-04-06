@@ -11,7 +11,7 @@ from selfdrive.controls.lib.desire_helper import LANE_CHANGE_SPEED_MIN
 from common.features import Features
 from common.params import Params
 
-BLINKER_MIN = 3.5 # Minimum turn signal length in seconds
+BLINKER_MIN = 2.25 # Minimum turn signal length in seconds
 
 class Dir(Enum):
   LEFT = auto()
