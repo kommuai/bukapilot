@@ -16,7 +16,7 @@ from markdown_it import MarkdownIt
 from openpilot.common.basedir import BASEDIR
 from openpilot.common.params import Params
 from openpilot.common.time import system_time_valid
-from openpilot.system.hardware import AGNOS, HARDWARE
+from openpilot.system.hardware import AGNOS, KA2, HARDWARE
 from openpilot.common.swaglog import cloudlog
 from openpilot.selfdrive.controls.lib.alertmanager import set_offroad_alert
 from openpilot.system.version import is_tested_branch
@@ -396,7 +396,7 @@ class Updater:
     cloudlog.info("git reset success: %s", '\n'.join(r))
 
     # TODO: show agnos download progress
-    if AGNOS:
+    if AGNOS or KA2:
       handle_agnos_update()
 
     # Create the finalized, ready-to-swap update

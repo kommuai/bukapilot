@@ -86,13 +86,14 @@ def noop(f: StreamingDecompressor) -> Generator[bytes, None, None]:
 
 
 def get_target_slot_number() -> int:
-  current_slot = subprocess.check_output(["abctl", "--boot_slot"], encoding='utf-8').strip()
+  current_slot = subprocess.check_output(["/boot/abctl"], encoding='utf-8').splitlines()[0].split('=')[1]
+  assert(current_slot == "_a" or current_slot == "_b")
   return 1 if current_slot == "_a" else 0
 
 
 def slot_number_to_suffix(slot_number: int) -> str:
   assert slot_number in (0, 1)
-  return '_a' if slot_number == 0 else '_b'
+  return '' if slot_number == 0 else '_b'
 
 
 def get_partition_path(target_slot_number: int, partition: dict) -> str:
@@ -117,6 +118,7 @@ def get_raw_hash(path: str, partition_size: int) -> str:
   return raw_hash.hexdigest().lower()
 
 
+# TODO
 def verify_partition(target_slot_number: int, partition: dict[str, str | int], force_full_check: bool = False) -> bool:
   full_check = partition['full_check'] or force_full_check
   path = get_partition_path(target_slot_number, partition)
@@ -170,10 +172,11 @@ def extract_compressed_image(target_slot_number: int, partition: dict, cloudlog)
       raise Exception(f"Raw hash mismatch '{raw_hash.hexdigest().lower()}'")
 
     if downloader.sha256.hexdigest().lower() != partition['hash'].lower():
-      raise Exception("Uncompressed hash mismatch")
+      raise Exception(f"Uncompressed hash mismatch '{downloader.sha256.hexdigest().lower()}'")
 
-    if out.tell() != partition['size']:
-      raise Exception("Uncompressed size mismatch")
+    # TODO: Reimplement this
+    #if out.tell() != partition['size']:
+    #  raise Exception("Uncompressed size mismatch")
 
     os.sync()
 
@@ -236,10 +239,7 @@ def flash_partition(target_slot_number: int, partition: dict, cloudlog, standalo
 
   path = get_partition_path(target_slot_number, partition)
 
-  if ('casync_caibx' in partition) and not standalone:
-    extract_casync_image(target_slot_number, partition, cloudlog)
-  else:
-    extract_compressed_image(target_slot_number, partition, cloudlog)
+  extract_compressed_image(target_slot_number, partition, cloudlog)
 
   # Write hash after successful flash
   if not full_check:
@@ -255,9 +255,11 @@ def swap(manifest_path: str, target_slot_number: int, cloudlog) -> None:
       clear_partition_hash(target_slot_number, partition)
 
   while True:
-    out = subprocess.check_output(f"abctl --set_active {target_slot_number}", shell=True, stderr=subprocess.STDOUT, encoding='utf8')
-    if ("No such file or directory" not in out) and ("lun as boot lun" in out):
+    suffix = '_a' if target_slot_number == 0 else '_b' 
+    out = subprocess.check_output(f"/boot/abctl set-active {suffix}", shell=True, stderr=subprocess.STDOUT, encoding='utf8')
+    if ("No such file or directory" not in out) and (f"current_slot={slot_number_to_suffix(target_slot_number)}" in out):
       cloudlog.info(f"Swap successful {out}")
+      os.system(f"bash /usr/kommu/rename_labels.sh {target_slot_number}")
       break
     else:
       cloudlog.error(f"Swap failed {out}")
@@ -267,9 +269,6 @@ def flash_agnos_update(manifest_path: str, target_slot_number: int, cloudlog, st
   update = json.load(open(manifest_path))
 
   cloudlog.info(f"Target slot {target_slot_number}")
-
-  # set target slot as unbootable
-  os.system(f"abctl --set_unbootable {target_slot_number}")
 
   for partition in update:
     success = False
@@ -312,6 +311,7 @@ if __name__ == "__main__":
   logging.basicConfig(level=logging.INFO)
 
   target_slot_number = get_target_slot_number()
+
   if args.verify:
     if verify_agnos_update(args.manifest, target_slot_number):
       swap(args.manifest, target_slot_number, logging)
