@@ -95,6 +95,10 @@ void fill_frame_data(cereal::FrameData::Builder &framed, const FrameMetadata &fr
   framed.setTargetGreyFraction(frame_data.target_grey_fraction);
   framed.setProcessingTime(frame_data.processing_time);
   framed.setSensor(cereal::FrameData::ImageSensor::OX03C10);
+
+  std::vector<float> temps = {frame_data.sensor_temp_c};
+  kj::ArrayPtr<const float> temp_array(temps.data(), temps.size());
+  framed.setTemperaturesC(temp_array);
 }
 
 kj::Array<uint8_t> get_raw_frame_image(const CameraBuf *b) {
@@ -265,6 +269,13 @@ void camerad_thread() {
   {
     MultiCameraState cameras = {};
     VisionIpcServer vipc_server("camerad", device_id, context);
+
+    // restart rkaiq 3A server
+    system("sudo killall -q rkaiq_3A_server || true");
+    usleep(500000);  // blocks for 0.5 seconds
+    system("sudo rkaiq_3A_server &");
+    usleep(1000000); // blocks for 1 second
+
     cameras_open(&cameras);
     cameras_init(&vipc_server, &cameras, device_id, context);
 
@@ -273,6 +284,7 @@ void camerad_thread() {
     cameras_run(&cameras);
   }
   CL_CHECK(clReleaseContext(context));
+
 }
 
 int open_v4l_by_name_and_index(const char name[], int index, int flags) {

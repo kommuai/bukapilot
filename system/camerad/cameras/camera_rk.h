@@ -39,6 +39,8 @@ public:
 
   int camera_num;
 
+  uint64_t cap_time;
+
   struct v4l2_format fmt;
   struct v4l2_requestbuffers req;
   struct v4l2_buffer v4l_buf;

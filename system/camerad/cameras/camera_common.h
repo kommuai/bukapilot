@@ -40,6 +40,9 @@ typedef struct FrameMetadata {
   float measured_grey_fraction;
   float target_grey_fraction;
 
+  // Temperature
+  float sensor_temp_c;
+
   float processing_time;
 } FrameMetadata;
 

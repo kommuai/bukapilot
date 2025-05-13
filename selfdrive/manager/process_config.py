@@ -2,13 +2,13 @@ import os
 
 from cereal import car
 from openpilot.common.params import Params
-from openpilot.system.hardware import PC, TICI, KA2
+from openpilot.system.hardware import PC, TICI, KA2, HARDWARE
 from openpilot.selfdrive.manager.process import PythonProcess, NativeProcess, DaemonProcess
 
 WEBCAM = os.getenv("USE_WEBCAM") is not None
 
 def driverview(started: bool, params: Params, CP: car.CarParams) -> bool:
-  return started or params.get_bool("IsDriverViewEnabled")
+  return started or params.get_bool("IsDriverViewEnabled") or not HARDWARE.booted()
 
 def notcar(started: bool, params: Params, CP: car.CarParams) -> bool:
   return started and CP.notCar
