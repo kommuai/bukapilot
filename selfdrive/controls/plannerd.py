@@ -4,6 +4,8 @@ from openpilot.common.params import Params
 from openpilot.common.realtime import Priority, config_realtime_process
 from openpilot.common.swaglog import cloudlog
 from openpilot.selfdrive.controls.lib.longitudinal_planner import LongitudinalPlanner
+from openpilot.selfdrive.controls.conditional_experimental_mode import ConditionalExperimentalMode
+
 import cereal.messaging as messaging
 
 def publish_ui_plan(sm, pm, longitudinal_planner):
@@ -27,6 +29,7 @@ def plannerd_thread():
   cloudlog.info("plannerd got CarParams: %s", CP.carName)
 
   longitudinal_planner = LongitudinalPlanner(CP)
+  cem = ConditionalExperimentalMode()
   pm = messaging.PubMaster(['longitudinalPlan', 'uiPlan'])
   sm = messaging.SubMaster(['carControl', 'carState', 'controlsState', 'radarState', 'modelV2'],
                            poll='modelV2', ignore_avg_freq=['radarState'])
@@ -37,6 +40,8 @@ def plannerd_thread():
       longitudinal_planner.update(sm)
       longitudinal_planner.publish(sm, pm)
       publish_ui_plan(sm, pm, longitudinal_planner)
+      if sm.all_alive(['carState', 'modelV2', 'radarState']):
+        cem.update(sm['carState'], sm['radarState'].leadOne, sm['modelV2'])
 
 def main():
   plannerd_thread()
