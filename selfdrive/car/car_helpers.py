@@ -126,6 +126,12 @@ def fingerprint(logcan, sendcan, num_pandas):
   ecu_rx_addrs = set()
   params = Params()
 
+  if not fixed_fingerprint:
+    fixed_fingerprint = params.get("FixFingerprint")
+    fixed_fingerprint = fixed_fingerprint.upper() if fixed_fingerprint is not None else None
+    if fixed_fingerprint:
+     fixed_fingerprint = fixed_fingerprint.decode('ascii')
+
   start_time = time.monotonic()
   if not skip_fw_query:
     cached_params = params.get("CarParamsCache")

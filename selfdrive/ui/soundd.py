@@ -2,7 +2,7 @@ import math
 import numpy as np
 import time
 import wave
-
+import subprocess
 
 from cereal import car, messaging
 from openpilot.common.basedir import BASEDIR
@@ -10,13 +10,16 @@ from openpilot.common.filter_simple import FirstOrderFilter
 from openpilot.common.realtime import Ratekeeper
 from openpilot.common.retry import retry
 from openpilot.common.swaglog import cloudlog
+from openpilot.common.params import Params
 
 from openpilot.system import micd
 
+params = Params()
 SAMPLE_RATE = 48000
 SAMPLE_BUFFER = 4096 # (approx 100ms)
 MAX_VOLUME = 1.0
-MIN_VOLUME = 0.1
+MAX_VOLUME_QUIET_MODE = 0.4
+MIN_VOLUME = 1.0
 CONTROLS_TIMEOUT = 5 # 5 seconds
 FILTER_DT = 1. / (micd.SAMPLE_RATE / micd.FFT_SAMPLES)
 
@@ -104,25 +107,37 @@ class Soundd:
       cloudlog.warning(f"soundd stream over/underflow: {status}")
     data_out[:frames, 0] = self.get_sound_data(frames)
 
-  def update_alert(self, new_alert):
-    current_alert_played_once = self.current_alert == AudibleAlert.none or self.current_sound_frame > len(self.loaded_sounds[self.current_alert])
-    if self.current_alert != new_alert and (new_alert != AudibleAlert.none or current_alert_played_once):
-      self.current_alert = new_alert
-      self.current_sound_frame = 0
+  def update_alert(self, new_alert, quiet_mode):
+    allowed_alerts = (new_alert in {
+        AudibleAlert.promptRepeat,
+        AudibleAlert.promptDistracted,
+        AudibleAlert.prompt,
+        AudibleAlert.warningSoft,
+        AudibleAlert.warningImmediate
+    }) if quiet_mode else (new_alert != AudibleAlert.none)
 
-  def get_audible_alert(self, sm):
+    if allowed_alerts:
+      current_alert_played_once = (self.current_alert == AudibleAlert.none or
+                                    self.current_sound_frame > len(self.loaded_sounds[self.current_alert]))
+      if self.current_alert != new_alert and (new_alert != AudibleAlert.none or current_alert_played_once):
+        self.current_alert = new_alert
+        self.current_sound_frame = 0
+
+  def get_audible_alert(self, sm, quiet_mode):
     if sm.updated['controlsState']:
       new_alert = sm['controlsState'].alertSound.raw
-      self.update_alert(new_alert)
+      self.update_alert(new_alert, quiet_mode)
     elif check_controls_timeout_alert(sm):
-      self.update_alert(AudibleAlert.warningImmediate)
+      self.update_alert(AudibleAlert.warningImmediate, quiet_mode)
       self.controls_timeout_alert = True
     elif self.controls_timeout_alert:
-      self.update_alert(AudibleAlert.none)
+      self.update_alert(AudibleAlert.none, quiet_mode)
       self.controls_timeout_alert = False
 
-  def calculate_volume(self, weighted_db):
-    volume = ((weighted_db - AMBIENT_DB) / DB_SCALE) * (MAX_VOLUME - MIN_VOLUME) + MIN_VOLUME
+  def calculate_volume(self, weighted_db, quiet_mode):
+    max_vol = MAX_VOLUME_QUIET_MODE if quiet_mode else MAX_VOLUME
+    volume = ((weighted_db - AMBIENT_DB) / DB_SCALE) * (max_vol - MIN_VOLUME) + MIN_VOLUME
+    #return math.pow(10, (np.clip(volume, MIN_VOLUME, max_vol) - 1))
     return math.pow(10, (np.clip(volume, MIN_VOLUME, MAX_VOLUME) - 1))
 
   @retry(attempts=7, delay=3)
@@ -145,11 +160,12 @@ class Soundd:
       while True:
         sm.update(0)
 
+        quiet_mode = params.get_bool("QuietMode")
         if sm.updated['microphone'] and self.current_alert == AudibleAlert.none: # only update volume filter when not playing alert
           self.spl_filter_weighted.update(sm["microphone"].soundPressureWeightedDb)
-          self.current_volume = self.calculate_volume(float(self.spl_filter_weighted.x))
+          self.current_volume = self.calculate_volume(float(self.spl_filter_weighted.x), quiet_mode)
 
-        self.get_audible_alert(sm)
+        self.get_audible_alert(sm, quiet_mode)
 
         rk.keep_time()
 
@@ -158,6 +174,7 @@ class Soundd:
 
 def main():
   s = Soundd()
+  subprocess.run(["amixer", "sset", "PCM", "90%"], check=True)
   s.soundd_thread()
 
 

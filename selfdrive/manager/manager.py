@@ -19,7 +19,7 @@ from openpilot.common.swaglog import cloudlog, add_file_handler
 from openpilot.system.version import is_dirty, get_commit, get_version, get_origin, get_short_branch, \
                            get_normalized_origin, terms_version, training_version, \
                            is_tested_branch, is_release_branch, get_commit_date
-
+from openpilot.common.features import Features
 
 
 def manager_init() -> None:
@@ -71,6 +71,9 @@ def manager_init() -> None:
   params.put("GitRemote", get_origin())
   params.put_bool("IsTestedBranch", is_tested_branch())
   params.put_bool("IsReleaseBranch", is_release_branch())
+
+  # feature package
+  Features().validate_and_clean_features()
 
   # set dongle id
   reg_res = register(show_spinner=True)

@@ -24,7 +24,7 @@ TCP_PORT = 5007
 WIFI_CONNECT_TIMEOUT_SECONDS = 20 # Timeout for Wi-Fi connection attempts
 NO_NETWORK_REGEX = re.compile(r"no network.*ssid", re.IGNORECASE)
 params = Params()
-DONGLE_ID = params.get("DongleId").decode("utf-8")
+DONGLE_ID = (params.get("DongleId") or b"").decode()
 SUPPORTED_MODELS = {getattr(car, 'value', car) for car in FINGERPRINTS}
 features = Features()
 

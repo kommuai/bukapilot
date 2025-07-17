@@ -6,6 +6,9 @@ from openpilot.common.realtime import DT_DMON
 from openpilot.common.filter_simple import FirstOrderFilter
 from openpilot.common.stat_live import RunningStatFilter
 from openpilot.common.transformations.camera import tici_d_frame_size
+from openpilot.common.features import Features
+
+IGNORE_DM = Features().has("ignore-dm")
 
 EventName = car.CarEvent.EventName
 
@@ -327,6 +330,9 @@ class DriverStatus():
       # should always be counting if distracted unless at standstill and reaching orange
       if not standstill_exemption:
         self.awareness = max(self.awareness - self.step_change, -0.1)
+
+    if IGNORE_DM:
+      self.awareness = 1
 
     alert = None
     if self.awareness <= 0.:
