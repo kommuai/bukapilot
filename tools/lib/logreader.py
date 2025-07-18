@@ -10,6 +10,7 @@ import sys
 import tqdm
 import urllib.parse
 import warnings
+import requests
 
 from collections.abc import Callable, Iterable, Iterator
 from urllib.parse import parse_qs, urlparse
@@ -42,7 +43,10 @@ class _LogFileReader:
         dat = f.read()
 
     if ext == ".bz2" or dat.startswith(b'BZh9'):
-      dat = bz2.decompress(dat)
+        try:
+          dat = bz2.decompress(dat)
+        except OSError:
+            print("Handling KommuAssist2 uncompressed logs")
 
     ents = capnp_log.Event.read_multiple_bytes(dat)
 
@@ -153,6 +157,47 @@ def comma_car_segments_source(sr: SegmentRange, mode=ReadMode.RLOG) -> LogPaths:
 def direct_source(file_or_url: str) -> LogPaths:
   return [file_or_url]
 
+def try_download_segment(base_url: str, prefix: str, seg: int, log_type: str) -> str | None:
+  remote_url = f"{base_url}/{prefix}{seg}---{log_type}.bz2"
+  local_path = f"/tmp/{prefix}{seg}---{log_type}.bz2"
+
+  try:
+    # Send partial request first to avoid full download if not found
+    head = requests.get(remote_url, headers={"Range": "bytes=0-200"}, timeout=2)
+    if b'"message":"Not Found"' in head.content:
+      return None
+
+    # Full download
+    r = requests.get(remote_url, timeout=5)
+    r.raise_for_status()
+    
+    print(f"Downloading {log_type} segment {seg}")
+    with open(local_path, "wb") as f:
+      f.write(r.content)
+    return local_path
+  except requests.RequestException:
+    return None
+
+def probe_and_download_segments(dongle: str, ts: str, base_url: str, max_segments: int = 100) -> LogPaths:
+  prefix = f"{dongle}---{ts}--"
+  downloaded = []
+
+  for i in range(max_segments):
+    path = try_download_segment(base_url, prefix, i, "rlog")
+    if not path:
+      path = try_download_segment(base_url, prefix, i, "qlog")
+
+    if not path:
+      break  # stop at first missing segment
+    downloaded.append(path)
+
+  return downloaded
+
+def kommu_source(sr: SegmentRange, mode: ReadMode) -> LogPaths:
+  dongle = sr.dongle_id
+  ts = sr.timestamp
+  base = f"https://web.kommu.ai/depot/upload/{dongle}"
+  return probe_and_download_segments(dongle, ts, base)
 
 def get_invalid_files(files):
   for f in files:
@@ -178,6 +223,12 @@ def auto_source(sr: SegmentRange, mode=ReadMode.RLOG) -> LogPaths:
       return check_source(source, sr, mode)
     except Exception as e:
       exceptions.append(e)
+
+  # Fallback to custom host if all above fail
+  try:
+    return check_source(kommu_source, sr, mode)
+  except Exception as e:
+    exceptions.append(e)
 
   raise Exception(f"auto_source could not find any valid source, exceptions for sources: {exceptions}")
 

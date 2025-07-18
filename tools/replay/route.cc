@@ -7,6 +7,7 @@
 #include <QRegExp>
 #include <QtConcurrent>
 #include <array>
+#include <QStandardPaths>
 
 #include "selfdrive/ui/qt/api.h"
 #include "system/hardware/hw.h"
@@ -30,8 +31,88 @@ bool Route::load() {
     rInfo("invalid route format");
     return false;
   }
+
   date_time_ = QDateTime::fromString(route_.timestamp, "yyyy-MM-dd--HH-mm-ss");
-  return data_dir_.isEmpty() ? loadFromServer() : loadFromLocal();
+
+  // try comma API first
+  if (data_dir_.isEmpty() && loadFromServer()) {
+    rInfo("logs originates from comma server");
+    return true;
+  }
+
+  return loadFromKommuFallback() || (!data_dir_.isEmpty() && loadFromLocal());
+}
+
+bool downloadFileTo(const QString &url, const QString &out_path) {
+  QNetworkAccessManager mgr;
+  QNetworkRequest req(url);
+  QNetworkReply *reply = mgr.get(req);
+
+  QEventLoop loop;
+  QObject::connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
+  loop.exec();
+
+  if (reply->error() != QNetworkReply::NoError) {
+    reply->deleteLater();
+    return false;
+  }
+
+  QFile file(out_path);
+  if (!file.open(QIODevice::WriteOnly)) {
+    qWarning() << "Cannot write to:" << out_path;
+    reply->deleteLater();
+    return false;
+  }
+
+  file.write(reply->readAll());
+  file.close();
+  reply->deleteLater();
+  return true;
+}
+
+bool Route::loadFromKommuFallback() {
+  const QString base = QString("https://web.kommu.ai/depot/upload/%1").arg(route_.dongle_id);
+  const QString prefix = QString("%1---%2--").arg(route_.dongle_id, route_.timestamp);
+  const QString temp_dir = QStandardPaths::writableLocation(QStandardPaths::TempLocation);
+
+  for (int i = 0; i < 100; ++i) {
+    bool has_any = false;
+
+    struct {
+      QString suffix;   // remote file suffix
+      QString key;      // file type key
+    } files[] = {
+      { "rlog.bz2", "rlog" },
+      { "qlog.bz2", "qlog" },
+      { "qcamera.ts", "qcamera" },
+      { "fcamera.hevc", "fcamera" },
+      { "dcamera.hevc", "dcamera" },
+      { "ecamera.hevc", "ecamera" },
+    };
+
+    for (const auto &f : files) {
+      const QString url = QString("%1/%2%3---%4").arg(base, prefix).arg(i).arg(f.suffix);
+
+      // Strip .bz2 for rlog and qlog when saving locally
+      QString local_suffix = f.suffix;
+      if (f.suffix == "rlog.bz2") local_suffix = "rlog";
+      else if (f.suffix == "qlog.bz2") local_suffix = "qlog";
+
+      const QString local_path = QString("%1/%2%3---%4").arg(temp_dir, prefix).arg(i).arg(local_suffix);
+
+      if (downloadFileTo(url, local_path)) {
+        addFileToSegment(i, local_path);
+        has_any = true;
+      }
+    }
+
+    if (!has_any) {
+      qDebug() << "No files found for segment" << i << ", stopping...";
+      break;
+    }
+  }
+
+  return !segments_.empty();
 }
 
 bool Route::loadFromServer() {
