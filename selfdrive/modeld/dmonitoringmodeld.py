@@ -84,7 +84,9 @@ class ModelState:
     step2 = np.transpose(step1, (0, 2, 1, 3))
     step3 = step2.reshape(1, 720, 480, 4)
     original_final = np.transpose(step3, (0, 3, 2, 1)).flatten()
-    self.model.setInputBuffer("input_img", original_final)
+    aligned_float16 = np.dtype(np.float16, align=True)
+    float16_array = np.array(original_final, dtype=aligned_float16)
+    self.model.setInputBuffer("input_img", float16_array.view(np.float32))
 
     t1 = time.perf_counter()
     self.model.execute()

@@ -1,9 +1,9 @@
 import os
-from openpilot.system.hardware import TICI
+from openpilot.system.hardware import TICI, KA2
 from openpilot.selfdrive.modeld.runners.runmodel_pyx import RunModel, Runtime
 assert Runtime
 
-USE_THNEED = int(os.getenv('USE_THNEED', str(int(TICI))))
+USE_THNEED = int(os.getenv('USE_THNEED', str(int(TICI) | int(KA2))))
 USE_SNPE = int(os.getenv('USE_SNPE', str(int(TICI))))
 
 class ModelRunner(RunModel):

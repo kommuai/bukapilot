@@ -32,6 +32,7 @@ float* ModelFrame::prepare(cl_mem yuv_cl, int frame_width, int frame_height, int
 
     std::memmove(&input_frames[0], &input_frames[MODEL_FRAME_SIZE], sizeof(float) * MODEL_FRAME_SIZE);
     CL_CHECK(clEnqueueReadBuffer(q, net_input_cl, CL_TRUE, 0, MODEL_FRAME_SIZE * sizeof(float), &input_frames[MODEL_FRAME_SIZE], 0, nullptr, nullptr));
+
     clFinish(q);
     return &input_frames[0];
   } else {

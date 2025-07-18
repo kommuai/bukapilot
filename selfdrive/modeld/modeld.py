@@ -98,18 +98,10 @@ class ModelState:
     self.inputs['nav_instructions'][:] = inputs['nav_instructions']
 
     # if getCLBuffer is not None, frame will be None
-    if self.runner_type == 'RKNN':
-      buf_nhwc = self.frame.prepare(buf, transform.flatten(), self.model.getCLBuffer("input_imgs")).reshape(1, 12, 128, 256).transpose(0,2,3,1).flatten()
-      self.model.setInputBuffer("input_imgs", buf_nhwc)
-    else:
-      self.model.setInputBuffer("input_imgs", self.frame.prepare(buf, transform.flatten(), self.model.getCLBuffer("input_imgs")))
+    self.model.setInputBuffer("input_imgs", self.frame.prepare(buf, transform.flatten(), self.model.getCLBuffer("input_imgs")))
 
     if wbuf is not None:
-      if self.runner_type == 'RKNN':
-        wbuf_nhwc = self.wide_frame.prepare(wbuf, transform_wide.flatten(), self.model.getCLBuffer("big_input_imgs")).reshape(1, 12, 128, 256).transpose(0,2,3,1).flatten()
-        self.model.setInputBuffer("big_input_imgs", wbuf_nhwc)
-      else:
-        self.model.setInputBuffer("big_input_imgs", self.wide_frame.prepare(wbuf, transform_wide.flatten(), self.model.getCLBuffer("big_input_imgs")))
+      self.model.setInputBuffer("big_input_imgs", self.wide_frame.prepare(wbuf, transform_wide.flatten(), self.model.getCLBuffer("big_input_imgs")))
 
     if prepare_only:
       return None

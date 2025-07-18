@@ -64,10 +64,20 @@ RKNNModel::RKNNModel(const std::string path, float *_output, size_t _output_size
   memset(rknn_inputs, 0, io_num.n_input * sizeof(rknn_input));
   for (uint32_t i = 0; i < io_num.n_input; i++) {
     rknn_inputs[i].index = i;
-    rknn_inputs[i].pass_through = 0;
-    rknn_inputs[i].type = RKNN_TENSOR_FLOAT32;
     rknn_inputs[i].fmt = input_attrs[i].fmt;
-    rknn_inputs[i].size = input_attrs[i].size * 2;
+
+    // TODO: Standardize it
+    if (runtime == 1) {
+      rknn_inputs[i].pass_through = 0;
+      rknn_inputs[i].type = RKNN_TENSOR_FLOAT32;
+      rknn_inputs[i].size = input_attrs[i].size * 2;
+    }
+    else {
+      rknn_inputs[i].pass_through = 1;
+      rknn_inputs[i].type = RKNN_TENSOR_FLOAT16;
+      rknn_inputs[i].size = input_attrs[i].size;
+    }
+
     rknn_inputs[i].buf = NULL;
   }
 

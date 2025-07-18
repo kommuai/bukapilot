@@ -53,7 +53,7 @@ void Thneed::load(const char *filename) {
       desc.image_height = mobj["height"].int_value();
       desc.image_row_pitch = mobj["row_pitch"].int_value();
       assert(sz == desc.image_height*desc.image_row_pitch);
-#ifdef QCOM2
+#if defined(QCOM2) || defined(RK3588)
       desc.buffer = clbuf;
 #else
       // TODO: we are creating unused buffers on PC
@@ -65,7 +65,7 @@ void Thneed::load(const char *filename) {
 
       cl_int errcode;
 
-#ifndef QCOM2
+#if !defined(QCOM2) && !defined(RK3588)
       if (mobj["needs_load"].bool_value()) {
         clbuf = clCreateImage(context, CL_MEM_COPY_HOST_PTR | CL_MEM_READ_WRITE, &format, &desc, &buf[ptr-sz], &errcode);
       } else {

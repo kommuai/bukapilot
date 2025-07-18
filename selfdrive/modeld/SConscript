@@ -11,7 +11,7 @@ common_src = [
   "transforms/transform.cc",
 ]
 
-if device == 'TICI':
+if device == 'TICI' or device == 'KA2':
   thneed_src_common = [
     "thneed/thneed_common.cc",
     "thneed/serialize.cc",
@@ -19,7 +19,7 @@ if device == 'TICI':
 
   thneed_src_qcom = thneed_src_common + ["thneed/thneed_qcom2.cc"]
   thneed_src_pc = thneed_src_common + ["thneed/thneed_pc.cc"]
-  thneed_src = thneed_src_qcom if arch == "larch64" else thneed_src_pc
+  thneed_src = thneed_src_qcom if (arch == "larch64" and device != 'KA2') else thneed_src_pc
 
 # SNPE except on Mac and ARM Linux
 snpe_lib = []
@@ -39,7 +39,8 @@ else:
   libs += ['OpenCL']
 
 # Set path definitions
-for pathdef, fn in {'TRANSFORM': 'transforms/transform.cl', 'LOADYUV': 'transforms/loadyuv.cl'}.items():
+for pathdef, fn in {'TRANSFORM': 'transforms/transform.cl', \
+                    'LOADYUV': 'transforms/loadyuv.cl'}.items():
   for xenv in (lenv, lenvCython):
     xenv['CXXFLAGS'].append(f'-D{pathdef}_PATH=\\"{File(fn).abspath}\\"')
 
@@ -65,12 +66,12 @@ files = sum([lenv.Glob("#"+x) for x in open(File("#release/files_common").abspat
 lenv.Command(fn + "_metadata.pkl", [fn + ".onnx"]+files, cmd)
 
 # Build thneed model
-if device == 'TICI' or GetOption('pc_thneed'):
+if device == 'TICI' or GetOption('pc_thneed') or device == 'KA2':
   tinygrad_opts = []
   if not GetOption('pc_thneed'):
     # use FLOAT16 on device for speed + don't cache the CL kernels for space
     tinygrad_opts += ["FLOAT16=1", "PYOPENCL_NO_CACHE=1"]
-  cmd = f"cd {Dir('#').abspath}/tinygrad_repo && " + ' '.join(tinygrad_opts) + f" python3 openpilot/compile2.py {fn}.onnx {fn}.thneed"
+  cmd = f"cd {Dir('#').abspath}/tinygrad_repo && " + ' '.join(tinygrad_opts) + f" python openpilot/compile2.py {fn}.onnx {fn}.thneed"
 
   tinygrad_files = sum([lenv.Glob("#"+x) for x in open(File("#release/files_common").abspath).read().split("\n") if x.startswith("tinygrad_repo/")], [])
   lenv.Command(fn + ".thneed", [fn + ".onnx"] + tinygrad_files, cmd)
