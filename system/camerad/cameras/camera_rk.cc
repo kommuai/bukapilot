@@ -174,6 +174,12 @@ void cameras_close(MultiCameraState *s) {
   s->wide_road_cam.camera_close();
 
   delete s->pm;
+
+  // restart rkaiq 3A server
+  system("sudo killall -q rkaiq_3A_server || true");
+  usleep(500000);  // blocks for 0.5 seconds
+  system("sudo rkaiq_3A_server &");
+
 }
 
 static void process_driver_camera(MultiCameraState *s, CameraState *c, int cnt) {
