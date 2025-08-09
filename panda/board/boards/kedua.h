@@ -131,16 +131,16 @@ uint32_t kedua_read_current_mA(void){
 void kedua_init(void) {
   common_init_gpio();
 
-  //PA1,PC4 : OBD_SBU1_RELAY, OBD_SBU2_RELAY
+  //PC5,PC4 : OBD_SBU1_RELAY, OBD_SBU2_RELAY
   set_gpio_output_type(GPIOC, 4, OUTPUT_TYPE_PUSH_PULL);
   set_gpio_pullup(GPIOC, 4, PULL_NONE);
   set_gpio_mode(GPIOC, 4, MODE_OUTPUT);
   set_gpio_output(GPIOC, 4, 0);
 
-  set_gpio_output_type(GPIOA, 1, OUTPUT_TYPE_PUSH_PULL);
-  set_gpio_pullup(GPIOA, 1, PULL_NONE);
-  set_gpio_mode(GPIOA, 1, MODE_OUTPUT);
-  set_gpio_output(GPIOA, 1, 0);
+  set_gpio_output_type(GPIOC, 5, OUTPUT_TYPE_PUSH_PULL);
+  set_gpio_pullup(GPIOC, 5, PULL_NONE);
+  set_gpio_mode(GPIOC, 5, MODE_OUTPUT);
+  set_gpio_output(GPIOC, 5, 0);
 
   // G11,B11,D7,B10: transceiver enable
   set_gpio_output_type(GPIOG, 11, OUTPUT_TYPE_PUSH_PULL);
@@ -197,16 +197,16 @@ void kedua_init(void) {
 
 const harness_configuration kedua_harness_config = {
   .has_harness = true,
-  .GPIO_SBU1 = GPIOA,
+  .GPIO_SBU1 = GPIOC,
   .GPIO_SBU2 = GPIOC,
-  .GPIO_relay_SBU1 = GPIOA,
+  .GPIO_relay_SBU1 = GPIOC,
   .GPIO_relay_SBU2 = GPIOC,
-  .pin_SBU1 = 1,
+  .pin_SBU1 = 5,
   .pin_SBU2 = 4,
-  .pin_relay_SBU1 = 1,
+  .pin_relay_SBU1 = 5,
   .pin_relay_SBU2 = 4,
-  .adc_channel_SBU1 = 17, //ADC12_INP4
-  .adc_channel_SBU2 = 4 //ADC1_INP17
+  .adc_channel_SBU1 = 8, //ADC12_INP8
+  .adc_channel_SBU2 = 4 //ADC12_INP4
 };
 
 const board board_kedua = {

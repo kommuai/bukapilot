@@ -24,10 +24,10 @@ static bool proton_tx_hook(const CANPacket_t *to_send) {
 static int proton_fwd_hook(int bus_num, int addr) {
   int bus_fwd = -1;
   if (bus_num == 0) {
-    bus_fwd = 1;
+    bus_fwd = 2;
   }
 
-  if (bus_num == 1) {
+  if (bus_num == 2) {
     bool is_lkas_msg = ((addr == 432));// || (addr == 790));
     bool is_acc_msg = (addr == 417);
     bool block_msg = is_lkas_msg || is_acc_msg;

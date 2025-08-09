@@ -78,7 +78,7 @@ static void byd_rx_hook(const CANPacket_t *to_push) {
     }
   }
 
-  if (bus == 1) {
+  if (bus == 2) {
     // cruise enabled
     if (addr == 814) {
       bool engaged = (GET_BYTE(to_push, 5) >> 4) & 1U;
@@ -123,10 +123,10 @@ static int byd_fwd_hook(int bus_num, int addr) {
   int bus_fwd = -1;
 
   if (bus_num == 0) {
-    bus_fwd = 1;
+    bus_fwd = 2;
   }
 
-  if (bus_num == 1) {
+  if (bus_num == 2) {
     bool is_lkas_msg = ((addr == 0x1E2) || (addr == 0x316));
     bool is_acc_msg = (addr == 0x32E);
     bool block_msg = is_lkas_msg || is_acc_msg;

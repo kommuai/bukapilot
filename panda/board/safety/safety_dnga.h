@@ -25,10 +25,10 @@ static int dnga_fwd_hook(int bus_num, int addr) {
   int bus_fwd = -1;
 
   if (bus_num == 0) {
-    bus_fwd = 1;
+    bus_fwd = 2;
   }
 
-  if (bus_num == 1) {
+  if (bus_num == 2) {
     bool is_lkas_msg = ((addr == 464) || (addr == 628));
     bool is_acc_msg = ((addr == 625) || (addr == 627));
     bool block_msg = is_lkas_msg || is_acc_msg;
