@@ -176,4 +176,4 @@ class CarState(CarStateBase):
       ("STEERING_MODULE_ADAS", 50),
     ]
 
-    return CANParser(DBC[CP.carFingerprint]['pt'], signals, 1)
+    return CANParser(DBC[CP.carFingerprint]['pt'], signals, CANBUS.cam_bus)

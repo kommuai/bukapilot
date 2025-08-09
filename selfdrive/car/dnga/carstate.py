@@ -252,4 +252,4 @@ class CarState(CarStateBase):
       ("ACC_BRAKE", 20)
     ]
 
-    return CANParser(DBC[CP.carFingerprint]['pt'], signals, 1)
+    return CANParser(DBC[CP.carFingerprint]['pt'], signals, CANBUS.cam_bus)

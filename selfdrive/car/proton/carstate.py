@@ -198,4 +198,4 @@ class CarState(CarStateBase):
       ("PCM_BUTTONS", 0),
     ]
 
-    return CANParser(DBC[CP.carFingerprint]['pt'], signals, 1)
+    return CANParser(DBC[CP.carFingerprint]['pt'], signals, CANBUS.cam_bus)
