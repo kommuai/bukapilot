@@ -146,12 +146,12 @@ void cameras_init(VisionIpcServer *v, MultiCameraState *s, cl_device_id device_i
 
 void cameras_open(MultiCameraState *s) {
   LOG("-- Opening devices");
-  s->driver_cam.camera_open(s, 0, !env_disable_driver);
-  LOGD("driver camera opened");
+  s->wide_road_cam.camera_open(s, 0, !env_disable_wide_road);
+  LOGD("wide road camera opened");
   s->road_cam.camera_open(s, 1, !env_disable_road);
   LOGD("road camera opened");
-  s->wide_road_cam.camera_open(s, 2, !env_disable_wide_road);
-  LOGD("wide road camera opened");
+  s->driver_cam.camera_open(s, 2, !env_disable_driver);
+  LOGD("driver camera opened");
  }
 
 void CameraState::camera_close() {
