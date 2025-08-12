@@ -41,8 +41,8 @@
 
 #define MAX_IR_POWER 0.5f
 #define MIN_IR_POWER 0.0f
-#define CUTOFF_IL 400
-#define SATURATE_IL 1000
+#define CUTOFF_IL 200
+#define SATURATE_IL 892
 using namespace std::chrono_literals;
 
 std::atomic<bool> ignition(false);
