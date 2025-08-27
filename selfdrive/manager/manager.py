@@ -21,7 +21,6 @@ from openpilot.system.version import is_dirty, get_commit, get_version, get_orig
                            is_tested_branch, is_release_branch, get_commit_date
 from openpilot.common.features import Features
 
-
 def manager_init() -> None:
   save_bootlog()
 
@@ -37,6 +36,7 @@ def manager_init() -> None:
     ("DisengageOnAccelerator", "0"),
     ("GsmMetered", "1"),
     ("HasAcceptedTerms", "0"),
+    ("IsMetric", "1"),
     ("LanguageSetting", "main_en"),
     ("RsjSession", "invalidsession"),
     ("OpenpilotEnabledToggle", "1"),
