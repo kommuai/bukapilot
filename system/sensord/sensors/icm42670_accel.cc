@@ -49,16 +49,17 @@ bool ICM42670_Accel::get_event(MessageBuilder &msg, uint64_t ts) {
   int len = read_register(ICM42670_REG_ACCEL_DATA_X1, buffer, sizeof(buffer));
   assert(len == 6);
 
-  double accel_scale = 9.81 / 16384; // sensitivity scale factor from datasheet
-  float x = -read_16_bit(buffer[5], buffer[4]) * accel_scale;
-  float y = read_16_bit(buffer[1], buffer[0]) * accel_scale;
+  double accel_scale = 9.80665 / 16384; // sensitivity scale factor from datasheet
+  float x = (read_16_bit(buffer[5], buffer[4]) * accel_scale) - 0.25; // 0.25 is bias
+  float y = -read_16_bit(buffer[1], buffer[0]) * accel_scale;
   float z = -read_16_bit(buffer[3], buffer[2]) * accel_scale;
 
   // rotate the frame along the y axis
-  double cos_theta = cos(-ROT_ANGLE_RAD);
-  double sin_theta = sin(-ROT_ANGLE_RAD);
-  x = (cos_theta * x - sin_theta * z) * 1.017f; // TODO: find out why offset needed
-  z = (sin_theta * x + cos_theta * z) * 1.177f;
+  double c = cos(-ROT_ANGLE_RAD);
+  double s = sin(-ROT_ANGLE_RAD);
+  float x0 = x, z0 = z;
+  x = (float)(c * x0 - s * z0);
+  z = (float)(s * x0 + c * z0);
 
   auto event = msg.initEvent().initAccelerometer();
   event.setSource(cereal::SensorEventData::SensorSource::ICM42670);

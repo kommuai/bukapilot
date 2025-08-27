@@ -55,9 +55,9 @@ bool ICM42670_Gyro::get_event(MessageBuilder &msg, uint64_t ts) {
   assert(len == 6);
 
   float scale = 131; // sensitivity scale factor from datasheet
-  float x = -DEG2RAD(read_16_bit(buffer[5], buffer[4]) / scale) - 0.0945f;
-  float y = DEG2RAD(read_16_bit(buffer[1], buffer[0]) / scale) + 0.1855f;
-  float z = -DEG2RAD(read_16_bit(buffer[3], buffer[2]) / scale) - 0.1183f;
+  float x = DEG2RAD(read_16_bit(buffer[5], buffer[4]) / scale);
+  float y = -DEG2RAD(read_16_bit(buffer[1], buffer[0]) / scale);
+  float z = -DEG2RAD(read_16_bit(buffer[3], buffer[2]) / scale);
 
   auto event = msg.initEvent().initGyroscope();
   event.setSource(cereal::SensorEventData::SensorSource::ICM42670);
