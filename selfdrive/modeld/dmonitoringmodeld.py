@@ -134,7 +134,7 @@ def get_driverstate_packet(model_output: np.ndarray, frame_id: int, location_ts:
 
 def main():
   gc.disable()
-  config_realtime_process(5, 5)
+  config_realtime_process(6, 56)
 
   model = ModelState()
   cloudlog.warning("models loaded, dmonitoringmodeld starting")
