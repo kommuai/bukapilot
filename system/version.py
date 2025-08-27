@@ -8,7 +8,7 @@ from functools import lru_cache
 from openpilot.common.basedir import BASEDIR
 from openpilot.common.swaglog import cloudlog
 
-RELEASE_BRANCHES = ['release3-staging', 'release3', 'nightly']
+RELEASE_BRANCHES = ['release3-staging', 'release3', 'nightly', 'release_ka2']
 TESTED_BRANCHES = RELEASE_BRANCHES + ['devel', 'devel-staging']
 
 training_version: bytes = b"0.2.0"
