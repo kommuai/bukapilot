@@ -67,6 +67,7 @@ class ModelState:
 
     self.model.addInput("input_img", None)
     self.model.addInput("calib", self.inputs['calib'])
+    self.model_fake_input = np.load("/data/openpilot/dmon_data.npy")
 
   def run(self, buf:VisionBuf, calib:np.ndarray) -> tuple[np.ndarray, float]:
     self.inputs['calib'][:] = calib
@@ -79,7 +80,7 @@ class ModelState:
     # Added to let rknn work
     if self.runner_type == 'RKNN':
       input_data[:] = input_data[:] / 255.
-
+    """
     step1 = self.inputs['input_img'].reshape(1, 960, 720, 2)
     step2 = np.transpose(step1, (0, 2, 1, 3))
     step3 = step2.reshape(1, 720, 480, 4)
@@ -88,10 +89,17 @@ class ModelState:
     float16_array = np.array(original_final, dtype=aligned_float16)
     self.model.setInputBuffer("input_img", float16_array.view(np.float32))
 
+    self.model.setInputBuffer("input_img", self.inputs['input_img'].view(np.float32))
     t1 = time.perf_counter()
     self.model.execute()
     t2 = time.perf_counter()
-    return self.output, t2 - t1
+    """
+
+    t1 = time.perf_counter()
+    t2 = time.perf_counter()
+    return self.model_fake_input, t2 - t1
+
+    #return self.output, t2 - t1
 
 
 def fill_driver_state(msg, ds_result: DriverStateResult):

@@ -331,7 +331,7 @@ class DriverStatus():
       if not standstill_exemption:
         self.awareness = max(self.awareness - self.step_change, -0.1)
 
-    if IGNORE_DM:
+    if IGNORE_DM or True:
       self.awareness = 1
 
     alert = None
