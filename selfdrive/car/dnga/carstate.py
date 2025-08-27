@@ -95,7 +95,7 @@ class CarState(CarStateBase):
     ret.steeringAngleDeg = cp.vl["STEERING_MODULE"]['STEER_ANGLE']
     ret.steeringTorque = cp.vl["STEERING_MODULE"]['MAIN_TORQUE']
     ret.steeringTorqueEps = cp.vl["EPS_SHAFT_TORQUE"]['STEERING_TORQUE']
-    ret.steeringPressed = bool(abs(ret.steeringTorque) > 20)
+    ret.steeringPressed = bool(abs(ret.steeringTorqueEps) > 30)
 
     ret.vEgoCluster = cp.vl["BUTTONS"]["UI_SPEED"] * CV.KPH_TO_MS * HUD_MULTIPLIER
     self.frontDepartWarning = bool(cp_cam.vl["LKAS_HUD"]["FRONT_DEPART"])

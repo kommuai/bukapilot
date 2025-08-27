@@ -2,7 +2,7 @@ from opendbc.can.packer import CANPacker
 
 from openpilot.selfdrive.car import make_can_msg
 from openpilot.selfdrive.car.interfaces import CarControllerBase
-from openpilot.selfdrive.car.dnga.dngacan import create_can_steer_command, create_accel_command, \
+from openpilot.selfdrive.car.dnga.dngacan import create_can_steer_command, create_accel_command, dnga_buttons,\
                                        create_brake_command, create_hud
 from openpilot.selfdrive.car.dnga.values import CAR, DBC, BRAKE_SCALE, SNG_CAR
 from openpilot.common.numpy_fast import clip, interp
@@ -16,7 +16,7 @@ PUMP_VALS = [0, .1, .2, .3, .4, .5, .6, .7, .8, .9, 1.0]
 PUMP_RESET_INTERVAL = 1.5
 PUMP_RESET_DURATION = 0.1
 
-BRAKE_M = 1.0
+BRAKE_M = 1.2
 
 class BrakingStatus():
   STANDSTILL_INIT = 0
@@ -119,6 +119,8 @@ class CarController(CarControllerBase):
     self.stockLdw = False
     self.frame = 0
 
+    self.using_stock_acc = False
+
   def update(self, CC, CS, now_nanos):
     can_sends = []
 
@@ -140,9 +142,10 @@ class CarController(CarControllerBase):
     # speed and brake, speed using simple kinematics v = u + at
     # because dnga is speed controlled, the PID for positive accel is done by the car
     # so we change the equation to v = u + ka and assume k include the time horizon of 1s
-    k = 0.5 + 0.06 * CS.out.vEgo
+    k = 0.3 + 0.06 * CS.out.vEgo
     des_speed = CS.out.vEgo + actuators.accel * k
     apply_brake = 0 if (CS.out.gasPressed or actuators.accel >= 0) else clip(abs(actuators.accel / BRAKE_M), 0., 1.25)
+    apply_brake = max(CS.stock_brake_mag * 0.85, apply_brake)
 
     # reduce max brake when below 10kmh to reduce jerk. TODO: more elegant way to do this?
     if CS.out.vEgo < 2.8:
@@ -163,6 +166,26 @@ class CarController(CarControllerBase):
 
     # CAN controlled longitudinal
     if (self.frame % 5) == 0:
+
+      # check if need to revert to stock acc
+      if enabled and CS.out.vEgo > 10: # 36kmh
+        if CS.stock_acc_engaged:
+          self.using_stock_acc = True
+      else:
+        if enabled:
+          # spam engage until stock ACC engages
+          can_sends.append(dnga_buttons(self.packer, 0, 1))
+
+      # check if need to revert to bukapilot acc
+      if CS.out.vEgo < 8.3: # 30kmh
+        self.using_stock_acc = False
+
+      # set stock acc follow speed
+      if enabled and self.using_stock_acc:
+        if CS.out.cruiseState.speedCluster - (CS.stock_acc_set_speed // 3.6) > 0.3:
+          can_sends.append(dnga_buttons(self.packer, 0, 1))
+        if (CS.stock_acc_set_speed // 3.6) - CS.out.cruiseState.speedCluster > 0.3:
+          can_sends.append(dnga_buttons(self.packer, 1, 0))
 
       # standstill logic
       if enabled and apply_brake > 0 and CS.out.standstill and CS.CP.carFingerprint not in SNG_CAR:

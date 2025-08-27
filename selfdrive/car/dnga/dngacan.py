@@ -84,7 +84,7 @@ def create_hud(packer, lkas_rdy, enabled, llane_visible, rlane_visible, ldw, fcw
 
   return packer.make_can_msg("LKAS_HUD", 0, values)
 
-def buttons(packer, set_button, res_button):
+def dnga_buttons(packer, set_button, res_button):
 
   values = {
     "SET_MINUS": set_button,

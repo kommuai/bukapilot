@@ -32,6 +32,9 @@ class CarInterface(CarInterfaceBase):
     ret.longitudinalActuatorDelayLowerBound = 0.40
     ret.longitudinalActuatorDelayUpperBound = 0.50
 
+    ret.longitudinalTuning.deadzoneBP = [0., 9.]
+    ret.longitudinalTuning.deadzoneV = [0., .20]
+
     if candidate == CAR.ALZA:
       ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.16], [0.30]]
       ret.lateralTuning.pid.kf = 0.00015
@@ -47,7 +50,8 @@ class CarInterface(CarInterfaceBase):
       ret.wheelSpeedFactor = 1.505
 
     elif candidate == CAR.MYVI:
-      ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.09], [0.12]]
+      ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP = [[0., 20], [0., 20]]
+      ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.09, 0.12], [0.10, 0.14]]
       ret.lateralTuning.pid.kf = 0.00012
       ret.longitudinalTuning.kpV = [1.0, 0.8, 0.8]
       ret.longitudinalTuning.kiV = [0.08, 0.04, 0.01]
