@@ -97,7 +97,7 @@ BO_ 813 ACC_HUD_ADAS: 8 XXX
  SG_ CHECKSUM : 63|8@0+ (1,0) [0|255] "" XXX
  SG_ SET_DISTANCE : 12|3@0+ (1,0) [0|7] "" XXX
  SG_ ACC_ON2 : 20|1@0+ (1,0) [0|1] "" XXX
- SG_ SET_SPEED : 0|8@1+ (0.5,0) [0|255] "" XXX
+ SG_ SET_SPEED : 0|9@1+ (0.5,0) [0|255] "" XXX
  SG_ SET_ME_XF : 55|4@0+ (1,0) [0|15] "" XXX
  SG_ ACC_ON1 : 22|1@0+ (1,0) [0|1] "" XXX
  SG_ SET_ME_XFF : 47|8@0+ (1,0) [0|255] "" XXX

@@ -28,9 +28,11 @@ class CarInterface(CarInterfaceBase):
     # TODO: steer based vehicle needs pid tuning?
     ret.lateralParams.torqueBP, ret.lateralParams.torqueV = [[0.], [530]]
     ret.lateralTuning.pid.kpBP = [0., 5., 20.]
-    ret.longitudinalTuning.kpV = [2.2, 2.0, 1.8]
     ret.lateralTuning.pid.kiBP = [0., 5., 20.]
-    ret.longitudinalTuning.kiV = [0.45, 0.40, 0.32]
+    ret.longitudinalTuning.kpBP = [0., 5., 20.]
+    ret.longitudinalTuning.kiBP = [0., 5., 20.]
+    ret.longitudinalTuning.kpV = [0.8, 0.7, 0.6]
+    ret.longitudinalTuning.kiV = [0.5, 0.4, 0.3]
 
     ret.wheelSpeedFactor = 0.695
 
@@ -38,8 +40,8 @@ class CarInterface(CarInterfaceBase):
       ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.32, 0.23, 0.12], [1.5, 1.3, 1.0]]
       ret.lateralTuning.pid.kf = 0.00015
 
-      ret.longitudinalActuatorDelayLowerBound = 0.3
-      ret.longitudinalActuatorDelayUpperBound = 0.4
+      ret.longitudinalActuatorDelayLowerBound = 0.2
+      ret.longitudinalActuatorDelayUpperBound = 0.3
     else:
       ret.dashcamOnly = True
       ret.safetyModel = car.CarParams.SafetyModel.noOutput

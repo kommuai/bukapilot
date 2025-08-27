@@ -61,7 +61,7 @@ class CarState(CarStateBase):
 
     # unfiltered speed from CAN sensors
     ret.vEgo, ret.aEgo = self.update_speed_kf(ret.vEgoRaw)
-    ret.vEgoCluster = ret.vEgo
+    ret.vEgoCluster = ret.vEgo * 1.05
     ret.standstill = ret.vEgoRaw < 0.01
 
     # safety checks to engage
@@ -93,7 +93,7 @@ class CarState(CarStateBase):
     self.prev_angle = ret.steeringAngleDeg
     ret.steeringTorque = cp.vl["STEERING_TORQUE"]['MAIN_TORQUE']
     ret.steeringTorqueEps = cp.vl["STEER_MODULE_2"]['DRIVER_EPS_TORQUE'] * steer_dir
-    ret.steeringPressed = bool(abs(ret.steeringTorqueEps) > 6)
+    ret.steeringPressed = bool(abs(ret.steeringTorqueEps) > 8)
 
     # TODO: get the real value
     ret.stockAeb = False
