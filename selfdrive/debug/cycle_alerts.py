@@ -6,20 +6,15 @@ from cereal import car, log
 import cereal.messaging as messaging
 from openpilot.common.realtime import DT_CTRL
 from openpilot.selfdrive.car.honda.interface import CarInterface
-from openpilot.selfdrive.controls.lib.events import ET, Events
+from openpilot.selfdrive.controls.lib.events import ET, Events, EVENT_NAME
 from openpilot.selfdrive.controls.lib.alertmanager import AlertManager
 from openpilot.selfdrive.manager.process_config import managed_processes
 
 EventName = car.CarEvent.EventName
 
-def randperc() -> float:
-  return 100. * random.random()
-
 def cycle_alerts(duration=200, is_metric=False):
-  # all alerts
-  #alerts = list(EVENTS.keys())
-
   # this plays each type of audible alert
+  '''
   alerts = [
     (EventName.buttonEnable, ET.ENABLE),
     (EventName.buttonCancel, ET.USER_DISABLE),
@@ -28,80 +23,84 @@ def cycle_alerts(duration=200, is_metric=False):
     (EventName.locationdTemporaryError, ET.SOFT_DISABLE),
     (EventName.paramsdTemporaryError, ET.SOFT_DISABLE),
     (EventName.accFaulted, ET.IMMEDIATE_DISABLE),
+    (EventName.preLaneChangeLeft, ET.WARNING),
 
     # DM sequence
     (EventName.preDriverDistracted, ET.WARNING),
     (EventName.promptDriverDistracted, ET.WARNING),
     (EventName.driverDistracted, ET.WARNING),
   ]
+   '''
 
+  alerts = [
+    (EventName.startup, ET.PERMANENT),
+    (EventName.wrongGear, ET.NO_ENTRY),
+    (EventName.buttonEnable, ET.ENABLE),
+
+    (EventName.steerSaturated, ET.WARNING),
+    (None, None),
+    (None, None),
+    (EventName.buttonEnable, ET.ENABLE),
+    (EventName.buttonEnable, ET.ENABLE),
+
+    # DM sequence
+    (EventName.preDriverDistracted, ET.WARNING),
+    (EventName.promptDriverDistracted, ET.WARNING),
+    (EventName.driverDistracted, ET.WARNING),
+    (EventName.buttonCancel, ET.USER_DISABLE),
+
+
+    (EventName.overheat, ET.PERMANENT),
+    (EventName.overheat, ET.PERMANENT),
+  ]
+  '''
   # debug alerts
   alerts = [
-    #(EventName.highCpuUsage, ET.NO_ENTRY),
-    #(EventName.lowMemory, ET.PERMANENT),
-    #(EventName.overheat, ET.PERMANENT),
-    #(EventName.outOfSpace, ET.PERMANENT),
-    #(EventName.modeldLagging, ET.PERMANENT),
-    #(EventName.processNotRunning, ET.NO_ENTRY),
-    #(EventName.commIssue, ET.NO_ENTRY),
-    #(EventName.calibrationInvalid, ET.PERMANENT),
+    (EventName.highCpuUsage, ET.NO_ENTRY),
+    (EventName.lowMemory, ET.PERMANENT),
+    (EventName.overheat, ET.PERMANENT),
+    (EventName.outOfSpace, ET.PERMANENT),
+    (EventName.modeldLagging, ET.PERMANENT),
+    (EventName.processNotRunning, ET.NO_ENTRY),
+    (EventName.commIssue, ET.NO_ENTRY),
+    (EventName.calibrationInvalid, ET.PERMANENT),
     (EventName.cameraMalfunction, ET.PERMANENT),
     (EventName.cameraFrameRate, ET.PERMANENT),
   ]
-
-  cameras = ['roadCameraState', 'wideRoadCameraState', 'driverCameraState']
+  '''
 
   CS = car.CarState.new_message()
-  CP = CarInterface.get_non_essential_params("HONDA CIVIC 2016")
   sm = messaging.SubMaster(['deviceState', 'pandaStates', 'roadCameraState', 'modelV2', 'liveCalibration',
                             'driverMonitoringState', 'longitudinalPlan', 'liveLocationKalman',
-                            'managerState'] + cameras)
+                            'managerState'])
 
-  pm = messaging.PubMaster(['controlsState', 'pandaStates', 'deviceState'])
+  pm = messaging.PubMaster(['controlsState'])
 
   events = Events()
   AM = AlertManager()
 
   frame = 0
+
+  enabled = False
   while True:
-    for alert, et in alerts:
+    for al, et in alerts:
       events.clear()
-      events.add(alert)
+      events.add(al)
 
-      sm['deviceState'].freeSpacePercent = randperc()
-      sm['deviceState'].memoryUsagePercent = int(randperc())
-      sm['deviceState'].cpuTempC = [randperc() for _ in range(3)]
-      sm['deviceState'].gpuTempC = [randperc() for _ in range(3)]
-      sm['deviceState'].cpuUsagePercent = [int(randperc()) for _ in range(8)]
-      sm['modelV2'].frameDropPerc = randperc()
-
-      if random.random() > 0.25:
-        sm['modelV2'].velocity.x = [random.random(), ]
-      if random.random() > 0.25:
-        CS.vEgo = random.random()
-
-      procs = [p.get_process_state_msg() for p in managed_processes.values()]
-      random.shuffle(procs)
-      for i in range(random.randint(0, 10)):
-        procs[i].shouldBeRunning = True
-      sm['managerState'].processes = procs
-
-      sm['liveCalibration'].rpyCalib = [-1 * random.random() for _ in range(random.randint(0, 3))]
-
-      for s in sm.data.keys():
-        prob = 0.3 if s in cameras else 0.08
-        sm.alive[s] = random.random() > prob
-        sm.valid[s] = random.random() > prob
-        sm.freq_ok[s] = random.random() > prob
-
-      a = events.create_alerts([et, ], [CP, CS, sm, is_metric, 0])
-      AM.add_many(frame, a)
-      alert = AM.process_alerts(frame, [])
+      if al != None:
+        a = events.create_alerts([et, ], [None, CS, sm, is_metric, 0])
+        AM.add_many(frame, a)
+        alert = AM.process_alerts(frame, [])
+      else:
+        alert = None
       print(alert)
       for _ in range(duration):
-        dat = messaging.new_message()
-        dat.init('controlsState')
-        dat.controlsState.enabled = False
+        dat = messaging.new_message('controlsState')
+        if al == EventName.buttonEnable:
+          enabled = True
+        if al == EventName.buttonCancel:
+          enabled = False
+        dat.controlsState.active = enabled
 
         if alert:
           dat.controlsState.alertText1 = alert.alert_text_1
@@ -112,16 +111,6 @@ def cycle_alerts(duration=200, is_metric=False):
           dat.controlsState.alertType = alert.alert_type
           dat.controlsState.alertSound = alert.audible_alert
         pm.send('controlsState', dat)
-
-        dat = messaging.new_message()
-        dat.init('deviceState')
-        dat.deviceState.started = True
-        pm.send('deviceState', dat)
-
-        dat = messaging.new_message('pandaStates', 1)
-        dat.pandaStates[0].ignitionLine = True
-        dat.pandaStates[0].pandaType = log.PandaState.PandaType.uno
-        pm.send('pandaStates', dat)
 
         frame += 1
         time.sleep(DT_CTRL)

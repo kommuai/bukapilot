@@ -108,13 +108,17 @@ class Soundd:
     data_out[:frames, 0] = self.get_sound_data(frames)
 
   def update_alert(self, new_alert, quiet_mode):
-    allowed_alerts = (new_alert in {
-        AudibleAlert.promptRepeat,
-        AudibleAlert.promptDistracted,
-        AudibleAlert.prompt,
-        AudibleAlert.warningSoft,
-        AudibleAlert.warningImmediate
-    }) if quiet_mode else (new_alert != AudibleAlert.none)
+    if quiet_mode:
+      allowed_alerts = new_alert in {
+          AudibleAlert.none,
+          AudibleAlert.promptRepeat,
+          AudibleAlert.promptDistracted,
+          AudibleAlert.prompt,
+          AudibleAlert.warningSoft,
+          AudibleAlert.warningImmediate,
+      }
+    else:
+      allowed_alerts = True
 
     if allowed_alerts:
       current_alert_played_once = (self.current_alert == AudibleAlert.none or
@@ -174,7 +178,8 @@ class Soundd:
 
 def main():
   s = Soundd()
-  subprocess.run(["amixer", "sset", "PCM", "90%"], check=True)
+  subprocess.run(["amixer", "sset", "PCM", "100%"], check=True)
+  subprocess.run(["amixer", "-c", "0", "sset", "\"Speaker\"", "on"], check=True)
   s.soundd_thread()
 
 
