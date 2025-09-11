@@ -84,7 +84,7 @@ def create_hud(packer, lkas_rdy, enabled, llane_visible, rlane_visible, ldw, fcw
 
   return packer.make_can_msg("LKAS_HUD", 0, values)
 
-def dnga_buttons(packer, set_button, res_button):
+def dnga_buttons(packer, set_button, res_button, cancel_button):
 
   values = {
     "SET_MINUS": set_button,
@@ -93,6 +93,7 @@ def dnga_buttons(packer, set_button, res_button):
     "PEDAL_DEPRESSED": 1,
     "NEW_SIGNAL_1": 1,
     "NEW_SIGNAL_2": 1,
+    "CANCEL": cancel_button,
   }
 
   return packer.make_can_msg("PCM_BUTTONS", 0, values)
