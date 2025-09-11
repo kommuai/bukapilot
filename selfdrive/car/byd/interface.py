@@ -16,7 +16,7 @@ class CarInterface(CarInterfaceBase):
     ret.safetyConfigs[0].safetyParam = 1
 
     ret.steerControlType = car.CarParams.SteerControlType.angle
-    ret.steerLimitTimer = 0.1              # time before steerLimitAlert is issued
+    ret.steerLimitTimer = 0.2              # time before steerLimitAlert is issued
     ret.steerActuatorDelay = 0.01          # Steering wheel actuator delay in seconds
 
     ret.lateralTuning.init('pid')
@@ -37,7 +37,7 @@ class CarInterface(CarInterfaceBase):
     ret.wheelSpeedFactor = 0.695
 
     if candidate == CAR.ATTO3:
-      ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.32, 0.23, 0.12], [1.5, 1.3, 1.0]]
+      ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.52, 0.43, 0.32], [1.5, 1.4, 1.1]]
       ret.lateralTuning.pid.kf = 0.00015
 
       ret.longitudinalActuatorDelayLowerBound = 0.2
@@ -47,10 +47,10 @@ class CarInterface(CarInterfaceBase):
       ret.safetyModel = car.CarParams.SafetyModel.noOutput
 
     ret.startingState = True
-    ret.startAccel = 1.0
+    ret.startAccel = 1.8
     ret.minEnableSpeed = -1
     ret.enableBsm = True
-    ret.stoppingDecelRate = 0.1 # reach stopping target smoothly
+    ret.stoppingDecelRate = 0.2 # reach stopping target smoothly
 
     return ret
 

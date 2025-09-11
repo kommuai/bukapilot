@@ -6,7 +6,7 @@ HUD_MULTIPLIER = 1.07
 
 @dataclass
 class BYDPlatformConfig(PlatformConfig):
-  dbc_dict: DbcDict = field(default_factory=lambda: dbc_dict('byd_general_pt', None))
+  dbc_dict: DbcDict = field(default_factory=lambda: dbc_dict('byd_general_pt', 'byd_radar_fd'))
 
 class CANBUS:
   main_bus = 0

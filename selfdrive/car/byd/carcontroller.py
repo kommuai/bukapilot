@@ -45,6 +45,8 @@ class CarController(CarControllerBase):
     enabled = CC.latActive
     actuators = CC.actuators
     apply_angle = CS.out.steeringAngleDeg
+    pcm_cancel_cmd = CC.cruiseControl.cancel
+
     # lkas user activation, cannot tie to lka_on state because it may deactivate itself
     if CS.lka_on:
       self.lka_active = True
@@ -74,14 +76,14 @@ class CarController(CarControllerBase):
       if self.CP.openpilotLongitudinalControl:
         long_active = enabled and not CS.out.gasPressed
         brake_hold = CS.out.standstill and actuators.accel < 0
-
-        if (CC.enabled and CS.out.standstill and actuators.accel > 0) or CS.out.genericToggle:
-          can_sends.append(send_buttons(self.packer, 1))
-          actuators.accel = 2
-          long_active = True
-          brake_hold = False
+        # is this needed?
+        if (CC.enabled and CS.out.standstill and actuators.accel > 0):
+          can_sends.append(send_buttons(self.packer, 1, 0))
 
         can_sends.append(create_accel_command(self.packer, actuators.accel, long_active, brake_hold))
+
+    if pcm_cancel_cmd:
+      can_sends.append(send_buttons(self.packer, 0, 1))
 
     new_actuators = actuators.copy()
     new_actuators.steeringAngleDeg = apply_angle

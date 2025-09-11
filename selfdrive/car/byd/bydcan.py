@@ -67,7 +67,7 @@ def create_lkas_hud(packer, enabled, lss_state, lss_alert, tsr, ahb, passthrough
     "LSS_STATE": lss_state,
     "SET_ME_1_2": 1,
     "SETTINGS": lss_alert,
-    "SET_ME_X5F": ahb,
+    "TSR_STATUS": ahb,
     "SET_ME_XFF": passthrough,
     # TODO integrate warning signs when steer limited
     "HAND_ON_WHEEL_WARNING": 0,
@@ -81,12 +81,13 @@ def create_lkas_hud(packer, enabled, lss_state, lss_alert, tsr, ahb, passthrough
 
   return packer.make_can_msg("LKAS_HUD_ADAS", 0, values)
 
-def send_buttons(packer, state):
+def send_buttons(packer, state, cancel):
   values = {
       "SET_BTN": state,
       "RES_BTN": state,
       "SET_ME_1_1": 1,
       "SET_ME_1_2": 1,
+      "ACC_ON_BTN": cancel,
   }
   return packer.make_can_msg("PCM_BUTTONS", 0, values)
 

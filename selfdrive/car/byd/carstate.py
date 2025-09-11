@@ -40,7 +40,7 @@ class CarState(CarStateBase):
     self.lka_on = cp_cam.vl["LKAS_HUD_ADAS"]['STEER_ACTIVE_ACTIVE_LOW']
     self.lkas_rdy_btn = cp.vl["PCM_BUTTONS"]['LKAS_ON_BTN']
     self.abh = cp_cam.vl["LKAS_HUD_ADAS"]['SET_ME_XFF']
-    self.passthrough = cp_cam.vl["LKAS_HUD_ADAS"]['SET_ME_X5F']
+    self.passthrough = cp_cam.vl["LKAS_HUD_ADAS"]['TSR_STATUS']
     self.HMA = cp_cam.vl["LKAS_HUD_ADAS"]['HMA']
     self.pt2 = cp_cam.vl["LKAS_HUD_ADAS"]['PT2']
     self.pt3 = cp_cam.vl["LKAS_HUD_ADAS"]['PT3']
@@ -93,12 +93,12 @@ class CarState(CarStateBase):
     self.prev_angle = ret.steeringAngleDeg
     ret.steeringTorque = cp.vl["STEERING_TORQUE"]['MAIN_TORQUE']
     ret.steeringTorqueEps = cp.vl["STEER_MODULE_2"]['DRIVER_EPS_TORQUE'] * steer_dir
-    ret.steeringPressed = bool(abs(ret.steeringTorqueEps) > 8)
+    ret.steeringPressed = bool(abs(ret.steeringTorqueEps) > 6)
 
     # TODO: get the real value
     ret.stockAeb = False
     ret.stockFcw = False
-    ret.cruiseState.available = any([cp_cam.vl["ACC_HUD_ADAS"]["ACC_ON1"], cp_cam.vl["ACC_HUD_ADAS"]["ACC_ON2"]])
+    ret.cruiseState.available = any([cp_cam.vl["ACC_HUD_ADAS"]["ACC_ON1"], cp_cam.vl["ACC_HUD_ADAS"]["ACC_CONTROLLABLE_AND_ON"]])
 
     # VAL_ 813 SET_DISTANCE 8 "4bar" 4 "3bar" 2 "2bar" 1 "1bar" ;
     distance_val = int(cp_cam.vl["ACC_HUD_ADAS"]['SET_DISTANCE'])
@@ -121,7 +121,7 @@ class CarState(CarStateBase):
       ret.cruiseState.speedCluster = 0
 
     ret.cruiseState.speed = ret.cruiseState.speedCluster / HUD_MULTIPLIER
-    ret.cruiseState.standstill = bool(cp_cam.vl["ACC_CMD"]["STANDSTILL_STATE"])
+    ret.cruiseState.standstill = False # force false first for SNG  #bool(cp_cam.vl["ACC_CMD"]["STANDSTILL_STATE"])
     ret.cruiseState.nonAdaptive = False
 
     stock_acc_on =  bool(cp_cam.vl["ACC_CMD"]["ACC_CONTROLLABLE_AND_ON"])
