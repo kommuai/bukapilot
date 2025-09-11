@@ -97,10 +97,7 @@ def slot_number_to_suffix(slot_number: int) -> str:
 
 
 def get_partition_path(target_slot_number: int, partition: dict) -> str:
-  path = f"/dev/disk/by-partlabel/{partition['name']}"
-
-  if partition.get('has_ab', True):
-    path += slot_number_to_suffix(target_slot_number)
+  path = f"/dev/disk/by-partlabel/{partition['name']}_b"
 
   return path
 
@@ -117,8 +114,6 @@ def get_raw_hash(path: str, partition_size: int) -> str:
 
   return raw_hash.hexdigest().lower()
 
-
-# TODO
 def verify_partition(target_slot_number: int, partition: dict[str, str | int], force_full_check: bool = False) -> bool:
   full_check = partition['full_check'] or force_full_check
   path = get_partition_path(target_slot_number, partition)
@@ -174,9 +169,8 @@ def extract_compressed_image(target_slot_number: int, partition: dict, cloudlog)
     if downloader.sha256.hexdigest().lower() != partition['hash'].lower():
       raise Exception(f"Uncompressed hash mismatch '{downloader.sha256.hexdigest().lower()}'")
 
-    # TODO: Reimplement this
-    #if out.tell() != partition['size']:
-    #  raise Exception("Uncompressed size mismatch")
+    if out.tell() != partition['size']:
+      raise Exception("Uncompressed size mismatch")
 
     os.sync()
 
