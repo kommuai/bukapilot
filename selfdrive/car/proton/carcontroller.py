@@ -1,9 +1,9 @@
 from opendbc.can.packer import CANPacker
-
 from openpilot.selfdrive.car.interfaces import CarControllerBase
 from openpilot.selfdrive.car.proton.protoncan import create_can_steer_command, send_buttons, create_acc_cmd
 from openpilot.selfdrive.car.proton.values import DBC
 from openpilot.common.numpy_fast import clip
+
 
 def apply_proton_steer_torque_limits(apply_torque, apply_torque_last, driver_torque, LIMITS):
 
@@ -51,8 +51,8 @@ class CarController(CarControllerBase):
     enabled = CC.latActive
     actuators = CC.actuators
     #ldw = CC.hudControl.leftLaneDepart or CC.hudControl.rightLaneDepart
-
     lat_active = enabled
+    pcm_cancel_cmd = CC.cruiseControl.cancel
 
     # steer
     new_steer = round(actuators.steer * self.params.STEER_MAX)
@@ -65,12 +65,13 @@ class CarController(CarControllerBase):
                       CS.hand_on_wheel_warning and CS.is_icc_on, \
                       CS.is_icc_on and CS.hand_on_wheel_chime, \
                       CS.lks_aux, CS.lks_audio, CS.lks_tactile, CS.lks_assist_mode, \
-                      CS.lka_enable))
-      can_sends.append(create_acc_cmd(self.packer, actuators.accel, enabled, CS.out.gasPressed, standstill_request))
-
+                      CS.lka_enable, 0))
+      can_sends.append(create_acc_cmd(self.packer, actuators.accel, CC.longActive, CS.out.gasPressed, standstill_request, CS.stock_acc_cmd))
       #can_sends.append(create_hud(self.packer, apply_steer, enabled, ldw, CC.hudControl.rightLaneVisible, CC.hudControl.leftLaneVisible))
       #can_sends.append(create_lead_detect(self.packer, CC.hudControl.leadVisible, enabled))
 
+    if pcm_cancel_cmd or CS.out.genericToggle:
+      can_sends.append(send_buttons(self.packer, 0, 1))
 
     self.last_steer = apply_steer
     new_actuators = actuators.copy()

@@ -30,6 +30,11 @@ class CAR(Platforms):
     CarInfo("Proton X50", "All"),
     specs=CarSpecs(mass=1370., wheelbase=2.6, steerRatio=15.0)
   )
+  X70 = ProtonPlatformConfig(
+    "PROTON X70",
+    CarInfo("Proton X70", "All"),
+    specs=CarSpecs(mass=1610., wheelbase=2.67, steerRatio=15.0)
+  )
   X90 = ProtonPlatformConfig(
     "PROTON X90",
     CarInfo("Proton X90", "All"),

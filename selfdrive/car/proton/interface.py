@@ -45,8 +45,12 @@ class CarInterface(CarInterfaceBase):
 
     if candidate == CAR.X50:
       ret.lateralParams.torqueBP, ret.lateralParams.torqueV = [[0.], [545]]
+      ret.longitudinalTuning.kpV = [0.5, 0.4, 0.3]
+      ret.longitudinalTuning.kiV = [0.05, 0.05, 0.05]
     elif candidate == CAR.S70:
       ret.lateralParams.torqueBP, ret.lateralParams.torqueV = [[0.], [530]]
+    elif candidate == CAR.X70:
+      ret.lateralParams.torqueBP, ret.lateralParams.torqueV = [[0.], [500]]
     elif candidate == CAR.X90:
       ret.lateralParams.torqueBP, ret.lateralParams.torqueV = [[0.], [545]]
     else:

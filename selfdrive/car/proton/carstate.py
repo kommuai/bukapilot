@@ -33,12 +33,13 @@ class CarState(CarStateBase):
     self.hand_on_wheel_warning = False
     self.hand_on_wheel_chime = False
 
-    self.is_cruise_latch = False
     self.acc_req = False
     self.prev_angle = 0
 
     self.p = Params()
     self.prev_distance_val = -1
+
+    self.stock_acc_cmd = 0
 
   def update(self, cp, cp_cam):
     ret = car.CarState.new_message()
@@ -70,6 +71,8 @@ class CarState(CarStateBase):
     self.hand_on_wheel_chime = bool(cp_cam.vl["ADAS_LKAS"]["WHEEL_WARNING_CHIME"])
     self.acc_req = bool(cp_cam.vl["ACC_CMD"]["ACC_REQ"]) or bool(cp_cam.vl["PCM_BUTTONS"]["GAS_OVERRIDE"])
 
+    # stock acc cmd
+    self.stock_acc_cmd = cp_cam.vl["ACC_CMD"]["CMD"]
     # kinematics
     ret.wheelSpeeds = self.get_wheel_speeds(
       cp.vl["WHEEL_SPEED"]['WHEELSPEED_F'],
@@ -94,10 +97,6 @@ class CarState(CarStateBase):
     ret.seatbeltUnlatched = cp.vl["SEATBELTS"]['RIGHT_SIDE_SEATBELT_ACTIVE_LOW'] == 1
     ret.gearShifter = self.parse_gear_shifter(self.shifter_values.get(can_gear, None))
     ret.brakeHoldActive = bool(cp.vl["PARKING_BRAKE"]["CAR_ON_HOLD"])
-
-    disengage = ret.doorOpen or ret.seatbeltUnlatched or ret.brakeHoldActive
-    if disengage:
-      self.is_cruise_latch = False
 
     # gas pedal
     ret.gas = cp.vl["GAS_PEDAL"]['APPS_1']
@@ -136,17 +135,8 @@ class CarState(CarStateBase):
     ret.cruiseState.standstill = bool(cp_cam.vl["ACC_CMD"]["STANDSTILL_REQ"])
     ret.cruiseState.standstill = False
     ret.cruiseState.nonAdaptive = False
-
-    if (bool(cp.vl["ACC_BUTTONS"]["SET_BUTTON"]) or bool(cp.vl["ACC_BUTTONS"]["RES_BUTTON"])) and bool(cp_cam.vl["PCM_BUTTONS"]["ACC_ON_OFF_BUTTON"]):
-      self.is_cruise_latch = True
-    if not ret.cruiseState.available or ret.brakePressed:
-      self.is_cruise_latch = False 
-    if bool(cp.vl["ACC_BUTTONS"]["CRUISE_BTN"]):
-      self.is_cruise_latch = False
-    # temporary safety
-    if ret.standstill and ret.gasPressed:
-      self.is_cruise_latch = False
-    ret.cruiseState.enabled = self.is_cruise_latch
+    ret.cruiseState.enabled = bool(cp_cam.vl["ACC_CMD"]["ACC_REQ"]) \
+                              or bool(cp_cam.vl["ACC_CMD"]["STANDSTILL_REQ"])
 
     # button presses
     ret.leftBlinker = bool(cp.vl["LEFT_STALK"]["LEFT_SIGNAL"])

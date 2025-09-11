@@ -2,7 +2,7 @@ from openpilot.common.numpy_fast import clip
 from typing import List
 
 def create_can_steer_command(packer, steer, steer_req, wheel_touch_warning, wheel_touch_chime, \
-    lks_aux, lks_audio, lks_tactile, lks_assist_mode, lka_enable):
+    lks_aux, lks_audio, lks_tactile, lks_assist_mode, lka_enable, stock_ldw_steer):
 
   values = {
     "LKA_ENABLE": lka_enable,
@@ -12,7 +12,7 @@ def create_can_steer_command(packer, steer, steer_req, wheel_touch_warning, whee
     "STEER_DIR": steer <= 0,
     "LDW_READY": 1,
     # Disable steering vibration for LDW if steer not enabled and LKS set to Warn Only mode and Tactile warning type
-    "LDW_STEERING": 0,
+    "LDW_STEERING": stock_ldw_steer,
     "SET_ME_1": 1,
     "LKS_STATUS": 1,
     "STOCK_LKS_AUX": lks_aux,
@@ -65,10 +65,13 @@ def create_pcm(packer, steer, steer_req):
 
   return packer.make_can_msg("PCM_BUTTONS", 0, values)
 
-def create_acc_cmd(packer, accel, enabled, gas_override, standstill):
+def create_acc_cmd(packer, accel, enabled, gas_override, standstill, stock):
   accel_cmd = accel * 15 if accel >= 0 else accel * 20
   if gas_override:
     accel_cmd = 0
+  if not standstill:
+    accel_cmd = min(stock * 0.8, accel_cmd)
+  print(enabled, standstill, accel_cmd)
   values = {
     "CMD": accel_cmd,
     "CMD_OFFSET1": accel_cmd,
@@ -91,11 +94,17 @@ def create_acc_cmd(packer, accel, enabled, gas_override, standstill):
 
   return packer.make_can_msg("ACC_CMD", 0, values)
 
-def send_buttons(packer, send_cruise):
+def send_buttons(packer, send_cruise, cancel=False):
 
   if send_cruise:
    values = {
       "NEW_SIGNAL_1": 1,
+      "CRUISE_BTN": 1,
+      "SET_ME_BUTTON_PRESSED": 1,
+    }
+  elif cancel:
+    values = {
+      "NEW_SIGNAL_1": 0,
       "CRUISE_BTN": 1,
       "SET_ME_BUTTON_PRESSED": 1,
     }
