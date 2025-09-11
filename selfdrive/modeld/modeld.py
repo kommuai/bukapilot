@@ -174,7 +174,7 @@ def main(demo=False):
   buf_main, buf_extra = None, None
   meta_main = FrameMeta()
   meta_extra = FrameMeta()
-
+  out_of_sync_reported = False
 
   if demo:
     CP = get_demo_car_params()
@@ -212,10 +212,11 @@ def main(demo=False):
         cloudlog.error("vipc_client_extra no frame")
         continue
 
-      if abs(meta_main.timestamp_sof - meta_extra.timestamp_sof) > 10000000:
+      if abs(meta_main.timestamp_sof - meta_extra.timestamp_sof) > 10000000 and not out_of_sync_reported:
         cloudlog.error("frames out of sync! main: {} ({:.5f}), extra: {} ({:.5f})".format(
           meta_main.frame_id, meta_main.timestamp_sof / 1e9,
           meta_extra.frame_id, meta_extra.timestamp_sof / 1e9))
+        out_of_sync_reported = True;
 
     else:
       # Use single camera

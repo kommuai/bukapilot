@@ -206,7 +206,7 @@ class Streamer:
         }
         string_keys = {
           'LongitudinalPersonality', 'HardwareSerial', 'FeaturesPackage', 'FixFingerprint',
-          'UpdaterCurrentReleaseNotes', 'UpdaterTargetBranch', 'UpdaterState', 'UpdateFailedCount',
+          'GsmApn', 'UpdaterTargetBranch', 'UpdaterState', 'UpdateFailedCount',
           'LastUpdateTime', 'GithubUsername'
         }
 
@@ -252,6 +252,8 @@ class Streamer:
                       safe_put_all({'FixFingerprint': fix_fp})
                   if (features_to_add := settings.pop('FeaturesPackage', None)) is not None:
                     features.set_features(features_to_add)
+                  if (apn := settings.pop('GsmApn', None)) is not None:
+                    params.remove("GsmApn") if apn == "" else params.put_nonblocking("GsmApn", apn)
 
                   safe_put_all(settings)
                 case 'resetCalibration':
