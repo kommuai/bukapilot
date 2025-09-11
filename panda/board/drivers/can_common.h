@@ -34,6 +34,7 @@ extern bool can_loopback;
 // Ignition detected from CAN meessages
 bool ignition_can = false;
 uint32_t ignition_can_cnt = 0U;
+bool ignore_ignition_line = false;
 
 #define ALL_CAN_SILENT 0xFF
 #define ALL_CAN_LIVE 0
@@ -225,6 +226,15 @@ void ignition_can_hook(CANPacket_t *to_push) {
     if ((addr == 0x9E) && (len == 8)) {
       ignition_can = (GET_BYTE(to_push, 0) >> 5) == 0x6U;
       ignition_can_cnt = 0U;
+    }
+
+    // Proton X50, need it to ignore ignition line too, can use 0x390 too
+    if ((addr == 0x380) && (len == 8) && ignore_ignition_line) {
+      ignition_can = true;
+      ignition_can_cnt = 0U;
+    }
+    if ((addr == 0x1A7) && (len == 8)) {
+      ignore_ignition_line = true;
     }
 
   }

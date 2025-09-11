@@ -11,12 +11,12 @@ void bootkick_tick(bool ignition, bool recent_heartbeat) {
   BootState boot_state_prev = boot_state;
   const bool harness_inserted = (harness.status != bootkick_harness_status_prev) && (harness.status != HARNESS_STATUS_NC);
 
-  if ((ignition && !bootkick_ign_prev) || harness_inserted) {
-    // bootkick on rising edge of ignition or harness insertion
-    boot_state = BOOT_BOOTKICK;
-  } else if (recent_heartbeat) {
+  if (recent_heartbeat) {
     // disable bootkick once openpilot is up
     boot_state = BOOT_STANDBY;
+  } else if ((ignition && !bootkick_ign_prev) || harness_inserted) {
+    // bootkick on rising edge of ignition or harness insertion
+    boot_state = BOOT_BOOTKICK;
   } else {
 
   }

@@ -13,7 +13,7 @@ int get_health_pkt(void *dat) {
   health->current_pkt = current_board->read_current_mA();
 
   // Use the GPIO pin to determine ignition or use a CAN based logic
-  health->ignition_line_pkt = (uint8_t)(current_board->check_ignition());
+  health->ignition_line_pkt = (uint8_t)(current_board->check_ignition()) && (uint8_t)!ignore_ignition_line;
   health->ignition_can_pkt = ignition_can;
 
   health->controls_allowed_pkt = controls_allowed;
