@@ -71,8 +71,9 @@ class CarState(CarStateBase):
     self.hand_on_wheel_chime = bool(cp_cam.vl["ADAS_LKAS"]["WHEEL_WARNING_CHIME"])
     self.acc_req = bool(cp_cam.vl["ACC_CMD"]["ACC_REQ"]) or bool(cp_cam.vl["PCM_BUTTONS"]["GAS_OVERRIDE"])
 
-    # stock acc cmd
-    self.stock_acc_cmd = cp_cam.vl["ACC_CMD"]["CMD"]
+    # stock acc cmd, is this the same for X50? Else need to use CMD just for X50
+    self.stock_acc_cmd = cp_cam.vl["ACC_CMD"]["CMD_OFFSET2"]
+
     # kinematics
     ret.wheelSpeeds = self.get_wheel_speeds(
       cp.vl["WHEEL_SPEED"]['WHEELSPEED_F'],

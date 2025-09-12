@@ -65,13 +65,13 @@ def create_pcm(packer, steer, steer_req):
 
   return packer.make_can_msg("PCM_BUTTONS", 0, values)
 
-def create_acc_cmd(packer, accel, enabled, gas_override, standstill, stock):
+def create_acc_cmd(packer, accel, enabled, gas_override, standstill, stock, speed):
   accel_cmd = accel * 15 if accel >= 0 else accel * 20
   if gas_override:
     accel_cmd = 0
-  if not standstill:
-    accel_cmd = min(stock * 0.8, accel_cmd)
-  print(enabled, standstill, accel_cmd)
+  if speed > 1:
+    accel_cmd = min(stock * 0.6, accel_cmd)
+  print(accel_cmd)
   values = {
     "CMD": accel_cmd,
     "CMD_OFFSET1": accel_cmd,
@@ -86,27 +86,19 @@ def create_acc_cmd(packer, accel, enabled, gas_override, standstill, stock):
     "SET_ME_X6A": 0x6A,
     "RISING_ENGAGE": 0,
     "UNKNOWN1": 0,
-    "STATIONARY": standstill and not gas_override,
-    "STANDSTILL_REQ": standstill and not gas_override,
+    "STATIONARY": 0,
+    "STANDSTILL_REQ": 0,
     # 5 = Standstill, 3 = Accelerate, 4 = Brake, 1 = Maintain speed
     "MOTION_CONTROL": 5 if standstill else 3 if accel > 0 else 4 if accel < 0 else 1
   }
 
   return packer.make_can_msg("ACC_CMD", 0, values)
 
-def send_buttons(packer, send_cruise, cancel=False):
+def send_buttons(packer, send_cruise=True):
 
   if send_cruise:
-   values = {
-      "NEW_SIGNAL_1": 1,
-      "CRUISE_BTN": 1,
-      "SET_ME_BUTTON_PRESSED": 1,
-    }
-  elif cancel:
     values = {
-      "NEW_SIGNAL_1": 0,
       "CRUISE_BTN": 1,
-      "SET_ME_BUTTON_PRESSED": 1,
     }
   else:
     values = {

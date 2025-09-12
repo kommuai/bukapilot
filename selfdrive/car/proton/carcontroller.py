@@ -4,6 +4,7 @@ from openpilot.selfdrive.car.proton.protoncan import create_can_steer_command, s
 from openpilot.selfdrive.car.proton.values import DBC
 from openpilot.common.numpy_fast import clip
 
+from openpilot.common.features import Features
 
 def apply_proton_steer_torque_limits(apply_torque, apply_torque_last, driver_torque, LIMITS):
 
@@ -44,34 +45,47 @@ class CarController(CarControllerBase):
     self.last_steer = 0
     self.steer_rate_limited = False
     self.steering_direction = False
+    self.always_lks_tactile = Features().has("lks-tactile")
 
   def update(self, CC, CS, now_nanos):
     can_sends = []
 
     enabled = CC.latActive
     actuators = CC.actuators
-    #ldw = CC.hudControl.leftLaneDepart or CC.hudControl.rightLaneDepart
     lat_active = enabled
     pcm_cancel_cmd = CC.cruiseControl.cancel
 
     # steer
     new_steer = round(actuators.steer * self.params.STEER_MAX)
     apply_steer = apply_proton_steer_torque_limits(new_steer, self.last_steer, 0, self.params)
+    if not lat_active and (stock_steer_cmd := CS.stock_ldp_cmd) > 0 and \
+       not ((CS.out.rightBlinker and CS.stock_ldp_right) or (CS.out.leftBlinker and CS.stock_ldp_left)):
+      lat_active = True
+      apply_steer = round(stock_steer_cmd * (-1 if CS.stock_steer_dir else 1))
+      self.steer_rate_limited = False
 
-    # CAN controlled lateral running at 50hz
     if (self.frame % 2) == 0:
       standstill_request = CS.out.standstill and CC.longActive and actuators.accel < -0.01
+
+      ldw_steering = CS.stock_ldw_steering
+      if self.always_lks_tactile:
+        ldw_steering = ldw_steering or CS.has_audio_ldw
+        lks_audio, lks_tactile = False, True
+      else:
+        lks_audio, lks_tactile = CS.lks_audio, CS.lks_tactile
+
+      if CS.out.genericToggle:
+        actuators.accel = 3
+
       can_sends.append(create_can_steer_command(self.packer, apply_steer, lat_active, \
                       CS.hand_on_wheel_warning and CS.is_icc_on, \
                       CS.is_icc_on and CS.hand_on_wheel_chime, \
-                      CS.lks_aux, CS.lks_audio, CS.lks_tactile, CS.lks_assist_mode, \
+                      CS.lks_aux, lks_audio, lks_tactile, CS.lks_assist_mode, \
                       CS.lka_enable, 0))
-      can_sends.append(create_acc_cmd(self.packer, actuators.accel, CC.longActive, CS.out.gasPressed, standstill_request, CS.stock_acc_cmd))
-      #can_sends.append(create_hud(self.packer, apply_steer, enabled, ldw, CC.hudControl.rightLaneVisible, CC.hudControl.leftLaneVisible))
-      #can_sends.append(create_lead_detect(self.packer, CC.hudControl.leadVisible, enabled))
+      can_sends.append(create_acc_cmd(self.packer, actuators.accel, CC.longActive, CS.out.gasPressed, standstill_request, CS.stock_acc_cmd, CS.out.vEgo))
 
-    if pcm_cancel_cmd or CS.out.genericToggle:
-      can_sends.append(send_buttons(self.packer, 0, 1))
+    if pcm_cancel_cmd:
+      can_sends.append(send_buttons(self.packer, 1))
 
     self.last_steer = apply_steer
     new_actuators = actuators.copy()

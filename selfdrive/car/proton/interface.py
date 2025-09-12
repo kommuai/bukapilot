@@ -31,11 +31,11 @@ class CarInterface(CarInterfaceBase):
     ret.lateralTuning.pid.kf = 0.00007
 
     ret.longitudinalTuning.kpBP = [0., 5., 20.]
-    ret.longitudinalTuning.kpV = [1.0, 0.8, 0.6]
+    ret.longitudinalTuning.kpV = [0.7, 0.5, 0.4]
     ret.longitudinalActuatorDelayLowerBound = 0.4
     ret.longitudinalActuatorDelayUpperBound = 0.5
     ret.longitudinalTuning.kiBP = [0., 5., 20.]
-    ret.longitudinalTuning.kiV = [0.2, 0.2, 0.2]
+    ret.longitudinalTuning.kiV = [0.2, 0.15, 0.1]
 
     ret.centerToFront = ret.wheelbase * 0.44
     ret.tireStiffnessFactor = 0.7933
@@ -59,7 +59,7 @@ class CarInterface(CarInterfaceBase):
 
 
     ret.stopAccel = -0.8
-    ret.vEgoStarting = 3.0
+    ret.startAccel = 3.0
     ret.stoppingControl = True
 
     ret.minEnableSpeed = -1
