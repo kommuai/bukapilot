@@ -338,7 +338,7 @@ class RadarInterfaceBase(ABC):
     self.frame = 0
     self.no_radar_sleep = 'NO_RADAR_SLEEP' in os.environ
 
-  def update(self, can_strings):
+  def update(self, can_strings, v_ego, a_ego):
     self.frame += 1
     if (self.frame % int(100 * self.radar_ts)) == 0:
       return car.RadarData.new_message()

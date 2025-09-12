@@ -23,7 +23,7 @@ class RadarInterface(RadarInterfaceBase):
     self.track_id = 0
     self.rcp = None if CP.radarUnavailable else _create_radar_can_parser(CP.carFingerprint)
 
-  def update(self, can_strings):
+  def update(self, can_strings, v_ego, a_ego):
     if self.rcp is None:
       return super().update(None)
 
@@ -33,12 +33,12 @@ class RadarInterface(RadarInterfaceBase):
     if self.trigger_msg not in self.updated_messages:
       return None
 
-    rr = self._update(self.updated_messages)
+    rr = self._update(self.updated_messages, v_ego, a_ego)
     self.updated_messages.clear()
 
     return rr
 
-  def _update(self, updated_messages):
+  def _update(self, updated_messages, v_ego, a_ego):
     ret = car.RadarData.new_message()
     if self.rcp is None:
       return ret
@@ -62,9 +62,8 @@ class RadarInterface(RadarInterfaceBase):
           self.pts[addr].measured = True
           self.pts[addr].dRel = msg['LONG_DIST']
           self.pts[addr].yRel = msg['LAT_DIST'] # negative is to the right of the car
-          self.pts[addr].vRel = float('nan')
-          self.pts[addr].vLead = msg['VLEAD']
-          self.pts[addr].aRel = float('nan')
+          self.pts[addr].vRel = v_ego - msg['VLEAD']
+          self.pts[addr].aRel = a_ego - msg['ALEAD']
           self.pts[addr].yvRel = float('nan')
       else:
         del self.pts[addr]

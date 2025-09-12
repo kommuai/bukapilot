@@ -307,9 +307,9 @@ def main():
   RD = RadarD(CP.radarTimeStep, RI.delay)
 
   while 1:
-    can_strings = messaging.drain_sock_raw(can_sock, wait_for_one=True)
-    rr = RI.update(can_strings)
     sm.update(0)
+    can_strings = messaging.drain_sock_raw(can_sock, wait_for_one=True)
+    rr = RI.update(can_strings, sm['carState'].vEgo, sm['carState'].aEgo)
     if rr is None:
       continue
 

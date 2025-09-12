@@ -44,9 +44,9 @@ class RadarInterface(RadarInterfaceBase):
     self.updated_messages = set()
     self.trigger_msg = LAST_MSG
 
-  def update(self, can_strings):
+  def update(self, can_strings, v_ego, a_ego):
     if self.rcp is None or self.CP.radarUnavailable:
-      return super().update(None)
+      return super().update(None, v_ego, a_ego)
 
     vls = self.rcp.update_strings(can_strings)
     self.updated_messages.update(vls)

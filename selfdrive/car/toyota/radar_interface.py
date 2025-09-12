@@ -38,9 +38,9 @@ class RadarInterface(RadarInterfaceBase):
     self.trigger_msg = self.RADAR_B_MSGS[-1]
     self.updated_messages = set()
 
-  def update(self, can_strings):
+  def update(self, can_strings, v_ego, a_ego):
     if self.rcp is None:
-      return super().update(None)
+      return super().update(None, v_ego, a_ego)
 
     vls = self.rcp.update_strings(can_strings)
     self.updated_messages.update(vls)
@@ -48,12 +48,12 @@ class RadarInterface(RadarInterfaceBase):
     if self.trigger_msg not in self.updated_messages:
       return None
 
-    rr = self._update(self.updated_messages)
+    rr = self._update(self.updated_messages, v_ego, a_ego)
     self.updated_messages.clear()
 
     return rr
 
-  def _update(self, updated_messages):
+  def _update(self, updated_messages, v_ego, a_ego):
     ret = car.RadarData.new_message()
     errors = []
     if not self.rcp.can_valid:
