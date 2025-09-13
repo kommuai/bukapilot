@@ -25,7 +25,7 @@ class RadarInterface(RadarInterfaceBase):
 
   def update(self, can_strings, v_ego, a_ego):
     if self.rcp is None:
-      return super().update(None)
+      return super().update(None, v_ego, a_ego)
 
     vls = self.rcp.update_strings(can_strings)
     self.updated_messages.update(vls)
@@ -60,10 +60,10 @@ class RadarInterface(RadarInterfaceBase):
       if valid:
         if msg["LONG_DIST"] < 255:
           self.pts[addr].measured = True
-          self.pts[addr].dRel = msg['LONG_DIST']
+          self.pts[addr].dRel = msg['LONG_DIST'] - 4
           self.pts[addr].yRel = msg['LAT_DIST'] # negative is to the right of the car
-          self.pts[addr].vRel = v_ego - msg['VLEAD']
-          self.pts[addr].aRel = a_ego - msg['ALEAD']
+          self.pts[addr].vRel = msg['VLEAD'] - v_ego
+          self.pts[addr].aRel = msg['ALEAD'] - a_ego
           self.pts[addr].yvRel = float('nan')
       else:
         del self.pts[addr]

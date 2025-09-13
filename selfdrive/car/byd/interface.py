@@ -35,7 +35,6 @@ class CarInterface(CarInterfaceBase):
     ret.longitudinalTuning.kiV = [0.5, 0.4, 0.3]
 
     ret.wheelSpeedFactor = 0.695
-
     if candidate == CAR.ATTO3:
       ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.52, 0.43, 0.32], [1.5, 1.4, 1.1]]
       ret.lateralTuning.pid.kf = 0.00015
@@ -47,7 +46,7 @@ class CarInterface(CarInterfaceBase):
       ret.safetyModel = car.CarParams.SafetyModel.noOutput
 
     ret.startingState = True
-    ret.startAccel = 1.8
+    ret.startAccel = 3.0
     ret.minEnableSpeed = -1
     ret.enableBsm = True
     ret.stoppingDecelRate = 0.2 # reach stopping target smoothly
