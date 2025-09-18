@@ -43,6 +43,7 @@ class CarController(CarControllerBase):
     self.params = CarControllerParams(self.CP)
 
     self.last_steer = 0
+    self.resume = False
     self.steer_rate_limited = False
     self.steering_direction = False
     self.always_lks_tactile = Features().has("lks-tactile")
@@ -74,15 +75,17 @@ class CarController(CarControllerBase):
       else:
         lks_audio, lks_tactile = CS.lks_audio, CS.lks_tactile
 
-      if CS.out.genericToggle:
-        actuators.accel = 3
+      if (CS.out.standstill and actuators.accel > 0) or CS.out.genericToggle:
+        self.resume = True
+      else:
+        self.resume = False
 
       can_sends.append(create_can_steer_command(self.packer, apply_steer, lat_active, \
                       CS.hand_on_wheel_warning and CS.is_icc_on, \
                       CS.is_icc_on and CS.hand_on_wheel_chime, \
                       CS.lks_aux, lks_audio, lks_tactile, CS.lks_assist_mode, \
                       CS.lka_enable, 0))
-      can_sends.append(create_acc_cmd(self.packer, actuators.accel, CC.longActive, CS.out.gasPressed, standstill_request, CS.stock_acc_cmd, CS.out.vEgo))
+      can_sends.append(create_acc_cmd(self.packer, actuators.accel, CC.longActive, CS.out.gasPressed, standstill_request, CS.stock_acc_cmd, CS.out.vEgo, self.resume))
 
     if pcm_cancel_cmd:
       can_sends.append(send_buttons(self.packer, 1))

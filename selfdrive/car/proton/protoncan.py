@@ -54,38 +54,29 @@ def create_lead_detect(packer, is_lead, steer_req):
 
   return packer.make_can_msg("ADAS_LEAD_DETECT", 0, values)
 
-def create_pcm(packer, steer, steer_req):
-  values = {
-    "ACC_SET_SPEED": 0x23 if steer_req else 0,
-    "SET_DISTANCE": 1 if steer_req else 0,
-    "NEW_SIGNAL_1": 3,
-    "ACC_SET": 1 if steer_req else 0,
-    "ACC_ON_OFF_BUTTON": 1,
-  }
-
-  return packer.make_can_msg("PCM_BUTTONS", 0, values)
-
-def create_acc_cmd(packer, accel, enabled, gas_override, standstill, stock, speed):
+def create_acc_cmd(packer, accel, enabled, gas_override, standstill, stock, speed, resume):
   accel_cmd = accel * 15 if accel >= 0 else accel * 20
+
   if gas_override:
     accel_cmd = 0
-  if speed > 1:
+
+  if speed > 2.5:
     accel_cmd = min(stock * 0.6, accel_cmd)
-  print(accel_cmd)
+
+  if accel_cmd > 0:
+    standstill = False
+
   values = {
     "CMD": accel_cmd,
     "CMD_OFFSET1": accel_cmd,
     "CMD_OFFSET2": accel_cmd,
-    "ACC_REQ": enabled,
+    "ACC_REQ": enabled and not resume,
     "NOT_ACC_REQ": not enabled,
     "SET_ME_1": 1,
     "CRUISE_ENABLE": enabled and not gas_override,
 
     # not sure
-    "BRAKE_ENGAGED": 0,
     "SET_ME_X6A": 0x6A,
-    "RISING_ENGAGE": 0,
-    "UNKNOWN1": 0,
     "STATIONARY": 0,
     "STANDSTILL_REQ": 0,
     # 5 = Standstill, 3 = Accelerate, 4 = Brake, 1 = Maintain speed

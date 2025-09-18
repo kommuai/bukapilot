@@ -59,9 +59,8 @@ class CarInterface(CarInterfaceBase):
 
 
     ret.stopAccel = -0.8
-    ret.startAccel = 3.0
-    ret.stoppingControl = True
-
+    ret.startingState = True
+    ret.startAccel = 1.2
     ret.minEnableSpeed = -1
     ret.enableBsm = True
     ret.stoppingDecelRate = 0.3 # reach stopping target smoothly

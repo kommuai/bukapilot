@@ -33,13 +33,13 @@ class CarState(CarStateBase):
     self.hand_on_wheel_warning = False
     self.hand_on_wheel_chime = False
 
-    self.acc_req = False
     self.prev_angle = 0
 
     self.p = Params()
     self.prev_distance_val = -1
 
     self.stock_acc_cmd = 0
+    self.cruise_latch = False
 
   def update(self, cp, cp_cam):
     ret = car.CarState.new_message()
@@ -69,10 +69,7 @@ class CarState(CarStateBase):
     # miscs
     self.hand_on_wheel_warning = bool(cp_cam.vl["ADAS_LKAS"]["HAND_ON_WHEEL_WARNING"])
     self.hand_on_wheel_chime = bool(cp_cam.vl["ADAS_LKAS"]["WHEEL_WARNING_CHIME"])
-    self.acc_req = bool(cp_cam.vl["ACC_CMD"]["ACC_REQ"]) or bool(cp_cam.vl["PCM_BUTTONS"]["GAS_OVERRIDE"])
-
-    # stock acc cmd, is this the same for X50? Else need to use CMD just for X50
-    self.stock_acc_cmd = cp_cam.vl["ACC_CMD"]["CMD_OFFSET2"]
+    self.stock_acc_cmd = cp_cam.vl["ACC_CMD"]["CMD"]
 
     # kinematics
     ret.wheelSpeeds = self.get_wheel_speeds(
@@ -128,16 +125,15 @@ class CarState(CarStateBase):
       self.p.put("LongitudinalPersonality", str(distance_val - 1))
     self.prev_distance_val = distance_val
 
-    # TODO: ret.cruiseState.setDistance = self.parse_set_distance(self.set_distance_values.get(distance_val, None))
-
     self.cruise_speed = int(cp_cam.vl["PCM_BUTTONS"]['ACC_SET_SPEED']) * CV.KPH_TO_MS
     ret.cruiseState.speedCluster = self.cruise_speed
     ret.cruiseState.speed = ret.cruiseState.speedCluster / HUD_MULTIPLIER
-    ret.cruiseState.standstill = bool(cp_cam.vl["ACC_CMD"]["STANDSTILL_REQ"])
+    #ret.cruiseState.standstill = bool(cp_cam.vl["ACC_CMD"]["STANDSTILL_REQ"])
     ret.cruiseState.standstill = False
     ret.cruiseState.nonAdaptive = False
-    ret.cruiseState.enabled = bool(cp_cam.vl["ACC_CMD"]["ACC_REQ"]) \
-                              or bool(cp_cam.vl["ACC_CMD"]["STANDSTILL_REQ"])
+    ret.cruiseState.enabled = (cp_cam.vl["ACC_CMD"]["ACC_REQ"] \
+                              + cp_cam.vl["ACC_CMD"]["STANDSTILL_REQ"] \
+                              + cp_cam.vl["ACC_CMD"]["CRUISE_ENABLE"]) > 1
 
     # button presses
     ret.leftBlinker = bool(cp.vl["LEFT_STALK"]["LEFT_SIGNAL"])
