@@ -149,16 +149,21 @@ class CarController(CarControllerBase):
     apply_steer = apply_steer_torque_limits(new_steer, self.last_steer, CS.out.steeringTorqueEps, isBlinkerOn, self.params)
 
     ts = self.frame * DT_CTRL
+    acc = actuators.accel
 
     # speed and brake, speed using simple kinematics v = u + at
     # because dnga is speed controlled, the PID for positive accel is done by the car
     # so we change the equation to v = u + ka and assume k include the time horizon of 1s
     k = 0.3 + 0.06 * CS.out.vEgo
-    des_speed = CS.out.vEgo + actuators.accel * k
+    des_speed = CS.out.vEgo + acc * k
 
     apply_brake = 0 if (CS.out.gasPressed or actuators.accel >= 0) else clip(abs(actuators.accel / BRAKE_M), 0., 1.25)
     if self.fingerprint in (CAR.ALZA):
-      apply_brake = max(CS.stock_brake_mag * 0.2, apply_brake * 0.8)
+      if CS.out.vEgo < 1.5:
+        des_speed = CS.out.vEgo
+        apply_brake = apply_brake * 0.85
+      else:
+        apply_brake = max((CS.stock_brake_mag * 0.5) - acc if acc > 0 else CS.stock_brake_mag * 0.5, apply_brake * 0.85)
     else:
       apply_brake = max(CS.stock_brake_mag * 0.6, apply_brake)
 

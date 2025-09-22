@@ -36,10 +36,11 @@ class CarInterface(CarInterfaceBase):
     ret.longitudinalTuning.deadzoneV = [0., .20]
 
     if candidate == CAR.ALZA:
-      ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.16], [0.30]]
+      ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP = [[0., 20], [0., 20]]
+      ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.14, 0.18], [0.18, 0.25]]
       ret.lateralTuning.pid.kf = 0.00015
-      ret.longitudinalTuning.kpV = [0.15, 0.6, 0.7]
-      ret.longitudinalTuning.kiV = [0.15, 0.26, 0.26]
+      ret.longitudinalTuning.kpV = [0.15, 0.5, 0.6]
+      ret.longitudinalTuning.kiV = [0.10, 0.15, 0.20]
       ret.wheelSpeedFactor = 1.425
 
     elif candidate == CAR.ATIVA:
