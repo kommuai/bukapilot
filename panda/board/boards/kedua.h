@@ -178,6 +178,9 @@ void kedua_init(void) {
   // Initialize RTC
   rtc_init();
 
+  // Set IR power to 100% init only
+  kedua_set_ir_power(100U);
+
   // Enable CAN transceivers
   kedua_enable_can_transceivers(true);
 
@@ -192,7 +195,6 @@ void kedua_init(void) {
   // Initialize IR PWM and set to 0%
   set_gpio_alternate(GPIOC, 9, GPIO_AF2_TIM3);
   pwm_init(TIM3, 4);
-  kedua_set_ir_power(0U);
 
   // Set normal CAN mode
   kedua_set_can_mode(CAN_MODE_NORMAL);
