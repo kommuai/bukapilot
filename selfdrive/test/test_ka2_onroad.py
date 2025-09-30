@@ -76,6 +76,7 @@ PROCS.update({
   "ka2": {
     "./boardd": 2.0,
     "selfdrive.streamdatad.streamdatad": 2.5,
+    "status_ledd": 2.5,
     "system.qcomgpsd.qcomgpsd": 1.0,
   }
 }.get(HARDWARE.get_device_type(), {}))
