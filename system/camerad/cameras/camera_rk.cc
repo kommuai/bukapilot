@@ -283,12 +283,6 @@ void cameras_run(MultiCameraState *s) {
             break;
         }
       }
-      // check sync
-      bool synced = check_timestamp_sync(road_cam_ts, SYNC_CHECK_LEN, wide_cam_ts, SYNC_CHECK_LEN);
-      if (!synced && count >= 50) {
-        LOG("Not synced!");
-        //do_exit = true;
-      }
     }
   }
 
