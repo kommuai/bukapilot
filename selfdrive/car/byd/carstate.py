@@ -4,7 +4,7 @@ from opendbc.can.can_define import CANDefine
 from openpilot.common.numpy_fast import mean
 from openpilot.common.conversions import Conversions as CV
 from openpilot.selfdrive.car.interfaces import CarStateBase
-from openpilot.selfdrive.car.byd.values import DBC, CANBUS, HUD_MULTIPLIER
+from openpilot.selfdrive.car.byd.values import DBC, CANBUS, HUD_MULTIPLIER, CAR
 from common.params import Params
 
 class CarState(CarStateBase):
@@ -32,12 +32,18 @@ class CarState(CarStateBase):
 
     self.p = Params()
     self.prev_distance_val = -1
+    self.op_long = True
 
   def update(self, cp, cp_cam):
     ret = car.CarState.new_message()
 
     self.tsr = cp_cam.vl["LKAS_HUD_ADAS"]['TSR']
-    self.lka_on = cp_cam.vl["LKAS_HUD_ADAS"]['STEER_ACTIVE_ACTIVE_LOW']
+
+    if self.CP.carFingerprint in (CAR.ATTO3, CAR.SEAL):
+      self.lka_on = cp_cam.vl["LKAS_HUD_ADAS"]['STEER_ACTIVE_ACTIVE_LOW'] # byd M6 doesn't use this
+    else:
+      self.lka_on = cp_cam.vl["LKAS_HUD_ADAS"]['LKAS_ENABLED']
+
     self.lkas_rdy_btn = cp.vl["PCM_BUTTONS"]['LKAS_ON_BTN']
     self.abh = cp_cam.vl["LKAS_HUD_ADAS"]['SET_ME_XFF']
     self.passthrough = cp_cam.vl["LKAS_HUD_ADAS"]['TSR_STATUS']
@@ -51,11 +57,18 @@ class CarState(CarStateBase):
     # EV irrelevant messages
     ret.brakeHoldActive = False
 
+    if self.CP.carFingerprint in (CAR.ATTO3, CAR.M6):
+      parser_alt = cp_cam
+    else:
+      parser_alt = cp
+      self.op_long = False
+
+
     ret.wheelSpeeds = self.get_wheel_speeds(
       cp.vl["WHEEL_SPEED"]['WHEELSPEED_FL'],
       cp.vl["WHEEL_SPEED"]['WHEELSPEED_FR'],
       cp.vl["WHEEL_SPEED"]['WHEELSPEED_BL'],
-      cp.vl["WHEEL_SPEED"]['WHEELSPEED_BL'], # TODO: why would BR make the value wrong? Wheelspeed sensor prob?
+      cp.vl["WHEEL_SPEED"]['WHEELSPEED_BR'],
     )
     ret.vEgoRaw = mean([ret.wheelSpeeds.rr, ret.wheelSpeeds.rl, ret.wheelSpeeds.fr, ret.wheelSpeeds.fl])
 
@@ -98,10 +111,10 @@ class CarState(CarStateBase):
     # TODO: get the real value
     ret.stockAeb = False
     ret.stockFcw = False
-    ret.cruiseState.available = any([cp_cam.vl["ACC_HUD_ADAS"]["ACC_ON1"], cp_cam.vl["ACC_HUD_ADAS"]["ACC_CONTROLLABLE_AND_ON"]])
+    ret.cruiseState.available = any([parser_alt.vl["ACC_HUD_ADAS"]["ACC_ON1"], parser_alt.vl["ACC_HUD_ADAS"]["ACC_CONTROLLABLE_AND_ON"]])
 
     # VAL_ 813 SET_DISTANCE 8 "4bar" 4 "3bar" 2 "2bar" 1 "1bar" ;
-    distance_val = int(cp_cam.vl["ACC_HUD_ADAS"]['SET_DISTANCE'])
+    distance_val = int(parser_alt.vl["ACC_HUD_ADAS"]['SET_DISTANCE']) if self.op_long else 1
     if distance_val != self.prev_distance_val:
       self.p.put("LongitudinalPersonality", str(2 if distance_val in (4, 8) else distance_val - 1))
     self.prev_distance_val = distance_val
@@ -111,12 +124,12 @@ class CarState(CarStateBase):
       self.is_cruise_latch = True
 
     # this can override the above engage disengage logic
-    if bool(cp_cam.vl["ACC_CMD"]["ACC_REQ_NOT_STANDSTILL"]):
+    if bool(parser_alt.vl["ACC_CMD"]["ACC_REQ_NOT_STANDSTILL"]):
       self.is_cruise_latch = True
 
     # byd speedCluster will follow wheelspeed if cruiseState is not available
     if ret.cruiseState.available:
-      ret.cruiseState.speedCluster = max(int(cp_cam.vl["ACC_HUD_ADAS"]['SET_SPEED']), 30) * CV.KPH_TO_MS
+      ret.cruiseState.speedCluster = max(int(parser_alt.vl["ACC_HUD_ADAS"]['SET_SPEED']), 30) * CV.KPH_TO_MS
     else:
       ret.cruiseState.speedCluster = 0
 
@@ -124,11 +137,14 @@ class CarState(CarStateBase):
     ret.cruiseState.standstill = False # force false first for SNG  #bool(cp_cam.vl["ACC_CMD"]["STANDSTILL_STATE"])
     ret.cruiseState.nonAdaptive = False
 
-    stock_acc_on =  bool(cp_cam.vl["ACC_CMD"]["ACC_CONTROLLABLE_AND_ON"])
+    stock_acc_on =  bool(parser_alt.vl["ACC_CMD"]["ACC_CONTROLLABLE_AND_ON"])
     if not ret.cruiseState.available or ret.brakePressed or not stock_acc_on:
       self.is_cruise_latch = False
 
-    ret.cruiseState.enabled = self.is_cruise_latch
+    if self.CP.carFingerprint in (CAR.SEAL):
+      ret.cruiseState.enabled = parser_alt.vl["ACC_HUD_ADAS"]["CRUISE_STATE"] == 3
+    else:
+      ret.cruiseState.enabled = self.is_cruise_latch
 
     # button presses
     ret.leftBlinker = bool(cp.vl["STALKS"]["LEFT_BLINKER"])
@@ -150,10 +166,8 @@ class CarState(CarStateBase):
   @staticmethod
   def get_can_parser(CP):
     signals = [
-      # TODO get the frequency
       # sig_address, frequency
       ("DRIVE_STATE", 50),
-      ("WHEEL_SPEED", 50),
       ("PEDAL", 50),
       ("METER_CLUSTER", 20),
       ("STEER_MODULE_2", 100),
@@ -161,19 +175,25 @@ class CarState(CarStateBase):
       ("STALKS", 0),
       ("BSM", 20),
       ("PCM_BUTTONS", 0),
+      ("WHEEL_SPEED", 50),
     ]
+
+    if CP.carFingerprint == CAR.SEAL:
+      signals.append(("ACC_CMD", 50))
+      signals.append(("ACC_HUD_ADAS", 50))
 
     return CANParser(DBC[CP.carFingerprint]['pt'], signals, CANBUS.main_bus)
 
   @staticmethod
   def get_cam_can_parser(CP):
     signals = [
-      # TODO get the frequency
       # sig_address, frequency
-      ("ACC_HUD_ADAS", 50),
-      ("ACC_CMD", 50),
       ("LKAS_HUD_ADAS", 50),
       ("STEERING_MODULE_ADAS", 50),
     ]
+
+    if CP.carFingerprint in (CAR.ATTO3, CAR.M6):
+      signals.append(("ACC_CMD", 50))
+      signals.append(("ACC_HUD_ADAS", 50))
 
     return CANParser(DBC[CP.carFingerprint]['pt'], signals, CANBUS.cam_bus)

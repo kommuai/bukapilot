@@ -25,7 +25,7 @@ def lowpass_1pole(x, y_prev):
 
 class CarControllerParams():
   ANGLE_RATE_LIMIT_UP = AngleRateLimit(speed_bp=[0., 5., 15.], angle_v=[6., 4., 3.])
-  ANGLE_RATE_LIMIT_DOWN = AngleRateLimit(speed_bp=[0., 5., 15.], angle_v=[8., 6., 4.])
+  ANGLE_RATE_LIMIT_DOWN = AngleRateLimit(speed_bp=[0., 5., 15.], angle_v=[8., 6., 6.])
 
   def __init__(self, CP):
     pass
@@ -70,17 +70,20 @@ class CarController(CarControllerBase):
         self.last_apply_angle = apply_angle
 
       can_sends.append(create_can_steer_command(self.packer, apply_angle, lat_active, CS.out.standstill, CS.lkas_healthy, CS.lkas_rdy_btn))
-      can_sends.append(create_lkas_hud(self.packer, enabled, CS.lss_state, CS.lss_alert, CS.tsr, \
-        CS.abh, CS.passthrough, CS.HMA, CS.pt2, CS.pt3, CS.pt4, CS.pt5, self.lka_active))
+      can_sends.append(create_lkas_hud(self.packer, lat_active, CS.lss_state, CS.lss_alert, CS.tsr, \
+        CS.abh, CS.passthrough, CS.HMA, CS.pt2, CS.pt3, CS.pt4, CS.pt5, CS.lka_on))
 
       if self.CP.openpilotLongitudinalControl:
-        long_active = enabled and not CS.out.gasPressed
+        long_active = CC.enabled and not CS.out.gasPressed
         brake_hold = CS.out.standstill and actuators.accel < 0
         # is this needed?
         if (CC.enabled and CS.out.standstill and actuators.accel > 0):
           can_sends.append(send_buttons(self.packer, 1, 0))
 
         can_sends.append(create_accel_command(self.packer, actuators.accel, long_active, brake_hold))
+      else:
+        if CS.out.standstill and CC.enabled and (self.frame % 100 == 0):
+          can_sends.append(send_buttons(self.packer, 1, 0))
 
     if pcm_cancel_cmd:
       can_sends.append(send_buttons(self.packer, 0, 1))

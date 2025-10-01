@@ -71,6 +71,8 @@ legend = ["LAT_ACCEL_FACTOR", "MAX_LAT_ACCEL_MEASURED", "FRICTION"]
 "PERODUA MYVI" = [2.5, 2.5, 0.1]
 "TOYOTA VIOS" = [2.5, 2.5, 0.1]
 "BYD ATTO 3" = [2.5, 2.5, 0.1]
+"BYD SEAL" = [2.5, 2.5, 0.1]
+"BYD M6" = [2.5, 2.5, 0.1]
 "PROTON S70" = [2.5, 2.5, 0.1]
 
 # Dashcam or fallback configured as ideal car

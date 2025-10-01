@@ -22,13 +22,24 @@ const CanMsg BYD_TX_MSGS[] = {
   {814, 0, 8}  // ACC_CMD
 };
 
+bool byd_alt_engage = false;
+
 RxCheck byd_rx_checks[] = {
   {.msg = {{287, 0, 5, .check_checksum = false, .frequency = 100U}, { 0 }, { 0 }}}, // STEER_MODULE_2
-  {.msg = {{290, 0, 8, .check_checksum = false, .frequency = 50U}, { 0 }, { 0 }}},  // WHEEL_SPEED
+  {.msg = {{496, 0, 8, .check_checksum = false, .frequency = 50U}, { 0 }, { 0 }}},  // WHEEL_SPEED
   {.msg = {{508, 0, 8, .check_checksum = false, .frequency = 50U}, { 0 }, { 0 }}},  // STEERING_TORQUE
   {.msg = {{834, 0, 8, .check_checksum = false, .frequency = 50U}, { 0 }, { 0 }}},  // PEDAL
   {.msg = {{944, 0, 8, .check_checksum = false, .frequency = 20U}, { 0 }, { 0 }}},  // PCM_BUTTONS
   {.msg = {{814, 2, 8, .check_checksum = false, .frequency = 50U}, { 0 }, { 0 }}},  // ACC_CMD
+};
+
+RxCheck byd_rx_checks_alt[] = {
+  {.msg = {{287, 0, 5, .check_checksum = false, .frequency = 100U}, { 0 }, { 0 }}}, // STEER_MODULE_2
+  {.msg = {{496, 0, 8, .check_checksum = false, .frequency = 50U}, { 0 }, { 0 }}},  // WHEEL_SPEED
+  {.msg = {{508, 0, 8, .check_checksum = false, .frequency = 50U}, { 0 }, { 0 }}},  // STEERING_TORQUE
+  {.msg = {{834, 0, 8, .check_checksum = false, .frequency = 50U}, { 0 }, { 0 }}},  // PEDAL
+  {.msg = {{944, 0, 8, .check_checksum = false, .frequency = 20U}, { 0 }, { 0 }}},  // PCM_BUTTONS
+  {.msg = {{813, 0, 8, .check_checksum = false, .frequency = 50U}, { 0 }, { 0 }}},  // ACC_HUD_ADAS
 };
 
 static void byd_rx_hook(const CANPacket_t *to_push) {
@@ -52,10 +63,10 @@ static void byd_rx_hook(const CANPacket_t *to_push) {
     }
 
     // vehicle speed
-    if (addr == 290) {
+    if (addr == 496) {
       // average of FL and BL
-      float fl_ms = (float)GET_BYTES(to_push, 0, 2) * 0.1f / 3.6f;
-      float bl_ms = (float)GET_BYTES(to_push, 4, 2) * 0.1f / 3.6f;
+      float fl_ms = (float)(((GET_BYTE(to_push, 1) & 0x0FU) << 8) | (GET_BYTE(to_push, 0))) * 0.1f / 3.6f;
+      float bl_ms = (float)(((GET_BYTE(to_push, 3) & 0x0FU) << 8) | (GET_BYTE(to_push, 2))) * 0.1f / 3.6f;
       float speed = (fl_ms + bl_ms) * 0.5f;
       vehicle_moving = ABS(speed) > 0.1;
       UPDATE_VEHICLE_SPEED(speed);
@@ -63,7 +74,6 @@ static void byd_rx_hook(const CANPacket_t *to_push) {
 
     // engage logic with buttons
     if (addr == 944) {
-      // TODO: does it have to be on the rising edge
       int set_pressed = (GET_BYTE(to_push, 0) >> 3U) & 1U;
       int res_pressed = (GET_BYTE(to_push, 0) >> 4U) & 1U;
       int cancel = (GET_BYTE(to_push, 2) >> 3U) & 1U;
@@ -78,8 +88,14 @@ static void byd_rx_hook(const CANPacket_t *to_push) {
     }
   }
 
-  if (bus == 2) {
-    // cruise enabled
+  // cruise enabled
+  if (byd_alt_engage) {
+    if (addr == 813) {
+      bool engaged = ((GET_BYTE(to_push, 5) >> 4) & 3U) == 3U;
+      pcm_cruise_check(engaged);
+    }
+  }
+  else {
     if (addr == 814) {
       bool engaged = (GET_BYTE(to_push, 5) >> 4) & 1U;
       pcm_cruise_check(engaged);
@@ -139,8 +155,13 @@ static int byd_fwd_hook(int bus_num, int addr) {
 }
 
 static safety_config byd_init(uint16_t param) {
-  UNUSED(param);
-  return BUILD_SAFETY_CFG(byd_rx_checks, BYD_TX_MSGS);
+  if (param == 1) {
+    return BUILD_SAFETY_CFG(byd_rx_checks, BYD_TX_MSGS);
+  }
+  else {
+    return BUILD_SAFETY_CFG(byd_rx_checks_alt, BYD_TX_MSGS);
+    byd_alt_engage = true;
+  }
 }
 
 

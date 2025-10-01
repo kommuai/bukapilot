@@ -56,14 +56,14 @@ def create_accel_command(packer, accel, enabled, brake_hold):
   return packer.make_can_msg("ACC_CMD", 0, values)
 
 # 50hz
-def create_lkas_hud(packer, enabled, lss_state, lss_alert, tsr, ahb, passthrough,\
+def create_lkas_hud(packer, lat_active, lss_state, lss_alert, tsr, ahb, passthrough,\
     hma, pt2, pt3, pt4, pt5, lka_on):
 
   values = {
     "STEER_ACTIVE_ACTIVE_LOW": lka_on,
-    "LEFT_LANE_VISIBLE": enabled and lka_on,
-    "LKAS_ENABLED": enabled and lka_on,
-    "RIGHT_LANE_VISIBLE": enabled and lka_on,
+    "LEFT_LANE_VISIBLE": lat_active,
+    "LKAS_ENABLED": lat_active,
+    "RIGHT_LANE_VISIBLE": lat_active,
     "LSS_STATE": lss_state,
     "SET_ME_1_2": 1,
     "SETTINGS": lss_alert,
@@ -72,11 +72,11 @@ def create_lkas_hud(packer, enabled, lss_state, lss_alert, tsr, ahb, passthrough
     # TODO integrate warning signs when steer limited
     "HAND_ON_WHEEL_WARNING": 0,
     "TSR": tsr,
-    "HMA": hma,
-    "PT2": pt2,
-    "PT3": pt3,
-    "PT4": pt4,
-    "PT5": pt5,
+#    "HMA": hma,
+#    "PT2": pt2,
+#    "PT3": pt3,
+#    "PT4": pt4,
+#    "PT5": pt5,
   }
 
   return packer.make_can_msg("LKAS_HUD_ADAS", 0, values)
@@ -90,4 +90,3 @@ def send_buttons(packer, state, cancel):
       "ACC_ON_BTN": cancel,
   }
   return packer.make_can_msg("PCM_BUTTONS", 0, values)
-
