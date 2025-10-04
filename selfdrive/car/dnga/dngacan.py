@@ -12,26 +12,12 @@ def create_can_steer_command(packer, steer, steer_req, cnt):
 
   return packer.make_can_msg("STEERING_LKAS", 0, values)
 
-def aeb_brake_command(packer, enabled, decel_cmd):
-
-  decel_req = enabled
-
-  values = {
-    "AEB_PUMP_HOLD": 0xfe if (enabled and decel_req) else 0,
-    "MAGNITUDE": 0x5a if (enabled and decel_req) else 0,
-    "BRAKE_REQ": 0x10 if (enabled and decel_req) else 0,
-    "SET_ME_XE5": 0x0 if (enabled and decel_req) else 0,
-    "SET_ME_X1B": 0x0 if (enabled and decel_req) else 0,
-  }
-
-  return packer.make_can_msg("ADAS_AEB", 0, values)
-
 def create_brake_command(packer, enabled, decel_req, pump, decel_cmd, aeb):
 
   # Value overflow check
   # MAGNITUDE a max value 2.0 to prevent overflow, maximum seen on porto is 1.56
   # PUMP_REACTION{N} has a max value of 1.2, maximum seen on porto is 1.0
-  decel_req = clip(decel_req, 0., 1.56)
+  decel_cmd = clip(decel_cmd, 0., 1.56)
   pump = clip(pump, 0., 1.0)
 
   values = {

@@ -1,22 +1,23 @@
+from bisect import bisect_left
+
 from opendbc.can.packer import CANPacker
 
 from openpilot.selfdrive.car import make_can_msg
 from openpilot.selfdrive.car.interfaces import CarControllerBase
-from openpilot.selfdrive.car.dnga.dngacan import create_can_steer_command, create_accel_command, dnga_buttons,\
-                                       create_brake_command, create_hud
+from openpilot.selfdrive.car.dnga.dngacan import create_can_steer_command, \
+  create_accel_command, \
+  dnga_buttons,\
+  create_brake_command, \
+  create_hud
 from openpilot.selfdrive.car.dnga.values import CAR, DBC, BRAKE_SCALE, SNG_CAR
-from openpilot.common.numpy_fast import clip, interp
+from openpilot.common.numpy_fast import clip
 from openpilot.common.realtime import DT_CTRL
-
-from bisect import bisect_left
 
 BRAKE_THRESHOLD = 0.01
 BRAKE_MAG = [BRAKE_THRESHOLD,.32,.46,.61,.76,.90,1.06,1.21,1.35,1.51,4.0]
 PUMP_VALS = [0, .1, .2, .3, .4, .5, .6, .7, .8, .9, 1.0]
 PUMP_RESET_INTERVAL = 1.5
 PUMP_RESET_DURATION = 0.1
-
-BRAKE_M = 1.4
 
 class BrakingStatus():
   STANDSTILL_INIT = 0
@@ -41,23 +42,20 @@ def apply_steer_torque_limits(apply_torque, apply_torque_last, driver_torque, bl
     apply_torque = clip(apply_torque, apply_torque_last - LIMITS.STEER_DELTA_UP,
                         min(apply_torque_last + LIMITS.STEER_DELTA_DOWN, LIMITS.STEER_DELTA_UP))
 
-  return int(round(float(apply_torque)))
+  return int(round(apply_torque))
 
-# reset pump every PUMP_RESET_INTERVAL seconds for. Reset to zero for PUMP_RESET_DURATION
 def standstill_brake(min_accel, ts_last, ts_now, prev_status):
-  brake = min_accel
+  """
+  Periodically reset pump to zero at standstill to prevent bleed.
+  """
   status = prev_status
-
+  brake = min_accel
   dt = ts_now - ts_last
+
   if prev_status == BrakingStatus.PUMP_RESET and dt > PUMP_RESET_DURATION:
     status = BrakingStatus.BRAKE_HOLD
     ts_last = ts_now
-
-  if prev_status == BrakingStatus.BRAKE_HOLD and dt > PUMP_RESET_INTERVAL:
-    status = BrakingStatus.PUMP_RESET
-    ts_last = ts_now
-
-  if prev_status == BrakingStatus.STANDSTILL_INIT and dt > PUMP_RESET_INTERVAL:
+  elif prev_status in (BrakingStatus.BRAKE_HOLD, BrakingStatus.STANDSTILL_INIT) and dt > PUMP_RESET_INTERVAL:
     status = BrakingStatus.PUMP_RESET
     ts_last = ts_now
 
@@ -67,36 +65,20 @@ def standstill_brake(min_accel, ts_last, ts_now, prev_status):
   return brake, status, ts_last
 
 def psd_brake(apply_brake, last_pump):
-  # reversed engineered from Ativa stock braking
-  # this is necessary for noiseless pump braking
+  """
+  Reverse-engineered PSD pump table behavior (noiseless braking).
+  Ensures pump steps change by <= 0.1 to minimize bleed.
+  """
   pump = PUMP_VALS[bisect_left(BRAKE_MAG, apply_brake)]
 
-  # make sure the pump value decrease and increases within 0.1
-  # to prevent brake bleeding.
-  # TODO does it really prevent brake bleed?
   if abs(pump - last_pump) > 0.1:
     pump = last_pump + clip(pump - last_pump, -0.1, 0.1)
-  last_pump = pump
 
-  if apply_brake >= BRAKE_THRESHOLD:
-    brake_req = 1
-  else:
-    brake_req = 0
-
-  return pump, brake_req, last_pump
-
-# 100hz rate_limit
-def rate_limit_positive_speed(x, last):
-  if x > last:
-    return min(x, last + 0.006)
-  else:
-    return x
+  brake_req = 1 if apply_brake >= BRAKE_THRESHOLD else 0
+  return pump, brake_req, pump  # new last_pump == pump
 
 class CarControllerParams():
   def __init__(self, CP):
-
-    self.STEER_BP = CP.lateralParams.torqueBP
-    self.STEER_LIM_TORQ = CP.lateralParams.torqueV
     self.STEER_MAX = CP.lateralParams.torqueV[0]
     # make sure Proton only has one max steer torque value
     assert(len(CP.lateralParams.torqueV) == 1)
@@ -110,8 +92,6 @@ class CarController(CarControllerBase):
 
     self.last_steer = 0
     self.steer_rate_limited = False
-    self.steering_direction = False
-    self.brake_pressed = False
     self.params = CarControllerParams(CP)
     self.packer = CANPacker(DBC[CP.carFingerprint]['pt'])
     self.brake = 0
@@ -129,52 +109,29 @@ class CarController(CarControllerBase):
     self.using_stock_acc = False
     self.fingerprint = CP.carFingerprint
 
-    self.last_des_speed = 0
-
   def update(self, CC, CS, now_nanos):
     can_sends = []
+    ts = self.frame * DT_CTRL
 
     enabled = CC.enabled
+    lat_active = CC.latActive
     actuators = CC.actuators
     lead_visible = CC.hudControl.leadVisible
     rlane_visible = CC.hudControl.rightLaneVisible
     llane_visible = CC.hudControl.leftLaneVisible
     pcm_cancel_cmd = CC.cruiseControl.cancel
+    isBlinkerOn = CS.out.leftBlinker != CS.out.rightBlinker
 
     # steer
-    steer_max_interp = interp(CS.out.vEgo, self.params.STEER_BP, self.params.STEER_LIM_TORQ)
-    new_steer = int(round(actuators.steer * steer_max_interp))
-
-    isBlinkerOn = CS.out.leftBlinker != CS.out.rightBlinker
+    new_steer = int(round(actuators.steer * self.params.STEER_MAX))
     apply_steer = apply_steer_torque_limits(new_steer, self.last_steer, CS.out.steeringTorqueEps, isBlinkerOn, self.params)
 
-    ts = self.frame * DT_CTRL
-    acc = actuators.accel
-
-    # speed and brake, speed using simple kinematics v = u + at
-    # because dnga is speed controlled, the PID for positive accel is done by the car
+    # dnga is speed controlled, the PID for positive accel is done by the car
     # so we change the equation to v = u + ka and assume k include the time horizon of 1s
+    acceleration = (actuators.accel - CS.stock_brake_mag * 0.85) if CS.out.vEgo > 0.1 else actuators.accel
     k = 0.3 + 0.06 * CS.out.vEgo
-    des_speed = CS.out.vEgo + acc * k
-
-    apply_brake = 0 if (CS.out.gasPressed or actuators.accel >= 0) else clip(abs(actuators.accel / BRAKE_M), 0., 1.25)
-    if self.fingerprint in (CAR.ALZA):
-      if CS.out.vEgo < 1.5:
-        des_speed = CS.out.vEgo
-        apply_brake = apply_brake * 0.85
-      else:
-        apply_brake = max((CS.stock_brake_mag * 0.5) - acc if acc > 0 else CS.stock_brake_mag * 0.5, apply_brake * 0.85)
-    else:
-      apply_brake = max(CS.stock_brake_mag * 0.6, apply_brake)
-
-    if apply_brake > 0:
-      self.last_des_speed = CS.out.vEgo
-    else:
-      self.last_des_speed = des_speed
-
-    # positive des_speed rate limit
-    if (CS.out.vEgo > 8.33):
-      des_speed = rate_limit_positive_speed(des_speed, self.last_des_speed)
+    des_speed = CS.out.vEgo + acceleration * k
+    apply_brake = 0 if (CS.out.gasPressed or acceleration >= 0.0) else clip(abs(acceleration * self.brake_scale), 0., 1.25)
 
     # reduce max brake when below 10kmh to reduce jerk. TODO: more elegant way to do this?
     if CS.out.vEgo < 2.8:
@@ -190,10 +147,9 @@ class CarController(CarControllerBase):
       if self.stockLdw and not enabled:
         apply_steer = -CS.ldpSteerV
 
-      steer_req = (enabled or self.stockLdw) and CS.lkas_latch and not CS.lkaDisabled
+      steer_req = lat_active or self.stockLdw
       can_sends.append(create_can_steer_command(self.packer, apply_steer, steer_req, (self.frame / 2) % 16))
 
-    # CAN controlled longitudinal
     if (self.frame % 5) == 0:
 
       # check if need to revert to stock acc
@@ -221,7 +177,7 @@ class CarController(CarControllerBase):
         can_sends.append(dnga_buttons(self.packer, 0, 0, 1))
 
       # standstill logic
-      if enabled and apply_brake > 0 and CS.out.standstill and CS.CP.carFingerprint not in SNG_CAR:
+      if enabled and apply_brake > 0.0 and CS.out.standstill and CS.CP.carFingerprint not in SNG_CAR:
         if self.standstill_status == BrakingStatus.STANDSTILL_INIT:
           self.min_standstill_accel = apply_brake + 0.2
         apply_brake, self.standstill_status, self.prev_ts = standstill_brake(self.min_standstill_accel, self.prev_ts, ts, self.standstill_status)
@@ -229,17 +185,36 @@ class CarController(CarControllerBase):
         self.standstill_status = BrakingStatus.STANDSTILL_INIT
         self.prev_ts = ts
 
-      # PSD brake logic
       pump, brake_req, self.last_pump = psd_brake(apply_brake, self.last_pump)
 
-      can_sends.append(create_accel_command(self.packer, CS.out.cruiseState.speedCluster,
-                       CS.out.cruiseState.available, enabled, lead_visible,
-                       des_speed, apply_brake, pump, CS.distance_val))
+      can_sends.append(create_accel_command(self.packer,
+        CS.out.cruiseState.speedCluster,
+        CS.out.cruiseState.available,
+        enabled,
+        lead_visible,
+        des_speed,
+        apply_brake,
+        pump,
+        CS.distance_val
+      ))
 
       # Let stock AEB kick in only when system not engaged
       aeb = not enabled and CS.aebV
+
       can_sends.append(create_brake_command(self.packer, enabled, brake_req, pump, apply_brake, aeb))
-      can_sends.append(create_hud(self.packer, CS.out.cruiseState.available and CS.lkas_latch, enabled, llane_visible, rlane_visible, self.stockLdw, CS.out.stockFcw, CS.out.stockAeb, CS.frontDepartWarning, CS.stock_lkc_off, CS.stock_fcw_off))
+      can_sends.append(create_hud(
+        self.packer,
+        CS.out.cruiseState.available and CS.lkas_latch,
+        enabled,
+        llane_visible,
+        rlane_visible,
+        self.stockLdw,
+        CS.out.stockFcw,
+        CS.out.stockAeb,
+        CS.frontDepartWarning,
+        CS.stock_lkc_off,
+        CS.stock_fcw_off
+      ))
 
     self.last_steer = apply_steer
     new_actuators = actuators.copy()
