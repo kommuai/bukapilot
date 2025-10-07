@@ -93,7 +93,7 @@ std::string logger_get_route_name() {
   char route_name[64] = {'\0'};
   time_t rawtime = time(NULL);
   struct tm timeinfo;
-  localtime_r(&rawtime, &timeinfo);
+  gmtime_r(&rawtime, &timeinfo);  // <-- use UTC time instead of localtime
   strftime(route_name, sizeof(route_name), "%Y-%m-%d--%H-%M-%S", &timeinfo);
   return route_name;
 }
