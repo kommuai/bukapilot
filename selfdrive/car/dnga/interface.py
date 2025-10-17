@@ -28,7 +28,10 @@ class CarInterface(CarInterfaceBase):
     ret.lateralParams.torqueBP, ret.lateralParams.torqueV = [[0.], [255]]
     ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP = [[0.], [0.]]
     ret.longitudinalTuning.kpBP = [0., 5., 20.]
-    ret.longitudinalTuning.kiBP = [5, 7, 28]
+    # perodua uses speed for control, integral will always windup for this reason
+    # so we make it zero
+    ret.longitudinalTuning.kiBP = [0.0]
+    ret.longitudinalTuning.kiV = [0.0]
     ret.longitudinalActuatorDelayLowerBound = 0.40
     ret.longitudinalActuatorDelayUpperBound = 0.50
 
@@ -39,15 +42,14 @@ class CarInterface(CarInterfaceBase):
       ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP = [[0., 20], [0., 20]]
       ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.14, 0.18], [0.18, 0.25]]
       ret.lateralTuning.pid.kf = 0.00015
-      ret.longitudinalTuning.kpV = [0.15, 0.5, 0.6]
-      ret.longitudinalTuning.kiV = [0.10, 0.15, 0.20]
+      ret.longitudinalTuning.kpV = [0.1, 1.2, 1.2]
       ret.wheelSpeedFactor = 1.425
 
     elif candidate == CAR.ATIVA:
-      ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.12], [0.22]]
+      ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP = [[0., 20], [0., 20]]
+      ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.09, 0.12], [0.10, 0.14]]
       ret.lateralTuning.pid.kf = 0.000188
-      ret.longitudinalTuning.kpV = [0.6, 0.5, 0.05]
-      ret.longitudinalTuning.kiV = [0.15, 0.14, 0.01]
+      ret.longitudinalTuning.kpV = [1.5, 1.5, 1.5]
       ret.wheelSpeedFactor = 1.505
 
     elif candidate == CAR.MYVI:
@@ -55,15 +57,13 @@ class CarInterface(CarInterfaceBase):
       ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.09, 0.12], [0.10, 0.14]]
       ret.lateralTuning.pid.kf = 0.00012
       ret.longitudinalTuning.kpV = [1.5, 1.5, 1.5]
-      ret.longitudinalTuning.kiBP = [0.0]
-      ret.longitudinalTuning.kiV = [0.0]
       ret.wheelSpeedFactor = 1.31
 
     elif candidate == CAR.VIOS:
-      ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.16], [0.30]]
+      ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP = [[0., 20], [0., 20]]
+      ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.09, 0.16], [0.10, 0.14]]
       ret.lateralTuning.pid.kf = 0.00018
-      ret.longitudinalTuning.kpV = [0.65, 0.6, 0.6]
-      ret.longitudinalTuning.kiV = [0.12, 0.12, 0.12]
+      ret.longitudinalTuning.kpV = [1.5, 1.5, 1.5]
       ret.wheelSpeedFactor = 1.43
 
     else:

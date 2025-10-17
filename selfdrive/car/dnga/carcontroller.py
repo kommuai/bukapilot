@@ -128,7 +128,7 @@ class CarController(CarControllerBase):
 
     # dnga is speed controlled, the PID for positive accel is done by the car
     # so we change the equation to v = u + ka and assume k include the time horizon of 1s
-    acceleration = (actuators.accel - CS.stock_brake_mag * 0.85) if CS.out.vEgo > 0.1 else actuators.accel
+    acceleration = (actuators.accel - CS.stock_brake_mag * 0.85) if CS.out.vEgo > 0.25 else actuators.accel
     k = 0.3 + 0.06 * CS.out.vEgo
     des_speed = CS.out.vEgo + acceleration * k
     apply_brake = 0 if (CS.out.gasPressed or acceleration >= 0.0) else clip(abs(acceleration * self.brake_scale), 0., 1.25)
