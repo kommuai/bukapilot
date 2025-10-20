@@ -428,6 +428,12 @@ class Ka2(HardwareBase):
       except Exception:
         pass
 
+    try:
+      # fallback: directly remove default route if modem connects with one
+      os.system("sudo ip route del default dev wwan0 2>/dev/null || true")
+    except Exception:
+      pass
+
   def get_networks(self):
     r = {}
 
