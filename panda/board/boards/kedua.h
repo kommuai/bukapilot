@@ -52,7 +52,7 @@ void kedua_set_led(uint8_t color, bool enabled) {
 }
 
 void kedua_set_bootkick(BootState state) {
-  set_gpio_output(GPIOC, 0, state == BOOT_BOOTKICK);
+  set_gpio_output(GPIOC, 2, state == BOOT_BOOTKICK);
 }
 
 void kedua_set_ir_power(uint8_t percentage){
@@ -163,10 +163,15 @@ void kedua_init(void) {
   set_gpio_pullup(GPIOB, 10, PULL_NONE);
   set_gpio_mode(GPIOB, 10, MODE_OUTPUT);
 
-  //PC0 Boot reset, used for bootkicking
+  //PC0 Hardware reset, can be used for bootkicking
   set_gpio_output_type(GPIOC, 0, OUTPUT_TYPE_PUSH_PULL);
   set_gpio_pullup(GPIOC, 0, PULL_NONE);
   set_gpio_mode(GPIOC, 0, MODE_OUTPUT);
+
+  //PC2 Boot kick
+  set_gpio_output_type(GPIOC, 2, OUTPUT_TYPE_PUSH_PULL);
+  set_gpio_pullup(GPIOC, 2, PULL_NONE);
+  set_gpio_mode(GPIOC, 2, MODE_OUTPUT);
 
   //B1: 5VOUT_S
   set_gpio_pullup(GPIOB, 1, PULL_NONE);
