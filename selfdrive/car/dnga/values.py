@@ -51,8 +51,13 @@ class CAR(Platforms):
     flags=DNGAFlags.SNG,
     specs=CarSpecs(mass=1035., wheelbase=2.620, steerRatio=17.0)
   )
+  QC = DNGAPlatformConfig(
+    "QUALITY CHECK",
+    CarInfo("Quality Check", "All"),
+    specs=CarSpecs(mass=1025., wheelbase=2.500, steerRatio=17.4)
+  )
 
-BRAKE_SCALE = defaultdict(lambda: 1, {CAR.ATIVA: 0.714, CAR.MYVI: 0.714, CAR.ALZA: 0.65, CAR.VIOS: 0.68})
+BRAKE_SCALE = defaultdict(lambda: 1, {CAR.ATIVA: 0.714, CAR.MYVI: 0.714, CAR.ALZA: 0.65, CAR.VIOS: 0.68, CAR.QC: 0.714})
 SNG_CAR = CAR.with_flags(DNGAFlags.SNG)
 HYBRID_CAR = CAR.with_flags(DNGAFlags.HYBRID)
 CAR_INFO = CAR.create_carinfo_map()

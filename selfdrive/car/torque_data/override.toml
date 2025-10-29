@@ -74,6 +74,7 @@ legend = ["LAT_ACCEL_FACTOR", "MAX_LAT_ACCEL_MEASURED", "FRICTION"]
 "BYD SEAL" = [2.5, 2.5, 0.1]
 "BYD M6" = [2.5, 2.5, 0.1]
 "PROTON S70" = [2.5, 2.5, 0.1]
+"QUALITY CHECK" = [2.5, 2.5, 0.1]
 
 # Dashcam or fallback configured as ideal car
 "mock" = [10.0, 10, 0.0]

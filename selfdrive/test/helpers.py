@@ -13,7 +13,7 @@ from openpilot.system.version import training_version, terms_version
 
 
 def set_params_enabled():
-  os.environ['FINGERPRINT'] = "TOYOTA COROLLA TSS2 2019"
+  os.environ['FINGERPRINT'] = "QUALITY CHECK"
   os.environ['LOGPRINT'] = "debug"
 
   params = Params()
@@ -26,6 +26,14 @@ def set_params_enabled():
   msg.liveCalibration.validBlocks = 20
   msg.liveCalibration.rpyCalib = [0.0, 0.0, 0.0]
   params.put("CalibrationParams", msg.to_bytes())
+
+def unset_params_enabled():
+  params = Params()
+  params.put("HasAcceptedTerms", b'')
+  params.put("CompletedTrainingVersion", b'')
+
+  # valid calib
+  params.put("CalibrationParams", b'')
 
 def phone_only(f):
   @wraps(f)

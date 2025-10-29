@@ -23,7 +23,7 @@ from openpilot.common.timeout import Timeout
 from openpilot.common.params import Params
 from openpilot.selfdrive.controls.lib.events import EVENTS, ET
 from openpilot.system.hardware import HARDWARE
-from openpilot.selfdrive.test.helpers import set_params_enabled, release_only
+from openpilot.selfdrive.test.helpers import set_params_enabled, unset_params_enabled, release_only
 from openpilot.system.hardware.hw import Paths
 from openpilot.tools.lib.logreader import LogReader
 
@@ -126,8 +126,8 @@ class TestOnroad(unittest.TestCase):
     set_params_enabled()
     os.environ['REPLAY'] = '1'
     os.environ['TESTING_CLOSET'] = '1'
-    #if os.path.exists(Paths.log_root()):
-    #  shutil.rmtree(Paths.log_root())
+    if os.path.exists(Paths.log_root()):
+      shutil.rmtree(Paths.log_root())
 
     # start manager and run openpilot for a minute
     proc = None
@@ -159,7 +159,7 @@ class TestOnroad(unittest.TestCase):
       cls.segments = cls.segments[:-1]
 
     finally:
-      cls.gpu_procs = {psutil.Process(int(f.name)).name() for f in pathlib.Path('/sys/devices/virtual/kgsl/kgsl/proc/').iterdir() if f.is_dir()}
+      cls.gpu_procs = {open(f'/proc/{pid}/cmdline').read().split('\x00')[0] for pid in {l.split()[1] for l in subprocess.check_output(["sudo","bash","-c","lsof /dev/mali*"], text=True).splitlines()[1:] if l.strip()} if os.path.exists(f"/proc/{pid}/cmdline")}
 
       if proc is not None:
         proc.terminate()
@@ -180,6 +180,11 @@ class TestOnroad(unittest.TestCase):
         with open(f, 'rb') as ff:
           cls.log_sizes[f] = len(bz2.compress(ff.read())) / 1e6
 
+  @classmethod
+  def tearDownClass(cls):
+    unset_params_enabled()
+    if os.path.exists(Paths.log_root()):
+      shutil.rmtree(Paths.log_root())
 
   @cached_property
   def service_msgs(self):
@@ -287,7 +292,7 @@ class TestOnroad(unittest.TestCase):
     self.assertLessEqual(max(mems) - min(mems), 3.0)
 
   def test_gpu_usage(self):
-    self.assertEqual(self.gpu_procs, {"weston", "ui", "camerad", "selfdrive.modeld.modeld"})
+    self.assertEqual(self.gpu_procs, {"/usr/bin/weston", "selfdrive.modeld.modeld"})
 
   @unittest.skip("TODO: enable once timings are fixed")
   def test_camera_frame_timings(self):

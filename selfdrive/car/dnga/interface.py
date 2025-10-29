@@ -66,9 +66,16 @@ class CarInterface(CarInterfaceBase):
       ret.longitudinalTuning.kpV = [1.5, 1.5, 1.5]
       ret.wheelSpeedFactor = 1.43
 
+    elif candidate == CAR.QC:
+      ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP = [[0., 20], [0., 20]]
+      ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.09, 0.16], [0.10, 0.14]]
+      ret.lateralTuning.pid.kf = 0.00018
+      ret.longitudinalTuning.kpV = [1.5, 1.5, 1.5]
+      ret.wheelSpeedFactor = 1.43
+      ret.safetyConfigs = [get_safety_config(car.CarParams.SafetyModel.noOutput)]
+
     else:
       ret.dashcamOnly = True
-      ret.safetyModel = car.CarParams.SafetyModel.noOutput
 
     ret.minEnableSpeed = -1
     ret.stoppingControl = True
