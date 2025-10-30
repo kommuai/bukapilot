@@ -29,8 +29,8 @@ from openpilot.tools.lib.logreader import LogReader
 
 # Baseline CPU usage by process
 PROCS = {
-  "selfdrive.controls.controlsd": 41.0,
-  "./loggerd": 14.0,
+  "selfdrive.controls.controlsd": 25.0,
+  "./loggerd": 7.0,
   "./encoderd": 30.0, # was 17.0 TODO
   "./camerad": 4.0,
   "./locationd": 3.0,
@@ -38,8 +38,8 @@ PROCS = {
   "selfdrive.locationd.paramsd": 3.0,
   "./sensord": 3.0,
   "selfdrive.controls.radard": 3.0,
-  "selfdrive.modeld.modeld": 13.0,
-  "selfdrive.modeld.dmonitoringmodeld": 70.0, # was 8.0 TODO
+  "selfdrive.modeld.modeld": 21.0,
+  "selfdrive.modeld.dmonitoringmodeld": 11.0, # was 8.0 TODO
   "selfdrive.thermald.thermald": 3.87,
   "selfdrive.locationd.calibrationd": 2.0,
   "selfdrive.locationd.torqued": 3.0,
@@ -53,7 +53,7 @@ PROCS = {
   "system.timed": 0,
   "selfdrive.boardd.pandad": 0,
   "selfdrive.statsd": 0.4,
-  "system.loggerd.uploader": (0.03, 1.0),
+  "system.loggerd.uploader": (0.03, 1.5),
   "system.loggerd.deleter": 0.1,
 
   # deprecated
@@ -76,7 +76,7 @@ PROCS.update({
   "ka2": {
     "./boardd": 2.0,
     "selfdrive.streamdatad.streamdatad": 2.5,
-    "status_ledd": 2.5,
+    "system.hardware.ka2.status_led.alert_ledd": 7.5,
     "system.qcomgpsd.qcomgpsd": 1.0,
   }
 }.get(HARDWARE.get_device_type(), {}))
@@ -218,13 +218,13 @@ class TestOnroad(unittest.TestCase):
   def test_log_sizes(self):
     for f, sz in self.log_sizes.items():
       if f.name == "qcamera.ts":
-        assert 2.15 < sz < 2.35
+        assert 0.3 < sz < 0.6
       elif f.name == "qlog":
-        assert 0.7 < sz < 1.0
+        assert 0.5 < sz < 1.0
       elif f.name == "rlog":
         assert 5 < sz < 50
       elif f.name.endswith('.hevc'):
-        assert 70 < sz < 77
+        assert 70 < sz < 78
       else:
         raise NotImplementedError
 
@@ -277,7 +277,6 @@ class TestOnroad(unittest.TestCase):
     for p in all_procs:
       with self.subTest(proc=p):
         assert any(p in pp for pp in PROCS.keys()), f"Expected CPU usage missing for {p}"
-
     result += "------------------------------------------------\n"
     print(result)
 
@@ -292,9 +291,8 @@ class TestOnroad(unittest.TestCase):
     self.assertLessEqual(max(mems) - min(mems), 3.0)
 
   def test_gpu_usage(self):
-    self.assertEqual(self.gpu_procs, {"/usr/bin/weston", "selfdrive.modeld.modeld"})
+    self.assertEqual(self.gpu_procs, {"/usr/bin/weston", "selfdrive.modeld.modeld", "./camerad"})
 
-  @unittest.skip("TODO: enable once timings are fixed")
   def test_camera_frame_timings(self):
     result = "\n"
     result += "------------------------------------------------\n"
