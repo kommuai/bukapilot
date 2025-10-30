@@ -43,6 +43,7 @@ def main():
         cloudlog.info("Formatting")
         format_device()
         p.put("FormatSDCard", b'0')
+        break
 
 if __name__ == "__main__":
     main()
