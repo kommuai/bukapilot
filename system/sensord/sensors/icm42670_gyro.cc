@@ -38,9 +38,9 @@ int ICM42670_Gyro::init() {
   // Datasheet: gyro reconfig time ≈ 20 ms
   util::sleep_for(20);
 
-  // 25 Hz gyro LPF bandwidth
+  // 34 Hz gyro LPF bandwidth
   TRY_OR_FAIL(set_register(ICM42670_REG_GYRO_CONFIG1,
-                           ICM42670_GYRO_UI_FILT_BW_25HZ));
+                           ICM42670_GYRO_UI_FILT_BW_34HZ));
 
   LOGD("ICM42670 gyroscope initialized OK");
   return 0;

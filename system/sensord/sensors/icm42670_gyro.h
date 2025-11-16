@@ -42,6 +42,7 @@
 #define ICM42670_CONFIG_RATE_12p5_Hz    0b00001100
 
 // Filter
+#define ICM42670_GYRO_UI_FILT_BW_34HZ         0x05
 #define ICM42670_GYRO_UI_FILT_BW_25HZ         0x06
 
 class ICM42670_Gyro : public I2CSensor {
