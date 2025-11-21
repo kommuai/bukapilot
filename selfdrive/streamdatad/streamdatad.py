@@ -311,6 +311,8 @@ class Streamer:
               safe_put_all({'FixFingerprint': fix_fp})
           if (features_to_set := settings.pop('FeaturesPackage', None)) is not None:
             features.set_features(features_to_set)
+          if (apn := settings.pop('GsmApn', None)) is not None:
+            params.remove("GsmApn") if apn == "" else params.put_nonblocking("GsmApn", apn)
           # Put string setting if not one of the above keys, ensure above keys are popped so they will not be set below
           safe_put_all(settings)
         case 'resetCalibration':
