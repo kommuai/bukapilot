@@ -62,6 +62,8 @@ class HondaFlags(IntFlag):
   AUTORESUME_SNG = 128
   ELECTRIC_PARKING_BRAKE = 256
 
+  BOSCH_CANFD = 512
+
 # Car button codes
 class CruiseButtons:
   RES_ACCEL = 4
@@ -105,7 +107,6 @@ class HondaPlatformConfig(PlatformConfig):
     if self.flags & HondaFlags.BOSCH:
       self.flags |= HondaFlags.AUTORESUME_SNG
       self.flags |= HondaFlags.ELECTRIC_PARKING_BRAKE
-
 
 class CAR(Platforms):
   # Bosch Cars
@@ -154,6 +155,16 @@ class CAR(Platforms):
     dbc_dict('honda_crv_ex_2017_can_generated', None, body_dbc='honda_crv_ex_2017_body_generated'),
     specs=CarSpecs(mass=3410 * CV.LB_TO_KG, wheelbase=2.66, steerRatio=16.0, centerToFrontRatio=0.41),  # steerRatio: 12.3 is spec end-to-end
     flags=HondaFlags.BOSCH,
+  )
+  CRV_6G = HondaPlatformConfig(
+    "HONDA CR-V 2023",
+    [
+      HondaCarInfo("Honda CR-V 2023-25", "All"),
+      HondaCarInfo("Honda CR-V Hybrid 2023-25", "All"),
+    ],
+    dbc_dict('honda_common_canfd_generated', None),
+    specs=CarSpecs(mass=1703, wheelbase=2.7, steerRatio=16.2, centerToFrontRatio=0.42),
+    flags = HondaFlags.BOSCH | HondaFlags.BOSCH_CANFD,
   )
   CRV_HYBRID = HondaPlatformConfig(
     "HONDA CR-V HYBRID 2019",
@@ -349,6 +360,7 @@ STEER_THRESHOLD = {
   # default is 1200, overrides go here
   CAR.ACURA_RDX: 400,
   CAR.CRV_EU: 400,
+  CAR.CRV_6G: 600,
 }
 
 HONDA_NIDEC_ALT_PCM_ACCEL = CAR.with_flags(HondaFlags.NIDEC_ALT_PCM_ACCEL)

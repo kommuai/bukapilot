@@ -38,6 +38,8 @@ class CarInterface(CarInterfaceBase):
 
     CAN = CanBus(ret, fingerprint)
 
+    ret.steerActuatorDelay = 0.1
+
     if candidate in HONDA_BOSCH:
       ret.safetyConfigs = [get_safety_config(car.CarParams.SafetyModel.hondaBosch)]
       ret.radarUnavailable = True
@@ -205,6 +207,11 @@ class CarInterface(CarInterfaceBase):
       ret.tireStiffnessFactor = 0.82
       ret.lateralTuning.pid.kpV, ret.lateralTuning.pid.kiV = [[0.6], [0.18]] # TODO: can probably use some tuning
 
+    elif candidate in (CAR.CRV_6G):
+      ret.steerActuatorDelay = 0.15
+      ret.lateralParams.torqueBP, ret.lateralParams.torqueV = [[0, 2560], [0, 2560]]
+      CarInterfaceBase.configure_torque_tune(candidate, ret.lateralTuning)
+
     else:
       raise ValueError(f"unsupported car {candidate}")
 
@@ -232,7 +239,6 @@ class CarInterface(CarInterfaceBase):
     ret.autoResumeSng = candidate in (HONDA_BOSCH | {CAR.CIVIC}) or ret.enableGasInterceptor
     ret.minEnableSpeed = -1. if ret.autoResumeSng else 25.5 * CV.MPH_TO_MS
 
-    ret.steerActuatorDelay = 0.1
     ret.steerLimitTimer = 0.8
 
     return ret
