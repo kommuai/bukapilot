@@ -7,6 +7,7 @@
 #include "common/timing.h"
 #include "common/util.h"
 
+#define ROT_ANGLE_RAD 0.4082f
 #define DEG2RAD(x) ((x) * M_PI / 180.0)
 
 #define TRY_OR_FAIL(x) \
@@ -28,17 +29,14 @@ int ICM42670_Gyro::init() {
   TRY_OR_FAIL(set_register(ICM42670_REG_PWR_MGMT0,
                            ICM42670_PWR_MGMT0_NORMAL));
 
-  // Datasheet: 45 ms wake time from deep suspend
   util::sleep_for(50);
 
   TRY_OR_FAIL(set_register(ICM42670_REG_GYRO_CONFIG0,
                            ICM42670_CONFIG_GYRO_250_DPS |
                            ICM42670_CONFIG_RATE_200_Hz));
 
-  // Datasheet: gyro reconfig time ≈ 20 ms
   util::sleep_for(20);
 
-  // 34 Hz gyro LPF bandwidth
   TRY_OR_FAIL(set_register(ICM42670_REG_GYRO_CONFIG1,
                            ICM42670_GYRO_UI_FILT_BW_34HZ));
 
@@ -63,12 +61,23 @@ bool ICM42670_Gyro::get_event(MessageBuilder &msg, uint64_t ts) {
                           buffer, sizeof(buffer));
   assert(len == 6);
 
-  // Sensitivity for ±250 dps mode: 131 LSB/°/s (datasheet)
-  constexpr float scale = 131.0f;
+  constexpr float scale = 131.0f;   // LSB/°/s
+  float gx_raw =  DEG2RAD(read_16_bit(buffer[5], buffer[4]) / scale);
+  float gy_raw = -DEG2RAD(read_16_bit(buffer[1], buffer[0]) / scale);
+  float gz_raw = -DEG2RAD(read_16_bit(buffer[3], buffer[2]) / scale);
 
-  float gx = DEG2RAD(read_16_bit(buffer[5], buffer[4]) / scale);
-  float gy = -DEG2RAD(read_16_bit(buffer[1], buffer[0]) / scale);
-  float gz = -DEG2RAD(read_16_bit(buffer[3], buffer[2]) / scale);
+  // ---------------------------------------------------
+  // Apply SAME ROTATION as accelerometer
+  // This ensures accel + gyro are in same device frame
+  // ---------------------------------------------------
+  const double c = cos(-ROT_ANGLE_RAD);
+  const double s = sin(-ROT_ANGLE_RAD);
+
+  float gx = (float)(c * gx_raw - s * gz_raw);
+  float gz = (float)(s * gx_raw + c * gz_raw);
+
+  // gy axis is unchanged by this X–Z rotation
+  float gy = gy_raw;
 
   float xyz[3] = {gx, gy, gz};
 
@@ -85,4 +94,3 @@ bool ICM42670_Gyro::get_event(MessageBuilder &msg, uint64_t ts) {
 
   return true;
 }
-

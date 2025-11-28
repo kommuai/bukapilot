@@ -61,8 +61,7 @@ bool ICM42670_Accel::get_event(MessageBuilder &msg, uint64_t ts) {
   // 16-bit raw values → ±2g → m/s²
   constexpr double accel_scale = 9.80665 / 16384.0;  // datasheet
 
-  // bias correction on X (0.25 m/s²)
-  float x_raw = read_16_bit(buffer[5], buffer[4]) * accel_scale - 0.25f;
+  float x_raw = read_16_bit(buffer[5], buffer[4]) * accel_scale;
   float y_raw = -read_16_bit(buffer[1], buffer[0]) * accel_scale;
   float z_raw = -read_16_bit(buffer[3], buffer[2]) * accel_scale;
 
