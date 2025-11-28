@@ -14,7 +14,7 @@ from openpilot.common.swaglog import cloudlog
 from openpilot.system.version import get_version, get_commit, terms_version, training_version
 from openpilot.common.params import Params
 from openpilot.system.hardware import HARDWARE
-from openpilot.selfdrive.car.fingerprints import _FINGERPRINTS as FINGERPRINTS
+from openpilot.selfdrive.car.fingerprints import all_known_cars
 from openpilot.common.features import Features
 from openpilot.selfdrive.streamdatad.ble_helper import BLEBridge, ChunkReceiver
 
@@ -31,7 +31,7 @@ CHANNEL_SETTINGS = 0x02
 SM_UPDATE_INTERVAL = 33  # in ms, the interval where capnp submaster updates
 WIFI_CONNECT_TIMEOUT_SECONDS = 20  # Timeout for device Wi-Fi connection attempts
 NO_NETWORK_REGEX = re.compile(r"no network.*ssid", re.IGNORECASE)
-SUPPORTED_MODELS = {getattr(car, 'value', car) for car in FINGERPRINTS}
+SUPPORTED_MODELS = {getattr(car, 'value', car) for car in all_known_cars()}
 
 # Call functions with cached values only once
 GIT_COMMIT = get_commit()[:7]
