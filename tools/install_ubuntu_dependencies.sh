@@ -65,6 +65,12 @@ function install_ubuntu_common_requirements() {
     libqt5x11extras5-dev \
     libqt5opengl5-dev \
     xvfb
+
+  # Initialise git-lfs locally
+  git lfs install --local
+
+  # Pull LFS objects
+  git lfs pull
 }
 
 # Install Ubuntu 24.04 LTS packages
@@ -78,7 +84,10 @@ function install_ubuntu_lts_latest_requirements() {
     qt5-qmake \
     qtbase5-dev-tools \
     python3-dev \
-    python3-venv
+    python3-venv \
+    qtlocation5-dev \
+    qtpositioning5-dev \
+    qtmultimedia5-dev
 }
 
 # Detect OS using /etc/os-release file

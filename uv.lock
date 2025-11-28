@@ -894,60 +894,6 @@ wheels = [
 ]
 
 [[package]]
-name = "metadrive-simulator"
-version = "0.4.2.4"
-source = { url = "https://github.com/commaai/metadrive/releases/download/MetaDrive-minimal-0.4.2.4/metadrive_simulator-0.4.2.4-py3-none-any.whl" }
-dependencies = [
-    { name = "filelock", marker = "platform_machine != 'aarch64' or sys_platform != 'linux'" },
-    { name = "gymnasium", marker = "platform_machine != 'aarch64' or sys_platform != 'linux'" },
-    { name = "lxml", marker = "platform_machine != 'aarch64' or sys_platform != 'linux'" },
-    { name = "matplotlib", marker = "platform_machine != 'aarch64' or sys_platform != 'linux'" },
-    { name = "numpy", marker = "platform_machine != 'aarch64' or sys_platform != 'linux'" },
-    { name = "opencv-python-headless", marker = "platform_machine != 'aarch64' or sys_platform != 'linux'" },
-    { name = "panda3d", marker = "platform_machine != 'aarch64' or sys_platform != 'linux'" },
-    { name = "panda3d-gltf", marker = "platform_machine != 'aarch64' or sys_platform != 'linux'" },
-    { name = "pillow", marker = "platform_machine != 'aarch64' or sys_platform != 'linux'" },
-    { name = "progressbar", marker = "platform_machine != 'aarch64' or sys_platform != 'linux'" },
-    { name = "psutil", marker = "platform_machine != 'aarch64' or sys_platform != 'linux'" },
-    { name = "pygments", marker = "platform_machine != 'aarch64' or sys_platform != 'linux'" },
-    { name = "requests", marker = "platform_machine != 'aarch64' or sys_platform != 'linux'" },
-    { name = "shapely", marker = "platform_machine != 'aarch64' or sys_platform != 'linux'" },
-    { name = "tqdm", marker = "platform_machine != 'aarch64' or sys_platform != 'linux'" },
-    { name = "yapf", marker = "platform_machine != 'aarch64' or sys_platform != 'linux'" },
-]
-wheels = [
-    { url = "https://github.com/commaai/metadrive/releases/download/MetaDrive-minimal-0.4.2.4/metadrive_simulator-0.4.2.4-py3-none-any.whl", hash = "sha256:fbf0ea9be67e65cd45d38ff930e3d49f705dd76c9ddbd1e1482e3f87b61efcef" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "cuda-python", marker = "extra == 'cuda'", specifier = "==12.0.0" },
-    { name = "filelock" },
-    { name = "glfw", marker = "extra == 'cuda'" },
-    { name = "gym", marker = "extra == 'gym'", specifier = ">=0.19.0,<=0.26.0" },
-    { name = "gymnasium", specifier = ">=0.28" },
-    { name = "lxml" },
-    { name = "matplotlib" },
-    { name = "numpy", specifier = ">=1.21.6" },
-    { name = "opencv-python-headless" },
-    { name = "panda3d", specifier = "==1.10.14" },
-    { name = "panda3d-gltf", specifier = "==0.13" },
-    { name = "pillow" },
-    { name = "progressbar" },
-    { name = "psutil" },
-    { name = "pygments" },
-    { name = "pyopengl", marker = "extra == 'cuda'", specifier = "==3.1.6" },
-    { name = "pyopengl-accelerate", marker = "extra == 'cuda'", specifier = "==3.1.6" },
-    { name = "pyrr", marker = "extra == 'cuda'", specifier = "==0.10.3" },
-    { name = "requests" },
-    { name = "shapely" },
-    { name = "tqdm" },
-    { name = "yapf" },
-    { name = "zmq", marker = "extra == 'ros'" },
-]
-provides-extras = ["cuda", "gym", "ros"]
-
-[[package]]
 name = "mkdocs"
 version = "1.6.1"
 source = { registry = "https://pypi.org/simple" }
@@ -1312,7 +1258,6 @@ testing = [
     { name = "ruff" },
 ]
 tools = [
-    { name = "metadrive-simulator", marker = "platform_machine != 'aarch64'" },
     { name = "rerun-sdk" },
 ]
 
@@ -1338,7 +1283,6 @@ requires-dist = [
     { name = "libusb1" },
     { name = "llvmlite" },
     { name = "matplotlib", marker = "extra == 'dev'" },
-    { name = "metadrive-simulator", marker = "platform_machine != 'aarch64' and extra == 'tools'", url = "https://github.com/commaai/metadrive/releases/download/MetaDrive-minimal-0.4.2.4/metadrive_simulator-0.4.2.4-py3-none-any.whl" },
     { name = "mkdocs", marker = "extra == 'docs'" },
     { name = "msgpack" },
     { name = "mypy", marker = "extra == 'testing'" },
