@@ -32,9 +32,9 @@ int ICM42670_Accel::init() {
                            ICM42670_CONFIG_ACCEL_2_G |
                            ICM42670_CONFIG_RATE_200_Hz));
 
-  // LPF bandwidth 34hz
+  // LPF bandwidth 16hz
   TRY_OR_FAIL(set_register(ICM42670_REG_ACCEL_CONFIG1,
-                           ICM42670_ACCEL_UI_FILT_BW_34HZ));
+                           ICM42670_ACCEL_UI_FILT_BW_16HZ));
 
   LOGD("ICM42670 accelerometer initialized OK");
   return 0;

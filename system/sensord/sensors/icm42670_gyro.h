@@ -44,6 +44,7 @@
 // Filter
 #define ICM42670_GYRO_UI_FILT_BW_34HZ         0x05
 #define ICM42670_GYRO_UI_FILT_BW_25HZ         0x06
+#define ICM42670_GYRO_UI_FILT_BW_16HZ         0x07
 
 class ICM42670_Gyro : public I2CSensor {
   uint8_t get_device_address() {return ICM42670_I2C_ADDRESS;}

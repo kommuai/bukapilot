@@ -38,7 +38,7 @@ int ICM42670_Gyro::init() {
   util::sleep_for(20);
 
   TRY_OR_FAIL(set_register(ICM42670_REG_GYRO_CONFIG1,
-                           ICM42670_GYRO_UI_FILT_BW_34HZ));
+                           ICM42670_GYRO_UI_FILT_BW_16HZ));
 
   LOGD("ICM42670 gyroscope initialized OK");
   return 0;
