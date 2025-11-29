@@ -1,5 +1,4 @@
 from cereal import car
-from common.params import Params
 from opendbc.can.parser import CANParser
 from opendbc.can.can_define import CANDefine
 from openpilot.common.numpy_fast import mean, interp
@@ -46,9 +45,6 @@ class CarState(CarStateBase):
 
     self.distance_button = 0
     self.lkaDisabled = 0
-
-    self.p = Params()
-    self.prev_distance_val = -1
 
   def update(self, cp, cp_cam):
     ret = car.CarState.new_message()
@@ -126,14 +122,10 @@ class CarState(CarStateBase):
 
     ret.cruiseState.available = bool(cp_cam.vl["ACC_CMD_HUD"]["SET_ME_1_2"])
     self.distance_val = int(cp_cam.vl["ACC_CMD_HUD"]['FOLLOW_DISTANCE'])
-    self.prev_distance_val = self.distance_val
     prev_distance_button = self.distance_button
     self.distance_button = cp.vl["BUTTONS"]["DISTANCE_BTN"]
     ret.buttonEvents = create_button_events(self.distance_button, prev_distance_button, {1: ButtonType.gapAdjustCruise})
-    if self.distance_button or self.prev_distance_val != self.distance_val:
-      personality = str(1 if self.distance_val == 1 else (2 - self.distance_val))
-      self.p.put("LongitudinalPersonality", personality)
-    self.prev_distance_val = self.distance_val
+    self.set_long_personality(1 if self.distance_val == 1 else (2 - self.distance_val))
 
     if self.CP.carFingerprint in HYBRID_CAR:
       minus_button = bool(cp.vl["PCM_BUTTONS_HYBRID"]["SET_MINUS"])

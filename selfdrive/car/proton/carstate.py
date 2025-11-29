@@ -1,5 +1,4 @@
 from cereal import car
-from common.params import Params
 from opendbc.can.parser import CANParser
 from opendbc.can.can_define import CANDefine
 from openpilot.common.numpy_fast import mean
@@ -34,9 +33,6 @@ class CarState(CarStateBase):
     self.hand_on_wheel_chime = False
 
     self.prev_angle = 0
-
-    self.p = Params()
-    self.prev_distance_val = -1
 
     self.stock_acc_cmd = 0
     self.cruise_latch = False
@@ -120,10 +116,7 @@ class CarState(CarStateBase):
 
     ret.cruiseState.available = True
     distance_val = int(cp_cam.vl["PCM_BUTTONS"]['SET_DISTANCE'])
-
-    if distance_val != self.prev_distance_val:
-      self.p.put("LongitudinalPersonality", str(distance_val - 1))
-    self.prev_distance_val = distance_val
+    self.set_long_personality(distance_val - 1)
 
     self.cruise_speed = int(cp_cam.vl["PCM_BUTTONS"]['ACC_SET_SPEED']) * CV.KPH_TO_MS
     ret.cruiseState.speedCluster = self.cruise_speed

@@ -7,12 +7,13 @@ from enum import StrEnum
 from typing import Any, NamedTuple
 from collections.abc import Callable
 
-from cereal import car
+from cereal import car, log
 from openpilot.common.basedir import BASEDIR
 from openpilot.common.conversions import Conversions as CV
 from openpilot.common.simple_kalman import KF1D, get_kalman_gain
 from openpilot.common.numpy_fast import clip
 from openpilot.common.realtime import DT_CTRL
+from openpilot.common.params import Params
 from openpilot.selfdrive.car import apply_hysteresis, gen_empty_fingerprint, scale_rot_inertia, scale_tire_stiffness, STD_CARGO_KG
 from openpilot.selfdrive.car.values import Platform
 from openpilot.selfdrive.controls.lib.drive_helpers import V_CRUISE_MAX, get_friction
@@ -22,6 +23,7 @@ from openpilot.selfdrive.controls.lib.vehicle_model import VehicleModel
 ButtonType = car.CarState.ButtonEvent.Type
 GearShifter = car.CarState.GearShifter
 EventName = car.CarEvent.EventName
+Personality = log.LongitudinalPersonality
 
 MAX_CTRL_SPEED = (V_CRUISE_MAX + 4) * CV.KPH_TO_MS
 ACCEL_MAX = 2.0
@@ -350,6 +352,8 @@ class CarStateBase(ABC):
     self.CP = CP
     self.car_fingerprint = CP.carFingerprint
     self.out = car.CarState.new_message()
+    self.params = Params()
+    self.prev_personality = None
 
     self.cruise_buttons = 0
     self.left_blinker_cnt = 0
@@ -421,6 +425,13 @@ class CarStateBase(ABC):
     self.right_blinker_prev = right_blinker_stalk
 
     return bool(left_blinker_stalk or self.left_blinker_cnt > 0), bool(right_blinker_stalk or self.right_blinker_cnt > 0)
+
+  def set_long_personality(self, personality: int | None):
+    if personality not in (Personality.aggressive, Personality.standard, Personality.relaxed):
+      personality = Personality.aggressive
+    if self.prev_personality != personality:
+      self.params.put("LongitudinalPersonality", str(personality))
+    self.prev_personality = personality
 
   @staticmethod
   def parse_gear_shifter(gear: str | None) -> car.CarState.GearShifter:

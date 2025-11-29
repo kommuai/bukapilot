@@ -5,7 +5,6 @@ from openpilot.common.numpy_fast import mean
 from openpilot.common.conversions import Conversions as CV
 from openpilot.selfdrive.car.interfaces import CarStateBase
 from openpilot.selfdrive.car.byd.values import DBC, CANBUS, HUD_MULTIPLIER, CAR
-from common.params import Params
 
 class CarState(CarStateBase):
   def __init__(self, CP):
@@ -30,8 +29,6 @@ class CarState(CarStateBase):
     self.lkas_rdy_btn = False
     self.lkas_faulted = False
 
-    self.p = Params()
-    self.prev_distance_val = -1
     self.op_long = True
 
   def update(self, cp, cp_cam):
@@ -115,9 +112,7 @@ class CarState(CarStateBase):
 
     # VAL_ 813 SET_DISTANCE 8 "4bar" 4 "3bar" 2 "2bar" 1 "1bar" ;
     distance_val = int(parser_alt.vl["ACC_HUD_ADAS"]['SET_DISTANCE']) if self.op_long else 1
-    if distance_val != self.prev_distance_val:
-      self.p.put("LongitudinalPersonality", str(2 if distance_val in (4, 8) else distance_val - 1))
-    self.prev_distance_val = distance_val
+    self.set_long_personality(2 if distance_val in (4, 8) else distance_val - 1)
 
     # engage and disengage logic, do we still need this?
     if (cp.vl["PCM_BUTTONS"]["SET_BTN"] != 0 or cp.vl["PCM_BUTTONS"]["RES_BTN"] != 0) and not ret.brakePressed:
