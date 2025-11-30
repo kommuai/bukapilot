@@ -6,6 +6,7 @@ from openpilot.selfdrive.car.proton.values import CAR
 from openpilot.selfdrive.controls.lib.desire_helper import LANE_CHANGE_SPEED_MIN
 
 from common.params import Params
+from openpilot.common.features import Features
 
 EventName = car.CarEvent.EventName
 
@@ -16,7 +17,7 @@ class CarInterface(CarInterfaceBase):
     ret.carName = "proton"
 
     ret.safetyConfigs = [get_safety_config(car.CarParams.SafetyModel.proton)]
-    ret.safetyConfigs[0].safetyParam = 1   # TODO: add actual safetyParam
+    ret.safetyConfigs[0].safetyParam = 2 if Features().has("stock-acc") else 1
 
     ret.steerControlType = car.CarParams.SteerControlType.torque
     ret.steerLimitTimer = 0.1              # time before steerLimitAlert is issued
