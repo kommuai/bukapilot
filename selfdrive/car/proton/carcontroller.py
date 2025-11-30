@@ -47,6 +47,7 @@ class CarController(CarControllerBase):
     self.steer_rate_limited = False
     self.steering_direction = False
     self.always_lks_tactile = Features().has("lks-tactile")
+    self.openpilot_long = not Features().has("stock-acc")
 
   def update(self, CC, CS, now_nanos):
     can_sends = []
@@ -85,7 +86,13 @@ class CarController(CarControllerBase):
                       CS.is_icc_on and CS.hand_on_wheel_chime, \
                       CS.lks_aux, lks_audio, lks_tactile, CS.lks_assist_mode, \
                       CS.lka_enable, 0))
-      can_sends.append(create_acc_cmd(self.packer, actuators.accel, CC.longActive, CS.out.gasPressed, standstill_request, CS.stock_acc_cmd, CS.out.vEgo, self.resume))
+
+      if self.openpilot_long:
+        can_sends.append(create_acc_cmd(self.packer, actuators.accel, CC.longActive, CS.out.gasPressed, standstill_request, CS.stock_acc_cmd, CS.out.vEgo, self.resume))
+      else:
+        # SNG
+        if CC.enabled and CS.out.cruiseState.standstill:
+          can_sends.append(send_buttons(self.packer, False))
 
     if pcm_cancel_cmd:
       can_sends.append(send_buttons(self.packer, 1))
