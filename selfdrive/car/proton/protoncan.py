@@ -1,4 +1,4 @@
-from openpilot.common.numpy_fast import clip
+from openpilot.common.numpy_fast import clip, interp
 from typing import List
 
 def create_can_steer_command(packer, steer, steer_req, wheel_touch_warning, wheel_touch_chime, \
@@ -61,7 +61,8 @@ def create_acc_cmd(packer, accel, enabled, gas_override, standstill, stock, spee
     accel_cmd = 0
 
   if speed > 2.5:
-    accel_cmd = min(stock * 0.6, accel_cmd)
+    mult = interp(speed, [2.5, 28.3], [0.9, 0.6])
+    accel_cmd = min(stock * mult, accel_cmd)
 
   if accel_cmd > 0:
     standstill = False
