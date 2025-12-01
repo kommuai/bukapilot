@@ -20,7 +20,7 @@ from openpilot.common.realtime import set_realtime_priority
 from openpilot.common.transformations.orientation import rot_from_euler, euler_from_rot
 from openpilot.common.swaglog import cloudlog
 
-MIN_SPEED_FILTER = 15 * CV.MPH_TO_MS
+MIN_SPEED_FILTER = 30 * CV.KPH_TO_MS
 MAX_VEL_ANGLE_STD = np.radians(0.25)
 MAX_YAW_RATE_FILTER = np.radians(2)  # per second
 
