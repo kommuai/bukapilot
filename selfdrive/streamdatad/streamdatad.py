@@ -168,11 +168,9 @@ class Streamer:
       return False
     self.wifi_connect_attempt_ssid = ssid
     self.wifi_connect_attempt_start_time = cur_time
-    cmd = ['dev', 'wifi', 'connect', ssid]
+    cmd = ['dev', 'wifi', 'connect', ssid, 'ifname', 'wlan0']
     if password:
-      cmd.extend(['password', password])
-    if ifname := self.current_wifi_iface_name:
-      cmd.extend(['ifname', ifname])
+      cmd += ['password', password]
     def run_nmcli():
       result = subprocess.run(["sudo", "nmcli"] + cmd, text=True, capture_output=True)
       if result.returncode != 0 and NO_NETWORK_REGEX.search(result.stderr):
