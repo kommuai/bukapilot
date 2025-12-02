@@ -136,14 +136,16 @@ class Soundd:
     data_out[:frames, 0] = self.get_sound_data(frames)
 
   def update_alert(self, new_alert, quiet_mode, alert_type_name=None):
-    if quiet_mode:
+    is_event_sound = (new_alert == AudibleAlert.refuse)
+
+    if quiet_mode and not is_event_sound:
       allowed_alerts = new_alert in {
-          AudibleAlert.none,
-          AudibleAlert.promptRepeat,
-          AudibleAlert.promptDistracted,
-          AudibleAlert.prompt,
-          AudibleAlert.warningSoft,
-          AudibleAlert.warningImmediate,
+        AudibleAlert.none,
+        AudibleAlert.promptRepeat,
+        AudibleAlert.promptDistracted,
+        AudibleAlert.prompt,
+        AudibleAlert.warningSoft,
+        AudibleAlert.warningImmediate,
       }
     else:
       allowed_alerts = True
