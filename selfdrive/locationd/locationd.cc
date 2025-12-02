@@ -681,6 +681,11 @@ int Localizer::locationd_thread() {
   Params params;
   LocalizerGnssSource source;
   const char* gps_location_socket;
+
+  // Fake a wrong one first, to remove gpsLocation from Kalman Filter
+  gps_location_socket = "gpsLocationExternal";
+
+  /*
   if (params.getBool("UbloxAvailable")) {
     source = LocalizerGnssSource::UBLOX;
     gps_location_socket = "gpsLocationExternal";
@@ -688,6 +693,7 @@ int Localizer::locationd_thread() {
     source = LocalizerGnssSource::QCOM;
     gps_location_socket = "gpsLocation";
   }
+  */
 
   this->configure_gnss_source(source);
   const std::initializer_list<const char *> service_list = {gps_location_socket, "cameraOdometry", "liveCalibration",
