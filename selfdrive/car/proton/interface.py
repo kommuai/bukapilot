@@ -53,7 +53,7 @@ class CarInterface(CarInterfaceBase):
     elif candidate == CAR.X70:
       ret.lateralParams.torqueBP, ret.lateralParams.torqueV = [[0.], [500]]
     elif candidate == CAR.X90:
-      ret.lateralParams.torqueBP, ret.lateralParams.torqueV = [[0.], [545]]
+      ret.lateralParams.torqueBP, ret.lateralParams.torqueV = [[0.], [256]]
     else:
       ret.dashcamOnly = True
       ret.safetyModel = car.CarParams.SafetyModel.noOutput

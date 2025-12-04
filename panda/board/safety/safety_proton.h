@@ -1,4 +1,4 @@
-const CanMsg PROTON_TX_MSGS[] = {{432, 0, 8}, {417, 0, 8}};
+const CanMsg PROTON_TX_MSGS[] = {{432, 0, 8}, {417, 0, 8}, {643, 2, 8}};
 bool using_stock_acc = false;
 
 RxCheck proton_rx_checks[] = {

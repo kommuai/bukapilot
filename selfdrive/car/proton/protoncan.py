@@ -1,7 +1,7 @@
 from openpilot.common.numpy_fast import clip, interp
 from typing import List
 
-def create_can_steer_command(packer, steer, steer_req, wheel_touch_warning, wheel_touch_chime, \
+def create_can_steer_command(packer, steer, steer_req, wheel_touch_warning, wheel_touch_chime,
     lks_aux, lks_audio, lks_tactile, lks_assist_mode, lka_enable, stock_ldw_steer):
 
   values = {
@@ -18,7 +18,7 @@ def create_can_steer_command(packer, steer, steer_req, wheel_touch_warning, whee
     "STOCK_LKS_AUX": lks_aux,
     "LKS_WARNING_AUDIO_TYPE": lks_audio,
     "LKS_WARNING_TACTILE_TYPE": lks_tactile,
-    "LKS_ASSIST_MODE" : lks_assist_mode,
+    "LKS_ASSIST_MODE": lks_assist_mode,
     "HAND_ON_WHEEL_WARNING": wheel_touch_warning,
     "WHEEL_WARNING_CHIME": wheel_touch_chime,
   }
@@ -61,7 +61,7 @@ def create_acc_cmd(packer, accel, enabled, gas_override, standstill, stock, spee
     accel_cmd = 0
 
   if speed > 2.5:
-    mult = interp(speed, [2.5, 28.3], [0.9, 0.6])
+    mult = interp(speed, [2.5, 28.3], [1.0, 0.6])
     accel_cmd = min(stock * mult, accel_cmd)
 
   if accel_cmd > 0:
@@ -101,4 +101,4 @@ def send_buttons(packer, send_cruise=True):
       "SET_ME_BUTTON_PRESSED": 1,
     }
 
-  return packer.make_can_msg("ACC_BUTTONS", 0, values)
+  return packer.make_can_msg("ACC_BUTTONS", 2, values)
