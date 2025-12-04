@@ -1,7 +1,7 @@
 from opendbc.can.packer import CANPacker
 from openpilot.selfdrive.car.interfaces import CarControllerBase
 from openpilot.selfdrive.car.proton.protoncan import create_can_steer_command, send_buttons, create_acc_cmd
-from openpilot.selfdrive.car.proton.values import DBC
+from openpilot.selfdrive.car.proton.values import DBC, CAR
 from openpilot.common.numpy_fast import clip
 
 from openpilot.common.features import Features
@@ -76,12 +76,18 @@ class CarController(CarControllerBase):
       else:
         lks_audio, lks_tactile = CS.lks_audio, CS.lks_tactile
 
-      if (CS.out.standstill and actuators.accel > 0) or CS.out.genericToggle:
+      if (CS.out.standstill and actuators.accel > 0):
         self.resume = True
       else:
         self.resume = False
 
-      can_sends.append(create_can_steer_command(self.packer, apply_steer, lat_active, \
+      # Proton X90 steer values are even numbers if we don't want to edit the proton dbc
+      if self.CP.carFingerprint == CAR.X90:
+        steer_cmd = round(apply_steer) * 2
+      else:
+        steer_cmd = apply_steer
+
+      can_sends.append(create_can_steer_command(self.packer, steer_cmd, lat_active, \
                       CS.hand_on_wheel_warning and CS.is_icc_on, \
                       CS.is_icc_on and CS.hand_on_wheel_chime, \
                       CS.lks_aux, lks_audio, lks_tactile, CS.lks_assist_mode, \
@@ -91,10 +97,10 @@ class CarController(CarControllerBase):
         can_sends.append(create_acc_cmd(self.packer, actuators.accel, CC.longActive, CS.out.gasPressed, standstill_request, CS.stock_acc_cmd, CS.out.vEgo, self.resume))
       else:
         # SNG
-        if CC.enabled and CS.out.cruiseState.standstill:
+        if (CC.enabled and CS.out.standstill and (self.frame % 4 == 0)):
           can_sends.append(send_buttons(self.packer, False))
 
-    if pcm_cancel_cmd:
+    if pcm_cancel_cmd and not CS.out.brakePressed:
       can_sends.append(send_buttons(self.packer, 1))
 
     self.last_steer = apply_steer
