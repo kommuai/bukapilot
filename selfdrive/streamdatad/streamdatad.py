@@ -18,20 +18,25 @@ from openpilot.selfdrive.car.fingerprints import all_known_cars
 from openpilot.common.features import Features
 from openpilot.selfdrive.streamdatad.ble_helper import BLEBridge, ChunkReceiver
 
+# BLE Constants
 MESSAGE_HZ = 16 # Expected message rate, must match app visualisation value
 params = Params()
-features = Features()
 DONGLE_ID = (params.get("DongleId") or b"").decode()
 BLE_NAME = f"kommu-{DONGLE_ID}"  # BLE advertising name
 
-# Channel IDs
+# BLE Channel IDs
 CHANNEL_VISUALISATION = 0x01
 CHANNEL_SETTINGS = 0x02
 
-SM_UPDATE_INTERVAL = 33  # in ms, the interval where capnp submaster updates
+# Wi-Fi/nmcli Constants
 WIFI_CONNECT_TIMEOUT_SECONDS = 20  # Timeout for device Wi-Fi connection attempts
 NO_NETWORK_REGEX = re.compile(r"no network.*ssid", re.IGNORECASE)
+WIFI_SCAN_SIGNAL_THRESHOLD = 31 # Minimum signal strength required for Wi-Fi scan result
+
+# Device Constants
 SUPPORTED_MODELS = {getattr(car, 'value', car) for car in all_known_cars()}
+SM_UPDATE_INTERVAL = 33  # in ms, the interval where capnp submaster updates
+features = Features()
 
 # Call functions with cached values only once
 GIT_COMMIT = get_commit()[:7]
@@ -163,6 +168,48 @@ class Streamer:
     self.hotspot_enabled = False
     self.hotspot_ip = None
 
+  def scan_wifi(self):
+    if hasattr(self, "wifiScanProcess"): # Avoid starting a new scan until the previous one finishes
+      cloudlog.info("Wi-Fi scan already in progress, skipping")
+      return
+    def worker():
+      try:
+        cloudlog.info("Scanning for Wi-Fi")
+        result = subprocess.run(
+          ["sudo", "nmcli", "-t", "-f", "IN-USE,SSID,SIGNAL,SECURITY", "device", "wifi", "list", "ifname", "wlan0"],
+          text=True, capture_output=True, timeout=30
+        )
+        cloudlog.info("nmcli raw result\n" + result.stdout)
+        ssid_map = {}
+        if result.returncode == 0:
+          for line in result.stdout.strip().splitlines():
+            if (parts := line.split(":")) and len(parts) >= 4:
+              in_use, ssid, signal_str, security = parts[0], ":".join(parts[1:-2]), parts[-2], ":".join(parts[-1:])
+              if not (signal_str.isdigit() and (signal := int(signal_str)) >= 0):
+                cloudlog.warning(f"Skipping malformed line {line}")
+                continue
+              if ssid in ssid_map: # Deduplicate keep strongest signal and preserve in_use
+                if signal > ssid_map[ssid]["signal"]: ssid_map[ssid].update({"signal": signal, "security": security})
+                if in_use == "*": ssid_map[ssid]["in_use"] = True
+              else:
+                ssid_map[ssid] = {"ssid": ssid, "signal": signal, "security": security, "in_use": (in_use == "*")}
+          ssid_list = [
+            {"ssid": e["ssid"], "password": bool(e["security"] and e["security"] != "--"), "signal": e["signal"]}
+            for e in ssid_map.values()
+            if not e["in_use"] # Skip currently connected Wi-Fi
+            and "enterprise" not in e["security"].lower() and "802.1x" not in e["security"].lower() # Skip enterprise/802.1X networks (require username)
+            and e["ssid"] and e["signal"] >= WIFI_SCAN_SIGNAL_THRESHOLD
+          ]
+          ssid_list.sort(key=lambda x: x["signal"], reverse=True)
+          cloudlog.info("Wi-Fi list after filtering\n" + "\n".join(f"{e['ssid']} pw={e['password']} sig={e['signal']}%" for e in ssid_list))
+          self.wifiList = [{"ssid": e["ssid"], "password": e["password"]} for e in ssid_list]
+      except Exception as e:
+        cloudlog.error(f"Wi-Fi scan error {e}")
+      finally:
+        delattr(self, "wifiScanProcess") # Mark process finished
+    self.wifiScanProcess = True # Mark process started
+    threading.Thread(target=worker, daemon=True).start()
+
   def connect_to_wifi(self, ssid, password, cur_time):
     if not (ssid := ssid.strip()):
       return False
@@ -256,6 +303,10 @@ class Streamer:
     if hasattr(self, "supportTunnelOutput"):
       sett["supportTunnelOutput"] = self.supportTunnelOutput
       del self.supportTunnelOutput # remove temporary attribute from self
+
+    if hasattr(self, "wifiList"): # Send Wi-Fi scan result
+      sett["wifiList"] = self.wifiList
+      del self.wifiList
 
     bool_keys = {
       'OpenpilotEnabledToggle', 'QuietMode', 'IsAlcEnabled', 'IsLdwEnabled',
@@ -351,6 +402,8 @@ class Streamer:
             safe_put_all({"FormatSDCard": True}, True)
         case 'remoteSupport':
           self.run_remote_support()
+        case 'scanWifi':
+          self.scan_wifi()
         case 'enableHotspot':
           enable_hotspot()
     except Exception as e:
