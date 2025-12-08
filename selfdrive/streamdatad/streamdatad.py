@@ -159,7 +159,6 @@ class Streamer:
     self.last_1hz_task_time = 0
     self.local_wlan_ip = None
     self.active_wlan_ssid = None
-    self.current_wifi_iface_name = None
     self.wifi_connect_attempt_ssid = None
     self.wifi_connect_attempt_start_time = None
     threading.Thread(target=self.ble.start, daemon=True).start() # Start BLE peripheral
@@ -230,30 +229,21 @@ class Streamer:
 
   def update_wlan_info_async(self):
     def get_wlan_info():
-      if (interfaces := psutil.net_if_addrs()) and (stats := psutil.net_if_stats()) and "wlan0" in interfaces and stats.get("wlan0", {}).isup:
-        selected_iface = "wlan0"
-      else:
-        selected_iface = next(
-          (iface for iface in interfaces if iface.startswith("wl") and iface != "wlan1" and stats.get(iface, {}).isup and
-           any(a.family == socket.AF_INET for a in interfaces[iface])), None)
-      ip_address = ssid = None
-      if selected_iface:
-        ip_address = next((a.address for a in interfaces[selected_iface] if a.family == socket.AF_INET), None)
-        try:
-          if (result := subprocess.run(
-            ['nmcli', '-t', '-f', 'active,ssid,device', 'dev', 'wifi'], capture_output=True, text=True, timeout=0.1
-          )).returncode == 0 and (output := result.stdout):
-            for line in output.splitlines():
-              if (parts := line.split(':')) and len(parts) >= 3 and parts[0] == 'yes' and parts[2] == selected_iface:
-                ssid = parts[1]
-                break
-        except subprocess.TimeoutExpired:
-          pass
-        except Exception:
-          pass
+      ip_address = next((a.address for a in psutil.net_if_addrs().get("wlan0", []) if a.family == socket.AF_INET), None)
+      ssid = None
+      try:
+        result = subprocess.run(["nmcli", "-t", "-f", "active,ssid,device", "dev", "wifi"], capture_output=True, text=True, timeout=0.1)
+        if result.returncode == 0 and (output := result.stdout):
+          for line in output.splitlines():
+            if (parts := line.split(":")) and len(parts) >= 3 and parts[0] == "yes" and parts[2] == "wlan0":
+              ssid = parts[1]
+              break
+      except subprocess.TimeoutExpired:
+        pass
+      except Exception:
+        pass
       self.local_wlan_ip = ip_address
       self.active_wlan_ssid = ssid
-      self.current_wifi_iface_name = selected_iface
     threading.Thread(target=get_wlan_info, daemon=True).start()
 
   def check_hotspot_enabled(self):
