@@ -230,18 +230,11 @@ class Streamer:
   def update_wlan_info_async(self):
     def get_wlan_info():
       ip_address = next((a.address for a in psutil.net_if_addrs().get("wlan0", []) if a.family == socket.AF_INET), None)
-      ssid = None
       try:
-        result = subprocess.run(["nmcli", "-t", "-f", "active,ssid,device", "dev", "wifi"], capture_output=True, text=True, timeout=0.1)
-        if result.returncode == 0 and (output := result.stdout):
-          for line in output.splitlines():
-            if (parts := line.split(":")) and len(parts) >= 3 and parts[0] == "yes" and parts[2] == "wlan0":
-              ssid = parts[1]
-              break
-      except subprocess.TimeoutExpired:
-        pass
-      except Exception:
-        pass
+        result = subprocess.run(["iwgetid", "wlan0", "-r"], capture_output=True, text=True, timeout=0.2)
+        ssid = (result.stdout.strip() or None) if result.returncode == 0 else None
+      except (subprocess.TimeoutExpired, Exception):
+        ssid = None
       self.local_wlan_ip = ip_address
       self.active_wlan_ssid = ssid
     threading.Thread(target=get_wlan_info, daemon=True).start()
