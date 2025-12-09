@@ -33,7 +33,7 @@
 // ********************* Serial debugging *********************
 
 bool check_started(void) {
-  bool started = current_board->check_ignition() || ignition_can;
+  bool started = (current_board->check_ignition() && !ignore_ignition_line) || ignition_can;
   ignition_seen |= started;
   return started;
 }

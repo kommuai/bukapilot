@@ -229,7 +229,7 @@ void ignition_can_hook(CANPacket_t *to_push) {
       ignition_can_cnt = 0U;
     }
 
-    // Proton X50, need it to ignore ignition line too, can use 0x390 too
+    // Proton X50/X90, need it to ignore ignition line too
     if ((addr == 0x380) && (len == 8) && ignore_ignition_line) {
       ignition_can = true;
       ignition_can_cnt = 0U;
@@ -237,8 +237,9 @@ void ignition_can_hook(CANPacket_t *to_push) {
     if ((addr == 0x1A7) && (len == 8) && ignore_ignition_line_redundant) {
       ignore_ignition_line = true;
     }
-    // Proton X50 preFL 0x97, Proton X90 0x392
-    if ((addr == 0x97) || (addr == 0x392)) {
+    // Proton X50 preFL and X90 has but not S70, X50 FL and X70
+    // can use 295, 400, 401, 654, 683, 686
+    if (addr == 295) {
       ignore_ignition_line_redundant = true;
     }
 
