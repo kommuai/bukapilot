@@ -45,21 +45,20 @@ class CarController(CarControllerBase):
     self.last_steer = 0
     self.resume = False
     self.steer_rate_limited = False
-    self.steering_direction = False
     self.always_lks_tactile = Features().has("lks-tactile")
-    self.openpilot_long = not Features().has("stock-acc")
 
   def update(self, CC, CS, now_nanos):
     can_sends = []
 
-    enabled = CC.latActive
+    lat_active = CC.latActive
     actuators = CC.actuators
-    lat_active = enabled
     pcm_cancel_cmd = CC.cruiseControl.cancel
 
     # steer
     new_steer = round(actuators.steer * self.params.STEER_MAX)
     apply_steer = apply_proton_steer_torque_limits(new_steer, self.last_steer, 0, self.params)
+
+    # stock lane departure re-implementation
     if not lat_active and (stock_steer_cmd := CS.stock_ldp_cmd) > 0 and \
        not ((CS.out.rightBlinker and CS.stock_ldp_right) or (CS.out.leftBlinker and CS.stock_ldp_left)):
       lat_active = True
@@ -67,8 +66,8 @@ class CarController(CarControllerBase):
       self.steer_rate_limited = False
 
     if (self.frame % 2) == 0:
-      standstill_request = CS.out.standstill and CC.longActive and actuators.accel < -0.01
 
+      # stock lane departure settings
       ldw_steering = CS.stock_ldw_steering
       if self.always_lks_tactile:
         ldw_steering = ldw_steering or CS.has_audio_ldw
@@ -76,16 +75,12 @@ class CarController(CarControllerBase):
       else:
         lks_audio, lks_tactile = CS.lks_audio, CS.lks_tactile
 
-      if (CS.out.standstill and actuators.accel > 0):
-        self.resume = True
-      else:
-        self.resume = False
+      # standstill logic
+      standstill_request = CS.out.standstill and CC.longActive and actuators.accel < -0.01
+      self.resume = True if (CS.out.standstill and actuators.accel > 0) else False
 
-      # Proton X90 steer values are even numbers if we don't want to edit the proton dbc
-      if self.CP.carFingerprint == CAR.X90:
-        steer_cmd = round(apply_steer) * 2
-      else:
-        steer_cmd = apply_steer
+      # proton X90 steer values are even numbers if we don't want to edit the proton dbc
+      steer_cmd = (round(apply_steer) * 2) if self.CP.carFingerprint == CAR.X90 else apply_steer
 
       can_sends.append(create_can_steer_command(self.packer, steer_cmd, lat_active, \
                       CS.hand_on_wheel_warning and CS.is_icc_on, \
@@ -93,13 +88,13 @@ class CarController(CarControllerBase):
                       CS.lks_aux, lks_audio, lks_tactile, CS.lks_assist_mode, \
                       CS.lka_enable, 0))
 
-      if self.openpilot_long:
-        can_sends.append(create_acc_cmd(self.packer, actuators.accel, CC.longActive, CS.out.gasPressed, standstill_request, CS.stock_acc_cmd, CS.out.vEgo, self.resume))
-      else:
-        # SNG
-        if (CC.enabled and CS.out.standstill and (self.frame % 4 == 0)):
-          can_sends.append(send_buttons(self.packer, False))
+      can_sends.append(create_acc_cmd(self.packer, actuators.accel, CC.longActive, CS.out.gasPressed, standstill_request, CS.stock_acc_cmd, CS.out.vEgo, self.resume))
 
+      # to disengage from stock cruise standstill
+      if (CC.enabled and CS.out.standstill and (self.frame % 60 == 0)):
+        can_sends.append(send_buttons(self.packer, False))
+
+    # cancel stock cruise if error at openpilot
     if pcm_cancel_cmd and not CS.out.brakePressed:
       can_sends.append(send_buttons(self.packer, 1))
 

@@ -1,5 +1,4 @@
 from openpilot.common.numpy_fast import clip, interp
-from typing import List
 
 def create_can_steer_command(packer, steer, steer_req, wheel_touch_warning, wheel_touch_chime,
     lks_aux, lks_audio, lks_tactile, lks_assist_mode, lka_enable, stock_ldw_steer):
@@ -25,43 +24,16 @@ def create_can_steer_command(packer, steer, steer_req, wheel_touch_warning, whee
 
   return packer.make_can_msg("ADAS_LKAS", 0, values)
 
-def create_hud(packer, steer, steer_req, ldw, rlane, llane):
-  steer_dir = steer <= 0
-  values = {
-    "LANE_DEPARTURE_AUDIO_RIGHT": ldw and not steer_dir,
-    "LANE_DEPARTURE_AUDIO_LEFT": ldw and steer_dir,
-    "LEFT_LANE_VISIBLE_DISENGAGE": 0,
-    "RIGHT_LANE_VISIBLE_DISENGAGE": 0,
-    "STEER_REQ_RIGHT": steer_req,
-    "STEER_REQ_LEFT": steer_req,
-    "STEER_REQ_MAJOR": 1 if steer_req else 0,
-    "LLANE_CHAR": 0x91 if steer_req else 0x4b,
-    "CURVATURE": 0x3f if steer_req else 0x3f,
-    "RLANE_CHAR": 0xaa if steer_req else 0x3d,
-  }
-
-  return packer.make_can_msg("LKAS", 0, values)
-
-def create_lead_detect(packer, is_lead, steer_req):
-  values = {
-    "LEAD_DISTANCE": 30,
-    "NEW_SIGNAL_1": 0x7f,
-    "NEW_SIGNAL_2": 0x7e,
-    "IS_LEAD2": is_lead,
-    "IS_LEAD1": is_lead,
-    "LEAD_TOO_NEAR": 0,
-  }
-
-  return packer.make_can_msg("ADAS_LEAD_DETECT", 0, values)
-
 def create_acc_cmd(packer, accel, enabled, gas_override, standstill, stock, speed, resume):
-  accel_cmd = accel * 15 if accel >= 0 else accel * 20
+  accel_cmd = accel * 15 if accel >= 0 else accel * 18
 
   if gas_override:
     accel_cmd = 0
 
-  if speed > 2.5:
-    mult = interp(speed, [2.5, 28.3], [1.0, 0.6])
+  mult = interp(speed, [0, 28.3], [1.0, 0.6])
+  if speed < 2.5:
+    accel_cmd = (stock * mult + accel_cmd)/2
+  else:
     accel_cmd = min(stock * mult, accel_cmd)
 
   if accel_cmd > 0:
