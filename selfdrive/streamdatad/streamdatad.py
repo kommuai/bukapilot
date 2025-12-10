@@ -175,32 +175,30 @@ class Streamer:
       try:
         cloudlog.info("Scanning for Wi-Fi")
         result = subprocess.run(
-          ["sudo", "nmcli", "-t", "-f", "IN-USE,SSID,SIGNAL,SECURITY", "device", "wifi", "list", "ifname", "wlan0"],
+          ["sudo", "nmcli", "-t", "-f", "SSID,SIGNAL,SECURITY", "device", "wifi", "list", "ifname", "wlan0"],
           text=True, capture_output=True, timeout=30
         )
-        cloudlog.info("nmcli raw result\n" + result.stdout)
+        cloudlog.info("nmcli raw result:\n" + result.stdout)
         ssid_map = {}
         if result.returncode == 0:
           for line in result.stdout.strip().splitlines():
-            if (parts := line.split(":")) and len(parts) >= 4:
-              in_use, ssid, signal_str, security = parts[0], ":".join(parts[1:-2]), parts[-2], ":".join(parts[-1:])
+            if (parts := line.split(":")) and len(parts) >= 3:
+              ssid, signal_str, security = parts[0], parts[1], ":".join(parts[2:])
               if not (signal_str.isdigit() and (signal := int(signal_str)) >= 0):
                 cloudlog.warning(f"Skipping malformed line {line}")
                 continue
-              if ssid in ssid_map: # Deduplicate keep strongest signal and preserve in_use
+              if ssid in ssid_map: # Deduplicate keep strongest signal
                 if signal > ssid_map[ssid]["signal"]: ssid_map[ssid].update({"signal": signal, "security": security})
-                if in_use == "*": ssid_map[ssid]["in_use"] = True
               else:
-                ssid_map[ssid] = {"ssid": ssid, "signal": signal, "security": security, "in_use": (in_use == "*")}
+                ssid_map[ssid] = {"ssid": ssid, "signal": signal, "security": security}
           ssid_list = [
             {"ssid": e["ssid"], "password": bool(e["security"] and e["security"] != "--"), "signal": e["signal"]}
             for e in ssid_map.values()
-            if not e["in_use"] # Skip currently connected Wi-Fi
-            and "enterprise" not in e["security"].lower() and "802.1x" not in e["security"].lower() # Skip enterprise/802.1X networks (require username)
+            if "enterprise" not in e["security"].lower() and "802.1x" not in e["security"].lower() # Skip networks that require username
             and e["ssid"] and e["signal"] >= WIFI_SCAN_SIGNAL_THRESHOLD
           ]
           ssid_list.sort(key=lambda x: x["signal"], reverse=True)
-          cloudlog.info("Wi-Fi list after filtering\n" + "\n".join(f"{e['ssid']} pw={e['password']} sig={e['signal']}%" for e in ssid_list))
+          cloudlog.info("Wi-Fi list after filtering:\n" + "\n".join(f"{e['ssid']} pw={e['password']} sig={e['signal']}%" for e in ssid_list))
           self.wifiList = [{"ssid": e["ssid"], "password": e["password"]} for e in ssid_list]
       except Exception as e:
         cloudlog.error(f"Wi-Fi scan error {e}")
