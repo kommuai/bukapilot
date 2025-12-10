@@ -36,6 +36,7 @@ class CarState(CarStateBase):
 
     self.stock_acc_cmd = 0
     self.cruise_latch = False
+    self.cruise_standstill = False
 
   def update(self, cp, cp_cam):
     ret = car.CarState.new_message()
@@ -121,7 +122,7 @@ class CarState(CarStateBase):
     self.cruise_speed = int(cp_cam.vl["PCM_BUTTONS"]['ACC_SET_SPEED']) * CV.KPH_TO_MS
     ret.cruiseState.speedCluster = self.cruise_speed
     ret.cruiseState.speed = ret.cruiseState.speedCluster / HUD_MULTIPLIER
-    #ret.cruiseState.standstill = bool(cp_cam.vl["ACC_CMD"]["STANDSTILL_REQ"])
+    self.cruise_standstill = bool(cp_cam.vl["ACC_CMD"]["STANDSTILL_REQ"]) and not ret.gasPressed
     ret.cruiseState.standstill = False
     ret.cruiseState.nonAdaptive = False
     ret.cruiseState.enabled = (cp_cam.vl["ACC_CMD"]["ACC_REQ"] \
