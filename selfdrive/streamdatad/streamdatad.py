@@ -22,20 +22,21 @@ from openpilot.selfdrive.streamdatad.ble_helper import BLEBridge, ChunkReceiver
 MESSAGE_HZ = 16 # Expected message rate, must match app visualisation value
 params = Params()
 DONGLE_ID = (params.get("DongleId") or b"").decode()
-BLE_NAME = f"kommu-{DONGLE_ID}"  # BLE advertising name
+BLE_NAME = f"kommu-{DONGLE_ID}" # BLE advertising name
 
 # BLE Channel IDs
 CHANNEL_VISUALISATION = 0x01
 CHANNEL_SETTINGS = 0x02
 
 # Wi-Fi/nmcli Constants
-WIFI_CONNECT_TIMEOUT_SECONDS = 20  # Timeout for device Wi-Fi connection attempts
+WIFI_CONNECT_TIMEOUT_SECONDS = 20 # Timeout for device Wi-Fi connection attempts
 NO_NETWORK_REGEX = re.compile(r"no network.*ssid", re.IGNORECASE)
 WIFI_SCAN_SIGNAL_THRESHOLD = 31 # Minimum signal strength required for Wi-Fi scan result
 
 # Device Constants
+HOTSPOT_SERVICE = "wlan1-setup.service"
 SUPPORTED_MODELS = {getattr(car, 'value', car) for car in all_known_cars()}
-SM_UPDATE_INTERVAL = 33  # in ms, the interval where capnp submaster updates
+SM_UPDATE_INTERVAL = 33 # in ms, the interval where capnp submaster updates
 features = Features()
 
 # Call functions with cached values only once
@@ -115,13 +116,29 @@ def do_reboot(state):
   if state == log.ControlsState.OpenpilotState.disabled:
     params.put_bool_nonblocking("DoReboot", True)
 
+def _systemctl(action, service=HOTSPOT_SERVICE):
+  try:
+    subprocess.run(["sudo", "systemctl", action, service], check=True)
+    cloudlog.info(f"systemctl {action} {service} succeeded")
+  except Exception as e:
+    cloudlog.error(f"systemctl {action} {service} failed: {e}")
+
 def enable_hotspot():
-  def start_service():
+  def worker():
+    _systemctl("enable", HOTSPOT_SERVICE)
+    _systemctl("start", HOTSPOT_SERVICE)
+  threading.Thread(target=worker, daemon=True).start()
+
+def disable_hotspot():
+  def worker():
+    _systemctl("stop", HOTSPOT_SERVICE)
+    _systemctl("disable", HOTSPOT_SERVICE)
     try:
-      subprocess.run(["sudo", "systemctl", "start", "wlan1-setup.service"])
+      subprocess.run(["sudo", "ip", "link", "set", "wlan1", "down"], check=False)
+      cloudlog.info("wlan1 interface disabled")
     except Exception as e:
-      cloudlog.error(f"Failed to start hotspot service: {e}")
-  threading.Thread(target=start_service, daemon=True).start()
+      cloudlog.error(f"Failed to disable wlan1 interface: {e}")
+  threading.Thread(target=worker, daemon=True).start()
 
 def update_dict_from_sm(target_dict, sm_subset, keys):
   try:
@@ -387,6 +404,8 @@ class Streamer:
           self.scan_wifi()
         case 'enableHotspot':
           enable_hotspot()
+        case 'disableHotspot':
+          disable_hotspot()
     except Exception as e:
       cloudlog.error(f"Apply BLE settings error: {e}")
 
