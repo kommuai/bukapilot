@@ -13,6 +13,7 @@ def create_can_steer_command(packer, steer, steer_req, wheel_touch_warning, whee
     # Disable steering vibration for LDW if steer not enabled and LKS set to Warn Only mode and Tactile warning type
     "LDW_STEERING": stock_ldw_steer,
     "SET_ME_1": 1,
+    "SET_ME_1_2": 1,
     "LKS_STATUS": 1,
     "STOCK_LKS_AUX": lks_aux,
     "LKS_WARNING_AUDIO_TYPE": lks_audio,

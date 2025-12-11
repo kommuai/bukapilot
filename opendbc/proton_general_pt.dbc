@@ -197,6 +197,7 @@ BO_ 432 ADAS_LKAS: 8 XXX
  SG_ STEER_DIR : 52|1@0+ (1,0) [0|1] "" XXX
  SG_ LDW_READY : 0|1@0+ (1,0) [0|1] "" XXX
  SG_ SET_ME_1 : 9|1@0+ (1,0) [0|1] "" XXX
+ SG_ SET_ME_1_2 : 21|1@0+ (1,0) [0|1] "" XXX
  SG_ LDW_STEERING : 4|1@0+ (1,0) [0|1] "" XXX
 
 BO_ 422 ADAS_LEAD_DETECT: 8 XXX
