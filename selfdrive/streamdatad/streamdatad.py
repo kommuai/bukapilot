@@ -18,20 +18,26 @@ from openpilot.selfdrive.car.fingerprints import all_known_cars
 from openpilot.common.features import Features
 from openpilot.selfdrive.streamdatad.ble_helper import BLEBridge, ChunkReceiver
 
+# BLE Constants
 MESSAGE_HZ = 16 # Expected message rate, must match app visualisation value
 params = Params()
-features = Features()
 DONGLE_ID = (params.get("DongleId") or b"").decode()
-BLE_NAME = f"kommu-{DONGLE_ID}"  # BLE advertising name
+BLE_NAME = f"kommu-{DONGLE_ID}" # BLE advertising name
 
-# Channel IDs
+# BLE Channel IDs
 CHANNEL_VISUALISATION = 0x01
 CHANNEL_SETTINGS = 0x02
 
-SM_UPDATE_INTERVAL = 33  # in ms, the interval where capnp submaster updates
-WIFI_CONNECT_TIMEOUT_SECONDS = 20  # Timeout for device Wi-Fi connection attempts
+# Wi-Fi/nmcli Constants
+WIFI_CONNECT_TIMEOUT_SECONDS = 20 # Timeout for device Wi-Fi connection attempts
 NO_NETWORK_REGEX = re.compile(r"no network.*ssid", re.IGNORECASE)
+WIFI_SCAN_SIGNAL_THRESHOLD = 31 # Minimum signal strength required for Wi-Fi scan result
+
+# Device Constants
+HOTSPOT_SERVICE = "wlan1-setup.service"
 SUPPORTED_MODELS = {getattr(car, 'value', car) for car in all_known_cars()}
+SM_UPDATE_INTERVAL = 33 # in ms, the interval where capnp submaster updates
+features = Features()
 
 # Call functions with cached values only once
 GIT_COMMIT = get_commit()[:7]
@@ -110,13 +116,29 @@ def do_reboot(state):
   if state == log.ControlsState.OpenpilotState.disabled:
     params.put_bool_nonblocking("DoReboot", True)
 
+def _systemctl(action, service=HOTSPOT_SERVICE):
+  try:
+    subprocess.run(["sudo", "systemctl", action, service], check=True)
+    cloudlog.info(f"systemctl {action} {service} succeeded")
+  except Exception as e:
+    cloudlog.error(f"systemctl {action} {service} failed: {e}")
+
 def enable_hotspot():
-  def start_service():
+  def worker():
+    _systemctl("enable", HOTSPOT_SERVICE)
+    _systemctl("start", HOTSPOT_SERVICE)
+  threading.Thread(target=worker, daemon=True).start()
+
+def disable_hotspot():
+  def worker():
+    _systemctl("stop", HOTSPOT_SERVICE)
+    _systemctl("disable", HOTSPOT_SERVICE)
     try:
-      subprocess.run(["sudo", "systemctl", "start", "wlan1-setup.service"])
+      subprocess.run(["sudo", "ip", "link", "set", "wlan1", "down"], check=False)
+      cloudlog.info("wlan1 interface disabled")
     except Exception as e:
-      cloudlog.error(f"Failed to start hotspot service: {e}")
-  threading.Thread(target=start_service, daemon=True).start()
+      cloudlog.error(f"Failed to disable wlan1 interface: {e}")
+  threading.Thread(target=worker, daemon=True).start()
 
 def update_dict_from_sm(target_dict, sm_subset, keys):
   try:
@@ -154,7 +176,6 @@ class Streamer:
     self.last_1hz_task_time = 0
     self.local_wlan_ip = None
     self.active_wlan_ssid = None
-    self.current_wifi_iface_name = None
     self.wifi_connect_attempt_ssid = None
     self.wifi_connect_attempt_start_time = None
     threading.Thread(target=self.ble.start, daemon=True).start() # Start BLE peripheral
@@ -162,6 +183,46 @@ class Streamer:
     self.send_channel = None # Keep track of which channel to send messages
     self.hotspot_enabled = False
     self.hotspot_ip = None
+
+  def scan_wifi(self):
+    if hasattr(self, "wifiScanProcess"): # Avoid starting a new scan until the previous one finishes
+      cloudlog.info("Wi-Fi scan already in progress, skipping")
+      return
+    def worker():
+      try:
+        cloudlog.info("Scanning for Wi-Fi")
+        result = subprocess.run(
+          ["sudo", "nmcli", "-t", "-f", "SSID,SIGNAL,SECURITY", "device", "wifi", "list", "ifname", "wlan0"],
+          text=True, capture_output=True, timeout=30
+        )
+        cloudlog.info("nmcli raw result:\n" + result.stdout)
+        ssid_map = {}
+        if result.returncode == 0:
+          for line in result.stdout.strip().splitlines():
+            if (parts := line.split(":")) and len(parts) >= 3:
+              ssid, signal_str, security = parts[0], parts[1], ":".join(parts[2:])
+              if not (signal_str.isdigit() and (signal := int(signal_str)) >= 0):
+                cloudlog.warning(f"Skipping malformed line {line}")
+                continue
+              if ssid in ssid_map: # Deduplicate keep strongest signal
+                if signal > ssid_map[ssid]["signal"]: ssid_map[ssid].update({"signal": signal, "security": security})
+              else:
+                ssid_map[ssid] = {"ssid": ssid, "signal": signal, "security": security}
+          ssid_list = [
+            {"ssid": e["ssid"], "password": bool(e["security"] and e["security"] != "--"), "signal": e["signal"]}
+            for e in ssid_map.values()
+            if "enterprise" not in e["security"].lower() and "802.1x" not in e["security"].lower() # Skip networks that require username
+            and e["ssid"] and e["signal"] >= WIFI_SCAN_SIGNAL_THRESHOLD
+          ]
+          ssid_list.sort(key=lambda x: x["signal"], reverse=True)
+          cloudlog.info("Wi-Fi list after filtering:\n" + "\n".join(f"{e['ssid']} pw={e['password']} sig={e['signal']}%" for e in ssid_list))
+          self.wifiList = [{"ssid": e["ssid"], "password": e["password"]} for e in ssid_list]
+      except Exception as e:
+        cloudlog.error(f"Wi-Fi scan error {e}")
+      finally:
+        delattr(self, "wifiScanProcess") # Mark process finished
+    self.wifiScanProcess = True # Mark process started
+    threading.Thread(target=worker, daemon=True).start()
 
   def connect_to_wifi(self, ssid, password, cur_time):
     if not (ssid := ssid.strip()):
@@ -181,44 +242,19 @@ class Streamer:
     threading.Thread(target=run_nmcli, daemon=True).start()
     return True
 
-  def update_wlan_info_async(self):
-    def get_wlan_info():
-      if (interfaces := psutil.net_if_addrs()) and (stats := psutil.net_if_stats()) and "wlan0" in interfaces and stats.get("wlan0", {}).isup:
-        selected_iface = "wlan0"
-      else:
-        selected_iface = next(
-          (iface for iface in interfaces if iface.startswith("wl") and iface != "wlan1" and stats.get(iface, {}).isup and
-           any(a.family == socket.AF_INET for a in interfaces[iface])), None)
-      ip_address = ssid = None
-      if selected_iface:
-        ip_address = next((a.address for a in interfaces[selected_iface] if a.family == socket.AF_INET), None)
-        try:
-          if (result := subprocess.run(
-            ['nmcli', '-t', '-f', 'active,ssid,device', 'dev', 'wifi'], capture_output=True, text=True, timeout=0.1
-          )).returncode == 0 and (output := result.stdout):
-            for line in output.splitlines():
-              if (parts := line.split(':')) and len(parts) >= 3 and parts[0] == 'yes' and parts[2] == selected_iface:
-                ssid = parts[1]
-                break
-        except subprocess.TimeoutExpired:
-          pass
-        except Exception:
-          pass
-      self.local_wlan_ip = ip_address
-      self.active_wlan_ssid = ssid
-      self.current_wifi_iface_name = selected_iface
-    threading.Thread(target=get_wlan_info, daemon=True).start()
-
-  def check_hotspot_enabled(self):
-    def check_interface():
+  def update_network_info(self):
+    def get_network_info():
+      def get_ip(iface):
+        return next((a.address for a in psutil.net_if_addrs().get(iface, []) if a.family == socket.AF_INET), None)
       try:
-        addrs, stats = psutil.net_if_addrs(), psutil.net_if_stats()
-        self.hotspot_enabled = (s := stats.get(w1 := "wlan1")) and s.isup
-        self.hotspot_ip = next((a.address for a in addrs.get(w1, []) if a.family == 2), None) if self.hotspot_enabled else None
+        self.local_wlan_ip = get_ip("wlan0")
+        self.active_wlan_ssid = (subprocess.run(["iwgetid", "wlan0", "-r"], capture_output=True, text=True, timeout=0.2).stdout.strip() or None)
+        wlan1_ip = get_ip("wlan1")
+        self.hotspot_enabled = bool(wlan1_ip)
+        self.hotspot_ip = wlan1_ip
       except Exception:
-        self.hotspot_enabled = False
-        self.hotspot_ip = None
-    threading.Thread(target=check_interface, daemon=True).start()
+        self.local_wlan_ip, self.active_wlan_ssid, self.hotspot_enabled, self.hotspot_ip = None, None, False, None
+    threading.Thread(target=get_network_info, daemon=True).start()
 
   def send_visualisation_message(self, is_metric):
     (data := extract_model_data((sm := self.sm)['modelV2'].to_dict()))
@@ -256,6 +292,10 @@ class Streamer:
     if hasattr(self, "supportTunnelOutput"):
       sett["supportTunnelOutput"] = self.supportTunnelOutput
       del self.supportTunnelOutput # remove temporary attribute from self
+
+    if hasattr(self, "wifiList"): # Send Wi-Fi scan result
+      sett["wifiList"] = self.wifiList
+      del self.wifiList
 
     bool_keys = {
       'OpenpilotEnabledToggle', 'QuietMode', 'IsAlcEnabled', 'IsLdwEnabled',
@@ -351,8 +391,12 @@ class Streamer:
             safe_put_all({"FormatSDCard": True}, True)
         case 'remoteSupport':
           self.run_remote_support()
+        case 'scanWifi':
+          self.scan_wifi()
         case 'enableHotspot':
           enable_hotspot()
+        case 'disableHotspot':
+          disable_hotspot()
     except Exception as e:
       cloudlog.error(f"Apply BLE settings error: {e}")
 
@@ -381,8 +425,8 @@ class Streamer:
       # 1 Hz WiFi/hotspot task
       if (cur_time := monotonic()) - self.last_1hz_task_time >= 1:
         self.last_1hz_task_time = cur_time
-        # Check WiFi
-        self.update_wlan_info_async()
+        # Check WiFi and hotspot
+        self.update_network_info()
         if attempt_ssid := self.wifi_connect_attempt_ssid:
           if ((connected := self.active_wlan_ssid == attempt_ssid) or
               (cur_time - self.wifi_connect_attempt_start_time) >= WIFI_CONNECT_TIMEOUT_SECONDS):
@@ -393,8 +437,6 @@ class Streamer:
               cloudlog.info(f"Wi-Fi {attempt_ssid} connected")
             self.wifi_connect_attempt_ssid = None
             self.wifi_connect_attempt_start_time = None
-        # Check hotspot
-        self.check_hotspot_enabled()
 
       if self.ble.connected: # Only receive/send if connected
         is_offroad = None # Always get latest is_offroad
