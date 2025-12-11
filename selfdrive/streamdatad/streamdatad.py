@@ -257,8 +257,7 @@ class Streamer:
   def check_hotspot_enabled(self):
     def check_interface():
       try:
-        addrs = psutil.net_if_addrs()
-        ip = next((a.address for a in addrs.get("wlan1", []) if a.family == 2), None)
+        ip = next((a.address for a in psutil.net_if_addrs().get("wlan1", []) if a.family == socket.AF_INET), None)
         self.hotspot_enabled, self.hotspot_ip = (True, ip) if ip else (False, None)
       except Exception:
         self.hotspot_enabled = False
