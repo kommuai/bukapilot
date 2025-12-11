@@ -242,27 +242,19 @@ class Streamer:
     threading.Thread(target=run_nmcli, daemon=True).start()
     return True
 
-  def update_wlan_info_async(self):
-    def get_wlan_info():
-      ip_address = next((a.address for a in psutil.net_if_addrs().get("wlan0", []) if a.family == socket.AF_INET), None)
+  def update_network_info(self):
+    def get_network_info():
+      def get_ip(iface):
+        return next((a.address for a in psutil.net_if_addrs().get(iface, []) if a.family == socket.AF_INET), None)
       try:
-        result = subprocess.run(["iwgetid", "wlan0", "-r"], capture_output=True, text=True, timeout=0.2)
-        ssid = (result.stdout.strip() or None) if result.returncode == 0 else None
-      except (subprocess.TimeoutExpired, Exception):
-        ssid = None
-      self.local_wlan_ip = ip_address
-      self.active_wlan_ssid = ssid
-    threading.Thread(target=get_wlan_info, daemon=True).start()
-
-  def check_hotspot_enabled(self):
-    def check_interface():
-      try:
-        ip = next((a.address for a in psutil.net_if_addrs().get("wlan1", []) if a.family == socket.AF_INET), None)
-        self.hotspot_enabled, self.hotspot_ip = (True, ip) if ip else (False, None)
+        self.local_wlan_ip = get_ip("wlan0")
+        self.active_wlan_ssid = (subprocess.run(["iwgetid", "wlan0", "-r"], capture_output=True, text=True, timeout=0.2).stdout.strip() or None)
+        wlan1_ip = get_ip("wlan1")
+        self.hotspot_enabled = bool(wlan1_ip)
+        self.hotspot_ip = wlan1_ip
       except Exception:
-        self.hotspot_enabled = False
-        self.hotspot_ip = None
-    threading.Thread(target=check_interface, daemon=True).start()
+        self.local_wlan_ip, self.active_wlan_ssid, self.hotspot_enabled, self.hotspot_ip = None, None, False, None
+    threading.Thread(target=get_network_info, daemon=True).start()
 
   def send_visualisation_message(self, is_metric):
     (data := extract_model_data((sm := self.sm)['modelV2'].to_dict()))
@@ -433,8 +425,8 @@ class Streamer:
       # 1 Hz WiFi/hotspot task
       if (cur_time := monotonic()) - self.last_1hz_task_time >= 1:
         self.last_1hz_task_time = cur_time
-        # Check WiFi
-        self.update_wlan_info_async()
+        # Check WiFi and hotspot
+        self.update_network_info()
         if attempt_ssid := self.wifi_connect_attempt_ssid:
           if ((connected := self.active_wlan_ssid == attempt_ssid) or
               (cur_time - self.wifi_connect_attempt_start_time) >= WIFI_CONNECT_TIMEOUT_SECONDS):
@@ -445,8 +437,6 @@ class Streamer:
               cloudlog.info(f"Wi-Fi {attempt_ssid} connected")
             self.wifi_connect_attempt_ssid = None
             self.wifi_connect_attempt_start_time = None
-        # Check hotspot
-        self.check_hotspot_enabled()
 
       if self.ble.connected: # Only receive/send if connected
         is_offroad = None # Always get latest is_offroad
