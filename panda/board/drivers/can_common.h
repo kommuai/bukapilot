@@ -230,7 +230,7 @@ void ignition_can_hook(CANPacket_t *to_push) {
     }
 
     // Proton X50/X90, need it to ignore ignition line too
-    if ((addr == 0x380) && (len == 8) && ignore_ignition_line) {
+    if ((addr == 0x380) && (len == 8)) {
       ignition_can = true;
       ignition_can_cnt = 0U;
     }
