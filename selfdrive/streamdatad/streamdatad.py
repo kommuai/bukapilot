@@ -131,13 +131,9 @@ def enable_hotspot():
 
 def disable_hotspot():
   def worker():
+    subprocess.run(["sudo", "ip", "link", "set", "wlan1", "down"], check=False)
     _systemctl("stop", HOTSPOT_SERVICE)
     _systemctl("disable", HOTSPOT_SERVICE)
-    try:
-      subprocess.run(["sudo", "ip", "link", "set", "wlan1", "down"], check=False)
-      cloudlog.info("wlan1 interface disabled")
-    except Exception as e:
-      cloudlog.error(f"Failed to disable wlan1 interface: {e}")
   threading.Thread(target=worker, daemon=True).start()
 
 def update_dict_from_sm(target_dict, sm_subset, keys):
