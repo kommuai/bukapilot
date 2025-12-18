@@ -34,6 +34,7 @@ NO_NETWORK_REGEX = re.compile(r"no network.*ssid", re.IGNORECASE)
 WIFI_SCAN_SIGNAL_THRESHOLD = 31 # Minimum signal strength required for Wi-Fi scan result
 
 # Device Constants
+UPDATE_PROCESS = "selfdrive.updated"
 HOTSPOT_SERVICE = "wlan1-setup.service"
 SUPPORTED_MODELS = {getattr(car, 'value', car) for car in all_known_cars()}
 SM_UPDATE_INTERVAL = 33 # in ms, the interval where capnp submaster updates
@@ -50,15 +51,12 @@ def forget_wifi_network(ssid):
   threading.Thread(daemon=True, target=lambda: subprocess.run(["sudo", "nmcli", "con", "delete", ssid], text=True)).start()
   return True
 
-def check_for_updates():
-  subprocess.Popen(["pkill", "-SIGUSR1", "-f", "system.updated.updated"])
-
-def fetch_update():
-  subprocess.Popen(["pkill", "-SIGHUP", "-f", "system.updated.updated"])
+def send_update_signal(action="check"):
+  subprocess.Popen(["pkill", f"-{'SIGHUP' if action == 'fetch' else 'SIGUSR1'}", "-f", UPDATE_PROCESS])
 
 def change_branch_and_update(target_branch):
   params.put("UpdaterTargetBranch", target_branch)
-  check_for_updates()
+  send_update_signal("check")
 
 def resample(data, target=None):
   """Resamples data by a fraction of its original length."""
@@ -362,11 +360,11 @@ class Streamer:
         case 'update':
           match settings.get('action'):
             case 'check':
-              check_for_updates()
+              send_update_signal("check")
             case 'install':
               do_reboot(state)
             case 'fetch':
-              fetch_update()
+              send_update_signal("fetch")
         case 'ssh':
           # Empty string is falsy, allows removal
           if username := settings.get('username'):
