@@ -500,6 +500,14 @@ EVENTS: dict[int, dict[str, Alert | AlertCallbackType]] = {
     ET.WARNING: below_steer_speed_alert,
   },
 
+  EventName.blinkerSteerRequired: {
+    ET.WARNING: Alert(
+      "Steer Manually",
+      "Below Assisted Lane Change Speed or ALC Disabled",
+      AlertStatus.userPrompt, AlertSize.mid,
+      Priority.MID, VisualAlert.steerRequired, AudibleAlert.none, .1),
+  },
+
   EventName.preLaneChangeLeft: {
     ET.WARNING: Alert(
       "Steer Left to Start Lane Change Once Safe",

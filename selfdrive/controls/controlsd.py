@@ -30,13 +30,14 @@ from openpilot.selfdrive.controls.lib.latcontrol_angle import LatControlAngle, S
 from openpilot.selfdrive.controls.lib.latcontrol_torque import LatControlTorque
 from openpilot.selfdrive.controls.lib.longcontrol import LongControl
 from openpilot.selfdrive.controls.lib.vehicle_model import VehicleModel
+from selfdrive.controls.lib.alc_helper import ALCHelper
 
 from openpilot.system.hardware import HARDWARE
 from openpilot.system.version import get_short_branch
 
 SOFT_DISABLE_TIME = 3  # seconds
 LDW_MIN_SPEED = 31 * CV.MPH_TO_MS
-LANE_DEPARTURE_THRESHOLD = 0.1
+LANE_DEPARTURE_THRESHOLD = 0.01
 CAMERA_OFFSET = 0.04
 
 REPLAY = "REPLAY" in os.environ
@@ -231,6 +232,8 @@ class Controls:
     self.CS_prev = car.CarState.new_message()
     self.AM = AlertManager()
     self.events = Events()
+    self.alc_helper = ALCHelper()
+    self.alc_active = False
 
     self.LoC = LongControl(self.CP)
     self.VM = VehicleModel(self.CP)
@@ -378,7 +381,7 @@ class Controls:
         self.events.add(EventName.calibrationInvalid)
 
     # Handle lane change
-    if self.sm['modelV2'].meta.laneChangeState == LaneChangeState.preLaneChange:
+    if self.sm['modelV2'].meta.laneChangeState == LaneChangeState.preLaneChange and self.alc_active:
       direction = self.sm['modelV2'].meta.laneChangeDirection
       if (CS.leftBlindspot and direction == LaneChangeDirection.left) or \
          (CS.rightBlindspot and direction == LaneChangeDirection.right):
@@ -389,7 +392,7 @@ class Controls:
         else:
           self.events.add(EventName.preLaneChangeRight)
     elif self.sm['modelV2'].meta.laneChangeState in (LaneChangeState.laneChangeStarting,
-                                                    LaneChangeState.laneChangeFinishing):
+                                                    LaneChangeState.laneChangeFinishing) and self.alc_active:
       self.events.add(EventName.laneChange)
 
     for i, pandaState in enumerate(self.sm['pandaStates']):
@@ -665,6 +668,8 @@ class Controls:
 
     long_plan = self.sm['longitudinalPlan']
     model_v2 = self.sm['modelV2']
+    one_blinker = CS.leftBlinker != CS.rightBlinker
+    self.alc_active = self.alc_helper.update(CS, one_blinker, model_v2.meta.laneChangeState, self.active)
 
     CC = car.CarControl.new_message()
     CC.enabled = self.enabled
@@ -672,7 +677,7 @@ class Controls:
     # Check which actuators can be enabled
     standstill = CS.vEgo <= max(self.CP.minSteerSpeed, MIN_LATERAL_CONTROL_SPEED) or CS.standstill
     CC.latActive = self.active and not CS.steerFaultTemporary and not CS.steerFaultPermanent and \
-                   (not standstill or self.joystick_mode)
+                   (not standstill or self.joystick_mode) and (not one_blinker or self.alc_active) and not CS.lkaDisabled
     CC.longActive = self.enabled and not self.events.contains(ET.OVERRIDE_LONGITUDINAL) and self.CP.openpilotLongitudinalControl
 
     actuators = CC.actuators
@@ -757,6 +762,10 @@ class Controls:
 
           if left_deviation or right_deviation:
             self.events.add(EventName.steerSaturated)
+
+    # Send an alert when turn signal is on (ALC not active or ALC disabled)
+    if one_blinker and self.active and not (lac_log.active or CS.standstill or CS.lkaDisabled):
+      self.events.add(EventName.blinkerSteerRequired)
 
     # Ensure no NaNs/Infs
     for p in ACTUATOR_FIELDS:
