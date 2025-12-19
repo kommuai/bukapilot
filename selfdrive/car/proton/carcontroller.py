@@ -32,8 +32,12 @@ class CarControllerParams():
     assert(len(CP.lateralParams.torqueV) == 1)
 
     # for torque limit calculation
-    self.STEER_DELTA_UP = 15
-    self.STEER_DELTA_DOWN = 35
+    if CP.carFingerprint == CAR.X90:
+      self.STEER_DELTA_UP = 4
+      self.STEER_DELTA_DOWN = 8
+    else:
+      self.STEER_DELTA_UP = 15
+      self.STEER_DELTA_DOWN = 35
 
 class CarController(CarControllerBase):
   def __init__(self, dbc_name, CP, VM):
@@ -81,7 +85,7 @@ class CarController(CarControllerBase):
       self.resume = True if (CS.out.standstill and actuators.accel > 0) else False
 
       # proton X90 steer values are even numbers if we don't want to edit the proton dbc
-      steer_cmd = (round(apply_steer) * 2) if self.CP.carFingerprint == CAR.X90 else apply_steer
+      steer_cmd = (round(apply_steer) * 2) if (self.CP.carFingerprint == CAR.X90 and CC.latActive) else apply_steer
 
       can_sends.append(create_can_steer_command(self.packer, steer_cmd, lat_active, \
                       CS.hand_on_wheel_warning and CS.is_icc_on, \
