@@ -90,7 +90,7 @@ class CarState(CarStateBase):
                      cp.vl["DOOR_RIGHT_SIDE"]['FRONT_RIGHT_DOOR']])
 
     ret.seatbeltUnlatched = cp.vl["SEATBELTS"]['RIGHT_SIDE_SEATBELT_ACTIVE_LOW'] == 1
-    ret.gearShifter = self.parse_gear_shifter(self.shifter_values.get(can_gear, None))
+    ret.gearShifter = 2 #hardcode to drive because stock proton has non standard gear
     ret.brakeHoldActive = bool(cp.vl["PARKING_BRAKE"]["CAR_ON_HOLD"])
 
     # gas pedal

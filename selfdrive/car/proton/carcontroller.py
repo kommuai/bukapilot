@@ -32,8 +32,12 @@ class CarControllerParams():
     assert(len(CP.lateralParams.torqueV) == 1)
 
     # for torque limit calculation
-    self.STEER_DELTA_UP = 15
-    self.STEER_DELTA_DOWN = 35
+    if CP.carFingerprint == CAR.X90:
+      self.STEER_DELTA_UP = 4
+      self.STEER_DELTA_DOWN = 8
+    else:
+      self.STEER_DELTA_UP = 15
+      self.STEER_DELTA_DOWN = 35
 
 class CarController(CarControllerBase):
   def __init__(self, dbc_name, CP, VM):
