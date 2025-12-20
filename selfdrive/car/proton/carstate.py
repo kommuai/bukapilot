@@ -5,6 +5,17 @@ from openpilot.common.numpy_fast import mean
 from openpilot.common.conversions import Conversions as CV
 from openpilot.selfdrive.car.interfaces import CarStateBase
 from openpilot.selfdrive.car.proton.values import DBC, HUD_MULTIPLIER, CANBUS
+from openpilot.selfdrive.controls.lib.desire_helper import LANE_CHANGE_SPEED_MIN
+from openpilot.common.params import Params
+from openpilot.common.features import Features
+from time import monotonic
+from enum import Enum, auto
+
+BLINKER_MIN = 2.25 # Minimum turn signal length in seconds
+
+class Dir(Enum):
+  LEFT = auto()
+  RIGHT = auto()
 
 class CarState(CarStateBase):
   def __init__(self, CP):
@@ -37,6 +48,17 @@ class CarState(CarStateBase):
     self.stock_acc_cmd = 0
     self.cruise_latch = False
     self.cruise_standstill = False
+
+    self.is_alc_enabled = Params().get_bool("IsAlcEnabled")
+    self.cur_blinker = None
+    self.blinker_on_alc_speed = False
+    self.blinker_start_time = 0
+
+  def set_cur_blinker(self, alc_below_min_speed, rightBlinker):
+    """Reset time and set cur_blinker"""
+    self.blinker_start_time = monotonic()
+    self.cur_blinker = Dir.RIGHT if rightBlinker else Dir.LEFT
+    self.blinker_on_alc_speed = not alc_below_min_speed # Check when blinker on / direction change, if ALC speed was enough
 
   def update(self, cp, cp_cam):
     ret = car.CarState.new_message()
@@ -143,6 +165,33 @@ class CarState(CarStateBase):
       # used for lane change so its okay for the chime to work on both side.
       ret.leftBlindspot = bool(cp.vl["BSM_ADAS"]["LEFT_APPROACH"]) or bool(cp.vl["BSM_ADAS"]["LEFT_APPROACH_WARNING"])
       ret.rightBlindspot = bool(cp.vl["BSM_ADAS"]["RIGHT_APPROACH"]) or bool(cp.vl["BSM_ADAS"]["RIGHT_APPROACH_WARNING"])
+
+
+    # Turn signal with a required minimum time
+    one_blinker = (leftBlinker := ret.leftBlinker) != (rightBlinker := ret.rightBlinker)
+
+    # Use minimum blinker time if ALC speed not enough
+    alc_below_min_speed = ret.vEgo < LANE_CHANGE_SPEED_MIN or not self.is_alc_enabled
+
+    if self.cur_blinker is None:
+      self.blinker_on_alc_speed = False
+      if one_blinker: # Turn signal was off and is now on
+        self.set_cur_blinker(alc_below_min_speed, rightBlinker)
+    else:
+      # cur_blinker is left or right
+      if not one_blinker and \
+      (self.blinker_on_alc_speed or (monotonic() - self.blinker_start_time) >= BLINKER_MIN):
+        self.cur_blinker = None
+      elif (leftBlinker and self.cur_blinker == Dir.RIGHT) or (rightBlinker and self.cur_blinker == Dir.LEFT):
+        # Change in blinker direction
+        self.set_cur_blinker(alc_below_min_speed, rightBlinker)
+
+    if alc_below_min_speed:
+      cur_blinker = self.cur_blinker
+      ret.leftBlinker, ret.rightBlinker = cur_blinker == Dir.LEFT, cur_blinker == Dir.RIGHT
+    else:
+      ret.leftBlinker, ret.rightBlinker = leftBlinker, rightBlinker
+
 
     return ret
 
