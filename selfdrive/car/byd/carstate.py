@@ -115,7 +115,7 @@ class CarState(CarStateBase):
     self.set_long_personality(2 if distance_val in (4, 8) else distance_val - 1)
 
     # engage and disengage logic, do we still need this?
-    if (cp.vl["PCM_BUTTONS"]["SET_BTN"] != 0 or cp.vl["PCM_BUTTONS"]["RES_BTN"] != 0) and not ret.brakePressed:
+    if cp.vl["PCM_BUTTONS"]["SET_BTN"] != 0 or cp.vl["PCM_BUTTONS"]["RES_BTN"] != 0:
       self.is_cruise_latch = True
 
     # this can override the above engage disengage logic
@@ -133,7 +133,7 @@ class CarState(CarStateBase):
     ret.cruiseState.nonAdaptive = False
 
     stock_acc_on =  bool(parser_alt.vl["ACC_CMD"]["ACC_CONTROLLABLE_AND_ON"])
-    if not ret.cruiseState.available or ret.brakePressed or not stock_acc_on:
+    if not ret.cruiseState.available or (ret.brakePressed and not ret.cruiseState.standstill) or not stock_acc_on:
       self.is_cruise_latch = False
 
     if self.CP.carFingerprint in (CAR.SEAL):
