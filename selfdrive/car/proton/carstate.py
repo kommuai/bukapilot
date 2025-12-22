@@ -41,7 +41,7 @@ class CarState(CarStateBase):
     self.stock_steer_dir = 0
 
     self.hand_on_wheel_warning = False
-    self.hand_on_wheel_chime = False
+    self.hand_on_wheel_warning_2 = False
 
     self.prev_angle = 0
 
@@ -90,7 +90,7 @@ class CarState(CarStateBase):
 
     # miscs
     self.hand_on_wheel_warning = bool(cp_cam.vl["ADAS_LKAS"]["HAND_ON_WHEEL_WARNING"])
-    self.hand_on_wheel_chime = bool(cp_cam.vl["ADAS_LKAS"]["WHEEL_WARNING_CHIME"])
+    self.hand_on_wheel_warning_2 = bool(cp_cam.vl["ADAS_LKAS"]["WHEEL_WARNING_CHIME"]) # The second warning before ICC disengage
     self.stock_acc_cmd = cp_cam.vl["ACC_CMD"]["CMD"]
 
     # kinematics

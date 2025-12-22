@@ -3,8 +3,9 @@ from openpilot.selfdrive.car.interfaces import CarControllerBase
 from openpilot.selfdrive.car.proton.protoncan import create_can_steer_command, send_buttons, create_acc_cmd
 from openpilot.selfdrive.car.proton.values import DBC, CAR
 from openpilot.common.numpy_fast import clip
-
+from openpilot.common.realtime import DT_CTRL
 from openpilot.common.features import Features
+from time import monotonic
 
 def apply_proton_steer_torque_limits(apply_torque, apply_torque_last, driver_torque, LIMITS):
 
@@ -48,9 +49,13 @@ class CarController(CarControllerBase):
 
     self.last_steer = 0
     self.resume = False
-    self.steer_rate_limited = False
-    self.always_lks_tactile = Features().has("lks-tactile")
-    self.openpilot_long = not Features().has("stock-acc")
+    self.steering_direction = False
+    f = Features()
+    self.always_lks_tactile = f.has("lks-tactile")
+    self.openpilot_long = not f.has("stock-acc")
+
+    self.prev_steer_enabled = False
+    self.last_steer_disable = 0
 
   def update(self, CC, CS, now_nanos):
     can_sends = []
@@ -63,12 +68,17 @@ class CarController(CarControllerBase):
     new_steer = round(actuators.steer * self.params.STEER_MAX)
     apply_steer = apply_proton_steer_torque_limits(new_steer, self.last_steer, 0, self.params)
 
-    # stock lane departure re-implementation
-    if not lat_active and (stock_steer_cmd := CS.stock_ldp_cmd) > 0 and \
+    if not (steer_enabled := enabled and not CS.out.lkaDisabled) and self.prev_steer_enabled:
+      self.last_steer_disable = monotonic()
+    self.prev_steer_enabled = steer_enabled
+
+    # Stock Lane Departure Prevention / Centering Control (LKS Auxiliary / Blue line)
+    if not steer_enabled and (stock_steer := CS.stock_ldp_cmd) > 0 and \
        not ((CS.out.rightBlinker and CS.stock_ldp_right) or (CS.out.leftBlinker and CS.stock_ldp_left)):
+      # Prevents sudden pull from LDP/ICC/LKA Centering after steer disable
+      mul = clip((monotonic() - self.last_steer_disable - 0.55) / 0.5, 0, 1)
+      apply_steer = round(stock_steer * (-1 if CS.stock_steer_dir else 1) * mul) &~1 # Ensure cmd LSB 0
       lat_active = True
-      apply_steer = round(stock_steer_cmd * (-1 if CS.stock_steer_dir else 1))
-      self.steer_rate_limited = False
 
     if (self.frame % 2) == 0:
 
@@ -87,13 +97,15 @@ class CarController(CarControllerBase):
       # proton X90 steer values are even numbers if we don't want to edit the proton dbc
       steer_cmd = (round(apply_steer) * 2) if (self.CP.carFingerprint == CAR.X90 and CC.latActive) else apply_steer
 
-      can_sends.append(create_can_steer_command(self.packer, steer_cmd, lat_active, \
-                      CS.hand_on_wheel_warning and CS.is_icc_on, \
-                      CS.is_icc_on and CS.hand_on_wheel_chime, \
-                      CS.lks_aux, lks_audio, lks_tactile, CS.lks_assist_mode, \
-                      CS.lka_enable, 0))
+      can_sends.append(create_can_steer_command(self.packer, steer_cmd, lat_active,
+                       CS.hand_on_wheel_warning and CS.is_icc_on,
+                       CS.hand_on_wheel_warning_2 and CS.is_icc_on,
+                       CS.lks_aux, lks_audio, lks_tactile, CS.lks_assist_mode,
+                       CS.lka_enable, ldw_steering, steer_enabled))
+
       if self.openpilot_long:
-        can_sends.append(create_acc_cmd(self.packer, actuators.accel, CC.longActive, CS.out.gasPressed, standstill_request, CS.stock_acc_cmd, CS.out.vEgo, self.resume))
+        can_sends.append(create_acc_cmd(self.packer, actuators.accel, CC.longActive, CS.out.gasPressed,
+                                        standstill_request, CS.stock_acc_cmd, CS.out.vEgo, self.resume))
 
       # to disengage from stock cruise standstill
       if (CC.enabled and CS.cruise_standstill and (self.frame % 20 == 0)):
