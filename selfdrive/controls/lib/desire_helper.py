@@ -102,8 +102,9 @@ class DesireHelper:
 
       # If not 75% certainty, move back to the original lane.
       if not (lane_change_prob < 0.25 and self.lane_change_ll_prob < 0.01):
-        self.lane_change_direction = (LaneChangeDirection.left if self.lane_change_direction == LaneChangeDirection.right
-                                      else LaneChangeDirection.right)
+        pass # Disable direction change temporarily because of KA2 strong steering pulling
+        # self.lane_change_direction = (LaneChangeDirection.left if self.lane_change_direction == LaneChangeDirection.right
+        #                               else LaneChangeDirection.right)
       self.lane_change_state = LaneChangeState.laneChangeFinishing
       self.last_alc_cancel = current_time
 
