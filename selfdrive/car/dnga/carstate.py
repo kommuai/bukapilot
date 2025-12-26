@@ -120,6 +120,7 @@ class CarState(CarStateBase):
       self.lkas_latch = not self.lkas_latch
       self.lkas_btn_rising_edge_seen = False
 
+    ret.lkaDisabled = not self.lkas_latch
     ret.cruiseState.available = bool(cp_cam.vl["ACC_CMD_HUD"]["SET_ME_1_2"])
     self.distance_val = int(cp_cam.vl["ACC_CMD_HUD"]['FOLLOW_DISTANCE'])
     prev_distance_button = self.distance_button
