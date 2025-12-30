@@ -72,9 +72,9 @@ def create_acc_cmd(packer, accel, enabled, gas_override, standstill, stock, spee
     "CMD_OFFSET1": accel_cmd,
     "CMD_OFFSET2": accel_cmd,
     "ACC_REQ": enabled and not resume,
-    "NOT_ACC_REQ": not enabled,
+    "CRUISE_DISABLED": not enabled,
     "SET_ME_1": 1,
-    "CRUISE_ENABLE": enabled and not gas_override,
+    "NOT_GAS_OVERRIDE": enabled and not gas_override,
 
     # not sure
     "SET_ME_X6A": 0x6A,

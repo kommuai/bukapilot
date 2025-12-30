@@ -139,7 +139,7 @@ class CarState(CarStateBase):
     ret.stockAeb = False
     ret.stockFcw = bool(cp_cam.vl["FCW"]["STOCK_FCW_TRIGGERED"])
 
-    ret.cruiseState.available = True
+    ret.cruiseState.available = bool(cp_cam.vl["PCM_BUTTONS"]['CRUISE_AVAILABLE'])
     distance_val = int(cp_cam.vl["PCM_BUTTONS"]['SET_DISTANCE'])
     self.set_long_personality(distance_val - 1)
 
@@ -149,9 +149,7 @@ class CarState(CarStateBase):
     #ret.cruiseState.standstill = bool(cp_cam.vl["ACC_CMD"]["STANDSTILL_REQ"])
     ret.cruiseState.standstill = False
     ret.cruiseState.nonAdaptive = False
-    ret.cruiseState.enabled = (cp_cam.vl["ACC_CMD"]["ACC_REQ"] \
-                              + cp_cam.vl["ACC_CMD"]["STANDSTILL_REQ"] \
-                              + cp_cam.vl["ACC_CMD"]["CRUISE_ENABLE"]) > 1
+    ret.cruiseState.enabled = cp_cam.vl["ACC_CMD"]['CRUISE_DISABLED'] != 1
 
     # button presses
     ret.leftBlinker = bool(cp.vl["LEFT_STALK"]["LEFT_SIGNAL"])

@@ -112,7 +112,7 @@ class CarController(CarControllerBase):
         if (CC.enabled and CS.out.standstill and (self.frame % 4 == 0)):
           can_sends.append(send_buttons(self.packer, False))
 
-    if pcm_cancel_cmd and not CS.out.brakePressed:
+    if pcm_cancel_cmd:
       can_sends.append(send_buttons(self.packer, 1))
 
     self.last_steer = apply_steer
