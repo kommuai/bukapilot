@@ -35,6 +35,7 @@ from selfdrive.controls.lib.alc_helper import ALCHelper
 from openpilot.system.hardware import HARDWARE
 from openpilot.system.version import get_short_branch
 
+MADS = True
 SOFT_DISABLE_TIME = 3  # seconds
 LDW_MIN_SPEED = 31 * CV.MPH_TO_MS
 LANE_DEPARTURE_THRESHOLD = 0.01
@@ -326,12 +327,12 @@ class Controls:
       self.events.add(EventName.resumeBlocked)
 
     # Disable on rising edge of accelerator. Also disable on brake when speed > 0
-    if (CS.gasPressed and not self.CS_prev.gasPressed and self.disengage_on_accelerator) or \
+    if not MADS and ((CS.gasPressed and not self.CS_prev.gasPressed and self.disengage_on_accelerator) or \
       (CS.brakePressed and not CS.standstill) or \
-      (CS.regenBraking and not CS.standstill):
+      (CS.regenBraking and not CS.standstill)):
       self.events.add(EventName.pedalPressed)
 
-    if CS.brakePressed and CS.standstill:
+    if not MADS and (CS.brakePressed and CS.standstill):
       self.events.add(EventName.preEnableStandstill)
 
     if CS.gasPressed:

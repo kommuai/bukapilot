@@ -11,6 +11,7 @@ from openpilot.common.features import Features
 from time import monotonic
 from enum import Enum, auto
 
+MADS = True
 BLINKER_MIN = 2.25 # Minimum turn signal length in seconds
 
 class Dir(Enum):
@@ -52,6 +53,9 @@ class CarState(CarStateBase):
     self.cur_blinker = None
     self.blinker_on_alc_speed = False
     self.blinker_start_time = 0
+
+    self.prev_stock_enabled = False
+    self.lat_only = False
 
   def set_cur_blinker(self, alc_below_min_speed, rightBlinker):
     """Reset time and set cur_blinker"""
@@ -149,7 +153,17 @@ class CarState(CarStateBase):
     #ret.cruiseState.standstill = bool(cp_cam.vl["ACC_CMD"]["STANDSTILL_REQ"])
     ret.cruiseState.standstill = False
     ret.cruiseState.nonAdaptive = False
-    ret.cruiseState.enabled = cp_cam.vl["ACC_CMD"]['CRUISE_DISABLED'] != 1
+    ret.cruiseState.enabled = stock_enabled = cp_cam.vl["ACC_CMD"]['CRUISE_DISABLED'] != 1
+
+    if MADS:
+      if stock_enabled or not ret.cruiseState.available or ret.gearShifter != car.CarState.GearShifter.drive:
+        self.lat_only = False
+      # User disengages ACC
+      elif self.prev_stock_enabled:
+        self.lat_only = True
+      ret.cruiseState.enabled |= self.lat_only and ret.cruiseState.available
+
+    self.prev_stock_enabled = stock_enabled
 
     # button presses
     ret.leftBlinker = bool(cp.vl["LEFT_STALK"]["LEFT_SIGNAL"])

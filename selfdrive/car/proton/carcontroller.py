@@ -105,11 +105,11 @@ class CarController(CarControllerBase):
                        CS.lka_enable, ldw_steering, steer_enabled))
 
       if self.openpilot_long:
-        can_sends.append(create_acc_cmd(self.packer, actuators.accel, CC.longActive, CS.out.gasPressed,
+        can_sends.append(create_acc_cmd(self.packer, actuators.accel, CC.longActive and not CS.lat_only, CS.out.gasPressed,
                                         standstill_request, CS.stock_acc_cmd, CS.out.vEgo, self.resume))
       else:
         # SNG
-        if (CC.enabled and CS.out.standstill and (self.frame % 4 == 0)):
+        if not CS.lat_only and (CC.enabled and CS.out.standstill and (self.frame % 4 == 0)):
           can_sends.append(send_buttons(self.packer, False))
 
     if pcm_cancel_cmd:
