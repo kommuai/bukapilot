@@ -143,6 +143,7 @@ BO_ 419 PCM_BUTTONS: 8 XXX
  SG_ CHECKSUM : 63|8@0+ (1,0) [0|255] "" XXX
  SG_ SET_ME_1 : 21|1@0+ (1,0) [0|3] "" XXX
  SG_ ICC_ON : 20|1@0+ (1,0) [0|1] "" XXX
+ SG_ CRUISE_AVAILABLE : 17|1@0+ (1,0) [0|1] "" XXX
 
 BO_ 676 POWER_MODE: 8 XXX
  SG_ MODE : 15|2@0+ (1,0) [0|3] "" XXX
