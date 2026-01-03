@@ -293,7 +293,7 @@ class Streamer:
 
     bool_keys = {
       'OpenpilotEnabledToggle', 'QuietMode', 'IsAlcEnabled', 'IsLdwEnabled',
-      'SshEnabled', 'ExperimentalMode', 'RecordFront', 'UpdateAvailable',
+      'SshEnabled', 'ConditionalExperimentalMode', 'RecordFront', 'UpdateAvailable',
       'UpdaterFetchAvailable'
     }
     string_keys = {

@@ -6,13 +6,6 @@ from openpilot.common.realtime import DT_MDL
 from openpilot.common.filter_simple import FirstOrderFilter
 from openpilot.common.conversions import Conversions as CV
 
-"""
-  Conditional Experimental Mode
-  Speed 70kmh above: Completely radar policy
-  Speed 30kmh - 70kmh: Mix mode
-  Speed 0kmh - 30kmh: Experimental Mode
-"""
-
 LOW_THRESHOLD = 0.55 #0.63
 THRESHOLD = 0.63
 CRUISING_SPEED = 18 * CV.KPH_TO_MS
@@ -27,6 +20,7 @@ class ConditionalExperimentalMode:
 
     self.experimental_mode = False
     self.params = Params()
+    self.cem_enabled = self.cem_enabled = bool(self.params.get("ConditionalExperimentalMode", False))
 
   def update(self, car_state, lead, model_data):
     v_ego = car_state.vEgo
@@ -43,10 +37,10 @@ class ConditionalExperimentalMode:
       # slow lead that is less than 30kmh or relative velocity of -2.68m/ss
       slow_lead = (lead.vLead < 8.3 or lead.vRel < -2.68) and v_ego < TURN_OFF_CEM_SPEED
       self.slow_lead_filter.update(slow_lead)
-      lead_detected = self.slow_lead_filter.x >= LOW_THRESHOLD
+      slow_lead_detected = self.slow_lead_filter.x >= LOW_THRESHOLD
     else:
       self.slow_lead_filter.x = 0
-      lead_detected = False
+      slow_lead_detected = False
 
     # --- Model stopping ---
     x_pos = model_data.position.x
@@ -63,18 +57,18 @@ class ConditionalExperimentalMode:
 
     should_enable = (
       curve_detected or
-      lead_detected
+      slow_lead_detected
     )
     personality_type = int(self.params.get("LongitudinalPersonality"))
 
     if (personality_type == 0):
       should_enable = False
     elif (personality_type == 1):
-      should_enable |= model_stopping or below_low_speed
+      should_enable |= model_stopping
     else:
-      should_enable |= True
+      should_enable |= model_stopping or below_low_speed
 
-    if should_enable and not self.experimental_mode:
+    if should_enable and self.cem_enabled and not self.experimental_mode:
       self.params.put_bool("ExperimentalMode", True)
       self.experimental_mode = True
     elif not should_enable and self.experimental_mode:
