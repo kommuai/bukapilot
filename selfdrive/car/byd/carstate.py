@@ -41,6 +41,8 @@ class CarState(CarStateBase):
     else:
       self.lka_on = cp_cam.vl["LKAS_HUD_ADAS"]['LKAS_ENABLED']
 
+    ret.lkaDisabled = not self.lka_on
+
     self.lkas_rdy_btn = cp.vl["PCM_BUTTONS"]['LKAS_ON_BTN']
     self.abh = cp_cam.vl["LKAS_HUD_ADAS"]['SET_ME_XFF']
     self.passthrough = cp_cam.vl["LKAS_HUD_ADAS"]['TSR_STATUS']
