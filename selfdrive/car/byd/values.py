@@ -1,4 +1,6 @@
 from dataclasses import dataclass, field
+from collections import defaultdict
+
 from openpilot.selfdrive.car import CarSpecs, DbcDict, PlatformConfig, Platforms, dbc_dict
 from openpilot.selfdrive.car.docs_definitions import CarInfo
 
@@ -33,3 +35,4 @@ class CAR(Platforms):
 
 CAR_INFO = CAR.create_carinfo_map()
 DBC = CAR.create_dbc_map()
+ACCEL_MULT = defaultdict(lambda: 1, {CAR.ATTO3: 18, CAR.M6: 15, CAR.SEAL: 1})

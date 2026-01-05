@@ -23,8 +23,8 @@ def create_can_steer_command(packer, steer_angle, steer_req, is_standstill, ecu_
 
   return packer.make_can_msg("STEERING_MODULE_ADAS", 0, values)
 
-def create_accel_command(packer, accel, enabled, brake_hold):
-  accel = max(min(accel * 18, 30), -50)
+def create_accel_command(packer, accel, enabled, accel_mult, brake_hold):
+  accel = max(min(accel * accel_mult, 30), -50)
   accel_factor = 12 if accel >= 2 else 5 if accel < 0 else 11
   enabled &= not brake_hold
 
@@ -38,6 +38,7 @@ def create_accel_command(packer, accel, enabled, brake_hold):
     "SET_ME_25_2": 25,
     "ACC_ON_1": enabled,
     "ACC_ON_2": enabled,
+    "ENGAGE_BIT": enabled,
     # some unknown state, 12 when accel, below 11 when braking, 11 when cruising
     "ACCEL_FACTOR": accel_factor if enabled else 0,
     # some unknown state, 0 when not engaged, 3/4 when accel, 8/9 when accel uphill, 1 when braking (all speculation)

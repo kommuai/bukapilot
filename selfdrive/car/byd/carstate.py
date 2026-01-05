@@ -120,6 +120,10 @@ class CarState(CarStateBase):
     if (cp.vl["PCM_BUTTONS"]["SET_BTN"] != 0 or cp.vl["PCM_BUTTONS"]["RES_BTN"] != 0) and not ret.brakePressed:
       self.is_cruise_latch = True
 
+    if self.CP.carFingerprint in (CAR.M6):
+      if (cp.vl["PCM_BUTTONS"]["LKAS_ON_BTN"] != 0 or cp.vl["PCM_BUTTONS"]["ACC_ON_BTN"] != 0) and not ret.brakePressed:
+        self.is_cruise_latch = True
+
     # this can override the above engage disengage logic
     if bool(parser_alt.vl["ACC_CMD"]["ACC_REQ_NOT_STANDSTILL"]):
       self.is_cruise_latch = True

@@ -4,7 +4,7 @@ from opendbc.can.packer import CANPacker
 from openpilot.selfdrive.car import apply_std_steer_angle_limits, AngleRateLimit
 from openpilot.selfdrive.car.interfaces import CarControllerBase
 from openpilot.selfdrive.car.byd.bydcan import create_can_steer_command, send_buttons, create_lkas_hud, create_accel_command
-from openpilot.selfdrive.car.byd.values import DBC
+from openpilot.selfdrive.car.byd.values import DBC, CAR, ACCEL_MULT
 from openpilot.common.numpy_fast import clip
 
 ECU_FAULT_ANGLE = 220 # degress
@@ -38,6 +38,11 @@ class CarController(CarControllerBase):
 
     self.lka_active = False
     self.last_apply_angle = 0
+    self.accel_mult = ACCEL_MULT[CP.carFingerprint]
+    self.lka_cooldown = 0
+
+    if CP.carFingerprint == CAR.M6:
+      STEER_LOW_PASS_HZ = 0.5
 
   def update(self, CC, CS, now_nanos):
     can_sends = []
@@ -50,10 +55,12 @@ class CarController(CarControllerBase):
     # lkas user activation, cannot tie to lka_on state because it may deactivate itself
     if CS.lka_on:
       self.lka_active = True
+      self.lka_cooldown += 1
     if not CS.lka_on and CS.lkas_rdy_btn:
+      self.lka_cooldown = 0
       self.lka_active = False
 
-    lat_active = enabled and self.lka_active and not CS.out.standstill
+    lat_active = (self.lka_cooldown > 10) and enabled and self.lka_active and not CS.out.standstill
       #and not CS.out.steeringPressed and abs(CS.out.steeringAngleDeg) < ECU_FAULT_ANGLE
 
     if (self.frame % 2) == 0:
@@ -79,8 +86,7 @@ class CarController(CarControllerBase):
         # is this needed?
         if (CC.enabled and CS.out.standstill and actuators.accel > 0):
           can_sends.append(send_buttons(self.packer, 1, 0))
-
-        can_sends.append(create_accel_command(self.packer, actuators.accel, long_active, brake_hold))
+        can_sends.append(create_accel_command(self.packer, actuators.accel, long_active, self.accel_mult, brake_hold))
       else:
         if CS.out.standstill and CC.enabled and (self.frame % 100 == 0):
           can_sends.append(send_buttons(self.packer, 1, 0))
