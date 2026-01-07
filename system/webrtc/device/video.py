@@ -9,9 +9,9 @@ from openpilot.common.realtime import DT_MDL, DT_DMON
 
 class LiveStreamVideoStreamTrack(TiciVideoStreamTrack):
   camera_to_sock_mapping = {
-    "driver": "livestreamDriverEncodeData",
-    "wideRoad": "livestreamWideRoadEncodeData",
-    "road": "livestreamRoadEncodeData",
+    "driver": "driverEncodeData",
+    "wideRoad": "wideRoadEncodeData",
+    "road": "qRoadEncodeData",
   }
 
   def __init__(self, camera_type: str):
