@@ -68,7 +68,7 @@ class CarController(CarControllerBase):
     new_steer = round(actuators.steer * self.params.STEER_MAX)
     apply_steer = apply_proton_steer_torque_limits(new_steer, self.last_steer, 0, self.params)
 
-    if not (steer_enabled := enabled and not CS.out.lkaDisabled) and self.prev_steer_enabled:
+    if not (steer_enabled := CC.latActive and not CS.out.lkaDisabled) and self.prev_steer_enabled:
       self.last_steer_disable = monotonic()
     self.prev_steer_enabled = steer_enabled
 
