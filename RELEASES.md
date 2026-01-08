@@ -1,3 +1,11 @@
+Version 10.0.3 (2026-01-09)
+========================
+* Proton X90 support
+* Smoother BYD Atto 3 & M6 radar integration
+* Assisted lane change can now be turned off
+* More sensitive lane departure warning
+* Toggle-able experimental mode
+
 Version 10.0.2 (2025-12-17)
 ========================
 * Enable remote support
