@@ -4,7 +4,7 @@ from opendbc.can.can_define import CANDefine
 from openpilot.common.numpy_fast import mean
 from openpilot.common.conversions import Conversions as CV
 from openpilot.selfdrive.car.interfaces import CarStateBase
-from openpilot.selfdrive.car.proton.values import DBC, HUD_MULTIPLIER, CANBUS
+from openpilot.selfdrive.car.proton.values import DBC, HUD_MULTIPLIER, CANBUS, CAR
 from openpilot.selfdrive.controls.lib.desire_helper import LANE_CHANGE_SPEED_MIN
 from openpilot.common.params import Params
 from openpilot.common.features import Features
@@ -23,6 +23,7 @@ class CarState(CarStateBase):
     can_define = CANDefine(DBC[CP.carFingerprint]['pt'])
     self.shifter_values = can_define.dv["TRANSMISSION"]['GEAR']
     self.set_distance_values = can_define.dv['PCM_BUTTONS']['SET_DISTANCE']
+    self.CP = CP
 
     # lks settings
     self.lks_audio = False
@@ -114,7 +115,12 @@ class CarState(CarStateBase):
                      cp.vl["DOOR_RIGHT_SIDE"]['FRONT_RIGHT_DOOR']])
 
     ret.seatbeltUnlatched = cp.vl["SEATBELTS"]['RIGHT_SIDE_SEATBELT_ACTIVE_LOW'] == 1
-    ret.gearShifter = 2 #hardcode to drive because stock proton has non standard gear
+
+    if self.CP.carFingerprint == CAR.X90:
+      ret.gearShifter = 2 # hardcode to drive because stock X90 has non standard gear
+    else:
+      ret.gearShifter = self.parse_gear_shifter(self.shifter_values.get(can_gear, None))
+
     ret.brakeHoldActive = bool(cp.vl["PARKING_BRAKE"]["CAR_ON_HOLD"])
 
     # gas pedal
