@@ -1,7 +1,7 @@
 from openpilot.common.numpy_fast import clip
 
 def create_can_steer_command(packer, steer, steer_req, wheel_touch_warning, wheel_touch_warning_2,
-    lks_aux, lks_audio, lks_tactile, lks_assist_mode, lka_enable, stock_ldw_ste, steer_enabled):
+    lks_aux, lks_audio, lks_tactile, lks_assist_mode, lka_enable, stock_ldw_ste, steer_enabled, new_lka):
 
   values = {
     "LKA_ENABLE": lka_enable,
@@ -13,7 +13,7 @@ def create_can_steer_command(packer, steer, steer_req, wheel_touch_warning, whee
     # Disable steering vibration for LDW if steer not enabled and LKS set to Warn Only mode and Tactile warning type
     "LDW_STEERING": 0 if not steer_enabled and not lks_aux and lks_assist_mode and lks_tactile and not lks_audio else stock_ldw_ste,
     "SET_ME_1": 1,
-    "SET_ME_1_2": 1,
+    "SET_ME_1_2": new_lka, # Currently only for X90, pre FL X50 needs to be False or LKS cannot be changed
     "LKS_STATUS": 1,
     "STOCK_LKS_AUX": lks_aux,
     "LKS_WARNING_AUDIO_TYPE": lks_audio,

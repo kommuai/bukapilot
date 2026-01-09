@@ -79,7 +79,8 @@ class CarState(CarStateBase):
     self.has_audio_ldw = bool(cp_cam.vl["LKAS"]["LANE_DEPARTURE_AUDIO_RIGHT"]) or \
                          bool(cp_cam.vl["LKAS"]["LANE_DEPARTURE_AUDIO_LEFT"])
 
-    ret.lkaDisabled = False
+    # If cruise mode is ICC, make bukapilot control steering so it won't disengage.
+    ret.lkaDisabled = not (self.lka_enable or self.is_icc_on)
 
     # stock ldw ldp settings update
     self.stock_ldw_steering = bool(cp_cam.vl["ADAS_LKAS"]["LDW_STEERING"])

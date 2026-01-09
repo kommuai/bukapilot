@@ -96,13 +96,14 @@ class CarController(CarControllerBase):
       self.resume = True if (CS.out.standstill and actuators.accel > 0) else False
 
       # proton X90 steer values are even numbers if we don't want to edit the proton dbc
-      steer_cmd = (round(apply_steer) * 2) if (self.CP.carFingerprint == CAR.X90 and CC.latActive) else apply_steer
+      is_x90 = self.CP.carFingerprint == CAR.X90
+      steer_cmd = (round(apply_steer) * 2) if (is_x90 and CC.latActive) else apply_steer
 
       can_sends.append(create_can_steer_command(self.packer, steer_cmd, lat_active,
                        CS.hand_on_wheel_warning and CS.is_icc_on,
                        CS.hand_on_wheel_warning_2 and CS.is_icc_on,
                        CS.lks_aux, lks_audio, lks_tactile, CS.lks_assist_mode,
-                       CS.lka_enable, ldw_steering, steer_enabled))
+                       CS.lka_enable, ldw_steering, steer_enabled, is_x90))
 
       if self.openpilot_long:
         accel_cmd = accel_cmd * 15 if accel_cmd >= 0 else accel_cmd * 18
