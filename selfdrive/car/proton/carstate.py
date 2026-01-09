@@ -78,8 +78,7 @@ class CarState(CarStateBase):
     self.has_audio_ldw = bool(cp_cam.vl["LKAS"]["LANE_DEPARTURE_AUDIO_RIGHT"]) or \
                          bool(cp_cam.vl["LKAS"]["LANE_DEPARTURE_AUDIO_LEFT"])
 
-    # If cruise mode is ICC, make bukapilot control steering so it won't disengage.
-    ret.lkaDisabled = bool(not self.lka_enable and not self.is_icc_on)
+    ret.lkaDisabled = False
 
     # stock ldw ldp settings update
     self.stock_ldw_steering = bool(cp_cam.vl["ADAS_LKAS"]["LDW_STEERING"])
@@ -140,7 +139,7 @@ class CarState(CarStateBase):
     ret.stockAeb = False
     ret.stockFcw = bool(cp_cam.vl["FCW"]["STOCK_FCW_TRIGGERED"])
 
-    ret.cruiseState.available = bool(cp_cam.vl["PCM_BUTTONS"]['CRUISE_AVAILABLE'])
+    ret.cruiseState.available = True
     distance_val = int(cp_cam.vl["PCM_BUTTONS"]['SET_DISTANCE'])
     self.set_long_personality(distance_val - 1)
 
