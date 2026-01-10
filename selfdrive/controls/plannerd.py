@@ -41,7 +41,7 @@ def plannerd_thread():
       longitudinal_planner.publish(sm, pm)
       publish_ui_plan(sm, pm, longitudinal_planner)
       if sm.all_alive(['carState', 'modelV2', 'radarState']):
-        cem.update(sm['carState'], sm['radarState'].leadOne, sm['modelV2'])
+        cem.update(sm['carState'], sm['radarState'].leadOne, sm['modelV2'], sm['controlsState'])
 
 def main():
   plannerd_thread()
