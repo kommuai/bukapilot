@@ -48,7 +48,6 @@ class CarController(CarControllerBase):
     self.params = CarControllerParams(self.CP)
 
     self.last_steer = 0
-    self.resume = False
     self.steering_direction = False
     f = Features()
     self.always_lks_tactile = f.has("lks-tactile")
@@ -56,6 +55,10 @@ class CarController(CarControllerBase):
 
     self.prev_steer_enabled = False
     self.last_steer_disable = 0
+
+    self.sng_next_press_frame = 0 # The frame where the next resume press is allowed
+    self.resume_counter = 0       # Counter for tracking the progress of a resume press
+    self.is_sng_check = False
 
   def update(self, CC, CS, now_nanos):
     can_sends = []
@@ -93,7 +96,25 @@ class CarController(CarControllerBase):
 
       # standstill logic
       standstill_request = CS.out.standstill and CC.longActive and actuators.accel < -0.01
-      self.resume = True if (CS.out.standstill and actuators.accel > 0) else False
+      resume = CS.out.standstill and actuators.accel > 0
+
+      # SNG
+      if not (CS.cruise_standstill and CC.longActive):
+        self.is_sng_check = False
+      else:
+        if not self.is_sng_check:
+          self.is_sng_check = True
+          self.sng_next_press_frame = self.frame + 310
+          self.resume_counter = 0
+
+        elif self.resume_counter >= 2 or CS.out.gasPressed or CS.res_btn_pressed:
+          self.sng_next_press_frame = max(self.sng_next_press_frame, self.frame + 110)
+          self.resume_counter = 0
+
+        elif actuators.accel > 0 and self.frame > self.sng_next_press_frame:
+          # to disengage from stock cruise standstill
+          can_sends.append(send_buttons(self.packer, 0))
+          self.resume_counter += 1
 
       # proton X90 steer values are even numbers if we don't want to edit the proton dbc
       is_x90 = self.CP.carFingerprint == CAR.X90
