@@ -4,7 +4,6 @@ def create_can_steer_command(packer, steer_angle, steer_req, is_standstill, ecu_
   eps_ok = not steer_req
   if recovery_btn:
     eps_ok = ecu_fault
-
   values = {
     "STEER_REQ": steer_req,
     # to recover from ecu fault, it must be momentarily pulled low.
@@ -38,7 +37,6 @@ def create_accel_command(packer, accel, enabled, accel_mult, brake_hold):
     "SET_ME_25_2": 25,
     "ACC_ON_1": enabled,
     "ACC_ON_2": enabled,
-    "ENGAGE_BIT": enabled,
     # some unknown state, 12 when accel, below 11 when braking, 11 when cruising
     "ACCEL_FACTOR": accel_factor if enabled else 0,
     # some unknown state, 0 when not engaged, 3/4 when accel, 8/9 when accel uphill, 1 when braking (all speculation)
@@ -68,21 +66,21 @@ def create_lkas_hud(packer, lat_active, lss_state, lss_alert, tsr, ahb, passthro
     "LSS_STATE": lss_state,
     "SET_ME_1_2": 1,
     "SETTINGS": lss_alert,
-    "TSR_STATUS": ahb,
-    "SET_ME_XFF": passthrough,
+    "TSR_STATUS": passthrough,
+    "SET_ME_XFF": ahb,
     # TODO integrate warning signs when steer limited
     "HAND_ON_WHEEL_WARNING": 0,
     "TSR": tsr,
-#    "HMA": hma,
-#    "PT2": pt2,
-#    "PT3": pt3,
-#    "PT4": pt4,
-#    "PT5": pt5,
+    "HMA": hma,
+    "PT2": pt2,
+    "PT3": pt3,
+    "PT4": pt4,
+    "PT5": pt5,
   }
 
   return packer.make_can_msg("LKAS_HUD_ADAS", 0, values)
 
-def send_buttons(packer, state, cancel):
+def send_buttons(packer, state, cancel, bus):
   values = {
       "SET_BTN": state,
       "RES_BTN": state,
@@ -90,4 +88,79 @@ def send_buttons(packer, state, cancel):
       "SET_ME_1_2": 1,
       "ACC_ON_BTN": cancel,
   }
-  return packer.make_can_msg("PCM_BUTTONS", 0, values)
+  return packer.make_can_msg("PCM_BUTTONS", bus, values)
+
+import random
+
+# Module-level state for realistic torque ramp-up simulation
+_torque_spoof_state = {
+  'current_torque_offset': 0.0,  # Current accumulated torque offset
+  'target_torque': 0.0,          # Target torque when spoof is active
+  'ramp_rate': 3.0,              # Nm per call ramp rate (realistic steering nudge at ~10 Hz)
+  'max_torque': 10.0,            # Maximum torque offset (realistic hand touch, Nm)
+}
+
+def create_steering_torque_spoof_camera(packer, lat_active, main_torque, spoof):
+  """
+  Spoof steering torque on camera bus (2) to simulate hands on wheel
+  Sends STEERING_TORQUE message
+  Address: 0x1FC (508 decimal), Bus: 2 (camera)
+
+  When spoof is True, simulates realistic hand touch by gradually ramping up torque
+  like a natural steering nudge, rather than random jumps.
+  """
+
+  if spoof:
+    # Realistic hand touch simulation: gradually ramp up torque like a steering nudge
+    # Set target torque (with slight variation for realism)
+    if abs(_torque_spoof_state['target_torque']) < 0.1:
+      # Start new nudge - choose target torque (slightly randomized for natural feel)
+      _torque_spoof_state['target_torque'] = random.uniform(5.0, _torque_spoof_state['max_torque'])
+      # Occasionally apply negative torque for bidirectional realism
+      if random.random() < 0.3:
+        _torque_spoof_state['target_torque'] = -_torque_spoof_state['target_torque']
+
+    # Ramp towards target torque (realistic steering nudge behavior)
+    target = _torque_spoof_state['target_torque']
+    current = _torque_spoof_state['current_torque_offset']
+    ramp = _torque_spoof_state['ramp_rate']
+
+    if abs(target - current) > 0.1:
+      # Still ramping - move towards target
+      if current < target:
+        _torque_spoof_state['current_torque_offset'] = min(current + ramp, target)
+      else:
+        _torque_spoof_state['current_torque_offset'] = max(current - ramp, target)
+    else:
+      # Reached target - occasionally vary slightly for natural hand movement
+      if random.random() < 0.2:
+        _torque_spoof_state['target_torque'] = random.uniform(4.0, _torque_spoof_state['max_torque'])
+        if random.random() < 0.5:
+          _torque_spoof_state['target_torque'] = -_torque_spoof_state['target_torque']
+  else:
+    # spoof is False - gradually ramp down torque back to zero
+    current = _torque_spoof_state['current_torque_offset']
+    if abs(current) > 0.1:
+      # Ramp down towards zero
+      if current > 0:
+        _torque_spoof_state['current_torque_offset'] = max(current - _torque_spoof_state['ramp_rate'], 0.0)
+      else:
+        _torque_spoof_state['current_torque_offset'] = min(current + _torque_spoof_state['ramp_rate'], 0.0)
+    else:
+      # Reset state when torque returns to zero
+      _torque_spoof_state['current_torque_offset'] = 0.0
+      _torque_spoof_state['target_torque'] = 0.0
+
+  # Add the realistic ramp-up torque offset to main_torque
+  main_torque += _torque_spoof_state['current_torque_offset']
+
+  values = {
+    "MAIN_TORQUE": main_torque,
+    "STATE": 10 if lat_active else 9,
+    "CURVATURE": 0,
+    "UNKNOWN_TORQUE": 0,
+    "STEER_ACTIVE": lat_active,
+    "STEER_STATE": 0 if lat_active else 6, # 6 on start, 0 OK
+  }
+
+  return packer.make_can_msg("STEERING_TORQUE", 2, values)
