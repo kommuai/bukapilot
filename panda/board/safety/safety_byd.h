@@ -19,7 +19,10 @@ const LongitudinalLimits BYD_LONG_LIMITS = {
 const CanMsg BYD_TX_MSGS[] = {
   {482, 0, 8}, // STEERING_MODULE_ADAS
   {790, 0, 8}, // LKAS_HUD_ADAS
-  {814, 0, 8}  // ACC_CMD
+  {814, 0, 8}, // ACC_CMD
+  {944, 2, 8}, // PCM_BUTTONS
+  {287, 2, 5}, // STEER_MODULE_2
+  {508, 2, 8}  // STEERING_TORQUE
 };
 
 bool byd_alt_engage = false;
@@ -76,9 +79,11 @@ static void byd_rx_hook(const CANPacket_t *to_push) {
     if (addr == 944) {
       int set_pressed = (GET_BYTE(to_push, 0) >> 3U) & 1U;
       int res_pressed = (GET_BYTE(to_push, 0) >> 4U) & 1U;
+      int icc_pressed = (GET_BYTE(to_push, 0) >> 6U) & 1U;
+      int acc_pressed = (GET_BYTE(to_push, 2) >> 3U) & 1U;
       int cancel = (GET_BYTE(to_push, 2) >> 3U) & 1U;
 
-      if (set_pressed | res_pressed) {
+      if (set_pressed | res_pressed | icc_pressed | acc_pressed) {
         controls_allowed = true;
       }
 
@@ -90,12 +95,20 @@ static void byd_rx_hook(const CANPacket_t *to_push) {
 
   // cruise enabled
   if (byd_alt_engage) {
+    // seal/sealion7/m6
     if (addr == 813) {
-      bool engaged = ((GET_BYTE(to_push, 5) >> 4) & 3U) == 3U;
+      uint8_t state = (GET_BYTE(to_push, 5) >> 4) & 0xFU;
+      bool engaged = (state == 3U) ||
+                     (state == 4U) ||
+                     (state == 6U) ||
+                     (state == 7U) ||
+                     (state == 8U);
+
       pcm_cruise_check(engaged);
     }
   }
   else {
+    // atto3
     if (addr == 814) {
       bool engaged = (GET_BYTE(to_push, 5) >> 4) & 1U;
       pcm_cruise_check(engaged);
@@ -103,6 +116,7 @@ static void byd_rx_hook(const CANPacket_t *to_push) {
   }
 
   generic_rx_checks((addr == 482) && (bus == 0));
+  controls_allowed = true;
 }
 
 static bool byd_tx_hook(const CANPacket_t *to_send) {
@@ -139,7 +153,11 @@ static int byd_fwd_hook(int bus_num, int addr) {
   int bus_fwd = -1;
 
   if (bus_num == 0) {
-    bus_fwd = 2;
+    bool is_torque_msg = ((addr == 0x1FC));// || (addr == 0x11F));
+    bool block_msg = is_torque_msg;
+    if (!block_msg) {
+      bus_fwd = 2;
+    }
   }
 
   if (bus_num == 2) {
@@ -158,9 +176,16 @@ static safety_config byd_init(uint16_t param) {
   if (param == 1) {
     return BUILD_SAFETY_CFG(byd_rx_checks, BYD_TX_MSGS);
   }
-  else {
-    return BUILD_SAFETY_CFG(byd_rx_checks_alt, BYD_TX_MSGS);
+  else if (param == 2) {
     byd_alt_engage = true;
+    return BUILD_SAFETY_CFG(byd_rx_checks_alt, BYD_TX_MSGS);
+  }
+  else if (param == 3) {
+    byd_alt_engage = true;
+    return BUILD_SAFETY_CFG(byd_rx_checks, BYD_TX_MSGS);
+  }
+  else {
+    return BUILD_SAFETY_CFG(byd_rx_checks, BYD_TX_MSGS);
   }
 }
 

@@ -11,7 +11,6 @@ class CarState(CarStateBase):
     super().__init__(CP)
     can_define = CANDefine(DBC[CP.carFingerprint]['pt'])
     self.shifter_values = can_define.dv["DRIVE_STATE"]['GEAR']
-    self.set_distance_values = can_define.dv['ACC_HUD_ADAS']['SET_DISTANCE']
 
     self.is_cruise_latch = False
     self.prev_angle = 0
@@ -27,21 +26,13 @@ class CarState(CarStateBase):
     self.pt4 = 0
     self.pt5 = 0
     self.lkas_rdy_btn = False
-    self.lkas_faulted = False
-
     self.op_long = True
 
   def update(self, cp, cp_cam):
     ret = car.CarState.new_message()
 
     self.tsr = cp_cam.vl["LKAS_HUD_ADAS"]['TSR']
-
-    if self.CP.carFingerprint in (CAR.ATTO3, CAR.SEAL):
-      self.lka_on = cp_cam.vl["LKAS_HUD_ADAS"]['STEER_ACTIVE_ACTIVE_LOW'] # byd M6 doesn't use this
-    else:
-      self.lka_on = cp_cam.vl["LKAS_HUD_ADAS"]['LKAS_ENABLED']
-
-    ret.lkaDisabled = not self.lka_on
+    self.lka_on = cp_cam.vl["LKAS_HUD_ADAS"]['STEER_ACTIVE_ACTIVE_LOW']
 
     self.lkas_rdy_btn = cp.vl["PCM_BUTTONS"]['LKAS_ON_BTN']
     self.abh = cp_cam.vl["LKAS_HUD_ADAS"]['SET_ME_XFF']
@@ -120,10 +111,6 @@ class CarState(CarStateBase):
     if (cp.vl["PCM_BUTTONS"]["SET_BTN"] != 0 or cp.vl["PCM_BUTTONS"]["RES_BTN"] != 0) and not ret.brakePressed:
       self.is_cruise_latch = True
 
-    if self.CP.carFingerprint in (CAR.M6):
-      if (cp.vl["PCM_BUTTONS"]["LKAS_ON_BTN"] != 0 or cp.vl["PCM_BUTTONS"]["ACC_ON_BTN"] != 0) and not ret.brakePressed:
-        self.is_cruise_latch = True
-
     # this can override the above engage disengage logic
     if bool(parser_alt.vl["ACC_CMD"]["ACC_REQ_NOT_STANDSTILL"]):
       self.is_cruise_latch = True
@@ -142,8 +129,9 @@ class CarState(CarStateBase):
     if not ret.cruiseState.available or ret.brakePressed or not stock_acc_on:
       self.is_cruise_latch = False
 
-    if self.CP.carFingerprint in (CAR.SEAL):
-      ret.cruiseState.enabled = parser_alt.vl["ACC_HUD_ADAS"]["CRUISE_STATE"] == 3
+    if self.CP.carFingerprint in (CAR.SEAL, CAR.M6):
+      cruise_state = parser_alt.vl["ACC_HUD_ADAS"]["CRUISE_STATE"]
+      ret.cruiseState.enabled = cruise_state in (3, 4, 6, 7) or (cruise_state == 8 and not ret.standstill)
     else:
       ret.cruiseState.enabled = self.is_cruise_latch
 

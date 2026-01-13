@@ -34,22 +34,23 @@ class CarInterface(CarInterfaceBase):
     ret.longitudinalTuning.kpV = [0.8, 0.7, 0.6]
     ret.longitudinalTuning.kiV = [0.5, 0.4, 0.3]
 
+    ret.lateralTuning.pid.kf = 0.00015
+    ret.longitudinalActuatorDelayLowerBound = 0.2
+    ret.longitudinalActuatorDelayUpperBound = 0.3
+
     ret.wheelSpeedFactor = 0.695
     if candidate == CAR.ATTO3:
       ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.52, 0.43, 0.32], [1.5, 1.4, 1.1]]
-      ret.lateralTuning.pid.kf = 0.00015
-
-      ret.longitudinalActuatorDelayLowerBound = 0.2
-      ret.longitudinalActuatorDelayUpperBound = 0.3
     elif candidate == CAR.M6:
       ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.52, 0.43, 0.32], [1.5, 1.4, 1.1]]
-      ret.lateralTuning.pid.kf = 0.00015
 
-      ret.longitudinalActuatorDelayLowerBound = 0.2
-      ret.longitudinalActuatorDelayUpperBound = 0.3
+      ret.longitudinalTuning.kpV = [1.2, 1.0, 0.8]
+      ret.longitudinalTuning.deadzoneBP = [0., 9.]
+      ret.longitudinalTuning.deadzoneV = [0., 0.15]
+
+      ret.safetyConfigs[0].safetyParam = 3
     elif candidate == CAR.SEAL:
       ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.52, 0.43, 0.32], [1.5, 1.4, 1.1]]
-      ret.lateralTuning.pid.kf = 0.00015
 
       ret.safetyConfigs[0].safetyParam = 2
       ret.openpilotLongitudinalControl = False

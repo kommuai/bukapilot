@@ -35,4 +35,4 @@ class CAR(Platforms):
 
 CAR_INFO = CAR.create_carinfo_map()
 DBC = CAR.create_dbc_map()
-ACCEL_MULT = defaultdict(lambda: 1, {CAR.ATTO3: 18, CAR.M6: 15, CAR.SEAL: 1})
+ACCEL_MULT = defaultdict(lambda: 1, {CAR.ATTO3: 18, CAR.M6: 25, CAR.SEAL: 1})

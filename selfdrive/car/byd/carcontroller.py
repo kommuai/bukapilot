@@ -3,11 +3,10 @@ from opendbc.can.packer import CANPacker
 
 from openpilot.selfdrive.car import apply_std_steer_angle_limits, AngleRateLimit
 from openpilot.selfdrive.car.interfaces import CarControllerBase
-from openpilot.selfdrive.car.byd.bydcan import create_can_steer_command, send_buttons, create_lkas_hud, create_accel_command
+from openpilot.selfdrive.car.byd.bydcan import create_can_steer_command, send_buttons, create_lkas_hud, create_accel_command, create_steering_torque_spoof_main, create_steering_torque_spoof_camera
 from openpilot.selfdrive.car.byd.values import DBC, CAR, ACCEL_MULT
 from openpilot.common.numpy_fast import clip
 
-ECU_FAULT_ANGLE = 220 # degress
 STEER_LOWPASS_HZ = 2
 
 def lowpass_1pole(x, y_prev):
@@ -24,7 +23,7 @@ def lowpass_1pole(x, y_prev):
 
 
 class CarControllerParams():
-  ANGLE_RATE_LIMIT_UP = AngleRateLimit(speed_bp=[0., 5., 15.], angle_v=[6., 4., 3.])
+  ANGLE_RATE_LIMIT_UP = AngleRateLimit(speed_bp=[0., 5., 15.], angle_v=[4., 3., 2.])
   ANGLE_RATE_LIMIT_DOWN = AngleRateLimit(speed_bp=[0., 5., 15.], angle_v=[8., 6., 6.])
 
   def __init__(self, CP):
@@ -40,9 +39,9 @@ class CarController(CarControllerBase):
     self.last_apply_angle = 0
     self.accel_mult = ACCEL_MULT[CP.carFingerprint]
     self.lka_cooldown = 0
-
-    if CP.carFingerprint == CAR.M6:
-      STEER_LOW_PASS_HZ = 0.5
+    self.prev_press = False
+    self.lka_latched = False
+    self.steer_module_counter = 0  # 8-bit counter for STEER_MODULE_2 (byte 4)
 
   def update(self, CC, CS, now_nanos):
     can_sends = []
@@ -52,16 +51,38 @@ class CarController(CarControllerBase):
     apply_angle = CS.out.steeringAngleDeg
     pcm_cancel_cmd = CC.cruiseControl.cancel
 
-    # lkas user activation, cannot tie to lka_on state because it may deactivate itself
-    if CS.lka_on:
-      self.lka_active = True
-      self.lka_cooldown += 1
-    if not CS.lka_on and CS.lkas_rdy_btn:
-      self.lka_cooldown = 0
-      self.lka_active = False
+    if self.CP.carFingerprint in (CAR.M6, CAR.SEAL):
+      rising_edge = CS.lkas_rdy_btn and not self.prev_press
+      if rising_edge:
+        if not self.lka_latched:
+          # First rising edge: latch it
+          self.lka_latched = True
+        else:
+          # Second rising edge: unlatch it
+          self.lka_latched = False
+          self.lka_cooldown = 0
+          self.lka_active = False
+      self.prev_press = CS.lkas_rdy_btn
+
+      # Unlatch when brake is pressed
+      if CS.out.brakePressed or not CC.enabled:
+        self.lka_latched = False
+        self.lka_cooldown = 0
+        self.lka_active = False
+      # When latched, activate LKA and increment cooldown
+      elif self.lka_latched:
+        self.lka_active = True
+        self.lka_cooldown += 1
+    else:
+      # lkas user activation, cannot tie to lka_on state because it may deactivate itself
+      if CS.lka_on:
+        self.lka_cooldown += 1
+        self.lka_active = True
+      if not CS.lka_on and CS.lkas_rdy_btn:
+        self.lka_active = False
+        self.lka_cooldown = 0
 
     lat_active = (self.lka_cooldown > 10) and enabled and self.lka_active and not CS.out.standstill
-      #and not CS.out.steeringPressed and abs(CS.out.steeringAngleDeg) < ECU_FAULT_ANGLE
 
     if (self.frame % 2) == 0:
       if lat_active:
@@ -75,8 +96,7 @@ class CarController(CarControllerBase):
         # 3. applied steer too far away from current steeringAngleDeg
         apply_angle = clip(apply_angle, CS.out.steeringAngleDeg - 10, CS.out.steeringAngleDeg + 10)
         self.last_apply_angle = apply_angle
-
-      can_sends.append(create_can_steer_command(self.packer, apply_angle, lat_active, CS.out.standstill, CS.lkas_healthy, CS.lkas_rdy_btn))
+      can_sends.append(create_can_steer_command(self.packer, apply_angle, lat_active, CS.out.standstill, CS.lkas_healthy, CS.lkas_rdy_btn or CS.out.brakePressed))
       can_sends.append(create_lkas_hud(self.packer, lat_active, CS.lss_state, CS.lss_alert, CS.tsr, \
         CS.abh, CS.passthrough, CS.HMA, CS.pt2, CS.pt3, CS.pt4, CS.pt5, CS.lka_on))
 
@@ -90,6 +110,18 @@ class CarController(CarControllerBase):
       else:
         if CS.out.standstill and CC.enabled and (self.frame % 100 == 0):
           can_sends.append(send_buttons(self.packer, 1, 0))
+
+    # Spoof steering torque to simulate hands on wheel
+    if self.CP.carFingerprint in (CAR.M6):
+      # STEERING_TORQUE at 10 Hz (every 5 frames)
+      if (self.frame % 5) == 0:
+        can_sends.append(create_steering_torque_spoof_camera(self.packer, lat_active, 1.5))
+
+      # STEER_MODULE_2 at 20 Hz (every 2-3 frames, using modulo 3 for ~20 Hz)
+      # Based on logs: STEER_ANGLE_2 = -7.7 degrees, counter follows pattern [0x08, 0x19, 0x2A...0xF7]
+      if (self.frame % 3) == 0 and False:
+        can_sends.append(create_steering_torque_spoof_main(self.packer, driver_torque=10, steer_angle=-7.7, counter=self.steer_module_counter))
+        self.steer_module_counter = (self.steer_module_counter + 1) % 16  # Wrap through 16 counter values
 
     if pcm_cancel_cmd:
       can_sends.append(send_buttons(self.packer, 0, 1))
