@@ -7,6 +7,11 @@ from openpilot.common.swaglog import cloudlog
 from openpilot.system.loggerd.config import get_available_bytes, get_available_percent
 from openpilot.system.loggerd.uploader import listdir_by_creation
 from openpilot.system.loggerd.xattr_cache import getxattr
+from openpilot.system.loggerd.memory_pressure import (
+  is_memory_pressure_critical,
+  should_skip_filesystem_operation,
+  handle_memory_pressure,
+)
 
 MIN_BYTES = 5 * 1024 * 1024 * 1024
 MIN_PERCENT = 10
@@ -46,10 +51,23 @@ def get_preserved_segments(dirs_by_creation: list[str]) -> list[str]:
 
 def deleter_thread(exit_event):
   while not exit_event.is_set():
+    # Check memory pressure first - skip operations if memory is critical
+    if is_memory_pressure_critical():
+      handle_memory_pressure(clear_caches=True, clear_fs_cache=False)
+      cloudlog.warning("Skipping deleter operations due to critical memory pressure")
+      exit_event.wait(5)  # Wait shorter time when memory is critical
+      continue
+
     out_of_bytes = get_available_bytes(default=MIN_BYTES + 1) < MIN_BYTES
     out_of_percent = get_available_percent(default=MIN_PERCENT + 1) < MIN_PERCENT
 
     if out_of_percent or out_of_bytes:
+      # Check memory before doing expensive directory scan
+      if should_skip_filesystem_operation():
+        cloudlog.warning("Skipping directory scan due to memory pressure")
+        exit_event.wait(5)
+        continue
+
       dirs = listdir_by_creation(Paths.log_root())
 
       # skip deleting most recent N preserved segments (and their prior segment)
@@ -58,6 +76,10 @@ def deleter_thread(exit_event):
       # remove the earliest directory we can
       for delete_dir in sorted(dirs, key=lambda d: (d in DELETE_LAST, d in preserved_dirs)):
         delete_path = os.path.join(Paths.log_root(), delete_dir)
+
+        # Check memory again before each deletion operation
+        if should_skip_filesystem_operation():
+          break
 
         if any(name.endswith(".lock") for name in os.listdir(delete_path)):
           continue
