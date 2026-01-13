@@ -9,6 +9,7 @@
 #include "common/params.h"
 #include "system/loggerd/encoder/encoder.h"
 #include "system/loggerd/loggerd.h"
+#include "system/loggerd/memory_pressure.h"
 #include "system/loggerd/video_writer.h"
 
 ExitHandler do_exit;
@@ -244,7 +245,32 @@ void loggerd_thread() {
 
   uint64_t msg_count = 0, bytes_count = 0;
   double start_ts = millis_since_boot();
+  double last_memory_check_ms = 0;
+  int last_memory_percent = -1;
+  
   while (!do_exit) {
+    // Check memory pressure periodically (every 5 seconds)
+    double now_ms = millis_since_boot();
+    if (now_ms - last_memory_check_ms > 5000) {
+      int mem_percent = MemoryPressure::get_memory_usage_percent();
+      if (mem_percent >= 0 && mem_percent != last_memory_percent) {
+        if (MemoryPressure::is_memory_pressure_critical()) {
+          LOGW("Memory pressure CRITICAL: %d%% - reducing write operations", mem_percent);
+        } else if (MemoryPressure::is_memory_pressure_high()) {
+          LOGD("Memory pressure HIGH: %d%% - increasing flush frequency", mem_percent);
+        }
+        last_memory_percent = mem_percent;
+      }
+      last_memory_check_ms = now_ms;
+    }
+    
+    // Skip operations if memory is critical
+    if (MemoryPressure::should_skip_filesystem_operation()) {
+      // Still poll to avoid blocking, but skip processing
+      poller->poll(100);
+      continue;
+    }
+    
     // poll for new messages on all sockets
     for (auto sock : poller->poll(1000)) {
       if (do_exit) break;
@@ -258,6 +284,12 @@ void loggerd_thread() {
       int count = 0;
       Message *msg = nullptr;
       while (!do_exit && (msg = sock->receive(true))) {
+        // Check memory again before processing each message
+        if (MemoryPressure::should_skip_filesystem_operation()) {
+          delete msg;
+          break;  // Skip remaining messages in this batch
+        }
+        
         const bool in_qlog = service.freq != -1 && (service.counter++ % service.freq == 0);
         if (service.encoder) {
           s.last_camera_seen_tms = millis_since_boot();

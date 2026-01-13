@@ -243,6 +243,19 @@ def thermald_thread(end_event, hw_queue) -> None:
 
     msg.deviceState.freeSpacePercent = get_available_percent(default=100.0)
     msg.deviceState.memoryUsagePercent = int(round(psutil.virtual_memory().percent))
+
+    # Proactively handle memory pressure when it gets high
+    if msg.deviceState.memoryUsagePercent >= 75:
+      try:
+        from openpilot.system.loggerd.memory_pressure import handle_memory_pressure
+        # Clear caches when memory is high (75%+), clear FS cache when critical (80%+)
+        handle_memory_pressure(
+          clear_caches=True,
+          clear_fs_cache=(msg.deviceState.memoryUsagePercent >= 80)
+        )
+      except Exception:
+        pass  # Don't fail if memory pressure handling isn't available
+
     msg.deviceState.gpuUsagePercent = int(round(HARDWARE.get_gpu_usage_percent()))
     msg.deviceState.npuUsagePercent = HARDWARE.get_npu_usage_percent()
     online_cpu_usage = [int(round(n)) for n in psutil.cpu_percent(percpu=True)]

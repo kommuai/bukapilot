@@ -167,6 +167,31 @@ bool LoggerState::next() {
 }
 
 void LoggerState::write(uint8_t* data, size_t size, bool in_qlog) {
-  rlog->write(data, size);
-  if (in_qlog) qlog->write(data, size);
+  // Check memory pressure before writing
+  if (MemoryPressure::is_memory_pressure_critical()) {
+    // When memory is critical (90%+), skip non-essential writes
+    // Only write to qlog (required), skip rlog to reduce write pressure
+    if (in_qlog && qlog) {
+      qlog->write(data, size);
+      qlog->flush_if_needed();  // Force flush more frequently under memory pressure
+    }
+    // Skip rlog writes when memory is critical to reduce write pressure
+    return;
+  }
+  
+  // Normal operation: write to both logs
+  if (rlog) {
+    rlog->write(data, size);
+    rlog->flush_if_needed();
+  }
+  if (in_qlog && qlog) {
+    qlog->write(data, size);
+    qlog->flush_if_needed();
+  }
+  
+  // When memory is high (85%+), flush more aggressively
+  if (MemoryPressure::is_memory_pressure_high()) {
+    if (rlog) rlog->flush_if_needed(true);  // Force flush
+    if (qlog) qlog->flush_if_needed(true);
+  }
 }
