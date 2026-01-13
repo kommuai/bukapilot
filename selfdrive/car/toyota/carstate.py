@@ -42,6 +42,7 @@ class CarState(CarStateBase):
 
     self.low_speed_lockout = False
     self.acc_type = 1
+    self.distance_btn = 0
     self.lkas_hud = {}
 
   def update(self, cp, cp_cam):
@@ -71,7 +72,11 @@ class CarState(CarStateBase):
     ret.vEgo, ret.aEgo = self.update_speed_kf(ret.vEgoRaw)
     ret.vEgoCluster = ret.vEgo * 1.015  # minimum of all the cars
 
-    self.set_long_personality(int(cp.vl["PCM_CRUISE_SM"]['DISTANCE_LINES']) - 1)
+    # Map DISTANCE_LINES (1-4) to personality (0-2)
+    # 1 = closest (aggressive), 2 = normal (standard), 3-4 = furthest (relaxed)
+    distance_lines = int(cp.vl["PCM_CRUISE_SM"]['DISTANCE_LINES'])
+    personality = min(2, max(0, distance_lines - 1))  # Clamp to valid range [0, 2]
+    self.set_long_personality(personality)
 
     ret.standstill = abs(ret.vEgoRaw) < 1e-3
 
@@ -136,6 +141,7 @@ class CarState(CarStateBase):
       if not (self.CP.flags & ToyotaFlags.SMART_DSU.value):
         self.acc_type = cp_acc.vl["ACC_CONTROL"]["ACC_TYPE"]
       ret.stockFcw = bool(cp_acc.vl["PCS_HUD"]["FCW"])
+      self.distance_btn = 1 if cp_acc.vl["ACC_CONTROL"]["DISTANCE"] == 1 else 0
 
     # some TSS2 cars have low speed lockout permanently set, so ignore on those cars
     # these cars are identified by an ACC_TYPE value of 2.
