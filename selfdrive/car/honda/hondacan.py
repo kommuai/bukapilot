@@ -164,20 +164,22 @@ def create_ui_commands(packer, CAN, CP, enabled, pcm_speed, hud, is_metric, acc_
     commands.append(packer.make_can_msg("ACC_HUD", CAN.pt, acc_hud_values))
 
   lkas_hud_values = {
-    'SET_ME_X41': 0x41,
     'STEERING_REQUIRED': hud.steer_required,
     'SOLID_LANES': hud.lanes_visible,
     'BEEP': 0,
   }
+
+  # SET_ME_X41 and SET_ME_X48 are only defined in Nidec DBC files (not in Bosch DBCs)
+  # Only set them for Nidec cars to avoid undefined signal warnings
+  if CP.carFingerprint not in HONDA_BOSCH:
+    lkas_hud_values['SET_ME_X41'] = 0x41
+    lkas_hud_values['SET_ME_X48'] = 0x48
 
   if CP.carFingerprint in HONDA_BOSCH_RADARLESS:
     lkas_hud_values['LANE_LINES'] = 3
     lkas_hud_values['DASHED_LANES'] = hud.lanes_visible
     # car likely needs to see LKAS_PROBLEM fall within a specific time frame, so forward from camera
     lkas_hud_values['LKAS_PROBLEM'] = lkas_hud['LKAS_PROBLEM']
-
-  if not (CP.flags & HondaFlags.BOSCH_EXT_HUD):
-    lkas_hud_values['SET_ME_X48'] = 0x48
 
   if CP.flags & HondaFlags.BOSCH_EXT_HUD and not CP.openpilotLongitudinalControl:
     commands.append(packer.make_can_msg('LKAS_HUD_A', bus_lkas, lkas_hud_values))
