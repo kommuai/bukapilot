@@ -109,6 +109,35 @@ class LongitudinalPlanner:
 
     if self.mpc.mode == 'acc':
       accel_limits = [A_CRUISE_MIN, get_max_accel(v_ego)]
+
+      # Reduce acceleration when following a lead car with large speed gap
+      # This prevents aggressive acceleration to close distance when set speed is much higher
+      has_lead = sm['radarState'].leadOne.status
+      speed_gap = v_cruise - v_ego  # Difference between set speed and current speed
+      MIN_SPEED_FOR_LIMIT = 5.0 * CV.KPH_TO_MS  # Only apply when moving
+
+      if has_lead and speed_gap > 5.0 * CV.KPH_TO_MS and v_ego > MIN_SPEED_FOR_LIMIT:
+        lead = sm['radarState'].leadOne
+        v_lead = lead.vLead if lead.status else v_ego
+
+        # Gradually reduce acceleration as speed gap increases
+        # At 5 km/h gap: no reduction
+        # At 20 km/h gap: 15% reduction (less aggressive)
+        speed_gap_kmh = speed_gap * CV.MS_TO_KPH
+        base_reduction = clip((speed_gap_kmh - 5.0) / 15.0, 0.0, 0.15)  # 0 to 20% reduction
+
+        # Additional reduction if lead is significantly slower than cruise speed
+        # This encourages gentle acceleration when lead won't reach cruise speed
+        if v_lead < v_cruise * 0.8:  # Lead is much slower than cruise
+          lead_factor = 0.15  # Additional 15% reduction (reduced from 30%)
+        elif v_lead < v_cruise * 0.9:  # Lead is slower than cruise
+          lead_factor = 0.08  # Additional 8% reduction (reduced from 15%)
+        else:
+          lead_factor = 0.0  # No additional reduction
+
+        total_reduction = min(base_reduction + lead_factor, 0.35)  # Cap at 35% reduction (reduced from 60%)
+        accel_limits[1] = max(accel_limits[1] * (1.0 - total_reduction), 0.5)  # Floor at 0.5 m/s²
+
       accel_limits_turns = limit_accel_in_turns(v_ego, sm['carState'].steeringAngleDeg, accel_limits, self.CP)
     else:
       accel_limits = [ACCEL_MIN, ACCEL_MAX]

@@ -8,15 +8,17 @@ from openpilot.common.conversions import Conversions as CV
 
 LOW_THRESHOLD = 0.55 #0.63
 THRESHOLD = 0.63
+MODEL_STOP_THRESHOLD = 0.5  # Lower threshold for faster model stopping detection
 CRUISING_SPEED = 18 * CV.KPH_TO_MS
 LOW_SPEED_LIMIT = 30 * CV.KPH_TO_MS
-TURN_OFF_CEM_SPEED = 70 * CV.KPH_TO_MS
+TURN_OFF_CEM_SPEED = 110 * CV.KPH_TO_MS
 
 class ConditionalExperimentalMode:
   def __init__(self):
     self.curvature_filter = FirstOrderFilter(0, 1, DT_MDL)
     self.slow_lead_filter = FirstOrderFilter(0, 1, DT_MDL)
-    self.model_stop_filter = FirstOrderFilter(0, 1, DT_MDL)
+    # Faster filter for model stopping (0.3s time constant instead of 1.0s for quicker response)
+    self.model_stop_filter = FirstOrderFilter(0, 0.3, DT_MDL)
 
     self.params = Params()
     self.cem_enabled = False
@@ -26,13 +28,60 @@ class ConditionalExperimentalMode:
     if self.frame % 10 == 0:
       self.cem_enabled = self.params.get_bool("ConditionalExperimentalMode")
 
-    if self.frame % 4 == 0:
-      # Limit the rate to avoid duplicated param writes
-      v_ego = car_state.vEgo
+    v_ego = car_state.vEgo
 
+    # --- Model stopping detection (runs every frame for faster response) ---
+    x_pos = model_data.position.x
+    x_vel = model_data.velocity.x
+    model_stopping_detected = False
+
+    if x_pos and len(x_pos) > 0 and len(x_vel) > 0:
+      # Check multiple time horizons for earlier detection
+      # Model has 33 indices, predicting up to 10s ahead
+      # Check indices: 14 (~2s), 20 (~4s), 25 (~6s), 32 (10s)
+      idx_2s = min(14, len(x_vel) - 1)
+      idx_4s = min(20, len(x_vel) - 1)
+      idx_6s = min(25, len(x_vel) - 1)
+      idx_10s = len(x_vel) - 1
+
+      v_2s = x_vel[idx_2s]
+      v_4s = x_vel[idx_4s]
+      v_6s = x_vel[idx_6s]
+      v_10s = x_vel[idx_10s]
+
+      # Check acceleration for strong deceleration signals
+      accel = 0
+      if hasattr(model_data, 'acceleration') and model_data.acceleration.x and len(model_data.acceleration.x) > 0:
+        accel = model_data.acceleration.x[-1]
+
+      # Multiple conditions for faster detection
+      model_stopping = (
+        v_2s < 3.0 or      # Very slow at ~2s (< 10.8 km/h)
+        v_4s < 2.5 or      # Slow at ~4s (< 9 km/h)
+        v_6s < 2.0 or      # Very slow at ~6s (< 7.2 km/h)
+        v_10s < 2.8 or     # Original check at 10s (< 10 km/h)
+        accel < -1.5       # Strong deceleration (> 1.5 m/s²)
+      )
+
+      # Check for very strong stopping signal (immediate enable, bypass filter)
+      very_slow = v_10s < 1.5  # Very slow (< 5.4 km/h)
+      strong_decel = accel < -2.0  # Very strong deceleration (> 2.0 m/s²)
+
+      if (very_slow or strong_decel) and not lead.status:
+        # Immediate enable for clear stopping signals (only when no lead)
+        model_stopping_detected = True
+      else:
+        # Use filtered detection for borderline cases
+        self.model_stop_filter.update(model_stopping)
+        model_stopping_detected = self.model_stop_filter.x >= MODEL_STOP_THRESHOLD and not lead.status
+    else:
+      self.model_stop_filter.update(False)
+
+    # --- Other detections (run every 4 frames to limit param writes) ---
+    if self.frame % 4 == 0:
       # --- Road curvature detection ---
       curvature = self.calculate_curvature(model_data, v_ego)
-      road_curve = (0.9 / abs(curvature))**0.5 < v_ego > CRUISING_SPEED
+      road_curve = (1.2 / abs(curvature))**0.5 < v_ego > CRUISING_SPEED
       road_curve &= v_ego < TURN_OFF_CEM_SPEED
       self.curvature_filter.update(road_curve)
       curve_detected = self.curvature_filter.x >= THRESHOLD
@@ -47,16 +96,6 @@ class ConditionalExperimentalMode:
         self.slow_lead_filter.x = 0
         slow_lead_detected = False
 
-      # --- Model stopping ---
-      x_pos = model_data.position.x
-      x_vel = model_data.velocity.x
-      if x_pos and len(x_pos) > 0:
-        model_stopping = (x_pos[-1] < CRUISING_SPEED * len(x_pos) * DT_MDL) or x_vel[-1] < 2.8
-      else:
-        model_stopping = False
-      self.model_stop_filter.update(model_stopping)
-      model_stopping_detected = self.model_stop_filter.x >= THRESHOLD and not lead.status
-
       # --- Low speed cruising ---
       below_low_speed = v_ego < LOW_SPEED_LIMIT
 
@@ -66,9 +105,9 @@ class ConditionalExperimentalMode:
       if (personality_type == 0) or not self.cem_enabled:
         should_enable = False
       elif (personality_type == 1):
-        should_enable |= model_stopping
+        should_enable |= model_stopping_detected
       else:
-        should_enable |= model_stopping or below_low_speed
+        should_enable |= model_stopping_detected or below_low_speed
 
       if should_enable != controls_state.experimentalMode:
         self.params.put_bool("ExperimentalMode", should_enable)
