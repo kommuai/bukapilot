@@ -96,9 +96,9 @@ class CarController(CarControllerBase):
 
       # standstill logic
       standstill_request = CS.out.standstill and CC.longActive and actuators.accel < -0.01
-      resume = CS.out.standstill and actuators.accel > 0
 
       # SNG
+      resume = False
       if not (CS.cruise_standstill and CC.longActive):
         self.is_sng_check = False
       else:
@@ -113,6 +113,7 @@ class CarController(CarControllerBase):
 
         elif actuators.accel > 0 and self.frame > self.sng_next_press_frame:
           # to disengage from stock cruise standstill
+          resume = True
           can_sends.append(send_buttons(self.packer, 0))
           self.resume_counter += 1
 
