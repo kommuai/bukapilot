@@ -92,52 +92,77 @@ def send_buttons(packer, state, cancel):
   }
   return packer.make_can_msg("PCM_BUTTONS", 2, values)
 
-def create_steering_torque_spoof_main(packer, driver_torque=10, steer_angle=-7.7, counter=0):
-  """
-  Spoof steering torque on camera bus (2) to simulate hands on wheel
-  Sends STEER_MODULE_2 message
-  Address: 0x11F (287 decimal), Bus: 2 (camera)
-  Message length: 5 bytes
-  Frequency: ~20 Hz (every 2-3 frames at 50 Hz base rate)
-
-  Based on log analysis:
-  - Bytes 0-1: STEER_ANGLE_2 = -77 (-7.7 degrees) - constant in logs
-  - Byte 2: Constant 0x00
-  - Byte 3: Constant 0xFF
-  - Byte 4: Counter increments by 0x11 (17 decimal): 0x08, 0x19, 0x2A, 0x3B, 0x4C, 0x5D, 0x6E, 0x7F, 0x80, 0x91, 0xA2, 0xB3, 0xC4, 0xD5, 0xE6, 0xF7
-  """
-  from openpilot.common.numpy_fast import clip
-  # Counter pattern from logs: increments by 0x11, wraps through 16 values
-  counter_values = [0x08, 0x19, 0x2A, 0x3B, 0x4C, 0x5D, 0x6E, 0x7F, 0x80, 0x91, 0xA2, 0xB3, 0xC4, 0xD5, 0xE6, 0xF7]
-  counter_val = counter_values[counter % len(counter_values)]
-
-  values = {
-    "STEER_ANGLE_2": clip(steer_angle, -3276.8, 3276.7),  # Physical value in degrees, packer applies factor 0.1
-    "DRIVER_EPS_TORQUE": int(clip(driver_torque, 0, 255)),
-    "PAYLOAD": 0xFF,  # Constant 0xFF based on log analysis
-    "MSG_COUNTER": counter_val,  # Counter pattern from logs
-  }
-  return packer.make_can_msg("STEER_MODULE_2", 2, values)
-
 import random
 
-def create_steering_torque_spoof_camera(packer, lat_active, main_torque=-15):
+# Module-level state for realistic torque ramp-up simulation
+_torque_spoof_state = {
+  'current_torque_offset': 0.0,  # Current accumulated torque offset
+  'target_torque': 0.0,          # Target torque when spoof is active
+  'ramp_rate': 3.0,              # Nm per call ramp rate (realistic steering nudge at ~10 Hz)
+  'max_torque': 10.0,            # Maximum torque offset (realistic hand touch, Nm)
+}
+
+def create_steering_torque_spoof_camera(packer, lat_active, main_torque, spoof):
   """
   Spoof steering torque on camera bus (2) to simulate hands on wheel
   Sends STEERING_TORQUE message
   Address: 0x1FC (508 decimal), Bus: 2 (camera)
+
+  When spoof is True, simulates realistic hand touch by gradually ramping up torque
+  like a natural steering nudge, rather than random jumps.
   """
 
-  curvature = random.uniform(-5.0, 5.0) if lat_active else 0.0
-  unknown_torque = random.uniform(-15.0, 15.0) if lat_active else main_torque
+  if spoof:
+    # Realistic hand touch simulation: gradually ramp up torque like a steering nudge
+    # Set target torque (with slight variation for realism)
+    if abs(_torque_spoof_state['target_torque']) < 0.1:
+      # Start new nudge - choose target torque (slightly randomized for natural feel)
+      _torque_spoof_state['target_torque'] = random.uniform(5.0, _torque_spoof_state['max_torque'])
+      # Occasionally apply negative torque for bidirectional realism
+      if random.random() < 0.3:
+        _torque_spoof_state['target_torque'] = -_torque_spoof_state['target_torque']
+
+    # Ramp towards target torque (realistic steering nudge behavior)
+    target = _torque_spoof_state['target_torque']
+    current = _torque_spoof_state['current_torque_offset']
+    ramp = _torque_spoof_state['ramp_rate']
+
+    if abs(target - current) > 0.1:
+      # Still ramping - move towards target
+      if current < target:
+        _torque_spoof_state['current_torque_offset'] = min(current + ramp, target)
+      else:
+        _torque_spoof_state['current_torque_offset'] = max(current - ramp, target)
+    else:
+      # Reached target - occasionally vary slightly for natural hand movement
+      if random.random() < 0.2:
+        _torque_spoof_state['target_torque'] = random.uniform(4.0, _torque_spoof_state['max_torque'])
+        if random.random() < 0.5:
+          _torque_spoof_state['target_torque'] = -_torque_spoof_state['target_torque']
+  else:
+    # spoof is False - gradually ramp down torque back to zero
+    current = _torque_spoof_state['current_torque_offset']
+    if abs(current) > 0.1:
+      # Ramp down towards zero
+      if current > 0:
+        _torque_spoof_state['current_torque_offset'] = max(current - _torque_spoof_state['ramp_rate'], 0.0)
+      else:
+        _torque_spoof_state['current_torque_offset'] = min(current + _torque_spoof_state['ramp_rate'], 0.0)
+    else:
+      # Reset state when torque returns to zero
+      _torque_spoof_state['current_torque_offset'] = 0.0
+      _torque_spoof_state['target_torque'] = 0.0
+
+  # Add the realistic ramp-up torque offset to main_torque
+  main_torque += _torque_spoof_state['current_torque_offset']
 
   values = {
-    "MAIN_TORQUE": unknown_torque / 10,            # Physical value in Nm
+    "MAIN_TORQUE": main_torque,
     "STATE": 10 if lat_active else 9,
-    "CURVATURE": curvature,
-    "UNKNOWN_TORQUE": unknown_torque,
+    "CURVATURE": 0,
+    "UNKNOWN_TORQUE": 0,
     "STEER_ACTIVE": lat_active,
-    "STEER_STATE": 0 if lat_active else 6, # 6 on start, 0 OK, 4 fault
+    "STEER_STATE": 0 if lat_active else 6, # 6 on start, 0 OK
   }
 
   return packer.make_can_msg("STEERING_TORQUE", 2, values)

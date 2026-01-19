@@ -49,7 +49,7 @@ class CarInterface(CarInterfaceBase):
       ret.longitudinalTuning.deadzoneV = [0., 0.15]
 
       ret.safetyConfigs[0].safetyParam = 3
-    elif candidate == CAR.SEAL:
+    elif candidate in (CAR.SEAL, CAR.SEALION7):
       ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.52, 0.43, 0.32], [1.5, 1.4, 1.1]]
 
       ret.safetyConfigs[0].safetyParam = 2

@@ -21,11 +21,11 @@ const CanMsg BYD_TX_MSGS[] = {
   {790, 0, 8}, // LKAS_HUD_ADAS
   {814, 0, 8}, // ACC_CMD
   {944, 2, 8}, // PCM_BUTTONS
-  {287, 2, 5}, // STEER_MODULE_2
   {508, 2, 8}  // STEERING_TORQUE
 };
 
 bool byd_alt_engage = false;
+bool byd_steering_torque_spoof = false;
 
 RxCheck byd_rx_checks[] = {
   {.msg = {{287, 0, 5, .check_checksum = false, .frequency = 100U}, { 0 }, { 0 }}}, // STEER_MODULE_2
@@ -99,10 +99,8 @@ static void byd_rx_hook(const CANPacket_t *to_push) {
     if (addr == 813) {
       uint8_t state = (GET_BYTE(to_push, 5) >> 4) & 0xFU;
       bool engaged = (state == 3U) ||
-                     (state == 4U) ||
                      (state == 6U) ||
-                     (state == 7U) ||
-                     (state == 8U);
+                     (state == 7U);
 
       pcm_cruise_check(engaged);
     }
@@ -116,7 +114,6 @@ static void byd_rx_hook(const CANPacket_t *to_push) {
   }
 
   generic_rx_checks((addr == 482) && (bus == 0));
-  controls_allowed = true;
 }
 
 static bool byd_tx_hook(const CANPacket_t *to_send) {
@@ -153,8 +150,8 @@ static int byd_fwd_hook(int bus_num, int addr) {
   int bus_fwd = -1;
 
   if (bus_num == 0) {
-    bool is_torque_msg = ((addr == 0x1FC));// || (addr == 0x11F));
-    bool block_msg = is_torque_msg;
+    bool is_torque_msg = (addr == 0x1FC);
+    bool block_msg = is_torque_msg && byd_steering_torque_spoof;
     if (!block_msg) {
       bus_fwd = 2;
     }
@@ -182,6 +179,7 @@ static safety_config byd_init(uint16_t param) {
   }
   else if (param == 3) {
     byd_alt_engage = true;
+    byd_steering_torque_spoof = true;
     return BUILD_SAFETY_CFG(byd_rx_checks, BYD_TX_MSGS);
   }
   else {

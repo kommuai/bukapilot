@@ -3,7 +3,7 @@ from opendbc.can.packer import CANPacker
 
 from openpilot.selfdrive.car import apply_std_steer_angle_limits, AngleRateLimit
 from openpilot.selfdrive.car.interfaces import CarControllerBase
-from openpilot.selfdrive.car.byd.bydcan import create_can_steer_command, send_buttons, create_lkas_hud, create_accel_command, create_steering_torque_spoof_main, create_steering_torque_spoof_camera
+from openpilot.selfdrive.car.byd.bydcan import create_can_steer_command, send_buttons, create_lkas_hud, create_accel_command, create_steering_torque_spoof_camera
 from openpilot.selfdrive.car.byd.values import DBC, CAR, ACCEL_MULT
 from openpilot.common.numpy_fast import clip
 
@@ -23,8 +23,8 @@ def lowpass_1pole(x, y_prev):
 
 
 class CarControllerParams():
-  ANGLE_RATE_LIMIT_UP = AngleRateLimit(speed_bp=[0., 5., 15.], angle_v=[4., 3., 2.])
-  ANGLE_RATE_LIMIT_DOWN = AngleRateLimit(speed_bp=[0., 5., 15.], angle_v=[8., 6., 6.])
+  ANGLE_RATE_LIMIT_UP = AngleRateLimit(speed_bp=[0., 5., 15.], angle_v=[6., 3., 1.])
+  ANGLE_RATE_LIMIT_DOWN = AngleRateLimit(speed_bp=[0., 5., 15.], angle_v=[8., 7., 4.])
 
   def __init__(self, CP):
     pass
@@ -41,7 +41,6 @@ class CarController(CarControllerBase):
     self.lka_cooldown = 0
     self.prev_press = False
     self.lka_latched = False
-    self.steer_module_counter = 0  # 8-bit counter for STEER_MODULE_2 (byte 4)
 
   def update(self, CC, CS, now_nanos):
     can_sends = []
@@ -51,7 +50,7 @@ class CarController(CarControllerBase):
     apply_angle = CS.out.steeringAngleDeg
     pcm_cancel_cmd = CC.cruiseControl.cancel
 
-    if self.CP.carFingerprint in (CAR.M6, CAR.SEAL):
+    if self.CP.carFingerprint in (CAR.M6, CAR.SEAL, CAR.SEALION7):
       rising_edge = CS.lkas_rdy_btn and not self.prev_press
       if rising_edge:
         if not self.lka_latched:
@@ -65,7 +64,7 @@ class CarController(CarControllerBase):
       self.prev_press = CS.lkas_rdy_btn
 
       # Unlatch when brake is pressed
-      if CS.out.brakePressed or not CC.enabled:
+      if CS.out.brakePressed:
         self.lka_latched = False
         self.lka_cooldown = 0
         self.lka_active = False
@@ -104,8 +103,8 @@ class CarController(CarControllerBase):
         long_active = CC.enabled and not CS.out.gasPressed
         brake_hold = CS.out.standstill and actuators.accel < 0
         # is this needed?
-        if (CC.enabled and CS.out.standstill and actuators.accel > 0):
-          can_sends.append(send_buttons(self.packer, 1, 0))
+        #if (CC.enabled and CS.out.standstill and actuators.accel > 0):
+        #  can_sends.append(send_buttons(self.packer, 1, 0))
         can_sends.append(create_accel_command(self.packer, actuators.accel, long_active, self.accel_mult, brake_hold))
       else:
         if CS.out.standstill and CC.enabled and (self.frame % 100 == 0):
@@ -113,15 +112,17 @@ class CarController(CarControllerBase):
 
     # Spoof steering torque to simulate hands on wheel
     if self.CP.carFingerprint in (CAR.M6):
-      # STEERING_TORQUE at 10 Hz (every 5 frames)
-      if (self.frame % 5) == 0:
-        can_sends.append(create_steering_torque_spoof_camera(self.packer, lat_active, 1.5))
+      # Time-based spoof: trigger every 3 seconds, sustain for 1 second
+      # At 50 Hz: 1 second = 50 frames, 3 seconds = 150 frames
+      SPOOF_DURATION_FRAMES = 50   # 1 second at 50 Hz
+      SPOOF_CYCLE_FRAMES = 150     # 3 seconds at 50 Hz
 
-      # STEER_MODULE_2 at 20 Hz (every 2-3 frames, using modulo 3 for ~20 Hz)
-      # Based on logs: STEER_ANGLE_2 = -7.7 degrees, counter follows pattern [0x08, 0x19, 0x2A...0xF7]
-      if (self.frame % 3) == 0 and False:
-        can_sends.append(create_steering_torque_spoof_main(self.packer, driver_torque=10, steer_angle=-7.7, counter=self.steer_module_counter))
-        self.steer_module_counter = (self.steer_module_counter + 1) % 16  # Wrap through 16 counter values
+      # Calculate position in 3-second cycle (0-149)
+      cycle_position = self.frame % SPOOF_CYCLE_FRAMES
+      spoof_active = cycle_position < SPOOF_DURATION_FRAMES
+
+      if (self.frame % 5) == 0:
+        can_sends.append(create_steering_torque_spoof_camera(self.packer, lat_active, CS.out.steeringTorque, spoof_active))
 
     if pcm_cancel_cmd:
       can_sends.append(send_buttons(self.packer, 0, 1))
