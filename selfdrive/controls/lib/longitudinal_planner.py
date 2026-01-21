@@ -124,7 +124,7 @@ class LongitudinalPlanner:
         # At 5 km/h gap: no reduction
         # At 20 km/h gap: 15% reduction (less aggressive)
         speed_gap_kmh = speed_gap * CV.MS_TO_KPH
-        base_reduction = clip((speed_gap_kmh - 5.0) / 15.0, 0.0, 0.15)  # 0 to 20% reduction
+        base_reduction = clip((speed_gap_kmh - 5.0) / 15.0, 0.0, 0.25)  # 0 to 25% reduction
 
         # Additional reduction if lead is significantly slower than cruise speed
         # This encourages gentle acceleration when lead won't reach cruise speed
