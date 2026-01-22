@@ -131,7 +131,7 @@ class CarState(CarStateBase):
 
     if self.CP.carFingerprint in (CAR.SEAL, CAR.SEALION7 , CAR.M6):
       cruise_state = parser_alt.vl["ACC_HUD_ADAS"]["CRUISE_STATE"]
-      ret.cruiseState.enabled = cruise_state in (3, 6, 7)# or (cruise_state == 8 and not ret.standstill)
+      ret.cruiseState.enabled = cruise_state in (3, 5, 6, 7)
     else:
       ret.cruiseState.enabled = self.is_cruise_latch
 

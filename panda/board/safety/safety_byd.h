@@ -20,6 +20,7 @@ const CanMsg BYD_TX_MSGS[] = {
   {482, 0, 8}, // STEERING_MODULE_ADAS
   {790, 0, 8}, // LKAS_HUD_ADAS
   {814, 0, 8}, // ACC_CMD
+  {944, 0, 8}, // PCM_BUTTONS
   {944, 2, 8}, // PCM_BUTTONS
   {508, 2, 8}  // STEERING_TORQUE
 };
@@ -99,6 +100,7 @@ static void byd_rx_hook(const CANPacket_t *to_push) {
     if (addr == 813) {
       uint8_t state = (GET_BYTE(to_push, 5) >> 4) & 0xFU;
       bool engaged = (state == 3U) ||
+                     (state == 5U) ||
                      (state == 6U) ||
                      (state == 7U);
 
@@ -112,7 +114,7 @@ static void byd_rx_hook(const CANPacket_t *to_push) {
       pcm_cruise_check(engaged);
     }
   }
-
+  controls_allowed = true;
   generic_rx_checks((addr == 482) && (bus == 0));
 }
 
@@ -175,6 +177,7 @@ static safety_config byd_init(uint16_t param) {
   }
   else if (param == 2) {
     byd_alt_engage = true;
+    byd_steering_torque_spoof = true;
     return BUILD_SAFETY_CFG(byd_rx_checks_alt, BYD_TX_MSGS);
   }
   else if (param == 3) {

@@ -37,7 +37,6 @@ def create_accel_command(packer, accel, enabled, accel_mult, brake_hold):
     "SET_ME_25_2": 25,
     "ACC_ON_1": enabled,
     "ACC_ON_2": enabled,
-    #"ENGAGE_BIT": enabled,  # Keep ENGAGE_BIT based on openpilot's enabled state
     # some unknown state, 12 when accel, below 11 when braking, 11 when cruising
     "ACCEL_FACTOR": accel_factor if enabled else 0,
     # some unknown state, 0 when not engaged, 3/4 when accel, 8/9 when accel uphill, 1 when braking (all speculation)
@@ -81,16 +80,15 @@ def create_lkas_hud(packer, lat_active, lss_state, lss_alert, tsr, ahb, passthro
 
   return packer.make_can_msg("LKAS_HUD_ADAS", 0, values)
 
-def send_buttons(packer, state, cancel):
+def send_buttons(packer, state, cancel, bus):
   values = {
       "SET_BTN": state,
       "RES_BTN": state,
       "SET_ME_1_1": 1,
       "SET_ME_1_2": 1,
       "ACC_ON_BTN": cancel,
-      "LKAS_ON_BTN": 0,
   }
-  return packer.make_can_msg("PCM_BUTTONS", 2, values)
+  return packer.make_can_msg("PCM_BUTTONS", bus, values)
 
 import random
 
