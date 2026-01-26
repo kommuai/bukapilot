@@ -1,3 +1,10 @@
+Version 10.0.4 (2026-01-30)
+========================
+* Memory pressure monitoring from SD card operations
+* Toyota cars can now set personality from car
+* Fix BYD M6, Seal and Sealion 7 engage sequence
+* Reduce BYD Phantom braking from adjacent lane vehicle
+
 Version 10.0.3 (2026-01-09)
 ========================
 * Proton X90 support
