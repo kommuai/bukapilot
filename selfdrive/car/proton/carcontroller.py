@@ -2,7 +2,7 @@ from opendbc.can.packer import CANPacker
 from openpilot.selfdrive.car.interfaces import CarControllerBase
 from openpilot.selfdrive.car.proton.protoncan import create_can_steer_command, send_buttons, create_acc_cmd
 from openpilot.selfdrive.car.proton.values import DBC, CAR
-from openpilot.common.numpy_fast import clip
+from openpilot.common.numpy_fast import clip, interp
 from openpilot.common.realtime import DT_CTRL
 from openpilot.common.features import Features
 from time import monotonic
@@ -63,6 +63,7 @@ class CarController(CarControllerBase):
     lat_active = CC.latActive
     actuators = CC.actuators
     pcm_cancel_cmd = CC.cruiseControl.cancel
+    accel_cmd = actuators.accel
 
     # steer
     new_steer = round(actuators.steer * self.params.STEER_MAX)
@@ -104,8 +105,18 @@ class CarController(CarControllerBase):
                        CS.lka_enable, ldw_steering, steer_enabled))
 
       if self.openpilot_long:
-        can_sends.append(create_acc_cmd(self.packer, actuators.accel, CC.longActive, CS.out.gasPressed,
-                                        standstill_request, CS.stock_acc_cmd, CS.out.vEgo, self.resume))
+        accel_cmd = accel_cmd * 15 if accel_cmd >= 0 else accel_cmd * 18
+        if CS.out.gasPressed:
+          accel_cmd = 0
+
+        mult = interp(CS.out.vEgo, [0, 28.3], [1.0, 0.6])
+        if CS.out.vEgo < 2.5:
+          accel_cmd = (CS.stock_acc_cmd * mult + accel_cmd)/2
+        else:
+          accel_cmd = min(CS.stock_acc_cmd * mult, accel_cmd)
+
+        can_sends.append(create_acc_cmd(self.packer, accel_cmd, CC.longActive, CS.out.gasPressed,
+                                        standstill_request, self.resume))
 
       # to disengage from stock cruise standstill
       if (CC.enabled and CS.cruise_standstill and (self.frame % 20 == 0)):
@@ -117,6 +128,7 @@ class CarController(CarControllerBase):
 
     self.last_steer = apply_steer
     new_actuators = actuators.copy()
+    new_actuators.accel = accel_cmd / 15 if accel_cmd >= 0 else accel_cmd / 18
     new_actuators.steer = apply_steer / self.params.STEER_MAX
 
     self.frame += 1

@@ -1,4 +1,4 @@
-from openpilot.common.numpy_fast import clip, interp
+from openpilot.common.numpy_fast import clip
 
 def create_can_steer_command(packer, steer, steer_req, wheel_touch_warning, wheel_touch_warning_2,
     lks_aux, lks_audio, lks_tactile, lks_assist_mode, lka_enable, stock_ldw_ste, steer_enabled):
@@ -25,18 +25,7 @@ def create_can_steer_command(packer, steer, steer_req, wheel_touch_warning, whee
 
   return packer.make_can_msg("ADAS_LKAS", 0, values)
 
-def create_acc_cmd(packer, accel, enabled, gas_override, standstill, stock, speed, resume):
-  accel_cmd = accel * 15 if accel >= 0 else accel * 18
-
-  if gas_override:
-    accel_cmd = 0
-
-  mult = interp(speed, [0, 28.3], [1.0, 0.6])
-  if speed < 2.5:
-    accel_cmd = (stock * mult + accel_cmd)/2
-  else:
-    accel_cmd = min(stock * mult, accel_cmd)
-
+def create_acc_cmd(packer, accel_cmd, enabled, gas_override, standstill, resume):
   if accel_cmd > 0:
     standstill = False
 
@@ -54,7 +43,7 @@ def create_acc_cmd(packer, accel, enabled, gas_override, standstill, stock, spee
     "STATIONARY": 0,
     "STANDSTILL_REQ": 0,
     # 5 = Standstill, 3 = Accelerate, 4 = Brake, 1 = Maintain speed
-    "MOTION_CONTROL": 5 if standstill else 3 if accel > 0 else 4 if accel < 0 else 1
+    "MOTION_CONTROL": 5 if standstill else 3 if accel_cmd > 0 else 4 if accel_cmd < 0 else 1
   }
 
   return packer.make_can_msg("ACC_CMD", 0, values)
