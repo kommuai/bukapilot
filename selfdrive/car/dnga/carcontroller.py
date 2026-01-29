@@ -10,7 +10,7 @@ from openpilot.selfdrive.car.dnga.dngacan import create_can_steer_command, \
   create_brake_command, \
   create_hud
 from openpilot.selfdrive.car.dnga.values import CAR, DBC, BRAKE_SCALE, SNG_CAR
-from openpilot.common.numpy_fast import clip
+from openpilot.common.numpy_fast import clip, interp
 from openpilot.common.realtime import DT_CTRL
 
 BRAKE_THRESHOLD = 0.01
@@ -78,6 +78,9 @@ def psd_brake(apply_brake, last_pump):
   return pump, brake_req, pump  # new last_pump == pump
 
 class CarControllerParams():
+  ACCEL_MIN = -3.5
+  ACCEL_MAX = 1.3
+
   def __init__(self, CP):
     self.STEER_MAX = CP.lateralParams.torqueV[0]
     # make sure Proton only has one max steer torque value
@@ -126,12 +129,24 @@ class CarController(CarControllerBase):
     new_steer = int(round(actuators.steer * self.params.STEER_MAX))
     apply_steer = apply_steer_torque_limits(new_steer, self.last_steer, CS.out.steeringTorqueEps, isBlinkerOn, self.params)
 
-    # dnga is speed controlled, the PID for positive accel is done by the car
-    # so we change the equation to v = u + ka and assume k include the time horizon of 1s
-    acceleration = (actuators.accel - CS.stock_brake_mag * 0.85) if CS.out.vEgo > 0.25 else actuators.accel
-    k = 0.3 + 0.06 * CS.out.vEgo
+    acceleration = actuators.accel
+    acceleration = (acceleration - CS.stock_brake_mag * 0.85) if CS.out.vEgo > 0.25 else acceleration
+    # higher speeds have higher efficiency
+    k = 0.667 + 0.120 * CS.out.vEgo
     des_speed = CS.out.vEgo + acceleration * k
-    apply_brake = 0 if (CS.out.gasPressed or acceleration >= 0.0) else clip(abs(acceleration * self.brake_scale), 0., 1.25)
+
+    if CS.out.gasPressed or acceleration >= 0.0:
+      apply_brake = 0
+    else:
+      base_brake = abs(acceleration * self.brake_scale)
+
+      # Brake magnitude compensation: larger brakes are less efficient
+      BRAKE_MAG_COMP_BP = [0.0, 0.3, 0.5, 1.25]  # Brake magnitude breakpoints
+      BRAKE_MAG_COMP_V = [1.0, 1.0, 1.25, 1.5]   # Compensation multiplier values
+      magnitude_compensation = interp(base_brake, BRAKE_MAG_COMP_BP, BRAKE_MAG_COMP_V)
+
+      base_brake *= magnitude_compensation
+      apply_brake = clip(base_brake, 0., 1.25)
 
     # reduce max brake when below 10kmh to reduce jerk. TODO: more elegant way to do this?
     if CS.out.vEgo < 2.8:
@@ -220,7 +235,7 @@ class CarController(CarControllerBase):
     new_actuators = actuators.copy()
     new_actuators.steer = apply_steer / self.params.STEER_MAX
     # sometimes we let stock brake, brake takes precedence over gas
-    new_actuators.accel = actuators.accel - apply_brake if actuators.accel > 0 else actuators.accel
+    new_actuators.accel = actuators.accel - apply_brake if actuators.accel > 0 else acceleration
 
     self.frame += 1
     return new_actuators, can_sends

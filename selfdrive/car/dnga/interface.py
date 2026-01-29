@@ -3,10 +3,14 @@ from cereal import car
 from openpilot.selfdrive.car import get_safety_config
 from openpilot.selfdrive.car.interfaces import CarInterfaceBase
 from openpilot.selfdrive.car.dnga.values import CAR
+from openpilot.selfdrive.car.dnga.carcontroller import CarControllerParams
 
 EventName = car.CarEvent.EventName
 
 class CarInterface(CarInterfaceBase):
+  @staticmethod
+  def get_pid_accel_limits(CP, current_speed, cruise_speed):
+    return CarControllerParams.ACCEL_MIN, CarControllerParams.ACCEL_MAX
 
   @staticmethod
   def _get_params(ret, candidate, fingerprint, car_fw, experimental_long, docs):
@@ -28,13 +32,13 @@ class CarInterface(CarInterfaceBase):
     ret.lateralParams.torqueBP, ret.lateralParams.torqueV = [[0.], [255]]
     ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP = [[0.], [0.]]
     ret.longitudinalTuning.kpBP = [0., 5., 20.]
-    # perodua uses speed for control, integral will always windup for this reason
-    # so we make it zero
+    # perodua uses speed for CAN control, internally the car already has a
+    # controller on its own. If integral is enabled it will always windup,
+    # causing brake to not magnitude when needed.
     ret.longitudinalTuning.kiBP = [0.0]
     ret.longitudinalTuning.kiV = [0.0]
     ret.longitudinalActuatorDelayLowerBound = 0.40
     ret.longitudinalActuatorDelayUpperBound = 0.50
-
     ret.longitudinalTuning.deadzoneBP = [0., 9.]
     ret.longitudinalTuning.deadzoneV = [0., .20]
 
