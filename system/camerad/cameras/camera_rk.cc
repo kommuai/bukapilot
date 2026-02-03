@@ -17,6 +17,7 @@
 #include "media/cam_req_mgr.h"
 #include "media/cam_sensor_cmn_header.h"
 #include "media/cam_sync.h"
+#include "third_party/linux/include/v4l2-controls.h"
 #include "common/swaglog.h"
 
 // Special defined
@@ -114,6 +115,27 @@ void CameraState::dequeue_buf() {
   assert(ioctl(ctrl_fd, VIDIOC_G_CTRL, &ctrl) >= 0);
   buf.camera_bufs_metadata[v4l_buf.index].integ_lines = ctrl.value;
 
+  // get gain (linear multiplier; 1.0 = no gain). Sensor subdev may not expose gain when AE is done by rkaiq.
+  float gain_val = 1.0f;
+  ctrl.id = V4L2_CID_GAIN;
+  if (ioctl(ctrl_fd, VIDIOC_G_CTRL, &ctrl) >= 0 && ctrl.value > 0) {
+    gain_val = static_cast<float>(ctrl.value);
+  } else {
+    ctrl.id = V4L2_CID_ANALOGUE_GAIN;
+    if (ioctl(ctrl_fd, VIDIOC_G_CTRL, &ctrl) >= 0 && ctrl.value > 0) {
+      // V4L2_CID_ANALOGUE_GAIN is in 1/65536 of gain (65536 = 1x). Some drivers use linear; accept both.
+      gain_val = (ctrl.value >= 65536) ? (ctrl.value / 65536.0f) : static_cast<float>(ctrl.value);
+      if (gain_val < 0.01f) gain_val = 1.0f;
+    } else {
+      static bool gain_warned = false;
+      if (!gain_warned) {
+        gain_warned = true;
+        LOGW("V4L2 gain readback not supported on this subdev (AE likely controlled by rkaiq); logging gain=1.0");
+      }
+    }
+  }
+  buf.camera_bufs_metadata[v4l_buf.index].gain = gain_val;
+
   // get temperature sensor
   ctrl.id = V4L2_CID_X3C_SENSOR_TEMPERATURE;
   if (ioctl(ctrl_fd, VIDIOC_G_CTRL, &ctrl) >= 0) {
@@ -128,7 +150,7 @@ void CameraState::dequeue_buf() {
   buf.queue(v4l_buf.index);
 
   buf.camera_bufs_metadata[v4l_buf.index].frame_id = v4l_buf.sequence;
-  cap_time = static_cast<uint64_t>(v4l_buf.timestamp.tv_sec * 1000000000 + v4l_buf.timestamp.tv_usec * 1000); 
+  cap_time = static_cast<uint64_t>(v4l_buf.timestamp.tv_sec * 1000000000 + v4l_buf.timestamp.tv_usec * 1000);
   buf.camera_bufs_metadata[v4l_buf.index].timestamp_sof = cap_time;
   buf.camera_bufs_metadata[v4l_buf.index].timestamp_eof = cap_time;
   // immediately queue after dequeing the buffer
