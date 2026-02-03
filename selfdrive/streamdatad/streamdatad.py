@@ -187,6 +187,7 @@ class Streamer:
     threading.Thread(target=self.ble.start, daemon=True).start() # Start BLE peripheral
     self.receiver = ChunkReceiver(self.ble) # Handle incoming messages in separate thread
     self.send_channel = None # Keep track of which channel to send messages
+    self.send_fingerprints_cnt = -1
     self.hotspot_enabled = False
     self.hotspot_ip = None
 
@@ -295,6 +296,10 @@ class Streamer:
     sett['hotspotEnabled'] = self.hotspot_enabled
     sett['hotspotIp'] = self.hotspot_ip
     sett['networkType'] = NETWORK_TYPES[KA2.get_network_type()]
+
+    if 0 <= self.send_fingerprints_cnt < 3:
+      sett['fingerprints'] = sorted(SUPPORTED_MODELS)
+      self.send_fingerprints_cnt += 1
 
     if hasattr(self, "supportTunnelOutput"):
       sett["supportTunnelOutput"] = self.supportTunnelOutput
@@ -420,6 +425,7 @@ class Streamer:
       return None
     if m.get('msgType') == 'curPage':
       self.send_channel = c
+      self.send_fingerprints_cnt = 0
       return None
     return c, m # Other message types, pass to next function
 
