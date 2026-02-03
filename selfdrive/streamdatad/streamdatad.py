@@ -17,6 +17,7 @@ from openpilot.system.hardware import HARDWARE
 from openpilot.selfdrive.car.fingerprints import all_known_cars
 from openpilot.common.features import Features
 from openpilot.selfdrive.streamdatad.ble_helper import BLEBridge, ChunkReceiver
+from system.hardware.ka2.hardware import Ka2
 
 # BLE Constants
 MESSAGE_HZ = 16 # Expected message rate, must match app visualisation value
@@ -39,6 +40,17 @@ HOTSPOT_SERVICE = "wlan1-setup.service"
 SUPPORTED_MODELS = {getattr(car, 'value', car) for car in all_known_cars()}
 SM_UPDATE_INTERVAL = 33 # in ms, the interval where capnp submaster updates
 features = Features()
+KA2 = Ka2()
+NetworkType = log.DeviceState.NetworkType
+NETWORK_TYPES = {
+  NetworkType.none: "Offline",
+  NetworkType.wifi: "Wi-Fi",
+  NetworkType.cell2G: "2G",
+  NetworkType.cell3G: "3G",
+  NetworkType.cell4G: "4G",
+  NetworkType.cell5G: "5G",
+  NetworkType.ethernet: "Ethernet",
+}
 
 # Call functions with cached values only once
 GIT_COMMIT = get_commit()[:7]
@@ -282,6 +294,7 @@ class Streamer:
       f"Connecting to\n{attempt_ssid}" if (attempt_ssid := self.wifi_connect_attempt_ssid) else self.active_wlan_ssid
     sett['hotspotEnabled'] = self.hotspot_enabled
     sett['hotspotIp'] = self.hotspot_ip
+    sett['networkType'] = NETWORK_TYPES[KA2.get_network_type()]
 
     if hasattr(self, "supportTunnelOutput"):
       sett["supportTunnelOutput"] = self.supportTunnelOutput
