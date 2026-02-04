@@ -125,15 +125,6 @@ class Uploader:
         if is_uploaded:
           continue
 
-        # limit uploading on metered connections
-        if metered:
-          dt = datetime.timedelta(hours=12)
-          if logdir in self.immediate_folders and (datetime.datetime.now() - datetime.datetime.fromtimestamp(ctime)) < dt:
-            continue
-
-          if name == "qcamera.ts" and not any(logdir.startswith(r.split('|')[-1]) for r in requested_routes):
-            continue
-
         yield name, key, fn
 
   def next_file_to_upload(self, metered: bool) -> tuple[str, str, str] | None:
