@@ -170,8 +170,8 @@
     },
     {
       "brand": "Honda",
-      "model": "CRV",
-      "year": "2023-2025",
+      "model": "CRV Gen 5",
+      "year": "2016-2023",
       "variant": "All",
       "acc_low_speed": true,
       "acc_speed_range": "0 - 145",
@@ -311,7 +311,7 @@
     {
       "brand": "Lexus",
       "model": "ES",
-      "year": "2019-2024",
+      "year": "2019-2022",
       "variant": "All",
       "acc_low_speed": true,
       "acc_speed_range": "0 - 140",
@@ -325,7 +325,7 @@
     {
       "brand": "Lexus",
       "model": "NX",
-      "year": "2020-2024",
+      "year": "2020-2022",
       "variant": "All",
       "acc_low_speed": true,
       "acc_speed_range": "0 - 140",
@@ -339,7 +339,7 @@
     {
       "brand": "Lexus",
       "model": "UX",
-      "year": "2020-2024",
+      "year": "2020-2022",
       "variant": "All",
       "acc_low_speed": true,
       "acc_speed_range": "0 - 140",
@@ -353,7 +353,7 @@
     {
       "brand": "Lexus",
       "model": "RX",
-      "year": "2020-2024",
+      "year": "2020-2022",
       "variant": "All",
       "acc_low_speed": true,
       "acc_speed_range": "0 - 140",
