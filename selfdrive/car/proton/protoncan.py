@@ -37,13 +37,14 @@ def create_acc_cmd(packer, accel_cmd, enabled, gas_override, standstill, resume)
     "CRUISE_DISABLED": not enabled,
     "SET_ME_1": 1,
     "NOT_GAS_OVERRIDE": enabled and not gas_override,
+    "RISING_ENGAGE": resume,
 
     # not sure
-    "SET_ME_X6A": 0x6A,
+    "SET_ME_X6A": 0xFD if resume else 0x6A if standstill else 0xFA,
     "STATIONARY": 0,
     "STANDSTILL_REQ": 0,
-    # 5 = Standstill, 3 = Accelerate, 4 = Brake, 1 = Maintain speed
-    "MOTION_CONTROL": 5 if standstill else 3 if accel_cmd > 0 else 4 if accel_cmd < 0 else 1
+    # 5 = Standstill, 6 = Accelerate, 4 = Brake, 1 = Maintain speed
+    "MOTION_CONTROL": 9 if resume else 5 if standstill else 6 if accel_cmd > 0 else 4 if accel_cmd < 0 else 1
   }
 
   return packer.make_can_msg("ACC_CMD", 0, values)
