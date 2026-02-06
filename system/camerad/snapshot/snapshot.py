@@ -50,7 +50,7 @@ def extract_image(buf):
   return yuv_to_rgb(y, u, v)
 
 
-def get_snapshots(frame="roadCameraState", front_frame="driverCameraState"):
+def get_snapshots(frame="roadCameraState", front_frame="wideRoadCameraState"):
   sockets = [s for s in (frame, front_frame) if s is not None]
   sm = messaging.SubMaster(sockets)
   vipc_clients = {s: VisionIpcClient("camerad", VISION_STREAMS[s], True) for s in sockets}
@@ -80,7 +80,7 @@ def snapshot():
     print("Already taking snapshot")
     return None, None
 
-  front_camera_allowed = params.get_bool("RecordFront")
+  front_camera_allowed = params.get_bool("RecordFront") or True
   params.put_bool("IsTakingSnapshot", True)
   set_offroad_alert("Offroad_IsTakingSnapshot", True)
   time.sleep(2.0)  # Give thermald time to read the param, or if just started give camerad time to start
@@ -101,7 +101,7 @@ def snapshot():
       managed_processes['camerad'].start()
 
     frame = "wideRoadCameraState"
-    front_frame = "driverCameraState" if front_camera_allowed else None
+    front_frame = "roadCameraState" if front_camera_allowed else None
     rear, front = get_snapshots(frame, front_frame)
   finally:
     managed_processes['camerad'].stop()
@@ -121,5 +121,7 @@ if __name__ == "__main__":
     jpeg_write("/tmp/back.jpg", pic)
     if fpic is not None:
       jpeg_write("/tmp/front.jpg", fpic)
+      # Also write front as /tmp/front.img for LSC analysis (PNG)
+      Image.fromarray(fpic).save("/tmp/front.img", "PNG")
   else:
     print("Error taking snapshot")
