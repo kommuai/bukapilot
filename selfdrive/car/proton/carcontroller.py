@@ -59,6 +59,7 @@ class CarController(CarControllerBase):
     self.sng_next_press_frame = 0 # The frame where the next resume press is allowed
     self.resume_counter = 0       # Counter for tracking the progress of a resume press
     self.is_sng_check = False
+    self.resume = False
 
   def update(self, CC, CS, now_nanos):
     can_sends = []
@@ -95,25 +96,25 @@ class CarController(CarControllerBase):
         lks_audio, lks_tactile = CS.lks_audio, CS.lks_tactile
 
       # standstill logic
-      standstill_request = CS.out.standstill and CC.longActive and actuators.accel < -0.01
+      standstill_request = CS.out.standstill and CC.longActive
 
       # SNG
-      resume = False
       if not (CS.cruise_standstill and CC.longActive):
         self.is_sng_check = False
       else:
+        self.resume = CS.out.gasPressed or CS.res_btn_pressed
         if not self.is_sng_check:
           self.is_sng_check = True
           self.sng_next_press_frame = self.frame + 310
           self.resume_counter = 0
 
-        elif self.resume_counter >= 2 or CS.out.gasPressed or CS.res_btn_pressed:
+        elif self.resume or self.resume_counter >= 2:
           self.sng_next_press_frame = max(self.sng_next_press_frame, self.frame + 110)
           self.resume_counter = 0
 
         elif actuators.accel > 0 and self.frame > self.sng_next_press_frame:
           # to disengage from stock cruise standstill
-          resume = True
+          self.resume = True
           can_sends.append(send_buttons(self.packer, 0))
           self.resume_counter += 1
 
