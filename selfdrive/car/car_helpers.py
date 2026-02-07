@@ -1,3 +1,4 @@
+import importlib
 import os
 import time
 from collections.abc import Callable
@@ -18,6 +19,43 @@ from openpilot.selfdrive.car import gen_empty_fingerprint
 FRAME_FINGERPRINT = 100  # 1s
 
 EventName = car.CarEvent.EventName
+
+CAR_DIR = os.path.join(BASEDIR, "selfdrive/car")
+VALUES_PATH = "openpilot.selfdrive.car.{brand}.values"
+
+unsupported_brands = {
+  "ACURA", "AUDI", "BUICK", "CADILLAC", "CHEVROLET", "CHRYSLER", "COMMA", "DODGE", "FORD", "GENESIS",
+  "GMC", "HOLDEN", "HYUNDAI", "JEEP", "KIA", "MAZDA", "NISSAN", "QUALITY CHECK", "RAM", "SEAT",
+  "SKODA", "SUBARU", "TESLA", "VOLKSWAGEN"
+}
+
+unsupported_platforms = {
+  "AVALON", "CAMRY", "C-HR", "CIVIC 2016", "CIVIC 2019", "COROLLA 2017", "CR-V 2016", "CR-V 2019", "CR-V EU", "CT",
+  "E 2020", "ES 2018", "FIT", "FREED", "GS", "HIGHLANDER", "INSIGHT", "IS", "LC", "MIRAI",
+  "NX 2018", "ODYSSEY", "PILOT", "PRIUS", "RAV4", "RC", "RIDGELINE", "RX 2016", "SIENNA"
+}
+
+unsupported_cars = { "Civic Hatchback", "Honda Inspire" }
+
+CAR_MAPPING = {
+  platform: [
+    car_info.name for car_info in (infos if isinstance(infos, list) else [infos])
+    if car_info and not any(all(w in car_info.name.split() for w in uc.split()) for uc in unsupported_cars)
+  ]
+  for brand_dir in os.listdir(CAR_DIR)
+  if os.path.isfile(f"{CAR_DIR}/{brand_dir}/values.py")
+  for module in [importlib.import_module(VALUES_PATH.format(brand=brand_dir))]
+  for platform, infos in module.CAR_INFO.items()
+  if infos
+  if not any(platform.upper().startswith(ub) for ub in unsupported_brands)
+  if not any(all(w in platform.split() for w in up.split()) for up in unsupported_platforms)
+}
+
+def supported_cars() -> list[str]:
+  return sorted(n for ns in CAR_MAPPING.values() for n in ns)
+
+def car_name_to_platform(car_name: str) -> str | None:
+  return next((p for p, ns in CAR_MAPPING.items() if car_name in ns), None)
 
 
 def get_startup_event(car_recognized, controller_available, fw_seen):
@@ -127,10 +165,10 @@ def fingerprint(logcan, sendcan, num_pandas):
   params = Params()
 
   if not fixed_fingerprint:
-    fixed_fingerprint = params.get("FixFingerprint")
-    fixed_fingerprint = fixed_fingerprint.upper() if fixed_fingerprint is not None else None
-    if fixed_fingerprint:
-     fixed_fingerprint = fixed_fingerprint.decode('ascii')
+    if (fp_param := params.get("FixFingerprint")) is not None:
+      fixed_fingerprint = car_name_to_platform(fp_param.decode())
+      if not fixed_fingerprint:
+        params.remove("FixFingerprint")
 
   start_time = time.monotonic()
   if not skip_fw_query:

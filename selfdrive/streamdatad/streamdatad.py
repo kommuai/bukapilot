@@ -14,7 +14,7 @@ from openpilot.common.swaglog import cloudlog
 from openpilot.system.version import get_version, get_commit, terms_version, training_version
 from openpilot.common.params import Params
 from openpilot.system.hardware import HARDWARE
-from openpilot.selfdrive.car.fingerprints import all_known_cars
+from openpilot.selfdrive.car.car_helpers import supported_cars
 from openpilot.common.features import Features
 from openpilot.selfdrive.streamdatad.ble_helper import BLEBridge, ChunkReceiver
 from system.hardware.ka2.hardware import Ka2
@@ -37,7 +37,6 @@ WIFI_SCAN_SIGNAL_THRESHOLD = 31 # Minimum signal strength required for Wi-Fi sca
 # Device Constants
 UPDATE_PROCESS = "selfdrive.updated"
 HOTSPOT_SERVICE = "wlan1-setup.service"
-SUPPORTED_MODELS = {getattr(car, 'value', car) for car in all_known_cars()}
 SM_UPDATE_INTERVAL = 33 # in ms, the interval where capnp submaster updates
 features = Features()
 KA2 = Ka2()
@@ -53,6 +52,7 @@ NETWORK_TYPES = {
 }
 
 # Call functions with cached values only once
+SUPPORTED_CARS = supported_cars()
 GIT_COMMIT = get_commit()[:7]
 CUR_VERSION = get_version()
 OS_VERSION = HARDWARE.get_os_version()
@@ -165,9 +165,6 @@ def quantize(o):
   if isinstance(o, float):
     return None if math.isnan(o) else round(o, 3)
   return o
-
-def is_supported_model(name: str) -> bool:
-  return name.upper() in SUPPORTED_MODELS
 
 class Streamer:
   """Handles visualisation and settings BLE streams."""
@@ -298,7 +295,7 @@ class Streamer:
     sett['networkType'] = NETWORK_TYPES[KA2.get_network_type()]
 
     if 0 <= self.send_fingerprints_cnt < 3:
-      sett['fingerprints'] = sorted(SUPPORTED_MODELS)
+      sett['fingerprints'] = SUPPORTED_CARS
       self.send_fingerprints_cnt += 1
 
     if hasattr(self, "supportTunnelOutput"):
@@ -357,8 +354,7 @@ class Streamer:
         case 'saveConfig':
           # Keep 'is not None' check for fingerprint and features to ensure empty strings are allowed (for unset)
           if (fix_fp := settings.pop('FixFingerprint', None)) is not None:
-            if (fix_fp := fix_fp.strip()) == "" or is_supported_model(fix_fp):
-              safe_put_all({'FixFingerprint': fix_fp})
+            safe_put_all({'FixFingerprint': fix_fp})
           if (features_to_set := settings.pop('FeaturesPackage', None)) is not None:
             features.set_features(features_to_set)
           if (apn := settings.pop('GsmApn', None)) is not None:
