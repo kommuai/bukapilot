@@ -184,7 +184,7 @@ class Streamer:
     threading.Thread(target=self.ble.start, daemon=True).start() # Start BLE peripheral
     self.receiver = ChunkReceiver(self.ble) # Handle incoming messages in separate thread
     self.send_channel = None # Keep track of which channel to send messages
-    self.send_fingerprints_cnt = -1
+    self.send_car_names_cnt = -1
     self.hotspot_enabled = False
     self.hotspot_ip = None
 
@@ -294,9 +294,9 @@ class Streamer:
     sett['hotspotIp'] = self.hotspot_ip
     sett['networkType'] = NETWORK_TYPES[KA2.get_network_type()]
 
-    if 0 <= self.send_fingerprints_cnt < 3:
-      sett['fingerprints'] = SUPPORTED_CARS
-      self.send_fingerprints_cnt += 1
+    if 0 <= self.send_car_names_cnt < 3:
+      sett['carNames'] = SUPPORTED_CARS
+      self.send_car_names_cnt += 1
 
     if hasattr(self, "supportTunnelOutput"):
       sett["supportTunnelOutput"] = self.supportTunnelOutput
@@ -312,7 +312,7 @@ class Streamer:
       'UpdaterFetchAvailable'
     }
     string_keys = {
-      'LongitudinalPersonality', 'FeaturesPackage', 'FixFingerprint',
+      'LongitudinalPersonality', 'FeaturesPackage', 'CarName',
       'UpdaterTargetBranch', 'UpdaterState', 'UpdateFailedCount',
       'LastUpdateTime', 'GithubUsername', 'GsmApn'
     }
@@ -352,13 +352,12 @@ class Streamer:
         case 'saveToggle':
           safe_put_all(settings, True)
         case 'saveConfig':
-          # Keep 'is not None' check for fingerprint and features to ensure empty strings are allowed (for unset)
-          if (fix_fp := settings.pop('FixFingerprint', None)) is not None:
-            safe_put_all({'FixFingerprint': fix_fp})
+          if (car_name := settings.pop('CarName', None)) is not None:
+            safe_put_all({'CarName': car_name})
           if (features_to_set := settings.pop('FeaturesPackage', None)) is not None:
             features.set_features(features_to_set)
           if (apn := settings.pop('GsmApn', None)) is not None:
-            params.remove("GsmApn") if apn == "" else params.put_nonblocking("GsmApn", apn)
+            params.put_nonblocking("GsmApn", apn)
           # Put string setting if not one of the above keys, ensure above keys are popped so they will not be set below
           safe_put_all(settings)
         case 'resetCalibration':
@@ -421,7 +420,7 @@ class Streamer:
       return None
     if m.get('msgType') == 'curPage':
       self.send_channel = c
-      self.send_fingerprints_cnt = 0
+      self.send_car_names_cnt = 0
       return None
     return c, m # Other message types, pass to next function
 

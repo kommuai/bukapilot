@@ -165,10 +165,11 @@ def fingerprint(logcan, sendcan, num_pandas):
   params = Params()
 
   if not fixed_fingerprint:
-    if (fp_param := params.get("FixFingerprint")) is not None:
-      fixed_fingerprint = car_name_to_platform(fp_param.decode())
-      if not fixed_fingerprint:
-        params.remove("FixFingerprint")
+    fixed_fingerprint = (fp_param := params.get("FixFingerprint")) and fp_param.decode().upper()
+    if (car_name_param := params.get("CarName")) and (car_name := car_name_param.decode()):
+      if mapped_platform := car_name_to_platform(car_name):
+        if (fixed_fingerprint := mapped_platform) != fp_param:
+          params.put("FixFingerprint", fixed_fingerprint)
 
   start_time = time.monotonic()
   if not skip_fw_query:
