@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 import bz2
 import io
-import json
 import os
 import random
 import requests
@@ -20,7 +19,7 @@ from openpilot.common.kommu import *
 from openpilot.common.realtime import set_core_affinity
 from openpilot.system.hardware.hw import Paths
 from openpilot.system.loggerd.xattr_cache import getxattr, setxattr
-from openpilot.system.loggerd.kommu import fia_upload
+from openpilot.system.loggerd.kommu import fia_upload, fia_upload_bytes, kapi, WEB_BASE
 from openpilot.system.loggerd.memory_pressure import (
   is_memory_pressure_critical,
   should_skip_filesystem_operation,
@@ -33,6 +32,9 @@ UPLOAD_ATTR_NAME = 'user.upload'
 UPLOAD_ATTR_VALUE = b'1'
 
 UPLOAD_QLOG_QCAM_MAX_SIZE = 100 * 1e6  # MB
+UPLOAD_FULL_LOG_MAX_SIZE = 300 * 1e6  # MB (on-demand full-segment uploads)
+
+FULL_SEGMENT_FILES = ("fcamera.hevc", "ecamera.hevc", "dcamera.hevc", "rlog", "qlog", "qcamera.ts")
 
 allow_sleep = bool(os.getenv("UPLOADER_SLEEP", "1"))
 force_wifi = os.getenv("FORCEWIFI") is not None
@@ -74,6 +76,64 @@ def clear_locks(root: str) -> None:
           os.unlink(os.path.join(path, fname))
     except OSError:
       cloudlog.exception("clear_locks failed")
+
+
+def get_pending_full_upload_segments() -> list[str]:
+  """Return list of logdirs for which the server requested a full upload."""
+  if should_skip_filesystem_operation():
+    return []
+  dongle_id = Params().get("DongleId", encoding="utf8")
+  if not dongle_id:
+    return []
+  try:
+    resp = kapi(
+      requests.get,
+      WEB_BASE + "/fia/pending_full_uploads",
+      headers={"X-Kaac-Id": dongle_id},
+    )
+    if resp.status_code != 200:
+      return []
+    data = resp.json()
+    return data.get("segments") or []
+  except Exception:
+    cloudlog.exception("get_pending_full_upload_segments failed")
+    return []
+
+
+def post_full_upload_done(logdir: str) -> None:
+  """Notify server that full upload for this segment is done."""
+  dongle_id = Params().get("DongleId", encoding="utf8")
+  headers = {"X-Kaac-Id": dongle_id} if dongle_id else {}
+  try:
+    kapi(
+      requests.post,
+      WEB_BASE + "/fia/full_upload_done",
+      json={"logdir": logdir},
+      headers=headers,
+    )
+  except Exception:
+    cloudlog.exception("post_full_upload_done failed", logdir=logdir)
+
+
+def resolve_logdir_to_segment_paths(root: str, logdir: str) -> list[str]:
+  """
+  Resolve server logdir (e.g. '2026-02-07--14-20-43') to all matching segment directories on disk.
+  On device, segment paths are route_name + '--' + part, e.g. '2026-02-07--14-20-43--0', '--1', ...
+  Returns a sorted list of segment dir names (e.g. ['2026-02-07--14-20-43--0', '...--1', ...]), or [] if none.
+  """
+  path = os.path.join(root, logdir)
+  if os.path.isdir(path):
+    return [logdir]
+  try:
+    candidates = [
+      name for name in os.listdir(root)
+      if name.startswith(logdir + "--") and os.path.isdir(os.path.join(root, name))
+    ]
+    if candidates:
+      return sorted(candidates)  # --0, --1, --2, ...
+  except OSError:
+    pass
+  return []
 
 
 class Uploader:
@@ -155,7 +215,9 @@ class Uploader:
     else:
       return fia_upload(key, fn)
 
-  def upload(self, name: str, key: str, fn: str, network_type: int, metered: bool) -> bool:
+  def upload(self, name: str, key: str, fn: str, network_type: int, metered: bool, max_size: int | None = None) -> bool:
+    if max_size is None:
+      max_size = UPLOAD_QLOG_QCAM_MAX_SIZE
     try:
       sz = os.path.getsize(fn)
     except OSError:
@@ -167,7 +229,7 @@ class Uploader:
     if sz == 0:
       # tag files of 0 size as uploaded
       success = True
-    elif name in self.immediate_priority and sz > UPLOAD_QLOG_QCAM_MAX_SIZE:
+    elif name in self.immediate_priority and sz > max_size:
       cloudlog.event("uploader_too_large", key=key, fn=fn, sz=sz)
       success = True
     else:
@@ -204,19 +266,103 @@ class Uploader:
 
     return success
 
+  def upload_full_segment_file(
+    self, logdir: str, name: str, fn: str, network_type: int, metered: bool
+  ) -> bool:
+    """Upload one file for an on-demand full segment. Uses UPLOAD_FULL_LOG_MAX_SIZE; compresses rlog/qlog."""
+    try:
+      sz = os.path.getsize(fn)
+    except OSError:
+      return False
+    if sz > UPLOAD_FULL_LOG_MAX_SIZE:
+      cloudlog.event("uploader_full_too_large", key=logdir, name=name, sz=sz)
+      return True  # mark as done so we don't retry
+    # Key: dongle_id---logdir---filename (rlog/qlog use .bz2 suffix)
+    if name in ("rlog", "qlog"):
+      key_suffix = name + ".bz2"
+      try:
+        with open(fn, "rb") as f:
+          content = f.read()
+        data = bz2.compress(content)
+      except OSError:
+        cloudlog.exception("upload_full_segment_file compress failed", fn=fn)
+        return False
+      key = self.dongle_id + "---" + logdir + "---" + key_suffix
+      cloudlog.event("upload_start", key=key, fn=fn, sz=sz, network_type=network_type, metered=metered)
+      if fake_upload:
+        stat = FakeResponse()
+      else:
+        try:
+          stat = fia_upload_bytes(key, data)
+        except Exception as e:
+          cloudlog.event("upload_failed", exc=(e, traceback.format_exc()), key=key, fn=fn, sz=sz)
+          return False
+      if stat.status_code in (200, 201, 401, 403, 412):
+        try:
+          setxattr(fn, UPLOAD_ATTR_NAME, UPLOAD_ATTR_VALUE)
+        except OSError:
+          pass
+        cloudlog.event("upload_success", key=key, fn=fn, sz=sz)
+        return True
+      cloudlog.event("upload_failed", stat=stat, key=key, fn=fn, sz=sz)
+      return False
+    # Non-compressed file (do_upload prepends dongle_id, so pass segment_dir---name only)
+    key = logdir + "---" + name
+    return self.upload(name, key, fn, network_type, metered, max_size=UPLOAD_FULL_LOG_MAX_SIZE)
 
   def step(self, network_type: int, metered: bool) -> bool | None:
+    # On-demand full upload when we have pending segments (Wi‑Fi, not metered)
+    if not metered:
+      segments = get_pending_full_upload_segments()
+      if segments:
+        logdir = segments[0]
+        segment_dirs = resolve_logdir_to_segment_paths(self.root, logdir)
+        cloudlog.event("upload_full_resolve", logdir=logdir, root=self.root, segment_dirs=segment_dirs)
+        if not segment_dirs:
+          cloudlog.event("upload_full_skip_no_segment", logdir=logdir, root=self.root)
+          post_full_upload_done(logdir)
+          return True
+        if len(segment_dirs) > 1 or segment_dirs[0] != logdir:
+          cloudlog.event("upload_full_resolved_logdir", logdir=logdir, segment_dirs=segment_dirs)
+        any_success = False
+        for segment_dir in segment_dirs:
+          path = os.path.join(self.root, segment_dir)
+          try:
+            names = os.listdir(path)
+          except OSError:
+            cloudlog.event("upload_full_listdir_failed", segment_dir=segment_dir)
+            continue
+          if any(n.endswith(".lock") for n in names):
+            cloudlog.event("upload_full_skip_locked", segment_dir=segment_dir)
+            continue
+          cloudlog.event("upload_full_start", segment_dir=segment_dir, logdir=logdir)
+          for name in FULL_SEGMENT_FILES:
+            fn = os.path.join(path, name)
+            if not os.path.isfile(fn):
+              continue
+            try:
+              if getxattr(fn, UPLOAD_ATTR_NAME) == UPLOAD_ATTR_VALUE:
+                continue
+            except OSError:
+              continue
+            if self.upload_full_segment_file(segment_dir, name, fn, network_type, metered):
+              any_success = True
+            else:
+              return False
+          cloudlog.event("upload_full_segment_done", segment_dir=segment_dir)
+        post_full_upload_done(logdir)
+        cloudlog.event("upload_full_done", logdir=logdir, segment_count=len(segment_dirs))
+        return True
+
     d = self.next_file_to_upload(metered)
-    if d is None:
-      return None
+    if d is not None:
+      name, key, fn = d
+      # qlogs and bootlogs need to be compressed before uploading
+      if key.endswith(('qlog', 'rlog')) or (key.startswith('boot/') and not key.endswith('.bz2')):
+        key += ".bz2"
+      return self.upload(name, key, fn, network_type, metered)
 
-    name, key, fn = d
-
-    # qlogs and bootlogs need to be compressed before uploading
-    if key.endswith(('qlog', 'rlog')) or (key.startswith('boot/') and not key.endswith('.bz2')):
-      key += ".bz2"
-
-    return self.upload(name, key, fn, network_type, metered)
+    return None
 
 
 def main(exit_event: threading.Event = None) -> None:
