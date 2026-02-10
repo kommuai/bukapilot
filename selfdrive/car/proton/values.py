@@ -22,7 +22,10 @@ class CANBUS:
 class CAR(Platforms):
   S70 = ProtonPlatformConfig(
     'PROTON S70',
-    CarInfo("Proton S70", "All"),
+    [
+      CarInfo("Proton S70", "All"),
+      CarInfo("Proton X50 FL", "All"),
+    ],
     specs=CarSpecs(mass=1300., wheelbase=2.627, steerRatio=15.0)
   )
   X50 = ProtonPlatformConfig(
