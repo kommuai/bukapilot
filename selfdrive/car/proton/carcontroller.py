@@ -142,10 +142,6 @@ class CarController(CarControllerBase):
         can_sends.append(create_acc_cmd(self.packer, accel_cmd, CC.longActive, CS.out.gasPressed,
                                         standstill_request, self.resume))
 
-      # to disengage from stock cruise standstill
-      if (CC.enabled and CS.cruise_standstill and (self.frame % 20 == 0)):
-        can_sends.append(send_buttons(self.packer, False))
-
     # cancel stock cruise if error at openpilot
     if pcm_cancel_cmd:
       can_sends.append(send_buttons(self.packer, 1))
