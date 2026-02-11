@@ -20,7 +20,7 @@ class CarInterface(CarInterfaceBase):
     ret.safetyConfigs[0].safetyParam = 1
 
     ret.steerControlType = car.CarParams.SteerControlType.torque
-    ret.steerLimitTimer = 0.1              # time before steerLimitAlert is issued
+    ret.steerLimitTimer = 0.01             # Immediate warning since DNGA has low torque
     ret.steerActuatorDelay = 0.48          # Steering wheel actuator delay in seconds
 
     ret.lateralTuning.init('pid')
@@ -58,7 +58,7 @@ class CarInterface(CarInterfaceBase):
 
     elif candidate == CAR.MYVI:
       ret.lateralTuning.pid.kiBP, ret.lateralTuning.pid.kpBP = [[0., 20], [0., 20]]
-      ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.09, 0.15], [0.10, 0.14]]
+      ret.lateralTuning.pid.kiV, ret.lateralTuning.pid.kpV = [[0.11, 0.16], [0.10, 0.14]]
       ret.lateralTuning.pid.kf = 0.00012
       ret.longitudinalTuning.kpV = [1.5, 1.5, 1.5]
       ret.wheelSpeedFactor = 1.31

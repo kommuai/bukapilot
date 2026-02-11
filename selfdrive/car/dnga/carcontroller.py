@@ -130,9 +130,9 @@ class CarController(CarControllerBase):
     apply_steer = apply_steer_torque_limits(new_steer, self.last_steer, CS.out.steeringTorqueEps, isBlinkerOn, self.params)
 
     acceleration = actuators.accel
-    acceleration = (acceleration - CS.stock_brake_mag * 0.85) if CS.out.vEgo > 0.25 else acceleration
+    acceleration = (acceleration - CS.stock_brake_mag) if CS.out.vEgo > 0.25 else acceleration
     # higher speeds have higher efficiency
-    k = 0.667 + 0.120 * CS.out.vEgo
+    k = 0.267 + 0.120 * CS.out.vEgo
     des_speed = CS.out.vEgo + acceleration * k
 
     if CS.out.gasPressed or acceleration >= 0.0:
