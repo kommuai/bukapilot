@@ -149,6 +149,14 @@ class Uploader:
     self.immediate_folders = ["crash/", "boot/"]
     self.immediate_priority = {"qlog": 0, "qlog.bz2": 0, "qcamera.ts": 1}
 
+    # queue stats
+    self.immediate_size = 0
+    self.immediate_count = 0
+    self.raw_size = 0
+    self.raw_count = 0
+    self.last_time = 0.0
+    self.last_speed = 0.0
+
   def list_upload_files(self, metered: bool) -> Iterator[tuple[str, str, str]]:
     # Skip directory scanning if memory is critical
     if should_skip_filesystem_operation():
@@ -250,6 +258,8 @@ class Uploader:
         else:
           content_length = int(stat.request.headers.get("Content-Length", 0))
           speed = (content_length / 1e6) / dt
+          self.last_time = dt
+          self.last_speed = speed
           cloudlog.event("upload_success", key=key, fn=fn, sz=sz, content_length=content_length,
                          network_type=network_type, metered=metered, speed=speed)
         success = True
@@ -364,6 +374,20 @@ class Uploader:
 
     return None
 
+  def update_queue_stats(self) -> None:
+    self.immediate_size = self.immediate_count = self.raw_size = self.raw_count = 0
+    pending = set(get_pending_full_upload_segments())
+    for name, key, fn in self.list_upload_files(metered=False):
+      if sz := os.path.getsize(fn):
+        immediate = (name.startswith("rlog") and any(seg in fn for seg in pending)) or \
+                    name in self.immediate_priority or \
+                    any(f in fn for f in self.immediate_folders)
+        if immediate:
+          self.immediate_size += sz
+          self.immediate_count += 1
+        else:
+          self.raw_size += sz
+          self.raw_count += 1
 
 def main(exit_event: threading.Event = None) -> None:
   if exit_event is None:
@@ -384,12 +408,13 @@ def main(exit_event: threading.Event = None) -> None:
     raise Exception("uploader can't start without dongle id")
 
   sm = messaging.SubMaster(['deviceState'])
+  pm = messaging.PubMaster(['uploaderState'])
   uploader = Uploader(dongle_id, Paths.log_root())
 
   backoff = 0.1
   while not exit_event.is_set():
     sm.update(0)
-    
+
     # Check memory pressure - skip upload operations if critical
     if is_memory_pressure_critical():
       handle_memory_pressure(clear_caches=True, clear_fs_cache=False)
@@ -406,6 +431,23 @@ def main(exit_event: threading.Event = None) -> None:
       continue
 
     success = uploader.step(sm['deviceState'].networkType.raw, sm['deviceState'].networkMetered)
+
+    uploader.update_queue_stats()
+
+    msg = messaging.new_message('uploaderState')
+    us = msg.uploaderState
+
+    us.immediateQueueSize = int(uploader.immediate_size / 1e6)
+    us.immediateQueueCount = uploader.immediate_count
+    us.rawQueueSize = int(uploader.raw_size / 1e6)
+    us.rawQueueCount = uploader.raw_count
+
+    us.lastTime = float(uploader.last_time)
+    us.lastSpeed = float(uploader.last_speed)
+    us.lastFilename = uploader.last_filename
+
+    pm.send('uploaderState', msg)
+
     if success is None:
       backoff = 60 if offroad else 5
     elif success:
