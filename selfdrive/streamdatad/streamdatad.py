@@ -173,6 +173,7 @@ class Streamer:
     self.sm = sm if sm else messaging.SubMaster([
       'modelV2', 'controlsState', 'radarState', 'liveCalibration',
       'driverMonitoringState', 'carState', 'longitudinalPlan',
+      'uploaderState'
     ])
     self.rk = Ratekeeper(MESSAGE_HZ) # Ratekeeper for loop
     self.last_periodic_time = 0 # Track last periodic task
@@ -293,6 +294,7 @@ class Streamer:
     sett['hotspotEnabled'] = self.hotspot_enabled
     sett['hotspotIp'] = self.hotspot_ip
     sett['networkType'] = NETWORK_TYPES[KA2.get_network_type()]
+    sett['remainingDataUpload'] = f"{int(self.sm['uploaderState'].immediateQueueSize)} MB"
 
     if 0 <= self.send_car_names_cnt < 3:
       sett['carNames'] = SUPPORTED_CARS
