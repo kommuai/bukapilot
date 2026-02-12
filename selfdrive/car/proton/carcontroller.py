@@ -101,6 +101,7 @@ class CarController(CarControllerBase):
       # SNG
       if not (CS.cruise_standstill and CC.longActive):
         self.is_sng_check = False
+        self.resume = False
       else:
         self.resume = CS.out.gasPressed or CS.res_btn_pressed
         if not self.is_sng_check:
