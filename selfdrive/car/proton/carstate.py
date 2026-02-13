@@ -147,7 +147,11 @@ class CarState(CarStateBase):
     ret.stockAeb = False
     ret.stockFcw = bool(cp_cam.vl["FCW"]["STOCK_FCW_TRIGGERED"])
 
-    ret.cruiseState.available = bool(cp_cam.vl["PCM_BUTTONS"]['CRUISE_AVAILABLE'])
+    if self.CP.carFingerprint == CAR.X50:
+      ret.cruiseState.available = bool(cp_cam.vl["PCM_BUTTONS"]['CRUISE_AVAILABLE'])
+    else: #TODO
+      ret.cruiseState.available = True
+
     self.res_btn_pressed = bool(cp.vl["ACC_BUTTONS"]["RES_BUTTON"])
     distance_val = int(cp_cam.vl["PCM_BUTTONS"]['SET_DISTANCE'])
     self.set_long_personality(distance_val - 1)

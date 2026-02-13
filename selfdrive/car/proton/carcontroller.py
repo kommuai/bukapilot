@@ -144,7 +144,7 @@ class CarController(CarControllerBase):
                                         standstill_request, self.resume))
 
     # cancel stock cruise if error at openpilot
-    if pcm_cancel_cmd:
+    if pcm_cancel_cmd and not CS.out.brakePressed:
       can_sends.append(send_buttons(self.packer, 1))
 
     self.last_steer = apply_steer
