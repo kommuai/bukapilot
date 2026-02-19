@@ -150,7 +150,7 @@ class CarController(CarControllerBase):
     if not pcm_cancel_cmd:
       self.cancel_press_cnt = 0
       self.last_cancel_press = 0
-    elif self.frame > self.last_cancel_press + 15:
+    elif self.frame > self.last_cancel_press + 15 and not CS.out.brakePressed:
       can_sends.append(send_buttons(self.packer, 1))
       self.cancel_press_cnt += 1
       if self.cancel_press_cnt == 2:
