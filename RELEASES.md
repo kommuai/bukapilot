@@ -1,3 +1,10 @@
+Version 10.0.5 (2026-02-18)
+========================
+* Full driving log support
+* Simcard now supports video log upload
+* Minor fixes to Perodua, BYD and Proton
+* Selectable car name from KommuAI app
+
 Version 10.0.4 (2026-01-30)
 ========================
 * Memory pressure monitoring from SD card operations
