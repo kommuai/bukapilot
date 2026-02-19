@@ -132,7 +132,10 @@ class CarController(CarControllerBase):
     acceleration = actuators.accel
     acceleration = (acceleration - CS.stock_brake_mag) if CS.out.vEgo > 0.25 else acceleration
     # higher speeds have higher efficiency
-    k = 0.267 + 0.120 * CS.out.vEgo
+    if CS.CP.carFingerprint == CAR.ATIVA:
+      k = 0.567 + 0.06 * CS.out.vEgo
+    else:
+      k = 0.367 + 0.06 * CS.out.vEgo
     des_speed = CS.out.vEgo + acceleration * k
 
     if CS.out.gasPressed or acceleration >= 0.0:
@@ -146,11 +149,11 @@ class CarController(CarControllerBase):
       magnitude_compensation = interp(base_brake, BRAKE_MAG_COMP_BP, BRAKE_MAG_COMP_V)
 
       base_brake *= magnitude_compensation
-      apply_brake = clip(base_brake, 0., 1.25)
+      apply_brake = clip(base_brake, 0., 1.32)
 
     # reduce max brake when below 10kmh to reduce jerk. TODO: more elegant way to do this?
     if CS.out.vEgo < 2.8:
-      apply_brake = clip(apply_brake, 0., 0.8)
+      apply_brake = clip(apply_brake, 0., 1.0)
 
     # always clear dtc for dnga for the first 10s
     if self.frame <= 1000:
