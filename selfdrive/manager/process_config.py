@@ -94,6 +94,7 @@ procs = [
   # stream data
   PythonProcess("streamdatad", "selfdrive.streamdatad.streamdatad", always_run, enabled=not PC),
   PythonProcess("sdformatterd", "system.hardware.ka2.formatdevice", format_sd, enabled=not PC),
+  PythonProcess("setapnd", "system.hardware.ka2.setapn", always_run, enabled=KA2)
 ]
 
 managed_processes = {p.name: p for p in procs}
