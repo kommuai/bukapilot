@@ -25,9 +25,8 @@ def create_can_steer_command(packer, steer, steer_req, wheel_touch_warning, whee
 
   return packer.make_can_msg("ADAS_LKAS", 0, values)
 
-def create_acc_cmd(packer, accel_cmd, enabled, gas_override, standstill, resume):
-  if accel_cmd > 0:
-    standstill = False
+def create_acc_cmd(packer, accel_cmd, enabled, gas_override, standstill, resume, brake_pressed):
+  cruise_braking = enabled and accel_cmd < 0
 
   values = {
     "CMD": accel_cmd,
@@ -36,15 +35,17 @@ def create_acc_cmd(packer, accel_cmd, enabled, gas_override, standstill, resume)
     "ACC_REQ": enabled and not resume,
     "CRUISE_DISABLED": not enabled,
     "SET_ME_1": 1,
-    "NOT_GAS_OVERRIDE": enabled and not gas_override,
+    "NOT_GAS_OVERRIDE": not gas_override,
     "RISING_ENGAGE": resume,
+    "BRAKE_ENGAGED": brake_pressed,
 
     # not sure
-    "SET_ME_X6A": 0xFD if resume else 0x6A if standstill else 0xFA,
+    "SET_ME_X6A": 106 if not enabled else 253 if resume else 121 if standstill else 125,
+    # 5 = Standstill, 6 = Accelerate, 4 = Brake, 1 = Maintain speed
+    "MOTION_CONTROL": 4 if not enabled or cruise_braking else 11 if resume else 5 if standstill else 6 if accel_cmd > 0 else 1,
+    "UNKNOWN1": cruise_braking or brake_pressed,
     "STATIONARY": 0,
     "STANDSTILL_REQ": 0,
-    # 5 = Standstill, 6 = Accelerate, 4 = Brake, 1 = Maintain speed
-    "MOTION_CONTROL": 9 if resume else 5 if standstill else 6 if accel_cmd > 0 else 4 if accel_cmd < 0 else 1
   }
 
   return packer.make_can_msg("ACC_CMD", 0, values)

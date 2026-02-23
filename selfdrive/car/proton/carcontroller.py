@@ -144,7 +144,7 @@ class CarController(CarControllerBase):
           accel_cmd = min(CS.stock_acc_cmd * mult, accel_cmd)
 
         can_sends.append(create_acc_cmd(self.packer, accel_cmd, CC.longActive, CS.out.gasPressed,
-                                        standstill_request, self.resume))
+                                        standstill_request, self.resume, CS.out.brakePressed))
 
     # cancel stock cruise if error at openpilot
     if not pcm_cancel_cmd:
