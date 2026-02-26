@@ -162,12 +162,9 @@ class CarState(CarStateBase):
     self.cruise_standstill = bool(cp_cam.vl["ACC_CMD"]["STANDSTILL_REQ"]) and not ret.gasPressed
     ret.cruiseState.standstill = False
     ret.cruiseState.nonAdaptive = False
-    if self.CP.carFingerprint == CAR.X50:
-      ret.cruiseState.enabled = cp_cam.vl["ACC_CMD"]['CRUISE_DISABLED'] != 1
-    else:
-      ret.cruiseState.enabled = (cp_cam.vl["ACC_CMD"]["ACC_REQ"] \
-                                + cp_cam.vl["ACC_CMD"]["STANDSTILL_REQ"] \
-                                + cp_cam.vl["ACC_CMD"]["NOT_GAS_OVERRIDE"]) > 1
+    ret.cruiseState.enabled = (cp_cam.vl["ACC_CMD"]["ACC_REQ"] \
+                           + cp_cam.vl["ACC_CMD"]["STANDSTILL_REQ"] \
+                           + cp_cam.vl["ACC_CMD"]["NOT_GAS_OVERRIDE"]) > 1
 
     # button presses
     ret.leftBlinker = bool(cp.vl["LEFT_STALK"]["LEFT_SIGNAL"])
