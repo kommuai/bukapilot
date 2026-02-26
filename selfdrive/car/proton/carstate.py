@@ -147,10 +147,8 @@ class CarState(CarStateBase):
     ret.stockAeb = False
     ret.stockFcw = bool(cp_cam.vl["FCW"]["STOCK_FCW_TRIGGERED"])
 
-    if self.CP.carFingerprint == CAR.X50:
-      ret.cruiseState.available = bool(cp_cam.vl["PCM_BUTTONS"]['CRUISE_AVAILABLE'])
-    else: #TODO
-      ret.cruiseState.available = True
+    #TODO: If using car signal, S70 cannot engage, X50 gas press would make it False.
+    ret.cruiseState.available = True
 
     self.res_btn_pressed = bool(cp.vl["ACC_BUTTONS"]["RES_BUTTON"])
     distance_val = int(cp_cam.vl["PCM_BUTTONS"]['SET_DISTANCE'])
