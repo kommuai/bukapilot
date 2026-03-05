@@ -1,5 +1,3 @@
-from openpilot.common.numpy_fast import clip
-
 def create_can_steer_command(packer, steer, steer_req, wheel_touch_warning, wheel_touch_warning_2,
     lks_aux, lks_audio, lks_tactile, lks_assist_mode, lka_enable, stock_ldw_ste, steer_enabled, new_lka):
 
@@ -26,24 +24,27 @@ def create_can_steer_command(packer, steer, steer_req, wheel_touch_warning, whee
   return packer.make_can_msg("ADAS_LKAS", 0, values)
 
 def create_acc_cmd(packer, accel_cmd, enabled, gas_override, standstill, resume, brake_pressed):
-  cruise_braking = enabled and accel_cmd < 0
 
   values = {
     "CMD": accel_cmd,
     "CMD_OFFSET1": accel_cmd,
     "CMD_OFFSET2": accel_cmd,
-    "ACC_REQ": enabled and not resume,
+    "ACC_REQ": enabled and not resume, # Resume check required for SNG to work but frequent switching can make X50 rpm drop.
     "CRUISE_DISABLED": not enabled,
     "SET_ME_1": 1,
-    "NOT_GAS_OVERRIDE": not gas_override,
+    "NOT_GAS_OVERRIDE": enabled and not gas_override,
     "RISING_ENGAGE": resume,
     "BRAKE_ENGAGED": brake_pressed,
+    "UNKNOWN1": 0, # Needs to be 0, if 1 when braking, braking is too hard on S70. This signal might mean hard braking needed.
 
-    # not sure
-    "SET_ME_X6A": 106 if not enabled else 253 if resume else 121 if standstill else 125,
+    # The distance, if value too low, car cannot move when SNG resume.
+    "SET_ME_X6A": 0x6A if not enabled else 0xFA if resume else 0x6A if (standstill and accel_cmd <= 0) else 0xFA,
+
     # 5 = Standstill, 6 = Accelerate, 4 = Brake, 1 = Maintain speed
-    "MOTION_CONTROL": 4 if not enabled or cruise_braking else 11 if resume else 5 if standstill else 6 if accel_cmd > 0 else 1,
-    "UNKNOWN1": cruise_braking or brake_pressed,
+    "MOTION_CONTROL": 4 if not enabled else 9 if resume else 5 if standstill else 4 if accel_cmd < 0 else 6 if accel_cmd > 0 else 1,
+
+    # Hardcoded the 2 signals to 0 because when SNG resumes EPB is pulled by the car.
+    # Hardcoding to 0 makes X50 and X50 FL engine run higher rpm when stopped.
     "STATIONARY": 0,
     "STANDSTILL_REQ": 0,
   }
