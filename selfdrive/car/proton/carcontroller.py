@@ -122,8 +122,9 @@ class CarController(CarControllerBase):
           can_sends.append(send_buttons(self.packer, 0))
           self.resume_counter += 1
 
-      # proton X90 steer values are even numbers if we don't want to edit the proton dbc
       is_x90 = self.CP.carFingerprint == CAR.X90
+
+      # TODO: Remove line below and test on X90 since stock LKA last bit is always 0 for any Proton car.
       steer_cmd = (round(apply_steer) * 2) if (is_x90 and CC.latActive) else apply_steer
 
       can_sends.append(create_can_steer_command(self.packer, steer_cmd, lat_active,
