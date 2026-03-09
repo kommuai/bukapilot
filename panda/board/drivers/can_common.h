@@ -217,11 +217,12 @@ void ignition_can_hook(CANPacket_t *to_push) {
     }
 
     // Tesla exception
-    if ((addr == 0x348) && (len == 8)) {
-      // GTW_status
-      ignition_can = (GET_BYTE(to_push, 0) & 0x1U) != 0U;
-      ignition_can_cnt = 0U;
-    }
+    // Temporarily remove because clash with BYD
+    //if ((addr == 0x348) && (len == 8)) {
+    //  // GTW_status
+    //  ignition_can = (GET_BYTE(to_push, 0) & 0x1U) != 0U;
+    //  ignition_can_cnt = 0U;
+    //}
 
     // Mazda exception
     if ((addr == 0x9E) && (len == 8)) {
