@@ -9,6 +9,7 @@ from libc.stdint cimport uintptr_t
 from msgq.visionipc.visionipc cimport cl_mem
 from msgq.visionipc.visionipc_pyx cimport VisionBuf, CLContext as BaseCLContext
 from .commonmodel cimport CL_DEVICE_TYPE_DEFAULT, cl_get_device_id, cl_create_context, cl_release_context
+from .commonmodel cimport cl_create_command_queue, cl_release_command_queue
 from .commonmodel cimport mat3, ModelFrame as cppModelFrame, DrivingModelFrame as cppDrivingModelFrame, MonitoringModelFrame as cppMonitoringModelFrame
 
 
@@ -16,10 +17,26 @@ cdef class CLContext(BaseCLContext):
   def __cinit__(self):
     self.device_id = cl_get_device_id(CL_DEVICE_TYPE_DEFAULT)
     self.context = cl_create_context(self.device_id)
+    self.queue = cl_create_command_queue(self.context, self.device_id)
 
   def __dealloc__(self):
+    if self.queue:
+      cl_release_command_queue(self.queue)
     if self.context:
       cl_release_context(self.context)
+
+  # Integer pointers for tinygrad external context (zero-copy vision inputs on same CL context)
+  @property
+  def context_ptr(self):
+    return <uintptr_t>self.context
+
+  @property
+  def device_id_ptr(self):
+    return <uintptr_t>self.device_id
+
+  @property
+  def queue_ptr(self):
+    return <uintptr_t>self.queue
 
 cdef class CLMem:
   @staticmethod
@@ -31,6 +48,11 @@ cdef class CLMem:
   @property
   def mem_address(self):
     return <uintptr_t>(self.mem)
+
+  # CL buffer handle (cl_mem value) for zero-copy Tensor.from_blob(..., device='CL')
+  @property
+  def mem_handle(self):
+    return <uintptr_t>(self.mem[0])
 
 def cl_from_visionbuf(VisionBuf buf):
   return CLMem.create(<void*>&buf.buf.buf_cl)
@@ -60,7 +82,7 @@ cdef class DrivingModelFrame(ModelFrame):
   cdef cppDrivingModelFrame * _frame
 
   def __cinit__(self, CLContext context, int temporal_skip):
-    self._frame = new cppDrivingModelFrame(context.device_id, context.context, temporal_skip)
+    self._frame = new cppDrivingModelFrame(context.device_id, context.context, temporal_skip, context.queue)
     self.frame = <cppModelFrame*>(self._frame)
     self.buf_size = self._frame.buf_size
 
@@ -68,7 +90,6 @@ cdef class MonitoringModelFrame(ModelFrame):
   cdef cppMonitoringModelFrame * _frame
 
   def __cinit__(self, CLContext context):
-    self._frame = new cppMonitoringModelFrame(context.device_id, context.context)
+    self._frame = new cppMonitoringModelFrame(context.device_id, context.context, context.queue)
     self.frame = <cppModelFrame*>(self._frame)
     self.buf_size = self._frame.buf_size
-

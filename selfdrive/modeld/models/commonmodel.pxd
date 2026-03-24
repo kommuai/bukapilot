@@ -8,9 +8,12 @@ cdef extern from "common/mat.h":
 
 cdef extern from "common/clutil.h":
   cdef unsigned long CL_DEVICE_TYPE_DEFAULT
+  ctypedef void* cl_command_queue
   cl_device_id cl_get_device_id(unsigned long)
   cl_context cl_create_context(cl_device_id)
   void cl_release_context(cl_context)
+  cl_command_queue cl_create_command_queue(cl_context, cl_device_id)
+  void cl_release_command_queue(cl_command_queue)
 
 cdef extern from "selfdrive/modeld/models/commonmodel.h":
   cppclass ModelFrame:
@@ -20,8 +23,8 @@ cdef extern from "selfdrive/modeld/models/commonmodel.h":
 
   cppclass DrivingModelFrame:
     int buf_size
-    DrivingModelFrame(cl_device_id, cl_context, int)
+    DrivingModelFrame(cl_device_id, cl_context, int, cl_command_queue)
 
   cppclass MonitoringModelFrame:
     int buf_size
-    MonitoringModelFrame(cl_device_id, cl_context)
+    MonitoringModelFrame(cl_device_id, cl_context, cl_command_queue)

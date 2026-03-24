@@ -19,10 +19,19 @@
 
 class ModelFrame {
 public:
-  ModelFrame(cl_device_id device_id, cl_context context) {
-    q = CL_CHECK_ERR(clCreateCommandQueue(context, device_id, 0, &err));
+  /** If shared_q is non-null, use it and do not release in destructor. Otherwise create and own the queue. */
+  ModelFrame(cl_device_id device_id, cl_context context, cl_command_queue shared_q = nullptr) {
+    if (shared_q != nullptr) {
+      q = shared_q;
+      own_queue = false;
+    } else {
+      q = CL_CHECK_ERR(clCreateCommandQueue(context, device_id, 0, &err));
+      own_queue = true;
+    }
   }
-  virtual ~ModelFrame() {}
+  virtual ~ModelFrame() {
+    if (own_queue && q) CL_CHECK(clReleaseCommandQueue(q));
+  }
   virtual cl_mem* prepare(cl_mem yuv_cl, int frame_width, int frame_height, int frame_stride, int frame_uv_offset, const mat3& projection) { return NULL; }
   uint8_t* buffer_from_cl(cl_mem *in_frames, int buffer_size) {
     CL_CHECK(clEnqueueReadBuffer(q, *in_frames, CL_TRUE, 0, buffer_size, input_frames.get(), 0, nullptr, nullptr));
@@ -39,6 +48,7 @@ protected:
   cl_mem y_cl, u_cl, v_cl;
   Transform transform;
   cl_command_queue q;
+  bool own_queue;
   std::unique_ptr<uint8_t[]> input_frames;
 
   void init_transform(cl_device_id device_id, cl_context context, int model_width, int model_height) {
@@ -64,7 +74,7 @@ protected:
 
 class DrivingModelFrame : public ModelFrame {
 public:
-  DrivingModelFrame(cl_device_id device_id, cl_context context, int _temporal_skip);
+  DrivingModelFrame(cl_device_id device_id, cl_context context, int _temporal_skip, cl_command_queue shared_q = nullptr);
   ~DrivingModelFrame();
   cl_mem* prepare(cl_mem yuv_cl, int frame_width, int frame_height, int frame_stride, int frame_uv_offset, const mat3& projection);
 
@@ -83,7 +93,7 @@ private:
 
 class MonitoringModelFrame : public ModelFrame {
 public:
-  MonitoringModelFrame(cl_device_id device_id, cl_context context);
+  MonitoringModelFrame(cl_device_id device_id, cl_context context, cl_command_queue shared_q = nullptr);
   ~MonitoringModelFrame();
   cl_mem* prepare(cl_mem yuv_cl, int frame_width, int frame_height, int frame_stride, int frame_uv_offset, const mat3& projection);
 

@@ -12,6 +12,8 @@ from openpilot.common.stat_live import RunningStatFilter
 from openpilot.common.transformations.camera import DEVICE_CAMERAS
 from openpilot.system.hardware import HARDWARE
 
+IGNORE_DM = False
+
 EventName = log.OnroadEvent.EventName
 
 # ******************************************************************************************
@@ -389,6 +391,9 @@ class DriverMonitoring:
       # also will not be reaching 0 if DM is active when not engaged
       if not (standstill_orange_exemption or always_on_red_exemption or (always_on_lowspeed_exemption and _reaching_audible)):
         self.awareness = max(self.awareness - self.step_change, -0.1)
+
+    if IGNORE_DM:
+      self.awareness = 1
 
     alert = None
     if self.awareness <= 0.:

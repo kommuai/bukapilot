@@ -1,11 +1,12 @@
 #include "selfdrive/modeld/models/commonmodel.h"
 
 #include <cmath>
+#include <cstdlib>
 #include <cstring>
 
 #include "common/clutil.h"
 
-DrivingModelFrame::DrivingModelFrame(cl_device_id device_id, cl_context context, int _temporal_skip) : ModelFrame(device_id, context) {
+DrivingModelFrame::DrivingModelFrame(cl_device_id device_id, cl_context context, int _temporal_skip, cl_command_queue shared_q) : ModelFrame(device_id, context, shared_q) {
   input_frames = std::make_unique<uint8_t[]>(buf_size);
   temporal_skip = _temporal_skip;
   input_frames_cl = CL_CHECK_ERR(clCreateBuffer(context, CL_MEM_READ_WRITE, buf_size, NULL, &err));
@@ -29,8 +30,10 @@ cl_mem* DrivingModelFrame::prepare(cl_mem yuv_cl, int frame_width, int frame_hei
   copy_queue(&loadyuv, q, img_buffer_20hz_cl, input_frames_cl, 0, 0, frame_size_bytes);
   copy_queue(&loadyuv, q, last_img_cl, input_frames_cl, 0, frame_size_bytes, frame_size_bytes);
 
-  // NOTE: Since thneed is using a different command queue, this clFinish is needed to ensure the image is ready.
-  clFinish(q);
+  // With shared queue, in-order execution means tinygrad runs after prepare; no finish needed. With own queue, finish so tinygrad (different queue) sees ready buffer.
+  if (own_queue && std::getenv("MODELD_SKIP_PREPARE_FINISH") == nullptr) {
+    clFinish(q);
+  }
   return &input_frames_cl;
 }
 
@@ -40,11 +43,11 @@ DrivingModelFrame::~DrivingModelFrame() {
   CL_CHECK(clReleaseMemObject(input_frames_cl));
   CL_CHECK(clReleaseMemObject(img_buffer_20hz_cl));
   CL_CHECK(clReleaseMemObject(last_img_cl));
-  CL_CHECK(clReleaseCommandQueue(q));
+  // q is released by ModelFrame destructor when own_queue
 }
 
 
-MonitoringModelFrame::MonitoringModelFrame(cl_device_id device_id, cl_context context) : ModelFrame(device_id, context) {
+MonitoringModelFrame::MonitoringModelFrame(cl_device_id device_id, cl_context context, cl_command_queue shared_q) : ModelFrame(device_id, context, shared_q) {
   input_frames = std::make_unique<uint8_t[]>(buf_size);
   input_frame_cl = CL_CHECK_ERR(clCreateBuffer(context, CL_MEM_READ_WRITE, buf_size, NULL, &err));
 
@@ -53,12 +56,14 @@ MonitoringModelFrame::MonitoringModelFrame(cl_device_id device_id, cl_context co
 
 cl_mem* MonitoringModelFrame::prepare(cl_mem yuv_cl, int frame_width, int frame_height, int frame_stride, int frame_uv_offset, const mat3& projection) {
   run_transform(yuv_cl, MODEL_WIDTH, MODEL_HEIGHT, frame_width, frame_height, frame_stride, frame_uv_offset, projection);
-  clFinish(q);
+  if (own_queue && std::getenv("MODELD_SKIP_PREPARE_FINISH") == nullptr) {
+    clFinish(q);
+  }
   return &y_cl;
 }
 
 MonitoringModelFrame::~MonitoringModelFrame() {
   deinit_transform();
   CL_CHECK(clReleaseMemObject(input_frame_cl));
-  CL_CHECK(clReleaseCommandQueue(q));
+  // q is released by ModelFrame destructor when own_queue
 }

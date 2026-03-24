@@ -3,6 +3,10 @@ import cereal.messaging as messaging
 from openpilot.common.params import Params
 from openpilot.common.realtime import config_realtime_process
 from openpilot.selfdrive.monitoring.helpers import DriverMonitoring
+from openpilot.system.hardware import HARDWARE
+
+KA2_DM_MIN_HZ = 10.0
+KA2_DM_MAX_DT_S = 1.0 / KA2_DM_MIN_HZ
 
 
 def dmonitoringd_thread():
@@ -13,7 +17,9 @@ def dmonitoringd_thread():
   sm = messaging.SubMaster(['driverStateV2', 'liveCalibration', 'carState', 'selfdriveState', 'modelV2'], poll='driverStateV2')
 
   DM = DriverMonitoring(rhd_saved=params.get_bool("IsRhdDetected"), always_on=params.get_bool("AlwaysOnDM"))
-  demo_mode=False
+  demo_mode = False
+  is_ka2 = HARDWARE.get_device_type() == "ka2"
+  last_driverstate_t = None
 
   # 20Hz <- dmonitoringmodeld
   while True:
@@ -22,7 +28,16 @@ def dmonitoringd_thread():
       # iterate when model has new output
       continue
 
-    valid = sm.all_checks()
+    if is_ka2:
+      # On KA2, keep strict alive/valid checks, but accept dmonitoring model down to ~10Hz.
+      # Poll-based SubMaster frequency checks are too strict for mixed-rate dependencies here.
+      valid = sm.all_alive() and sm.all_valid()
+      cur_driverstate_t = sm.logMonoTime['driverStateV2'] * 1e-9
+      if last_driverstate_t is not None:
+        valid = valid and ((cur_driverstate_t - last_driverstate_t) <= KA2_DM_MAX_DT_S)
+      last_driverstate_t = cur_driverstate_t
+    else:
+      valid = sm.all_checks()
     if demo_mode and sm.valid['driverStateV2']:
       DM.run_step(sm, demo=demo_mode)
     elif valid:
