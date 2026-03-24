@@ -11,15 +11,19 @@ from openpilot.common.util import sudo_write
 from openpilot.common.realtime import config_realtime_process, Ratekeeper
 from openpilot.common.swaglog import cloudlog
 from openpilot.common.gpio import gpiochip_get_ro_value_fd, gpioevent_data
-from openpilot.system.hardware import HARDWARE
+from openpilot.system.hardware import HARDWARE, KA2
 
 from openpilot.system.sensord.sensors.i2c_sensor import Sensor
 from openpilot.system.sensord.sensors.lsm6ds3_accel import LSM6DS3_Accel
 from openpilot.system.sensord.sensors.lsm6ds3_gyro import LSM6DS3_Gyro
 from openpilot.system.sensord.sensors.lsm6ds3_temp import LSM6DS3_Temp
 from openpilot.system.sensord.sensors.mmc5603nj_magn import MMC5603NJ_Magn
+from openpilot.system.sensord.sensors.icm42670_accel import ICM42670_Accel
+from openpilot.system.sensord.sensors.icm42670_gyro import ICM42670_Gyro
+from openpilot.system.sensord.sensors.icm42670_temp import ICM42670_Temp
+from openpilot.system.sensord.sensors.lis2mdl_magn import LIS2MDL_Magn
 
-I2C_BUS_IMU = 1
+I2C_BUS_IMU = 3 if KA2 else 1
 
 def interrupt_loop(sensors: list[tuple[Sensor, str, bool]], event) -> None:
   pm = messaging.PubMaster([service for sensor, service, interrupt in sensors if interrupt])
@@ -92,15 +96,27 @@ def polling_loop(sensor: Sensor, service: str, event: threading.Event) -> None:
 def main() -> None:
   config_realtime_process([1, ], 1)
 
-  sensors_cfg = [
-    (LSM6DS3_Accel(I2C_BUS_IMU), "accelerometer", True),
-    (LSM6DS3_Gyro(I2C_BUS_IMU), "gyroscope", True),
-    (LSM6DS3_Temp(I2C_BUS_IMU), "temperatureSensor", False),
-  ]
-  if HARDWARE.get_device_type() == "tizi":
-    sensors_cfg.append(
-      (MMC5603NJ_Magn(I2C_BUS_IMU), "magnetometer", False),
-    )
+  if KA2:
+    # KA2: ICM42670 + LIS2MDL, polling only (no GPIO 84 interrupt)
+    sensors_cfg = [
+      (ICM42670_Accel(I2C_BUS_IMU), "accelerometer", False),
+      (ICM42670_Gyro(I2C_BUS_IMU), "gyroscope", False),
+      (ICM42670_Temp(I2C_BUS_IMU), "temperatureSensor", False),
+      (LIS2MDL_Magn(I2C_BUS_IMU), "magnetometer", False),
+    ]
+    use_interrupt_loop = False
+  else:
+    # TICI (tizi): LSM6DS3 + optional MMC5603, interrupt-driven accel/gyro
+    sensors_cfg = [
+      (LSM6DS3_Accel(I2C_BUS_IMU), "accelerometer", True),
+      (LSM6DS3_Gyro(I2C_BUS_IMU), "gyroscope", True),
+      (LSM6DS3_Temp(I2C_BUS_IMU), "temperatureSensor", False),
+    ]
+    if HARDWARE.get_device_type() == "tizi":
+      sensors_cfg.append(
+        (MMC5603NJ_Magn(I2C_BUS_IMU), "magnetometer", False),
+      )
+    use_interrupt_loop = True
 
   # Reset sensors
   for sensor, _, _ in sensors_cfg:
@@ -111,14 +127,13 @@ def main() -> None:
 
   # Initialize sensors
   exit_event = threading.Event()
-  threads = [
-    threading.Thread(target=interrupt_loop, args=(sensors_cfg, exit_event), daemon=True)
-  ]
+  threads: list[threading.Thread] = []
+  if use_interrupt_loop:
+    threads.append(threading.Thread(target=interrupt_loop, args=(sensors_cfg, exit_event), daemon=True))
   for sensor, service, interrupt in sensors_cfg:
     try:
       sensor.init()
       if not interrupt:
-        # Start polling thread for sensors without interrupts
         threads.append(threading.Thread(
           target=polling_loop,
           args=(sensor, service, exit_event),
