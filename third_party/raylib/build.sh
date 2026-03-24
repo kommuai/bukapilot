@@ -22,12 +22,21 @@ if [ -f /TICI ]; then
   ARCHNAME="larch64"
   RAYLIB_PLATFORM="PLATFORM_COMMA"
 elif [[ "$OSTYPE" == "linux"* ]]; then
-  # required dependencies on Linux PC
-  $SUDO apt install \
-    libxcursor-dev \
-    libxi-dev \
-    libxinerama-dev \
-    libxrandr-dev
+  # Map kernel arch to openpilot arch (install dir must match openpilot's arch)
+  case "$ARCHNAME" in
+    aarch64|arm64) ARCHNAME="larch64"; RAYLIB_PLATFORM="PLATFORM_COMMA" ;;  # ARM64: no X11, use EGL/GBM
+    x86_64|amd64)  ARCHNAME="x86_64" ;;
+    *)             ;;  # leave as-is (e.g. armv7l)
+  esac
+  # X11 deps only for PLATFORM_DESKTOP (x86_64)
+  if [ "$RAYLIB_PLATFORM" = "PLATFORM_DESKTOP" ]; then
+    $SUDO apt-get update -qq
+    $SUDO apt-get install -y \
+      libxcursor-dev \
+      libxi-dev \
+      libxinerama-dev \
+      libxrandr-dev || true
+  fi
 fi
 
 if [[ "$OSTYPE" == "darwin"* ]]; then

@@ -131,6 +131,7 @@ struct OnroadEvent @0xc4fa6047f024e718 {
     userBookmark @95;
     excessiveActuation @96;
     audioFeedback @97;
+    blinkerSteerRequired @99;
 
     soundsUnavailableDEPRECATED @47;
   }
@@ -182,6 +183,7 @@ struct InitData {
     pc @5;
     tizi @6;
     mici @7;
+    ka2 @8;
   }
 
   struct PandaInfo {
@@ -376,6 +378,8 @@ struct SensorEventData {
     rpr0521 @9;
     lsm6ds3trc @10;
     mmc5603nj @11;
+    icm42670 @12;
+    lis2mdl @13;
   }
 }
 
@@ -483,6 +487,8 @@ struct DeviceState @0xa4d8b5af2aa492eb {
   memoryUsagePercent @19 :Int8;
   gpuUsagePercent @33 :Int8;
   cpuUsagePercent @34 :List(Int8);  # per-core cpu usage
+  npuUsagePercent @50 :List(Int8);  # per-core npu usage
+  npuDriverVersion @51 :Text;       # NPU driver version (from RKNN, written by modeld/dmonitoringmodeld)
 
   # power
   offroadPowerUsageUwh @23 :UInt32;
@@ -659,6 +665,7 @@ struct PandaState @0xa7649e2575e4591e {
     redPandaV2 @8;
     tres @9;
     cuatro @10;
+    kedua @11;
   }
 
   enum HarnessStatus {

@@ -38,8 +38,10 @@
 // - If any of the ignition sources in any panda is high, ignition is high
 
 #define MAX_IR_PANDA_VAL 50
-#define CUTOFF_IL 400
-#define SATURATE_IL 1000
+#define MIN_IR_POWER 0.0f
+#define MAX_IR_POWER 0.5f
+#define CUTOFF_IL 200
+#define SATURATE_IL 892
 
 ExitHandler do_exit;
 
@@ -407,11 +409,13 @@ void process_peripheral_state(Panda *panda, PubMaster *pm, bool no_fan_control) 
       last_driver_camera_t = event.getLogMonoTime();
 
       if (cur_integ_lines <= CUTOFF_IL) {
-        ir_pwr = 0;
+        ir_pwr = static_cast<int>(100.0f * MIN_IR_POWER);
       } else if (cur_integ_lines > SATURATE_IL) {
-        ir_pwr = 100;
+        ir_pwr = static_cast<int>(100.0f * MAX_IR_POWER);
       } else {
-        ir_pwr = 100 * (cur_integ_lines - CUTOFF_IL) / (SATURATE_IL - CUTOFF_IL);
+        ir_pwr = static_cast<int>(100.0f * (MIN_IR_POWER +
+                 ((cur_integ_lines - CUTOFF_IL) * (MAX_IR_POWER - MIN_IR_POWER) /
+                 (SATURATE_IL - CUTOFF_IL))));
       }
     }
 
@@ -420,10 +424,9 @@ void process_peripheral_state(Panda *panda, PubMaster *pm, bool no_fan_control) 
       ir_pwr = 0;
     }
 
-    if (ir_pwr != prev_ir_pwr || sm.frame % 100 == 0) {
-      int16_t ir_panda = util::map_val(ir_pwr, 0, 100, 0, MAX_IR_PANDA_VAL); 
-      panda->set_ir_pwr(ir_panda);
-      Hardware::set_ir_power(ir_pwr); 
+    if (ir_pwr != prev_ir_pwr || sm.frame % 100 == 0 || ir_pwr >= MAX_IR_PANDA_VAL) {
+      panda->set_ir_pwr(ir_pwr);
+      Hardware::set_ir_power(util::map_val(ir_pwr, 0, MAX_IR_PANDA_VAL, 0, 100));
       prev_ir_pwr = ir_pwr;
     }
   }

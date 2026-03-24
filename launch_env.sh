@@ -5,6 +5,7 @@ export MKL_NUM_THREADS=1
 export NUMEXPR_NUM_THREADS=1
 export OPENBLAS_NUM_THREADS=1
 export VECLIB_MAXIMUM_THREADS=1
+export SKIP_FW_QUERY=0
 
 # models get lower priority than ui
 # - ui is ~5ms
@@ -16,7 +17,7 @@ export VECLIB_MAXIMUM_THREADS=1
 export QCOM_PRIORITY=12
 
 if [ -z "$AGNOS_VERSION" ]; then
-  export AGNOS_VERSION="16"
+  export AGNOS_VERSION="11.3.2"
 fi
 
 export STAGING_ROOT="/data/safe_staging"

@@ -14,6 +14,10 @@ Decider('MD5-timestamp')
 
 SetOption('num_jobs', max(1, int(os.cpu_count()/2)))
 
+TICI = os.path.isfile('/TICI')
+KA2 = os.path.isfile('/KA2')
+AGNOS = TICI
+
 AddOption('--kaitai', action='store_true', help='Regenerate kaitai struct parsers')
 AddOption('--asan', action='store_true', help='turn on ASAN')
 AddOption('--ubsan', action='store_true', help='turn on UBSan')
@@ -30,14 +34,19 @@ arch = subprocess.check_output(["uname", "-m"], encoding='utf8').rstrip()
 if platform.system() == "Darwin":
   arch = "Darwin"
   brew_prefix = subprocess.check_output(['brew', '--prefix'], encoding='utf8').strip()
-elif arch == "aarch64" and os.path.isfile('/TICI'):
+elif arch == "aarch64" and (TICI or KA2):
   arch = "larch64"
 assert arch in [
-  "larch64",  # linux tici arm64
+  "larch64",  # linux tici arm64 or ka2 arm64
   "aarch64",  # linux pc arm64
   "x86_64",   # linux pc x64
   "Darwin",   # macOS arm64 (x86 not supported)
 ]
+# Device type for build-time choices (e.g. visionbuf_ion only on TICI)
+device = os.environ.get('OPENPILOT_DEVICE', 'TICI' if TICI else 'KA2' if arch == 'larch64' else '')
+# GUI/raylib/Qt targets are unnecessary on headless KA2.
+# Can also be forced off with OPENPILOT_BUILD_GUI=0.
+build_gui = (os.environ.get('OPENPILOT_BUILD_GUI', '1') == '1') and (device != 'KA2')
 
 env = Environment(
   ENV={
@@ -101,9 +110,15 @@ if arch == "larch64":
     "/system/vendor/lib64",
     "/usr/lib/aarch64-linux-gnu",
   ])
-  arch_flags = ["-D__TICI__", "-mcpu=cortex-a57"]
-  env.Append(CCFLAGS=arch_flags)
-  env.Append(CXXFLAGS=arch_flags)
+  if KA2:
+    env.Append(CPPPATH=["#third_party/rknpu/include", "/usr/include/rockchip", "/usr/local/include/rockchip"])
+    env.Append(LIBPATH=[f"#third_party/rknpu/{arch}"])
+    env.Append(CCFLAGS=["-DRK3588"])
+    env.Append(CXXFLAGS=["-DRK3588"])
+  else:
+    arch_flags = ["-D__TICI__", "-mcpu=cortex-a57"]
+    env.Append(CCFLAGS=arch_flags)
+    env.Append(CXXFLAGS=arch_flags)
 elif arch == "Darwin":
   env.Append(LIBPATH=[
     f"{brew_prefix}/lib",
@@ -165,7 +180,7 @@ else:
 np_version = SCons.Script.Value(np.__version__)
 Export('envCython', 'np_version')
 
-Export('env', 'arch')
+Export('env', 'arch', 'device', 'build_gui')
 
 # Setup cache dir
 cache_dir = '/data/scons_cache' if arch == "larch64" else '/tmp/scons_cache'
@@ -184,7 +199,7 @@ Export('common')
 # Enable swaglog include in submodules
 env_swaglog = env.Clone()
 env_swaglog['CXXFLAGS'].append('-DSWAGLOG="\\"common/swaglog.h\\""')
-SConscript(['msgq_repo/SConscript'], exports={'env': env_swaglog})
+SConscript(['msgq_repo/SConscript'], exports={'env': env_swaglog, 'device': device})
 SConscript(['opendbc_repo/SConscript'], exports={'env': env_swaglog})
 
 SConscript(['cereal/SConscript'])
@@ -192,7 +207,6 @@ SConscript(['cereal/SConscript'])
 Import('socketmaster', 'msgq')
 messaging = [socketmaster, msgq, 'capnp', 'kj',]
 Export('messaging')
-
 
 # Build other submodules
 SConscript(['panda/SConscript'])
@@ -214,9 +228,10 @@ SConscript(['third_party/SConscript'])
 
 SConscript(['selfdrive/SConscript'])
 
+# Replay is useful for KA2 debugging as well; keep cabana limited by arch.
 if Dir('#tools/cabana/').exists() and GetOption('extras'):
   SConscript(['tools/replay/SConscript'])
-  if arch != "larch64":
+  if arch != "larch64" and build_gui:
     SConscript(['tools/cabana/SConscript'])
 
 

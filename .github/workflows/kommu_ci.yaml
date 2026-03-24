@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - snapshot_ka2
+  pull_request:
+    branches:
+      - snapshot_ka2
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout repository with submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Setup Ubuntu environment
+        run: ./tools/ubuntu_setup.sh
+
+      - name: Run Python syntax checks
+        run: |
+          source .venv/bin/activate
+          python -m compileall ./selfdrive
+
+      - name: Build extensions with SCons
+        run: |
+          source .venv/bin/activate
+          scons -j$(nproc)
+
+      - name: Run car tests
+        run: |
+          source .venv/bin/activate
+          ./selfdrive/car/tests/test_car_interfaces.py
+          ./selfdrive/car/tests/test_models.py
+          python3 ./opendbc_repo/opendbc/car/tests/test_can_fingerprint.py
+          python3 ./opendbc_repo/opendbc/car/tests/test_docs.py

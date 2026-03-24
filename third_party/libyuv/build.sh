@@ -22,16 +22,14 @@ git checkout 4a14cb2e81235ecd656e799aecaaf139db8ce4a2
 
 # build
 cmake .
-make -j$(nproc)
+make
 
-INSTALL_DIR="$DIR/$ARCHNAME"
-rm -rf $INSTALL_DIR
-mkdir -p $INSTALL_DIR
+if [ -f /KA2 ]; then
+  mv libyuv.a ../larch64/lib/
+fi
 
-rm -rf $DIR/include
-mkdir -p $INSTALL_DIR/lib
-cp $DIR/libyuv/libyuv.a $INSTALL_DIR/lib
-cp -r $DIR/libyuv/include $DIR
+# remove the libyuv repo
+cd .. && rm -rf libyuv/
 
 ## To create universal binary on Darwin:
 ## ```
