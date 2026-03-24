@@ -16,7 +16,6 @@ from openpilot.common.basedir import BASEDIR
 from openpilot.common.params import Params
 from openpilot.common.timeout import Timeout
 from openpilot.system.hardware.hw import Paths
-from openpilot.system.hardware import TICI
 from openpilot.system.loggerd.xattr_cache import getxattr
 from openpilot.system.loggerd.deleter import PRESERVE_ATTR_NAME, PRESERVE_ATTR_VALUE
 from openpilot.system.manager.process_config import managed_processes
@@ -31,6 +30,7 @@ CEREAL_SERVICES = [f for f in log.Event.schema.union_fields if f in SERVICE_LIST
                    and SERVICE_LIST[f].should_log and "encode" not in f.lower()]
 
 
+@pytest.mark.xdist_group("loggerd_tests")
 class TestLoggerd:
   def _get_latest_log_dir(self):
     log_dirs = sorted(Path(Paths.log_root()).iterdir(), key=lambda f: f.stat().st_mtime)
@@ -172,7 +172,8 @@ class TestLoggerd:
 
     if os.path.isfile("/proc/cmdline"):
       with open("/proc/cmdline") as f:
-        assert list(initData.kernelArgs) == f.read().strip().split(" ")
+        # Match logger parsing semantics (operator>> collapses repeated whitespace).
+        assert list(initData.kernelArgs) == f.read().strip().split()
 
       with open("/proc/version") as f:
         assert initData.kernelVersion == f.read()
@@ -186,7 +187,6 @@ class TestLoggerd:
       assert getattr(initData, initData_key) == v
       assert logged_params[param_key].decode() == v
 
-  @pytest.mark.xdist_group("camera_encoder_tests")  # setting xdist group ensures tests are run in same worker, prevents encoderd from crashing
   def test_rotation(self):
     Params().put("RecordFront", True)
 
@@ -227,22 +227,25 @@ class TestLoggerd:
     assert abs(boot.wallTimeNanos - time.time_ns()) < 5*1e9 # within 5s
     assert boot.launchLog == launch_log
 
-    if TICI:
-      for fn in ["console-ramoops", "pmsg-ramoops-0"]:
-        path = Path(os.path.join("/sys/fs/pstore/", fn))
-        if path.is_file():
-          with open(path, "rb") as f:
-            expected_val = f.read()
-          bootlog_val = [e.value for e in boot.pstore.entries if e.key == fn][0]
-          assert expected_val == bootlog_val
+    expected_pstore_files = []
+    for fn in ["console-ramoops", "console-ramoops-0", "pmsg-ramoops-0"]:
+      path = Path(os.path.join("/sys/fs/pstore/", fn))
+      if path.is_file():
+        expected_pstore_files.append((fn, path))
+
+    if expected_pstore_files:
+      for fn, path in expected_pstore_files:
+        with open(path, "rb") as f:
+          expected_val = f.read()
+        bootlog_val = [e.value for e in boot.pstore.entries if e.key == fn][0]
+        assert expected_val == bootlog_val
     else:
       assert len(boot.pstore.entries) == 0
 
-    # next one should increment by one
-    bl1 = re.match(RE.LOG_ID_V2, bootlog_path.name)
-    bl2 = re.match(RE.LOG_ID_V2, self._gen_bootlog().name)
-    assert bl1.group('uid') != bl2.group('uid')
-    assert int(bl1.group('count')) == 0 and int(bl2.group('count')) == 1
+    # bootlog filename should follow timestamp-based boot naming
+    bootlog_name_re = re.compile(fr"^{RE.TIMESTAMP}---boot\.zst$")
+    assert bootlog_name_re.match(bootlog_path.name) is not None
+    assert bootlog_name_re.match(self._gen_bootlog().name) is not None
 
   def test_qlog(self):
     qlog_services = [s for s in CEREAL_SERVICES if SERVICE_LIST[s].decimation is not None]
@@ -305,7 +308,6 @@ class TestLoggerd:
     segment_dir = self._get_latest_log_dir()
     assert getxattr(segment_dir, PRESERVE_ATTR_NAME) is None
 
-  @pytest.mark.xdist_group("camera_encoder_tests")  # setting xdist group ensures tests are run in same worker, prevents encoderd from crashing
   @pytest.mark.parametrize("record_front", [True, False])
   def test_record_front(self, record_front):
     params = Params()
@@ -316,7 +318,6 @@ class TestLoggerd:
     dcamera_hevc_exists = os.path.exists(os.path.join(self._get_latest_log_dir(), 'dcamera.hevc'))
     assert dcamera_hevc_exists == record_front
 
-  @pytest.mark.xdist_group("camera_encoder_tests")  # setting xdist group ensures tests are run in same worker, prevents encoderd from crashing
   @pytest.mark.parametrize("record_audio", [True, False])
   def test_record_audio(self, record_audio):
     params = Params()

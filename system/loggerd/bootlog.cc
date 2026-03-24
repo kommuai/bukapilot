@@ -47,8 +47,9 @@ static kj::Array<capnp::word> build_boot_log() {
 }
 
 int main(int argc, char** argv) {
-  const std::string id = logger_get_identifier("BootCount");
-  const std::string path = Path::log_root() + "/boot/" + id + ".zst";
+  // Keep BootCount increments for existing param/debug workflows.
+  logger_get_identifier("BootCount");
+  const std::string path = Path::log_root() + "/boot/" + logger_get_route_name() + "---boot.zst";
   LOGW("bootlog to %s", path.c_str());
 
   // Open bootlog
@@ -62,7 +63,7 @@ int main(int argc, char** argv) {
   file.write(build_boot_log().asBytes());
 
   // Write out bootlog param to match routes with bootlog
-  Params().put("CurrentBootlog", id.c_str());
+  Params().put("CurrentBootlog", path.c_str());
 
   return 0;
 }

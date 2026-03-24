@@ -12,6 +12,7 @@ public:
   ~ZstdFileWriter();
   void write(void* data, size_t size);
   inline void write(kj::ArrayPtr<capnp::byte> array) { write(array.begin(), array.size()); }
+  void flush(bool force = false);  // Flush cache and file buffer
 
 private:
   void flushCache(bool last_chunk);

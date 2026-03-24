@@ -6,6 +6,7 @@
 
 #include "cereal/messaging/messaging.h"
 #include "common/util.h"
+#include "common/timing.h"
 #include "system/hardware/hw.h"
 #include "system/loggerd/zstd_writer.h"
 
@@ -34,4 +35,5 @@ protected:
 
 kj::Array<capnp::word> logger_build_init_data();
 std::string logger_get_identifier(std::string key);
+std::string logger_get_route_name();
 std::string zstd_decompress(const std::string &in);

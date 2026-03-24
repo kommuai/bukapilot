@@ -44,6 +44,14 @@ void ZstdFileWriter::write(void* data, size_t size) {
   }
 }
 
+// Flush cache and file buffer (for memory pressure handling)
+void ZstdFileWriter::flush(bool force) {
+  if (force || !input_cache_.empty()) {
+    flushCache(false);
+    util::safe_fflush(file_);
+  }
+}
+
 // Compress and flush the input cache to the file
 void ZstdFileWriter::flushCache(bool last_chunk) {
   ZSTD_inBuffer input = {input_cache_.data(), input_cache_.size(), 0};

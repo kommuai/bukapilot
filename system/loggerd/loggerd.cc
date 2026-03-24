@@ -9,6 +9,7 @@
 #include "common/params.h"
 #include "system/loggerd/encoder/encoder.h"
 #include "system/loggerd/loggerd.h"
+#include "system/loggerd/memory_pressure.h"
 #include "system/loggerd/video_writer.h"
 
 ExitHandler do_exit;
@@ -19,24 +20,54 @@ struct LoggerdState {
   std::atomic<int> ready_to_rotate{0};  // count of encoders ready to rotate
   int max_waiting = 0;
   double last_rotate_tms = 0.;      // last rotate time in ms
+  int rotate_epoch = 0;
 };
+
+bool deterministic_ka2_mode() {
+#if defined(RK3588)
+  const char *disable = getenv("ENCODERD_DETERMINISTIC_DISABLE");
+  return !(disable != nullptr && atoi(disable) != 0);
+#else
+  return false;
+#endif
+}
+
+void publish_rotate_state(LoggerdState *s, const char *state) {
+  Params params;
+  params.putNonBlocking("LoggerdRotateState", state);
+  params.putNonBlocking("LoggerdSegment", std::to_string(s->logger.segment()));
+  params.putNonBlocking("LoggerdSegmentEpoch", std::to_string(s->rotate_epoch));
+}
 
 void logger_rotate(LoggerdState *s) {
   bool ret =s->logger.next();
   assert(ret);
   s->ready_to_rotate = 0;
   s->last_rotate_tms = millis_since_boot();
+  s->rotate_epoch++;
+  publish_rotate_state(s, "committed");
   LOGW((s->logger.segment() == 0) ? "logging to %s" : "rotated to %s", s->logger.segmentPath().c_str());
 }
 
 void rotate_if_needed(LoggerdState *s) {
+  double tms = millis_since_boot();
+  double seg_length_secs = (tms - s->last_rotate_tms) / 1000.;
+  const bool deterministic_mode = deterministic_ka2_mode();
+
+  if (deterministic_mode && !LOGGERD_TEST) {
+    // Deterministic KA2 authority: rotate on loggerd clock boundary.
+    if (seg_length_secs >= SEGMENT_LENGTH) {
+      publish_rotate_state(s, "started");
+      logger_rotate(s);
+    }
+    return;
+  }
+
   // all encoders ready, trigger rotation
   bool all_ready = s->ready_to_rotate == s->max_waiting;
 
   // fallback logic to prevent extremely long segments in the case of camera, encoder, etc. malfunctions
   bool timed_out = false;
-  double tms = millis_since_boot();
-  double seg_length_secs = (tms - s->last_rotate_tms) / 1000.;
   if ((seg_length_secs > SEGMENT_LENGTH) && !LOGGERD_TEST) {
     // TODO: might be nice to put these reasons in the sentinel
     if ((tms - s->last_camera_seen_tms) > NO_CAMERA_PATIENCE) {
@@ -49,6 +80,7 @@ void rotate_if_needed(LoggerdState *s) {
   }
 
   if (all_ready || timed_out) {
+    publish_rotate_state(s, "started");
     logger_rotate(s);
   }
 }
@@ -114,12 +146,34 @@ size_t write_encode_data(LoggerdState *s, cereal::Event::Reader event, RemoteEnc
 
 int handle_encoder_msg(LoggerdState *s, Message *msg, std::string &name, struct RemoteEncoder &re, const EncoderInfo &encoder_info) {
   int bytes_count = 0;
+  const bool deterministic_mode = deterministic_ka2_mode();
+  const size_t max_encoder_queue = MAIN_FPS * 10;
+  auto enqueue_bounded = [&](Message *m, const char *reason) {
+    if (re.q.size() >= max_encoder_queue) {
+      // Keep freshest packets under prolonged skew/stall; stale packets have lower recovery value.
+      delete re.q.front();
+      re.q.erase(re.q.begin());
+      LOGW_100("%s: encoder queue full (%zu), dropping oldest while %s", name.c_str(), re.q.size(), reason);
+    }
+    re.q.push_back(m);
+  };
 
-  // extract the message
-  capnp::FlatArrayMessageReader cmsg(kj::ArrayPtr<capnp::word>((capnp::word *)msg->getData(), msg->getSize() / sizeof(capnp::word)));
-  auto event = cmsg.getRoot<cereal::Event>();
-  auto edata = (event.*(encoder_info.get_encode_data_func))();
-  auto idx = edata.getIdx();
+  std::unique_ptr<capnp::FlatArrayMessageReader> cmsg;
+  cereal::Event::Reader event;
+  decltype((std::declval<cereal::Event::Reader>().*(encoder_info.get_encode_data_func))()) edata;
+  decltype(edata.getIdx()) idx;
+  try {
+    // Extract and validate incoming capnp payload. Drop malformed messages instead of aborting loggerd.
+    cmsg = std::make_unique<capnp::FlatArrayMessageReader>(
+      kj::ArrayPtr<capnp::word>((capnp::word *)msg->getData(), msg->getSize() / sizeof(capnp::word)));
+    event = cmsg->getRoot<cereal::Event>();
+    edata = (event.*(encoder_info.get_encode_data_func))();
+    idx = edata.getIdx();
+  } catch (const kj::Exception &e) {
+    LOGE("%s: dropping malformed encode packet (%s)", name.c_str(), e.getDescription().cStr());
+    delete msg;
+    return 0;
+  }
 
   // encoderd can have started long before loggerd
   if (!re.seen_first_packet) {
@@ -150,23 +204,24 @@ int handle_encoder_msg(LoggerdState *s, Message *msg, std::string &name, struct 
       // we are in this segment now, process any queued messages before this one
       if (!re.q.empty()) {
         for (auto qmsg : re.q) {
-          capnp::FlatArrayMessageReader reader({(capnp::word *)qmsg->getData(), qmsg->getSize() / sizeof(capnp::word)});
-          bytes_count += write_encode_data(s, reader.getRoot<cereal::Event>(), re, encoder_info);
+          try {
+            capnp::FlatArrayMessageReader reader({(capnp::word *)qmsg->getData(), qmsg->getSize() / sizeof(capnp::word)});
+            bytes_count += write_encode_data(s, reader.getRoot<cereal::Event>(), re, encoder_info);
+          } catch (const kj::Exception &e) {
+            LOGE("%s: dropping malformed queued encode packet (%s)", name.c_str(), e.getDescription().cStr());
+          }
           delete qmsg;
         }
         re.q.clear();
       }
       bytes_count += write_encode_data(s, event, re, encoder_info);
       delete msg;
-    } else if (re.q.size() > MAIN_FPS*10) {
-      LOGE_100("%s: dropping frame waiting for audio initialization, queue is too large", name.c_str());
-      delete msg;
     } else {
-      re.q.push_back(msg); // queue up all the new segment messages, they go in after audio is initialized
+      enqueue_bounded(msg, "waiting for audio initialization");
     }
   } else if (offset_segment_num > s->logger.segment()) {
     // encoderd packet has a newer segment, this means encoderd has rolled over
-    if (!re.marked_ready_to_rotate) {
+    if (!deterministic_mode && !re.marked_ready_to_rotate) {
       re.marked_ready_to_rotate = true;
       ++s->ready_to_rotate;
       LOGD("rotate %d -> %d ready %d/%d for %s",
@@ -174,20 +229,21 @@ int handle_encoder_msg(LoggerdState *s, Message *msg, std::string &name, struct 
         s->ready_to_rotate.load(), s->max_waiting, name.c_str());
     }
 
-    // TODO: define this behavior, but for now don't leak
-    if (re.q.size() > MAIN_FPS*10) {
-      LOGE_100("%s: dropping frame, queue is too large", name.c_str());
-      delete msg;
-    } else {
-      // queue up all the new segment messages, they go in after the rotate
-      re.q.push_back(msg);
-    }
+    // Queue up all the new-segment messages, but bound memory/latency by dropping oldest first.
+    enqueue_bounded(msg, "waiting for logger rotate");
   } else {
-    LOGE("%s: encoderd packet has a older segment!!! idx.getSegmentNum():%d s->logger.segment():%d re.encoderd_segment_offset:%d",
-      name.c_str(), idx.getSegmentNum(), s->logger.segment(), re.encoderd_segment_offset);
-    // free the message, it's useless. this should never happen
-    // actually, this can happen if you restart encoderd
-    re.encoderd_segment_offset = -s->logger.segment();
+    if (!deterministic_mode) {
+      // Non-deterministic: re-anchor offset so subsequent packets align.
+      LOGE("%s: encoderd packet has a older segment!!! idx.getSegmentNum():%d s->logger.segment():%d re.encoderd_segment_offset:%d",
+        name.c_str(), idx.getSegmentNum(), s->logger.segment(), re.encoderd_segment_offset);
+      re.encoderd_segment_offset = idx.getSegmentNum() - s->logger.segment();
+    } else {
+      // Deterministic KA2: encoderd will catch up via Params within ~100ms.
+      // Re-anchoring the offset here causes permanent drift (-1, -2, -3...)
+      // because each rotation window produces a few stale packets.
+      LOGD("%s: dropping stale packet (seg %d, loggerd seg %d, offset %d)",
+        name.c_str(), idx.getSegmentNum(), s->logger.segment(), re.encoderd_segment_offset);
+    }
     delete msg;
   }
 
@@ -255,7 +311,11 @@ void loggerd_thread() {
   LoggerdState s;
   // init logger
   logger_rotate(&s);
-  Params().put("CurrentRoute", s.logger.routeName());
+  Params params;
+  params.put("CurrentRoute", s.logger.routeName());
+  params.put("LoggerdSegment", std::to_string(s.logger.segment()));
+  params.put("LoggerdSegmentEpoch", std::to_string(s.rotate_epoch));
+  params.put("LoggerdRotateState", "committed");
 
   std::map<std::string, EncoderInfo> encoder_infos_dict;
   std::vector<RemoteEncoder*> encoders_with_audio;
@@ -275,7 +335,32 @@ void loggerd_thread() {
 
   uint64_t msg_count = 0, bytes_count = 0;
   double start_ts = millis_since_boot();
+  double last_memory_check_ms = 0;
+  int last_memory_percent = -1;
+  
   while (!do_exit) {
+    // Check memory pressure periodically (every 5 seconds)
+    double now_ms = millis_since_boot();
+    if (now_ms - last_memory_check_ms > 5000) {
+      int mem_percent = MemoryPressure::get_memory_usage_percent();
+      if (mem_percent >= 0 && mem_percent != last_memory_percent) {
+        if (MemoryPressure::is_memory_pressure_critical()) {
+          LOGW("Memory pressure CRITICAL: %d%% - reducing write operations", mem_percent);
+        } else if (MemoryPressure::is_memory_pressure_high()) {
+          LOGD("Memory pressure HIGH: %d%% - increasing flush frequency", mem_percent);
+        }
+        last_memory_percent = mem_percent;
+      }
+      last_memory_check_ms = now_ms;
+    }
+    
+    // Skip operations if memory is critical
+    if (MemoryPressure::should_skip_filesystem_operation()) {
+      // Still poll to avoid blocking, but skip processing
+      poller->poll(100);
+      continue;
+    }
+    
     // poll for new messages on all sockets
     for (auto sock : poller->poll(1000)) {
       if (do_exit) break;
@@ -289,41 +374,53 @@ void loggerd_thread() {
       int count = 0;
       Message *msg = nullptr;
       while (!do_exit && (msg = sock->receive(true))) {
-        const bool in_qlog = service.freq != -1 && (service.counter++ % service.freq == 0);
+        // Check memory again before processing each message
+        if (MemoryPressure::should_skip_filesystem_operation()) {
+          delete msg;
+          break;  // Skip remaining messages in this batch
+        }
 
-        if (service.record_audio) {
-          capnp::FlatArrayMessageReader cmsg(kj::ArrayPtr<capnp::word>((capnp::word *)msg->getData(), msg->getSize() / sizeof(capnp::word)));
-          auto event = cmsg.getRoot<cereal::Event>();
-          auto audio_data = event.getRawAudioData().getData();
-          auto sample_rate = event.getRawAudioData().getSampleRate();
-          for (auto* encoder : encoders_with_audio) {
-            if (encoder && encoder->writer) {
-              encoder->writer->write_audio((uint8_t*)audio_data.begin(), audio_data.size(), event.getLogMonoTime() / 1000, sample_rate);
-              encoder->audio_initialized = true;
+        try {
+          const bool in_qlog = service.freq != -1 && (service.counter++ % service.freq == 0);
+
+          if (service.record_audio) {
+            capnp::FlatArrayMessageReader cmsg(kj::ArrayPtr<capnp::word>((capnp::word *)msg->getData(), msg->getSize() / sizeof(capnp::word)));
+            auto event = cmsg.getRoot<cereal::Event>();
+            auto audio_data = event.getRawAudioData().getData();
+            auto sample_rate = event.getRawAudioData().getSampleRate();
+            for (auto* encoder : encoders_with_audio) {
+              if (encoder && encoder->writer) {
+                encoder->writer->write_audio((uint8_t*)audio_data.begin(), audio_data.size(), event.getLogMonoTime() / 1000, sample_rate);
+                encoder->audio_initialized = true;
+              }
             }
           }
-        }
 
-        if (service.encoder) {
-          s.last_camera_seen_tms = millis_since_boot();
-          bytes_count += handle_encoder_msg(&s, msg, service.name, remote_encoders[sock], encoder_infos_dict[service.name]);
-        } else {
-          s.logger.write((uint8_t *)msg->getData(), msg->getSize(), in_qlog);
-          bytes_count += msg->getSize();
+          if (service.encoder) {
+            s.last_camera_seen_tms = millis_since_boot();
+            bytes_count += handle_encoder_msg(&s, msg, service.name, remote_encoders[sock], encoder_infos_dict[service.name]);
+          } else {
+            s.logger.write((uint8_t *)msg->getData(), msg->getSize(), in_qlog);
+            bytes_count += msg->getSize();
+            delete msg;
+          }
+
+          rotate_if_needed(&s);
+
+          if ((++msg_count % 10000) == 0) {
+            double seconds = (millis_since_boot() - start_ts) / 1000.0;
+            LOGD("%" PRIu64 " messages, %.2f msg/sec, %.2f KB/sec", msg_count, msg_count / seconds, bytes_count * 0.001 / seconds);
+          }
+
+          count++;
+          if (count >= 200) {
+            LOGD("large volume of '%s' messages", service.name.c_str());
+            break;
+          }
+        } catch (const kj::Exception &e) {
+          LOGE("dropping malformed packet on %s (%s)", service.name.c_str(), e.getDescription().cStr());
           delete msg;
-        }
-
-        rotate_if_needed(&s);
-
-        if ((++msg_count % 10000) == 0) {
-          double seconds = (millis_since_boot() - start_ts) / 1000.0;
-          LOGD("%" PRIu64 " messages, %.2f msg/sec, %.2f KB/sec", msg_count, msg_count / seconds, bytes_count * 0.001 / seconds);
-        }
-
-        count++;
-        if (count >= 200) {
-          LOGD("large volume of '%s' messages", service.name.c_str());
-          break;
+          continue;
         }
       }
     }

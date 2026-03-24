@@ -1,5 +1,6 @@
 #include "system/loggerd/logger.h"
 
+#include <ctime>
 #include <fstream>
 #include <map>
 #include <vector>
@@ -10,6 +11,7 @@
 #include "common/params.h"
 #include "common/swaglog.h"
 #include "common/version.h"
+#include "system/loggerd/memory_pressure.h"
 
 // ***** log metadata *****
 kj::Array<capnp::word> logger_build_init_data() {
@@ -117,6 +119,16 @@ std::string logger_get_identifier(std::string key) {
   return util::string_format("%08x--%s", cnt, ss.str().c_str());
 }
 
+std::string logger_get_route_name() {
+  // Datetime format: YYYY-MM-DD--HH-MM-SS (matches comma/bukapilot style)
+  time_t now = time(nullptr);
+  struct tm tm;
+  gmtime_r(&now, &tm);
+  char buf[32];
+  strftime(buf, sizeof(buf), "%Y-%m-%d--%H-%M-%S", &tm);
+  return std::string(buf);
+}
+
 std::string zstd_decompress(const std::string &in) {
   ZSTD_DCtx *dctx = ZSTD_createDCtx();
   assert(dctx != nullptr);
@@ -162,9 +174,16 @@ static void log_sentinel(LoggerState *log, SentinelType type, int exit_signal = 
 }
 
 LoggerState::LoggerState(const std::string &log_root) {
-  route_name = logger_get_identifier("RouteCount");
+  route_name = logger_get_route_name();
   route_path = log_root + "/" + route_name;
   init_data = logger_build_init_data();
+
+  // Increment RouteCount for updated.py compatibility
+  Params params;
+  std::string cnt_str = params.get("RouteCount");
+  uint32_t cnt = 0;
+  try { cnt = std::stoul(cnt_str); } catch (...) {}
+  params.put("RouteCount", std::to_string(cnt + 1));
 }
 
 LoggerState::~LoggerState() {
@@ -197,6 +216,31 @@ bool LoggerState::next() {
 }
 
 void LoggerState::write(uint8_t* data, size_t size, bool in_qlog) {
-  rlog->write(data, size);
-  if (in_qlog) qlog->write(data, size);
+  // Check memory pressure before writing
+  if (MemoryPressure::is_memory_pressure_critical()) {
+    // When memory is critical (80%+), skip non-essential writes
+    // Only write to qlog (required), skip rlog to reduce write pressure
+    if (in_qlog && qlog) {
+      qlog->write(data, size);
+      qlog->flush(true);  // Force flush more frequently under memory pressure
+    }
+    // Skip rlog writes when memory is critical to reduce write pressure
+    return;
+  }
+  
+  // Normal operation: write to both logs
+  if (rlog) {
+    rlog->write(data, size);
+    rlog->flush(false);
+  }
+  if (in_qlog && qlog) {
+    qlog->write(data, size);
+    qlog->flush(false);
+  }
+  
+  // When memory is high (75%+), flush more aggressively
+  if (MemoryPressure::is_memory_pressure_high()) {
+    if (rlog) rlog->flush(true);  // Force flush
+    if (qlog) qlog->flush(true);
+  }
 }

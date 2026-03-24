@@ -27,16 +27,14 @@ void VideoEncoder::publisher_publish(int segment_num, uint32_t idx, VisionIpcBuf
   edata.setSegmentId(idx);
   edata.setFlags(flags);
   edata.setLen(dat.size());
-  edat.adoptData(msg.getOrphanage().referenceExternalData(dat));
+  // Use owned payload so inter-process serialization is always self-contained.
+  edat.setData(dat);
   edat.setWidth(out_width);
   edat.setHeight(out_height);
   if (flags & V4L2_BUF_FLAG_KEYFRAME) edat.setHeader(header);
 
-  uint32_t bytes_size = capnp::computeSerializedSizeInWords(msg) * sizeof(capnp::word);
-  if (msg_cache.size() < bytes_size) {
-    msg_cache.resize(bytes_size);
-  }
-  kj::ArrayOutputStream output_stream(kj::ArrayPtr<capnp::byte>(msg_cache.data(), bytes_size));
-  capnp::writeMessage(output_stream, msg);
-  pm->send(encoder_info.publish_name, msg_cache.data(), bytes_size);
+  // Serialize into a fresh buffer per message to avoid cross-frame corruption under concurrent publish pressure.
+  kj::Array<capnp::word> words = capnp::messageToFlatArray(msg);
+  kj::ArrayPtr<capnp::byte> bytes = words.asBytes();
+  pm->send(encoder_info.publish_name, bytes.begin(), bytes.size());
 }

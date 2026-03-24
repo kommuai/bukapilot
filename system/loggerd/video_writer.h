@@ -39,4 +39,5 @@ private:
   std::deque<float> audio_buffer;
 
   bool remuxing;
+  int64_t last_video_dts = -1;  // enforce monotonic DTS for mpegts muxer
 };

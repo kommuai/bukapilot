@@ -1,12 +1,16 @@
-Import('env', 'arch', 'messaging', 'common', 'visionipc')
+Import('env', 'arch', 'device', 'cereal', 'messaging', 'common', 'visionipc')
 
 libs = [common, messaging, visionipc,
         'avformat', 'avcodec', 'avutil',
         'yuv', 'OpenCL', 'pthread', 'zstd']
 
-src = ['logger.cc', 'zstd_writer.cc', 'video_writer.cc', 'encoder/encoder.cc', 'encoder/v4l_encoder.cc', 'encoder/jpeg_encoder.cc']
+src = ['logger.cc', 'zstd_writer.cc', 'memory_pressure.cc', 'video_writer.cc', 'encoder/encoder.cc', 'encoder/v4l_encoder.cc', 'encoder/jpeg_encoder.cc']
 if arch != "larch64":
   src += ['encoder/ffmpeg_encoder.cc']
+
+if arch == "larch64" and device == "KA2":
+  src += ['encoder/mpp_encoder.cc']
+  libs += ['rockchip_mpp', 'rga']
 
 if arch == "Darwin":
   # fix OpenCL

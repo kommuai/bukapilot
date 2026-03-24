@@ -119,8 +119,15 @@ void VideoWriter::write(uint8_t *data, int len, long long timestamp, bool codecc
       pkt.stream_index = this->out_stream->index;
 
       enum AVRounding rnd = static_cast<enum AVRounding>(AV_ROUND_NEAR_INF|AV_ROUND_PASS_MINMAX);
-      pkt.pts = pkt.dts = av_rescale_q_rnd(timestamp, in_timebase, ofmt_ctx->streams[0]->time_base, rnd);
+      int64_t dts = av_rescale_q_rnd(timestamp, in_timebase, ofmt_ctx->streams[0]->time_base, rnd);
       pkt.duration = av_rescale_q(50*1000, in_timebase, ofmt_ctx->streams[0]->time_base);
+
+      // Mpegts muxer requires strictly monotonic DTS; encoder (e.g. V4L2) may output B-frames out of order
+      if (last_video_dts >= 0 && dts <= last_video_dts) {
+        dts = last_video_dts + 1;
+      }
+      last_video_dts = dts;
+      pkt.pts = pkt.dts = dts;
 
       if (keyframe) {
         pkt.flags |= AV_PKT_FLAG_KEY;

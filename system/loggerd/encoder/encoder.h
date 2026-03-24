@@ -26,6 +26,7 @@ public:
   virtual int encode_frame(VisionBuf* buf, VisionIpcBufExtra *extra) = 0;
   virtual void encoder_open() = 0;
   virtual void encoder_close() = 0;
+  virtual void set_segment_num(int segment_num) {}
 
   void publisher_publish(int segment_num, uint32_t idx, VisionIpcBufExtra &extra, unsigned int flags, kj::ArrayPtr<capnp::byte> header, kj::ArrayPtr<capnp::byte> dat);
 
@@ -38,5 +39,4 @@ private:
   // total frames encoded
   int cnt = 0;
   std::unique_ptr<PubMaster> pm;
-  std::vector<capnp::byte> msg_cache;
 };
