@@ -152,7 +152,7 @@ class HardwareBase(ABC):
     return NetworkStrength.unknown
 
   def get_network_metered(self, network_type) -> bool:
-    return network_type not in (NetworkType.none, NetworkType.wifi, NetworkType.ethernet)
+    return False #network_type not in (NetworkType.none, NetworkType.wifi, NetworkType.ethernet)
 
   def get_current_power_draw(self):
     return 0
@@ -180,6 +180,10 @@ class HardwareBase(ABC):
 
   def get_gpu_usage_percent(self):
     return 0
+
+  @abstractmethod
+  def get_npu_usage_percent(self):
+    pass
 
   def get_modem_version(self):
     return None

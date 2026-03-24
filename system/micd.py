@@ -9,10 +9,18 @@ from openpilot.common.utils import retry
 from openpilot.common.swaglog import cloudlog
 
 RATE = 10
-FFT_SAMPLES = 1600 # 100ms
+FFT_SAMPLES = 1600  # 100ms at 16 kHz
 REFERENCE_SPL = 2e-5  # newtons/m^2
 SAMPLE_RATE = 16000
-SAMPLE_BUFFER = 800  # 50ms
+SAMPLE_BUFFER = 800  # 50ms at 16 kHz
+
+# Fallback sample rates if device doesn't support 16 kHz (ALSA -22)
+FALLBACK_RATES = [
+  (16000, 800),   # (rate, blocksize for 50ms)
+  (48000, 2400),
+  (44100, 2205),
+  (8000, 400),
+]
 
 
 @cache
@@ -42,12 +50,27 @@ def apply_a_weighting(measurements: np.ndarray) -> np.ndarray:
   return np.abs(np.fft.ifft(np.fft.fft(measurements_windowed) * get_a_weighting_filter()))
 
 
+def resample_to_16k(samples: np.ndarray, from_rate: int) -> np.ndarray:
+  """Resample to 16000 Hz for pipeline. Simple integer ratio or linear interpolation."""
+  if from_rate == SAMPLE_RATE:
+    return samples
+  if from_rate == 48000:  # 3:1
+    return samples[::3].copy()
+  if from_rate == 8000:   # 1:2
+    return np.repeat(samples, 2)
+  # 44100 or other: linear interpolation
+  n = len(samples)
+  m = int(round(n * SAMPLE_RATE / from_rate))
+  return np.interp(np.linspace(0, n - 1, m, dtype=np.float32), np.arange(n), samples).astype(np.float32)
+
+
 class Mic:
   def __init__(self):
     self.rk = Ratekeeper(RATE)
     self.pm = messaging.PubMaster(['soundPressure', 'rawAudioData'])
 
     self.measurements = np.empty(0)
+    self.stream_samplerate = SAMPLE_RATE  # actual device rate; callback resamples to SAMPLE_RATE
 
     self.sound_pressure = 0
     self.sound_pressure_weighted = 0
@@ -76,14 +99,19 @@ class Mic:
 
     Logged A-weighted equivalents are rough approximations of the human-perceived loudness.
     """
+    # Resample to 16 kHz if device opened at a fallback rate
+    mono = indata[:, 0]
+    if self.stream_samplerate != SAMPLE_RATE:
+      mono = resample_to_16k(mono, self.stream_samplerate)
+
     msg = messaging.new_message('rawAudioData', valid=True)
-    audio_data_int_16 = (indata[:, 0] * 32767).astype(np.int16)
+    audio_data_int_16 = (mono * 32767).astype(np.int16)
     msg.rawAudioData.data = audio_data_int_16.tobytes()
     msg.rawAudioData.sampleRate = SAMPLE_RATE
     self.pm.send('rawAudioData', msg)
 
     with self.lock:
-      self.measurements = np.concatenate((self.measurements, indata[:, 0]))
+      self.measurements = np.concatenate((self.measurements, mono))
 
       while self.measurements.size >= FFT_SAMPLES:
         measurements = self.measurements[:FFT_SAMPLES]
@@ -96,17 +124,38 @@ class Mic:
 
   @retry(attempts=10, delay=3)
   def get_stream(self, sd):
-    # reload sounddevice to reinitialize portaudio
+    # Reload sounddevice to reinitialize portaudio
     sd._terminate()
     sd._initialize()
-    return sd.InputStream(channels=1, samplerate=SAMPLE_RATE, callback=self.callback, blocksize=SAMPLE_BUFFER)
+    last_err = None
+    for rate, blocksize in FALLBACK_RATES:
+      try:
+        self.stream_samplerate = rate
+        stream = sd.InputStream(
+          channels=1,
+          samplerate=rate,
+          callback=self.callback,
+          blocksize=blocksize,
+        )
+        if rate != SAMPLE_RATE:
+          cloudlog.info(f"micd: opened at {rate} Hz (resampling to {SAMPLE_RATE} Hz)")
+        return stream
+      except sd.PortAudioError as e:
+        last_err = e
+        cloudlog.debug(f"micd: rate {rate} Hz failed: {e}")
+        continue
+    raise (last_err or sd.PortAudioError("No supported sample rate", -9999, None))
 
   def micd_thread(self):
     # sounddevice must be imported after forking processes
     import sounddevice as sd
-
-    with self.get_stream(sd) as stream:
-      cloudlog.info(f"micd stream started: {stream.samplerate=} {stream.channels=} {stream.dtype=} {stream.device=}, {stream.blocksize=}")
+    try:
+      with self.get_stream(sd) as stream:
+        cloudlog.info(f"micd stream started: {stream.samplerate=} {stream.channels=} {stream.dtype=} {stream.device=}, {stream.blocksize=}")
+        while True:
+          self.update()
+    except sd.PortAudioError as e:
+      cloudlog.warning(f"micd: no microphone available or ALSA error, running without input: {e}")
       while True:
         self.update()
 

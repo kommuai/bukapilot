@@ -4,7 +4,7 @@ import platform
 
 from cereal import car
 from openpilot.common.params import Params
-from openpilot.system.hardware import PC, TICI
+from openpilot.system.hardware import PC, TICI, KA2
 from openpilot.system.manager.process import PythonProcess, NativeProcess, DaemonProcess
 
 WEBCAM = os.getenv("USE_WEBCAM") is not None
@@ -55,6 +55,9 @@ def only_onroad(started: bool, params: Params, CP: car.CarParams) -> bool:
 def only_offroad(started: bool, params: Params, CP: car.CarParams) -> bool:
   return not started
 
+def format_sd(started: bool, params: Params, CP: car.CarParams) -> bool:
+  return params.get_bool("FormatSDCard")
+
 def or_(*fns):
   return lambda *args: operator.or_(*(fn(*args) for fn in fns))
 
@@ -75,12 +78,16 @@ procs = [
   PythonProcess("journald", "system.journald", only_onroad, platform.system() != "Darwin"),
   PythonProcess("micd", "system.micd", iscar),
   PythonProcess("timed", "system.timed", always_run, enabled=not PC),
+  PythonProcess("appbridged", "selfdrive.appbridged.appbridged", always_run, enabled=not PC),
+  PythonProcess("sdformatterd", "system.hardware.ka2.formatdevice", format_sd, enabled=not PC),
+  PythonProcess("setapnd", "system.hardware.ka2.setapn", always_run, enabled=KA2),
+  PythonProcess("indicatord", "system.hardware.ka2.status_led.indicatord", always_run, enabled=KA2),
 
   PythonProcess("modeld", "selfdrive.modeld.modeld", only_onroad),
   PythonProcess("dmonitoringmodeld", "selfdrive.modeld.dmonitoringmodeld", driverview, enabled=(WEBCAM or not PC)),
 
   PythonProcess("sensord", "system.sensord.sensord", only_onroad, enabled=not PC),
-  PythonProcess("ui", "selfdrive.ui.ui", always_run, restart_if_crash=True),
+  #PythonProcess("ui", "selfdrive.ui.ui", always_run, restart_if_crash=True),
   PythonProcess("soundd", "selfdrive.ui.soundd", driverview),
   PythonProcess("locationd", "selfdrive.locationd.locationd", only_onroad),
   NativeProcess("_pandad", "selfdrive/pandad", ["./pandad"], always_run, enabled=False),
@@ -92,7 +99,7 @@ procs = [
   PythonProcess("card", "selfdrive.car.card", only_onroad),
   PythonProcess("deleter", "system.loggerd.deleter", always_run),
   PythonProcess("dmonitoringd", "selfdrive.monitoring.dmonitoringd", driverview, enabled=(WEBCAM or not PC)),
-  PythonProcess("qcomgpsd", "system.qcomgpsd.qcomgpsd", qcomgps, enabled=TICI),
+  PythonProcess("qcomgpsd", "system.qcomgpsd.qcomgpsd", qcomgps, enabled=(TICI or KA2)),
   PythonProcess("pandad", "selfdrive.pandad.pandad", always_run),
   PythonProcess("paramsd", "selfdrive.locationd.paramsd", only_onroad),
   PythonProcess("lagd", "selfdrive.locationd.lagd", only_onroad),
@@ -105,7 +112,7 @@ procs = [
   PythonProcess("tombstoned", "system.tombstoned", always_run, enabled=not PC),
   PythonProcess("updated", "system.updated.updated", only_offroad, enabled=not PC),
   PythonProcess("uploader", "system.loggerd.uploader", always_run),
-  PythonProcess("statsd", "system.statsd", always_run),
+  PythonProcess("statsd", "system.statsd", always_run, enabled=TICI),
   PythonProcess("feedbackd", "selfdrive.ui.feedback.feedbackd", only_onroad),
 
   # debug procs

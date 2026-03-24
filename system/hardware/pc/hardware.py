@@ -10,3 +10,6 @@ class Pc(HardwareBase):
 
   def get_network_type(self):
     return NetworkType.wifi
+
+  def get_npu_usage_percent(self):
+    return []  # No NPU on PC

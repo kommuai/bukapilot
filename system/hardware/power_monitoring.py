@@ -13,10 +13,10 @@ CAR_BATTERY_CAPACITY_uWh = 30e6
 CAR_CHARGING_RATE_W = 45
 
 VBATT_PAUSE_CHARGING = 11.8           # Lower limit on the LPF car battery voltage
-MAX_TIME_OFFROAD_S = 30*3600
+MAX_TIME_OFFROAD_S = 30*60
 MIN_ON_TIME_S = 3600
 DELAY_SHUTDOWN_TIME_S = 300 # Wait at least DELAY_SHUTDOWN_TIME_S seconds after offroad_time to shutdown.
-VOLTAGE_SHUTDOWN_MIN_OFFROAD_TIME_S = 60
+VOLTAGE_SHUTDOWN_MIN_OFFROAD_TIME_S = 60*30
 
 class PowerMonitoring:
   def __init__(self):

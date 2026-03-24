@@ -17,7 +17,7 @@ from openpilot.common.filter_simple import FirstOrderFilter
 from openpilot.common.params import Params
 from openpilot.common.realtime import DT_HW
 from openpilot.selfdrive.selfdrived.alertmanager import set_offroad_alert
-from openpilot.system.hardware import HARDWARE, TICI, AGNOS, PC
+from openpilot.system.hardware import HARDWARE, TICI, AGNOS, PC, KA2
 from openpilot.system.loggerd.config import get_available_percent
 from openpilot.system.statsd import statlog
 from openpilot.common.swaglog import cloudlog
@@ -42,8 +42,8 @@ HardwareState = namedtuple("HardwareState", ['network_type', 'network_info', 'ne
 # List of thermal bands. We will stay within this region as long as we are within the bounds.
 # When exiting the bounds, we'll jump to the lower or higher band. Bands are ordered in the dict.
 THERMAL_BANDS = OrderedDict({
-  ThermalStatus.green: ThermalBand(None, 80.0),
-  ThermalStatus.yellow: ThermalBand(75.0, 96.0),
+  ThermalStatus.green: ThermalBand(None, 85.0),
+  ThermalStatus.yellow: ThermalBand(83.0, 96.0),
   ThermalStatus.red: ThermalBand(88.0, 107.),
   ThermalStatus.danger: ThermalBand(94.0, None),
 })
@@ -116,7 +116,7 @@ def hw_state_thread(end_event, hw_queue):
           modem_temps = prev_hw_state.modem_temps
 
         # Log modem version once
-        if AGNOS and (modem_version is None):
+        if (AGNOS and KA2) and (modem_version is None):
           modem_version = HARDWARE.get_modem_version()
 
           if modem_version is not None:
@@ -254,7 +254,21 @@ def hardware_thread(end_event, hw_queue) -> None:
 
     msg.deviceState.freeSpacePercent = get_available_percent(default=100.0)
     msg.deviceState.memoryUsagePercent = int(round(psutil.virtual_memory().percent))
+
+    # Proactively handle memory pressure when it gets high
+    if msg.deviceState.memoryUsagePercent >= 75:
+      try:
+        from openpilot.system.loggerd.memory_pressure import handle_memory_pressure
+        # Clear caches when memory is high (75%+), clear FS cache when critical (80%+)
+        handle_memory_pressure(
+          clear_caches=True,
+          clear_fs_cache=(msg.deviceState.memoryUsagePercent >= 80)
+        )
+      except Exception:
+        pass  # Don't fail if memory pressure handling isn't available
+
     msg.deviceState.gpuUsagePercent = int(round(HARDWARE.get_gpu_usage_percent()))
+    msg.deviceState.npuUsagePercent = HARDWARE.get_npu_usage_percent()
     online_cpu_usage = [int(round(n)) for n in psutil.cpu_percent(percpu=True)]
     offline_cpu_usage = [0., ] * (len(msg.deviceState.cpuTempC) - len(online_cpu_usage))
     msg.deviceState.cpuUsagePercent = online_cpu_usage + offline_cpu_usage
@@ -303,11 +317,11 @@ def hardware_thread(end_event, hw_queue) -> None:
     startup_conditions["up_to_date"] = params.get("Offroad_ConnectivityNeeded") is None or params.get_bool("DisableUpdates") or params.get_bool("SnoozeUpdate")
     startup_conditions["no_excessive_actuation"] = params.get("Offroad_ExcessiveActuation") is None
     startup_conditions["not_uninstalling"] = not params.get_bool("DoUninstall")
-    startup_conditions["accepted_terms"] = params.get("HasAcceptedTerms") == terms_version
+    startup_conditions["accepted_terms"] = True
 
     # with 2% left, we killall, otherwise the phone will take a long time to boot
     startup_conditions["free_space"] = msg.deviceState.freeSpacePercent > 2
-    startup_conditions["completed_training"] = params.get("CompletedTrainingVersion") == training_version
+    startup_conditions["completed_training"] = True
     startup_conditions["not_driver_view"] = not params.get_bool("IsDriverViewEnabled")
     startup_conditions["not_taking_snapshot"] = not params.get_bool("IsTakingSnapshot")
 

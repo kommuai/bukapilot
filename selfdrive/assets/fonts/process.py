@@ -2,7 +2,7 @@
 from pathlib import Path
 import json
 
-import pyray as rl
+from raylib import ffi, LoadFontData, GenImageFontAtlas, ExportImage, FONT_DEFAULT
 
 FONT_DIR = Path(__file__).resolve().parent
 SELFDRIVE_DIR = FONT_DIR.parents[1]
@@ -94,15 +94,15 @@ def _process_font(font_path: Path, codepoints: tuple[int, ...]):
   }.get(font_path.name, 200)
 
   data = font_path.read_bytes()
-  file_buf = rl.ffi.new("unsigned char[]", data)
-  cp_buffer = rl.ffi.new("int[]", codepoints)
-  cp_ptr = rl.ffi.cast("int *", cp_buffer)
-  glyphs = rl.load_font_data(rl.ffi.cast("unsigned char *", file_buf), len(data), font_size, cp_ptr, len(codepoints), rl.FontType.FONT_DEFAULT)
-  if glyphs == rl.ffi.NULL:
+  file_buf = ffi.new("unsigned char[]", data)
+  cp_buffer = ffi.new("int[]", codepoints)
+  cp_ptr = ffi.cast("int *", cp_buffer)
+  glyphs = LoadFontData(ffi.cast("unsigned char *", file_buf), len(data), font_size, cp_ptr, len(codepoints), FONT_DEFAULT)
+  if glyphs == ffi.NULL:
     raise RuntimeError("raylib failed to load font data")
 
-  rects_ptr = rl.ffi.new("Rectangle **")
-  image = rl.gen_image_font_atlas(glyphs, rects_ptr, len(codepoints), font_size, GLYPH_PADDING, 0)
+  rects_ptr = ffi.new("Rectangle **")
+  image = GenImageFontAtlas(glyphs, rects_ptr, len(codepoints), font_size, GLYPH_PADDING, 0)
   if image.width == 0 or image.height == 0:
     raise RuntimeError("raylib returned an empty atlas")
 
@@ -111,7 +111,7 @@ def _process_font(font_path: Path, codepoints: tuple[int, ...]):
   atlas_path = FONT_DIR / atlas_name
   entries, line_height, base = _glyph_metrics(glyphs, rects, codepoints)
 
-  if not rl.export_image(image, atlas_path.as_posix()):
+  if not ExportImage(image, atlas_path.as_posix().encode()):
     raise RuntimeError("Failed to export atlas image")
 
   _write_bmfont(FONT_DIR / f"{font_path.stem}.fnt", font_size, font_path.stem, atlas_name, line_height, base, (image.width, image.height), entries)
@@ -124,7 +124,10 @@ def main():
     if "emoji" in font.name.lower():
       continue
     glyphs = unifont_cp if font.stem.lower().startswith("unifont") else base_cp
-    _process_font(font, glyphs)
+    try:
+      _process_font(font, glyphs)
+    except RuntimeError as e:
+      print(f"WARNING: Skipping {font.name}: {e}")
   return 0
 
 

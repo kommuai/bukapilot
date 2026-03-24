@@ -16,9 +16,9 @@ from openpilot.common.basedir import BASEDIR
 from openpilot.common.params import Params
 from openpilot.common.time_helpers import system_time_valid
 from openpilot.common.markdown import parse_markdown
+from openpilot.system.hardware import AGNOS, KA2, HARDWARE
 from openpilot.common.swaglog import cloudlog
 from openpilot.selfdrive.selfdrived.alertmanager import set_offroad_alert
-from openpilot.system.hardware import AGNOS, HARDWARE
 from openpilot.system.version import get_build_metadata
 
 LOCK_FILE = os.getenv("UPDATER_LOCK_FILE", "/tmp/safe_staging_overlay.lock")
@@ -204,7 +204,10 @@ def finalize_update() -> None:
 
 
 def handle_agnos_update() -> None:
-  from openpilot.system.hardware.tici.agnos import flash_agnos_update, get_target_slot_number
+  if HARDWARE.get_device_type() == 'ka2':
+    from openpilot.system.hardware.ka2.agnos import flash_agnos_update, get_target_slot_number, verify_agnos_update, swap
+  else:
+    from openpilot.system.hardware.tici.agnos import flash_agnos_update, get_target_slot_number
 
   cur_version = HARDWARE.get_os_version()
   updated_version = run(["bash", "-c", r"unset AGNOS_VERSION && source launch_env.sh && \
@@ -220,9 +223,18 @@ def handle_agnos_update() -> None:
   cloudlog.info(f"Beginning background installation for AGNOS {updated_version}")
   set_offroad_alert("Offroad_NeosUpdate", True)
 
-  manifest_path = os.path.join(OVERLAY_MERGED, "system/hardware/tici/agnos.json")
+  if HARDWARE.get_device_type() == 'ka2':
+    manifest_path = os.path.join(OVERLAY_MERGED, "system/hardware/ka2/agnos.json")
+  else:
+    manifest_path = os.path.join(OVERLAY_MERGED, "system/hardware/tici/agnos.json")
   target_slot_number = get_target_slot_number()
   flash_agnos_update(manifest_path, target_slot_number, cloudlog)
+  if HARDWARE.get_device_type() == 'ka2':
+    if verify_agnos_update(manifest_path, target_slot_number):
+      # remove any overlay rootfs changes
+      run(["sudo", "rm", "-rf", "/data/rootfs_overlay"])
+      swap(manifest_path, target_slot_number, cloudlog)
+      subprocess.run(["python3", "/usr/kommu/ws2812.py", "rainbow"], check=True)
   set_offroad_alert("Offroad_NeosUpdate", False)
 
 
@@ -402,7 +414,7 @@ class Updater:
     cloudlog.info("git reset success: %s", '\n'.join(r))
 
     # TODO: show agnos download progress
-    if AGNOS:
+    if AGNOS or KA2:
       handle_agnos_update()
 
     # Create the finalized, ready-to-swap update

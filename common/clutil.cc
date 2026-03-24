@@ -75,12 +75,48 @@ cl_device_id cl_get_device_id(cl_device_type device_type) {
   return nullptr;
 }
 
+cl_device_id cl_get_device_id_optional(cl_device_type device_type) {
+  cl_uint num_platforms = 0;
+  if (clGetPlatformIDs(0, NULL, &num_platforms) != CL_SUCCESS || num_platforms == 0) return nullptr;
+  std::unique_ptr<cl_platform_id[]> platform_ids = std::make_unique<cl_platform_id[]>(num_platforms);
+  if (clGetPlatformIDs(num_platforms, &platform_ids[0], NULL) != CL_SUCCESS) return nullptr;
+  for (size_t i = 0; i < num_platforms; ++i) {
+    cl_device_id device_id = nullptr;
+    if (clGetDeviceIDs(platform_ids[i], device_type, 1, &device_id, NULL) == CL_SUCCESS && device_id)
+      return device_id;
+  }
+  return nullptr;
+}
+
 cl_context cl_create_context(cl_device_id device_id) {
   return CL_CHECK_ERR(clCreateContext(NULL, 1, &device_id, NULL, NULL, &err));
 }
 
 void cl_release_context(cl_context context) {
   clReleaseContext(context);
+}
+
+cl_command_queue cl_create_command_queue(cl_context ctx, cl_device_id device_id) {
+  cl_int err;
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+#elif defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
+  cl_command_queue q = clCreateCommandQueue(ctx, device_id, CL_QUEUE_PROFILING_ENABLE, &err);
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#elif defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif
+  CL_CHECK(err);
+  return q;
+}
+
+void cl_release_command_queue(cl_command_queue q) {
+  if (q) CL_CHECK(clReleaseCommandQueue(q));
 }
 
 cl_program cl_program_from_file(cl_context ctx, cl_device_id device_id, const char* path, const char* args) {

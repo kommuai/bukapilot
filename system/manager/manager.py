@@ -20,7 +20,7 @@ from openpilot.system.athena.registration import register, UNREGISTERED_DONGLE_I
 from openpilot.common.swaglog import cloudlog, add_file_handler
 from openpilot.system.version import get_build_metadata
 from openpilot.system.hardware.hw import Paths
-
+from openpilot.common.features import Features
 
 def manager_init() -> None:
   save_bootlog()
@@ -62,6 +62,9 @@ def manager_init() -> None:
   params.put_bool("IsTestedBranch", build_metadata.tested_channel)
   params.put_bool("IsReleaseBranch", build_metadata.release_channel)
   params.put("HardwareSerial", serial)
+
+  # feature package
+  Features().validate_and_clean_features()
 
   # set dongle id
   reg_res = register(show_spinner=True)

@@ -402,6 +402,9 @@ class Tici(HardwareBase):
     except Exception:
       return 0
 
+  def get_gpu_usage_percent(self):
+    return []
+
   def initialize_hardware(self):
     if self.amplifier is not None:
       self.amplifier.initialize_configuration()
