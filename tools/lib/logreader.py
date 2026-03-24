@@ -10,6 +10,7 @@ import sys
 import tqdm
 import urllib.parse
 import warnings
+import requests
 import zstandard as zstd
 
 from collections.abc import Iterable, Iterator
@@ -25,6 +26,7 @@ from openpilot.tools.lib.log_time_series import msgs_to_time_series
 LogMessage = type[capnp._DynamicStructReader]
 LogIterable = Iterable[LogMessage]
 RawLogIterable = Iterable[bytes]
+LogPaths = list[str]
 
 
 def save_log(dest, log_msgs, compress=True):
@@ -102,7 +104,10 @@ class _LogFileReader:
         dat = f.read()
 
     if ext == ".bz2" or dat.startswith(b'BZh9'):
-      dat = bz2.decompress(dat)
+      try:
+        dat = bz2.decompress(dat)
+      except OSError:
+        print("Handling KommuAssist2 uncompressed logs")
     elif ext == ".zst" or dat.startswith(b'\x28\xB5\x2F\xFD'):
       # https://github.com/facebook/zstd/blob/dev/doc/zstd_compression_format.md#zstandard-frames
       dat = decompress_stream(dat)
@@ -145,6 +150,47 @@ class LogsUnavailable(Exception):
 def direct_source(file_or_url: str) -> list[str]:
   return [file_or_url]
 
+def try_download_segment(base_url: str, prefix: str, seg: int, log_type: str) -> str | None:
+  remote_url = f"{base_url}/{prefix}{seg}---{log_type}.bz2"
+  local_path = f"/tmp/{prefix}{seg}---{log_type}.bz2"
+
+  try:
+    # Send partial request first to avoid full download if not found
+    head = requests.get(remote_url, headers={"Range": "bytes=0-200"}, timeout=2)
+    if b'"message":"Not Found"' in head.content:
+      return None
+
+    # Full download
+    r = requests.get(remote_url, timeout=5)
+    r.raise_for_status()
+    
+    print(f"Downloading {log_type} segment {seg}")
+    with open(local_path, "wb") as f:
+      f.write(r.content)
+    return local_path
+  except requests.RequestException:
+    return None
+
+def probe_and_download_segments(dongle: str, ts: str, base_url: str, max_segments: int = 100) -> LogPaths:
+  prefix = f"{dongle}---{ts}--"
+  downloaded = []
+
+  for i in range(max_segments):
+    path = try_download_segment(base_url, prefix, i, "rlog")
+    if not path:
+      path = try_download_segment(base_url, prefix, i, "qlog")
+
+    if not path:
+      break  # stop at first missing segment
+    downloaded.append(path)
+
+  return downloaded
+
+def kommu_source(sr: SegmentRange, mode: ReadMode) -> LogPaths:
+  dongle = sr.dongle_id
+  ts = sr.timestamp
+  base = f"https://web.kommu.ai/depot/upload/{dongle}"
+  return probe_and_download_segments(dongle, ts, base)
 
 # TODO this should apply to camera files as well
 def auto_source(identifier: str, sources: list[Source], default_mode: ReadMode) -> list[str]:

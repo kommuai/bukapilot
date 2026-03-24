@@ -239,13 +239,15 @@ bool httpDownload(const std::string &url, T &buf, size_t chunk_size, size_t cont
       if (msg->data.result == CURLE_OK) {
         long res_status = 0;
         curl_easy_getinfo(msg->easy_handle, CURLINFO_RESPONSE_CODE, &res_status);
-        if (res_status == 206) {
+        if (res_status == 206 || res_status == 200) {
           complete++;
+        } else if (res_status == 404) {
+          rDebug("Remote file not found (404): %s", getUrlWithoutQuery(url).c_str());
         } else {
-          rWarning("Download failed: http error code: %d", res_status);
+          rWarning("HTTP download error (%ld): %s", res_status, getUrlWithoutQuery(url).c_str());
         }
       } else {
-        rWarning("Download failed: connection failure: %d",  msg->data.result);
+        rWarning("Network download error (%d): %s", msg->data.result, getUrlWithoutQuery(url).c_str());
       }
     }
   }

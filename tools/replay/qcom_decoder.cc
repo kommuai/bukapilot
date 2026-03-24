@@ -1,6 +1,7 @@
 #include "qcom_decoder.h"
 
 #include <assert.h>
+#include <stdexcept>
 #include "third_party/linux/include/v4l2-controls.h"
 #include <linux/videodev2.h>
 
@@ -130,7 +131,17 @@ VisionBuf* MsmVidc::handleCapture() {
 bool MsmVidc::subscribeEvents() {
   for (uint32_t event : subscriptions) {
     struct v4l2_event_subscription sub = { .type = event};
-    util::safe_ioctl(fd, VIDIOC_SUBSCRIBE_EVENT, &sub, "VIDIOC_SUBSCRIBE_EVENT failed");
+    int ret = util::safe_ioctl(fd, VIDIOC_SUBSCRIBE_EVENT, &sub);
+    if (ret == -1) {
+      // Some kernels/devices don't expose decoder events via this ioctl.
+      // Treat as non-fatal and continue without event-based reconfigure.
+      if (errno == ENOTTY || errno == EINVAL || errno == ENODEV) {
+        LOGW("VIDIOC_SUBSCRIBE_EVENT unsupported for event=0x%x (%s/%d), continuing", event, strerror(errno), errno);
+        continue;
+      }
+      LOGE("VIDIOC_SUBSCRIBE_EVENT failed for event=0x%x (%s/%d)", event, strerror(errno), errno);
+      throw std::runtime_error("VIDIOC_SUBSCRIBE_EVENT failed");
+    }
   }
   return true;
 }

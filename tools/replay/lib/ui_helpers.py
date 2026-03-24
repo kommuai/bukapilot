@@ -1,3 +1,4 @@
+import cv2
 import itertools
 
 import matplotlib.pyplot as plt
@@ -70,14 +71,11 @@ def to_topdown_pt(y, x):
     return int(px), int(py)
   return -1, -1
 
-
 def draw_path(path, color, img, calibration, top_down, lid_color=None, z_off=0):
   x, y, z = np.asarray(path.x), np.asarray(path.y), np.asarray(path.z) + z_off
   pts = calibration.car_space_to_bb(x, y, z)
   pts = np.round(pts).astype(int)
 
-  # draw lidar path point on lidar
-  # find color in 8 bit
   if lid_color is not None and top_down is not None:
     tcolor = find_color(top_down[0], lid_color)
     for i in range(len(x)):
@@ -86,10 +84,42 @@ def draw_path(path, color, img, calibration, top_down, lid_color=None, z_off=0):
         top_down[1][px, py] = tcolor
 
   height, width = img.shape[:2]
-  for x, y in pts:
-    if 1 < x < width - 1 and 1 < y < height - 1:
-      for a, b in itertools.permutations([-1, 0, -1], 2):
-        img[y + a, x + b] = color
+  valid_seq = []
+
+  def flush_sequence(seq, color):
+    if len(seq) >= 2:
+      cv2.polylines(img, [np.array(seq)], isClosed=False, color=color, thickness=2)
+
+  for pt in pts:
+    x, y = pt
+    if 0 <= x < width and 0 <= y < height:
+      valid_seq.append((x, y))
+    else:
+      flush_sequence(valid_seq, color)
+      valid_seq = []
+
+  flush_sequence(valid_seq, color)
+
+
+#def draw_path(path, color, img, calibration, top_down, lid_color=None, z_off=0):
+#  x, y, z = np.asarray(path.x), np.asarray(path.y), np.asarray(path.z) + z_off
+#  pts = calibration.car_space_to_bb(x, y, z)
+#  pts = np.round(pts).astype(int)
+#
+#  # draw lidar path point on lidar
+#  # find color in 8 bit
+#  if lid_color is not None and top_down is not None:
+#    tcolor = find_color(top_down[0], lid_color)
+#    for i in range(len(x)):
+#      px, py = to_topdown_pt(x[i], y[i])
+#      if px != -1:
+#        top_down[1][px, py] = tcolor
+#
+#  height, width = img.shape[:2]
+#  for x, y in pts:
+#    if 1 < x < width - 1 and 1 < y < height - 1:
+#      for a, b in itertools.permutations([-1, 0, -1], 2):
+#        img[y + a, x + b] = color
 
 
 def init_plots(arr, name_to_arr_idx, plot_xlims, plot_ylims, plot_names, plot_colors, plot_styles):

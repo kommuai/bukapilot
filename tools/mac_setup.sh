@@ -33,7 +33,7 @@ else
 fi
 
 brew bundle --file=- <<-EOS
-brew "git-lfs"
+brew "zlib"
 brew "capnp"
 brew "coreutils"
 brew "eigen"

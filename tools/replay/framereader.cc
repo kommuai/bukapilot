@@ -39,16 +39,20 @@ struct DecoderManager {
     }
 
     std::unique_ptr<VideoDecoder> decoder;
-    #ifndef __APPLE__
+    #if !defined(__APPLE__) && !defined(RK3588)
     if (!Hardware::PC() && hw_decoder) {
       decoder = std::make_unique<QcomVideoDecoder>();
+      if (!decoder->open(codecpar, hw_decoder)) {
+        rWarning("QCOM decoder init failed, falling back to FFmpeg decoder");
+        decoder = std::make_unique<FFmpegVideoDecoder>();
+      }
     } else
     #endif
     {
       decoder = std::make_unique<FFmpegVideoDecoder>();
     }
 
-    if (!decoder->open(codecpar, hw_decoder)) {
+    if (decoder && !decoder->open(codecpar, hw_decoder)) {
       decoder.reset(nullptr);
     }
     decoders_[key] = std::move(decoder);
@@ -275,8 +279,12 @@ bool QcomVideoDecoder::open(AVCodecParameters *codecpar, bool hw_decoder) {
   }
   width = codecpar->width;
   height = codecpar->height;
-  msm_vidc.init(VIDEO_DEVICE, width, height, V4L2_PIX_FMT_HEVC);
-  return true;
+  try {
+    return msm_vidc.init(VIDEO_DEVICE, width, height, V4L2_PIX_FMT_HEVC);
+  } catch (const std::exception &e) {
+    rWarning("QCOM decoder initialization error: %s", e.what());
+    return false;
+  }
 }
 
 bool QcomVideoDecoder::decode(FrameReader *reader, int idx, VisionBuf *buf) {

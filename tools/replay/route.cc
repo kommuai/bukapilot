@@ -1,8 +1,11 @@
 #include "tools/replay/route.h"
 
 #include <array>
+#include <cstdlib>
 #include <filesystem>
+#include <future>
 #include <regex>
+#include <vector>
 
 #include "third_party/json11/json11.hpp"
 #include "system/hardware/hw.h"
@@ -63,9 +66,115 @@ bool Route::load() {
   return true;
 }
 
+bool Route::loadFromKommuFallback() {
+  const std::string base = "https://web.kommu.ai/depot/upload/" + route_.dongle_id;
+  const std::string prefix = route_.dongle_id + "---" + route_.timestamp + "--";
+  std::string temp_dir = "/tmp";
+  const char *tmp = std::getenv("TMPDIR");
+  if (tmp && tmp[0]) temp_dir = tmp;
+
+  struct FileSpec {
+    const char *suffix;
+    const char *local_suffix;
+  };
+  const FileSpec files[] = {
+      {"rlog.bz2", "rlog"},
+      {"qlog.bz2", "qlog"},
+      {"qcamera.ts", "qcamera"},
+      {"fcamera.hevc", "fcamera"},
+      {"dcamera.hevc", "dcamera"},
+      {"ecamera.hevc", "ecamera"},
+  };
+  constexpr int CAPABILITY_MISS_THRESHOLD = 1;
+  std::vector<bool> capability_enabled(std::size(files), true);
+  std::vector<bool> capability_seen(std::size(files), false);
+  std::vector<int> capability_misses(std::size(files), 0);
+
+  struct DownloadResult {
+    int file_idx = -1;
+    bool downloaded = false;
+    std::string local_path;
+  };
+
+  for (int i = 0; i < 100; ++i) {
+    bool has_any = false;
+    const std::string segment_dir = temp_dir + "/" + prefix + std::to_string(i);
+    util::create_directories(segment_dir, 0755);
+    std::vector<std::future<DownloadResult>> jobs;
+    jobs.reserve(std::size(files));
+
+    for (int file_idx = 0; file_idx < std::size(files); ++file_idx) {
+      if (!capability_enabled[file_idx]) continue;
+      const auto &f = files[file_idx];
+      jobs.push_back(std::async(std::launch::async, [&, f, file_idx]() -> DownloadResult {
+        const std::string url = base + "/" + prefix + std::to_string(i) + "---" + f.suffix;
+        const std::string local_path = segment_dir + "/" + f.local_suffix;
+        bool downloaded = false;
+
+        // For logs, fetch .bz2 and .zst in parallel and keep the successful one.
+        if (std::string(f.suffix) == "rlog.bz2" || std::string(f.suffix) == "qlog.bz2") {
+          std::string alt_suffix = std::string(f.suffix);
+          alt_suffix.replace(alt_suffix.size() - 3, 3, "zst");
+          const std::string alt_url = base + "/" + prefix + std::to_string(i) + "---" + alt_suffix;
+          const std::string alt_local_path = local_path + ".zsttmp";
+
+          auto primary_job = std::async(std::launch::async, [&]() {
+            return httpDownload(url, local_path);
+          });
+          auto alt_job = std::async(std::launch::async, [&]() {
+            return httpDownload(alt_url, alt_local_path);
+          });
+
+          const bool primary_downloaded = primary_job.get();
+          const bool alt_downloaded = alt_job.get();
+          if (primary_downloaded) {
+            downloaded = true;
+            if (alt_downloaded) {
+              std::filesystem::remove(alt_local_path);
+            }
+          } else if (alt_downloaded) {
+            std::error_code ec;
+            std::filesystem::rename(alt_local_path, local_path, ec);
+            downloaded = !ec;
+            if (ec) {
+              std::filesystem::remove(alt_local_path);
+            }
+          }
+        } else {
+          downloaded = httpDownload(url, local_path);
+        }
+
+        return {file_idx, downloaded, local_path};
+      }));
+    }
+
+    if (jobs.empty()) break;
+
+    for (auto &job : jobs) {
+      auto [file_idx, downloaded, local_path] = job.get();
+      if (downloaded) {
+        capability_seen[file_idx] = true;
+        capability_misses[file_idx] = 0;
+        addFileToSegment(i, local_path);
+        has_any = true;
+      } else if (!capability_seen[file_idx]) {
+        if (++capability_misses[file_idx] >= CAPABILITY_MISS_THRESHOLD) {
+          capability_enabled[file_idx] = false;
+          rDebug("Kommu fallback capability disabled for %s after %d misses", files[file_idx].suffix, capability_misses[file_idx]);
+        }
+      }
+    }
+    if (!has_any) {
+      break;
+    }
+  }
+
+  return !segments_.empty();
+}
+
 bool Route::loadSegments() {
   if (!auto_source_) {
-    bool ret = data_dir_.empty() ? loadFromServer() : loadFromLocal();
+    bool ret = data_dir_.empty() ? (loadFromServer() || loadFromKommuFallback()) : loadFromLocal();
     if (ret) {
       // Trim segments
       if (route_.begin_segment > 0) {

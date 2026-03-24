@@ -56,6 +56,7 @@ protected:
   bool loadFromAutoSource();
   bool loadFromLocal();
   bool loadFromServer(int retries = 3);
+  bool loadFromKommuFallback();
   bool loadFromJson(const std::string &json);
   void addFileToSegment(int seg_num, const std::string &file);
   RouteIdentifier route_ = {};

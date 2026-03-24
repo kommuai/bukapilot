@@ -18,6 +18,7 @@ from openpilot.tools.lib.logreader import LogReader, ReadMode, save_log
 from openpilot.selfdrive.test.process_replay.migration import migrate_all
 
 juggle_dir = os.path.dirname(os.path.realpath(__file__))
+os.environ['LD_LIBRARY_PATH'] = os.environ.get('LD_LIBRARY_PATH', '') + f":{juggle_dir}/bin/"
 
 os.environ['LD_LIBRARY_PATH'] = os.environ.get('LD_LIBRARY_PATH', '') + f":{juggle_dir}/bin/"
 

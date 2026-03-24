@@ -33,7 +33,7 @@ Alternatively paste this as a single command:
 Ctrl+C will stop all three processes.
 
 ### On the PC
-Decode the stream with `compressed_vipc.py`:
+Decode the stream with `compressed_vipc.py`, just make sure to start the decoder first before running the encoder on the device side:
 
 ```cd ~/openpilot/tools/camerastream && ./compressed_vipc.py <ip>```
 
