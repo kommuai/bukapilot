@@ -24,6 +24,8 @@ from openpilot.selfdrive.selfdrived.alertmanager import AlertManager, set_offroa
 from openpilot.system.version import get_build_metadata
 from openpilot.system.hardware import HARDWARE
 
+from openpilot.selfdrive.controls.lib.alc_helper import ALCHelper
+
 REPLAY = "REPLAY" in os.environ
 SIMULATION = "SIMULATION" in os.environ
 TESTING_CLOSET = "TESTING_CLOSET" in os.environ
@@ -80,12 +82,18 @@ class SelfdriveD:
     if REPLAY:
       # no vipc in replay will make them ignored anyways
       ignore += ['roadCameraState', 'wideRoadCameraState']
+
+    ignore_avg_freq = list(ignore)
+    if HARDWARE.get_device_type() == "ka2":
+      # KA2 can run DM below nominal rate; keep alive/valid checks, relax avg-freq only.
+      ignore_avg_freq += ['driverMonitoringState']
+
     self.sm = messaging.SubMaster(['deviceState', 'pandaStates', 'peripheralState', 'modelV2', 'liveCalibration',
                                    'carOutput', 'driverMonitoringState', 'longitudinalPlan', 'livePose', 'liveDelay',
                                    'managerState', 'liveParameters', 'radarState', 'liveTorqueParameters',
                                    'controlsState', 'carControl', 'driverAssistance', 'alertDebug', 'userBookmark', 'audioFeedback'] + \
                                    self.camera_packets + self.sensor_packets + self.gps_packets,
-                                  ignore_alive=ignore, ignore_avg_freq=ignore,
+                                  ignore_alive=ignore, ignore_avg_freq=ignore_avg_freq,
                                   ignore_valid=ignore, frequency=int(1/DT_CTRL))
 
     # read params
@@ -138,6 +146,9 @@ class SelfdriveD:
       set_offroad_alert("Offroad_CarUnrecognized", True)
     elif self.CP.passive:
       self.events.add(EventName.dashcamMode, static=True)
+
+    self.alc_helper = ALCHelper()
+    self.alc_active = False
 
   def update_events(self, CS):
     """Compute onroadEvents from carState"""
@@ -206,8 +217,8 @@ class SelfdriveD:
     if self.sm['deviceState'].memoryUsagePercent > 90 and not SIMULATION:
       self.events.add(EventName.lowMemory)
 
-    # Alert if fan isn't spinning for 5 seconds
-    if self.sm['peripheralState'].pandaType != log.PandaState.PandaType.unknown:
+    # Alert if fan isn't spinning for 5 seconds (KA2 has no fan, skip)
+    if HARDWARE.get_device_type() != "ka2" and self.sm['peripheralState'].pandaType != log.PandaState.PandaType.unknown:
       if self.sm['peripheralState'].fanSpeedRpm < 500 and self.sm['deviceState'].fanSpeedPercentDesired > 50:
         # allow enough time for the fan controller in the panda to recover from stalls
         if (self.sm.frame - self.last_functional_fan_frame) * DT_CTRL > 15.0:
@@ -253,8 +264,10 @@ class SelfdriveD:
       self.events.add(EventName.excessiveActuation)
     # ******************************************************************************************
 
+    self.alc_active = self.alc_helper.update(CS, self.sm['modelV2'].meta.laneChangeState, self.active)
+
     # Handle lane change
-    if self.sm['modelV2'].meta.laneChangeState == LaneChangeState.preLaneChange:
+    if self.sm['modelV2'].meta.laneChangeState == LaneChangeState.preLaneChange and self.alc_active:
       direction = self.sm['modelV2'].meta.laneChangeDirection
       if (CS.leftBlindspot and direction == LaneChangeDirection.left) or \
          (CS.rightBlindspot and direction == LaneChangeDirection.right):
@@ -265,7 +278,7 @@ class SelfdriveD:
         else:
           self.events.add(EventName.preLaneChangeRight)
     elif self.sm['modelV2'].meta.laneChangeState in (LaneChangeState.laneChangeStarting,
-                                                    LaneChangeState.laneChangeFinishing):
+                                                    LaneChangeState.laneChangeFinishing) and self.alc_active:
       self.events.add(EventName.laneChange)
 
     for i, pandaState in enumerate(self.sm['pandaStates']):
@@ -397,9 +410,16 @@ class SelfdriveD:
     # Decrement personality on distance button press
     if self.CP.openpilotLongitudinalControl:
       if any(not be.pressed and be.type == ButtonType.gapAdjustCruise for be in CS.buttonEvents):
-        self.personality = (self.personality - 1) % 3
+        if CS.personality != -1:
+          self.personality = CS.personality
+        else:
+          self.personality = (self.personality - 1) % 3
         self.params.put_nonblocking('LongitudinalPersonality', self.personality)
         self.events.add(EventName.personalityChanged)
+
+    # Send an alert when turn signal is on (ALC not active or ALC disabled)
+    if self.enabled and not self.active and CS.leftBlinker != CS.rightBlinker and not CS.standstill and not CS.lkaDisabled:
+      self.events.add(EventName.blinkerSteerRequired)
 
   def data_sample(self):
     _car_state = messaging.recv_one(self.car_state_sock)
@@ -496,6 +516,7 @@ class SelfdriveD:
     self.update_events(CS)
     if not self.CP.passive and self.initialized:
       self.enabled, self.active = self.state_machine.update(self.events)
+    self.active = self.active and (self.alc_active or CS.leftBlinker == CS.rightBlinker) and not CS.lkaDisabled
     self.update_alerts(CS)
 
     self.publish_selfdriveState(CS)

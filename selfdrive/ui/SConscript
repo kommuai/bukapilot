@@ -32,7 +32,6 @@ mo_alias = env.Alias('mo', mo_build)
 env.AlwaysBuild(mo_alias)
 
 if GetOption('extras'):
-  # build installers
   if arch != "Darwin":
     raylib_env = env.Clone()
     raylib_env['LIBPATH'] += [f'#third_party/raylib/{arch}/']

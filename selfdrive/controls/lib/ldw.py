@@ -5,7 +5,7 @@ from openpilot.common.constants import CV
 
 CAMERA_OFFSET = 0.04
 LDW_MIN_SPEED = 31 * CV.MPH_TO_MS
-LANE_DEPARTURE_THRESHOLD = 0.1
+LANE_DEPARTURE_THRESHOLD = 0.01
 
 class LaneDepartureWarning:
   def __init__(self):

@@ -160,7 +160,10 @@ class Car:
   def state_update(self) -> tuple[car.CarState, structs.RadarDataT | None]:
     """carState update loop, driven by can"""
 
-    can_strs = messaging.drain_sock_raw(self.can_sock, wait_for_one=True)
+    # Read CAN non-blocking to avoid stalling carState/carOutput publication when
+    # CAN delivery is briefly delayed by scheduling jitter. The 100Hz Ratekeeper in
+    # card_thread controls loop timing, and we process whatever CAN has arrived.
+    can_strs = messaging.drain_sock_raw(self.can_sock, wait_for_one=False)
     can_list = can_capnp_to_list(can_strs)
 
     # Update carState from CAN
@@ -205,6 +208,7 @@ class Car:
     co_send = messaging.new_message('carOutput')
     co_send.valid = self.sm.all_checks(['carControl'])
     co_send.carOutput.actuatorsOutput = self.last_actuators_output
+    co_send.carOutput.stockLongitudinalContributing = bool(getattr(self.CI.CC, "stock_longitudinal_contributing", False))
     self.pm.send('carOutput', co_send)
 
     # kick off controlsd step while we actuate the latest carControl packet
@@ -265,14 +269,16 @@ class Car:
       t.start()
       while True:
         self.step()
-        self.rk.monitor_time()
+        # Keep a steady 100Hz output cadence; this prevents transient stalls from
+        # propagating as carOutput not_alive in downstream health checks.
+        self.rk.keep_time()
     finally:
       e.set()
       t.join()
 
 
 def main():
-  config_realtime_process(4, Priority.CTRL_HIGH)
+  config_realtime_process(4, Priority.CTRL_HIGH - 1)
   car = Car()
   car.card_thread()
 
