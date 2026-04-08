@@ -75,6 +75,32 @@ def run(cmd: list[str], cwd: str = None) -> str:
   return subprocess.check_output(cmd, cwd=cwd, stderr=subprocess.STDOUT, encoding='utf8')
 
 
+def get_submodule_paths(cwd: str) -> list[str]:
+  try:
+    output = run(["git", "config", "--file", ".gitmodules", "--get-regexp", "path"], cwd)
+  except subprocess.CalledProcessError:
+    return []
+
+  paths: list[str] = []
+  for line in output.splitlines():
+    parts = line.strip().split(maxsplit=1)
+    if len(parts) == 2 and parts[1]:
+      paths.append(parts[1])
+  return paths
+
+
+def clear_submodule_path_conflicts(cwd: str) -> None:
+  for rel_path in get_submodule_paths(cwd):
+    abs_path = os.path.join(cwd, rel_path)
+    try:
+      if os.path.islink(abs_path) or os.path.isfile(abs_path):
+        os.unlink(abs_path)
+      elif os.path.isdir(abs_path):
+        shutil.rmtree(abs_path)
+    except Exception:
+      cloudlog.exception(f"failed clearing submodule path conflict: {rel_path}")
+
+
 def set_consistent_flag(consistent: bool) -> None:
   os.sync()
   consistent_file = Path(os.path.join(FINALIZED, ".overlay_consistent"))
@@ -401,10 +427,11 @@ class Updater:
       ["git", "reset", "--hard"],
       ["git", "clean", "-xdff"],
       ["git", "submodule", "sync"],
-      ["git", "submodule", "update", "--init", "--recursive"],
       ["git", "submodule", "foreach", "--recursive", "git", "reset", "--hard"],
     ]
     r = [run(cmd, OVERLAY_MERGED) for cmd in cmds]
+    clear_submodule_path_conflicts(OVERLAY_MERGED)
+    r.append(run(["git", "submodule", "update", "--init", "--recursive"], OVERLAY_MERGED))
     cloudlog.info("git reset success: %s", '\n'.join(r))
 
     # TODO: show agnos download progress

@@ -12,22 +12,37 @@ function agnos_init {
   # TODO: move this to agnos
   sudo rm -f /data/etc/NetworkManager/system-connections/*.nmmeta
 
-  # set success flag for current boot slot
-  sudo abctl --set_success
+  if [ -f /TICI ]; then
+    # set success flag for current boot slot
+    sudo abctl --set_success
 
-  # TODO: do this without udev in AGNOS
-  # udev does this, but sometimes we startup faster
-  sudo chgrp gpu /dev/adsprpc-smd /dev/ion /dev/kgsl-3d0
-  sudo chmod 660 /dev/adsprpc-smd /dev/ion /dev/kgsl-3d0
+    # TODO: do this without udev in AGNOS
+    # udev does this, but sometimes we startup faster
+    sudo chgrp gpu /dev/adsprpc-smd /dev/ion /dev/kgsl-3d0
+    sudo chmod 660 /dev/adsprpc-smd /dev/ion /dev/kgsl-3d0
+  fi
 
   # Check if AGNOS update is required
   if [ $(< /VERSION) != "$AGNOS_VERSION" ]; then
-    AGNOS_PY="$DIR/system/hardware/tici/agnos.py"
-    MANIFEST="$DIR/system/hardware/tici/agnos.json"
+    if [ -f /KA2 ]; then
+      AGNOS_PY="$DIR/system/hardware/ka2/agnos.py"
+      MANIFEST="$DIR/system/hardware/ka2/agnos.json"
+    else
+      AGNOS_PY="$DIR/system/hardware/tici/agnos.py"
+      MANIFEST="$DIR/system/hardware/tici/agnos.json"
+    fi
     if $AGNOS_PY --verify $MANIFEST; then
+      if [ -f /KA2 ]; then
+        sudo rm -rf /data/rootfs_overlay
+        python3 /usr/kommu/ws2812.py rainbow || true
+      fi
       sudo reboot
     fi
-    $DIR/system/hardware/tici/updater $AGNOS_PY $MANIFEST
+    if [ -f /KA2 ]; then
+      $AGNOS_PY --swap $MANIFEST && sudo reboot
+    else
+      $DIR/system/hardware/tici/updater $AGNOS_PY $MANIFEST
+    fi
   fi
 }
 
@@ -74,7 +89,7 @@ function launch {
   export PYTHONPATH="$PWD"
 
   # hardware specific init
-  if [ -f /AGNOS ]; then
+  if [ -f /AGNOS ] || [ -f /KA2 ]; then
     agnos_init
   fi
 
