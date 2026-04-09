@@ -254,6 +254,10 @@ def handle_agnos_update() -> None:
 
   if HARDWARE.get_device_type() == 'ka2':
     manifest_path = os.path.join(OVERLAY_MERGED, "system/hardware/ka2/agnos.json")
+    try:
+      subprocess.run(["python3", "/usr/kommu/ws2812.py", "rainbow"], check=True)
+    except Exception:
+      cloudlog.exception("failed to set KA2 LED rainbow for AGNOS update")
   else:
     manifest_path = os.path.join(OVERLAY_MERGED, "system/hardware/tici/agnos.json")
   target_slot_number = get_target_slot_number()
