@@ -234,7 +234,7 @@ def finalize_update() -> None:
 
 def handle_agnos_update() -> None:
   if HARDWARE.get_device_type() == 'ka2':
-    from openpilot.system.hardware.ka2.agnos import flash_agnos_update, get_target_slot_number, verify_agnos_update, swap
+    from openpilot.system.hardware.ka2.agnos import flash_agnos_update, get_target_slot_number
   else:
     from openpilot.system.hardware.tici.agnos import flash_agnos_update, get_target_slot_number
 
@@ -258,11 +258,7 @@ def handle_agnos_update() -> None:
     manifest_path = os.path.join(OVERLAY_MERGED, "system/hardware/tici/agnos.json")
   target_slot_number = get_target_slot_number()
   flash_agnos_update(manifest_path, target_slot_number, cloudlog)
-  if HARDWARE.get_device_type() == 'ka2':
-    if verify_agnos_update(manifest_path, target_slot_number):
-      # remove any overlay rootfs changes
-      run(["sudo", "rm", "-rf", "/data/rootfs_overlay"])
-      subprocess.run(["python3", "/usr/kommu/ws2812.py", "rainbow"], check=True)
+  # KA2: verify/swap runs at boot via launch_chffrplus.sh agnos_init (same pattern as TICI)
   set_offroad_alert("Offroad_NeosUpdate", False)
 
 

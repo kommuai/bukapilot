@@ -93,11 +93,18 @@ def get_target_slot_number() -> int:
 
 def slot_number_to_suffix(slot_number: int) -> str:
   assert slot_number in (0, 1)
+  return '_a' if slot_number == 0 else '_b'
+
+
+def slot_number_to_partition_suffix(slot_number: int) -> str:
+  assert slot_number in (0, 1)
   return '' if slot_number == 0 else '_b'
 
 
 def get_partition_path(target_slot_number: int, partition: dict) -> str:
-  path = f"/dev/disk/by-partlabel/{partition['name']}_b"
+  path = f"/dev/disk/by-partlabel/{partition['name']}"
+  if partition.get('has_ab', True):
+    path += slot_number_to_partition_suffix(target_slot_number)
 
   return path
 
@@ -177,7 +184,8 @@ def extract_compressed_image(target_slot_number: int, partition: dict, cloudlog)
 
 def extract_casync_image(target_slot_number: int, partition: dict, cloudlog):
   path = get_partition_path(target_slot_number, partition)
-  seed_path = path[:-1] + ('b' if path[-1] == 'a' else 'a')
+  seed_slot_number = 1 - target_slot_number
+  seed_path = get_partition_path(seed_slot_number, partition)
 
   target = casync.parse_caibx(partition['casync_caibx'])
 
