@@ -262,7 +262,6 @@ def handle_agnos_update() -> None:
     if verify_agnos_update(manifest_path, target_slot_number):
       # remove any overlay rootfs changes
       run(["sudo", "rm", "-rf", "/data/rootfs_overlay"])
-      swap(manifest_path, target_slot_number, cloudlog)
       subprocess.run(["python3", "/usr/kommu/ws2812.py", "rainbow"], check=True)
   set_offroad_alert("Offroad_NeosUpdate", False)
 
