@@ -282,7 +282,7 @@ class Updater:
     b: str | None = self.params.get("UpdaterTargetBranch", encoding='utf-8')
     if b is None:
       b = self.get_branch(BASEDIR)
-    if b == 'release_ka2':
+    if b == 'alex':
       b = 'bumpbump'
     return b
 
