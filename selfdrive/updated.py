@@ -282,8 +282,8 @@ class Updater:
     b: str | None = self.params.get("UpdaterTargetBranch", encoding='utf-8')
     if b is None:
       b = self.get_branch(BASEDIR)
-    if b == 'alex':
-      b = 'bumpbump'
+    if b == 'beta':
+      b = 'staging'
     return b
 
   @property
