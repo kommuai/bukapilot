@@ -2,6 +2,7 @@
 
 #include <rk_mpi.h>
 #include <rk_venc_cfg.h>
+#include <rk_venc_cmd.h>
 #include <cstdio>
 #include <cstdlib>
 #include <string>
@@ -53,6 +54,7 @@ private:
   size_t frame_buffer_idx = 0;
   std::unordered_map<int, MppBuffer> imported_buffers;
   std::deque<VisionIpcBufExtra> pending_extras;
+  kj::Array<capnp::byte> codec_header;
   bool import_fallback_logged = false;
   uint32_t zero_copy_import_failures = 0;
   bool output_timeout_non_block = false;

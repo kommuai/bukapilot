@@ -5,6 +5,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstdint>
+#include <cstring>
 #include <inttypes.h>
 #include <algorithm>
 #include <limits>
@@ -12,6 +13,9 @@
 #define __STDC_CONSTANT_MACROS
 
 #include "system/loggerd/encoder/mpp_encoder.h"
+
+#include <mpp_meta.h>
+#include <mpp_packet.h>
 
 #include "common/swaglog.h"
 #include "common/util.h"
@@ -26,14 +30,15 @@ MppEncoder::MppEncoder(const EncoderInfo &encoder_info, int in_width, int in_hei
     if (in_width != out_width || in_height != out_height) {
       is_downscale = true;
     }
-    // Zero-copy import is only feasible when we don't need RGA downscale.
-    use_zero_copy = !is_downscale;
+    // Zero-copy DMA import can succeed but still produce zero-length HEVC packets on some KA2 MPP builds.
+    // Default to copy path which works for both H.264 and HEVC.
+    use_zero_copy = false;
     if (const char *zero_copy_env = getenv("ENCODER_ZERO_COPY")) {
       use_zero_copy = atoi(zero_copy_env) != 0 && !is_downscale;
     }
 
     alw = is_downscale ? MPP_ALIGN(out_width, 16) : MPP_ALIGN(in_width, 16);
-    alh = is_downscale ? MPP_ALIGN(out_height, 16) : in_height;
+    alh = is_downscale ? MPP_ALIGN(out_height, 16) : MPP_ALIGN(in_height, 16);
     frame_buf_size = alw * alh * 3 / 2;
 }
 
@@ -113,6 +118,15 @@ void MppEncoder::encoder_open(const char* path) {
         return;
       }
       mpp_enc_cfg_set_u32(cfg, "codec:type", MPP_VIDEO_CodingHEVC);
+      mpp_enc_cfg_set_s32(cfg, "split:mode", MPP_ENC_SPLIT_NONE);
+
+      // HEVC needs explicit QP bounds for RC to produce output on KA2 MPP.
+      mpp_enc_cfg_set_s32(cfg, "rc:qp_init", 26);
+      mpp_enc_cfg_set_s32(cfg, "rc:qp_max", 51);
+      mpp_enc_cfg_set_s32(cfg, "rc:qp_min", 10);
+      mpp_enc_cfg_set_s32(cfg, "rc:qp_max_i", 46);
+      mpp_enc_cfg_set_s32(cfg, "rc:qp_min_i", 10);
+      mpp_enc_cfg_set_s32(cfg, "rc:qp_ip", 2);
     }
     else {
       LOGE("unsupported encode type %d for %s", (int)settings.encode_type, path);
@@ -137,6 +151,29 @@ void MppEncoder::encoder_open(const char* path) {
       encoder_close();
       return;
     }
+
+    MppEncHeaderMode header_mode = MPP_ENC_HEADER_MODE_EACH_IDR;
+    if (mpp_mpi->control(mpp_ctx, MPP_ENC_SET_HEADER_MODE, &header_mode) != MPP_OK) {
+      LOGW("MPP_ENC_SET_HEADER_MODE failed for %s, headers may only appear on first frame", path);
+    }
+
+    {
+      MppPacket hdr_pkt = nullptr;
+      uint8_t hdr_buf[1024] = {};
+      mpp_packet_init(&hdr_pkt, hdr_buf, sizeof(hdr_buf));
+      mpp_packet_set_length(hdr_pkt, 0);
+      if (mpp_mpi->control(mpp_ctx, MPP_ENC_GET_HDR_SYNC, hdr_pkt) == MPP_OK) {
+        size_t hdr_len = mpp_packet_get_length(hdr_pkt);
+        if (hdr_len > 0 && hdr_len <= sizeof(hdr_buf)) {
+          codec_header = kj::heapArray<capnp::byte>(hdr_buf, hdr_len);
+          LOGD("extracted %zu byte codec header for %s", hdr_len, path);
+        }
+      } else {
+        LOGW("MPP_ENC_GET_HDR_SYNC failed for %s", path);
+      }
+      mpp_packet_deinit(&hdr_pkt);
+    }
+
     RK_S64 output_timeout = MPP_TIMEOUT_NON_BLOCK;
     if (mpp_mpi->control(mpp_ctx, MPP_SET_OUTPUT_TIMEOUT, &output_timeout) == MPP_OK) {
       output_timeout_non_block = true;
@@ -227,6 +264,7 @@ void MppEncoder::encoder_close() {
     if (mpp_buf != nullptr) {
       mpp_buf = nullptr;
     }
+    codec_header = nullptr;
     pending_extras.clear();
     import_fallback_logged = false;
     zero_copy_import_failures = 0;
@@ -396,6 +434,41 @@ int MppEncoder::drain_packets(bool non_block, size_t max_packets) {
         break;
       }
 
+      // Extract the actual encoded payload.
+      kj::Array<capnp::byte> owned_payload;
+      kj::ArrayPtr<capnp::byte> payload;
+      uint8_t *pkt_pos = (uint8_t *)mpp_packet_get_pos(packet);
+      size_t pkt_len = mpp_packet_get_length(packet);
+      if (pkt_pos != nullptr && pkt_len > 0) {
+        payload = kj::arrayPtr<capnp::byte>(pkt_pos, pkt_len);
+      } else {
+        const MppPktSeg *seg_head = mpp_packet_get_segment_info(packet);
+        if (seg_head != nullptr) {
+          uint8_t *base = (uint8_t *)mpp_packet_get_data(packet);
+          size_t total = 0;
+          for (const MppPktSeg *it = seg_head; it != nullptr; it = it->next) {
+            total += it->len;
+          }
+          if (base != nullptr && total > 0) {
+            owned_payload = kj::heapArray<capnp::byte>(total);
+            size_t off = 0;
+            for (const MppPktSeg *it = seg_head; it != nullptr; it = it->next) {
+              if (it->len == 0) continue;
+              memcpy(owned_payload.begin() + off, base + it->offset, it->len);
+              off += it->len;
+            }
+            payload = owned_payload.asPtr();
+          }
+        }
+      }
+
+      if (payload.size() == 0) {
+        mpp_packet_deinit(&packet);
+        packet = nullptr;
+        drained++;
+        continue;
+      }
+
       VisionIpcBufExtra extra = pending_extras.front();
       pending_extras.pop_front();
       if (seen_first_published && extra.frame_id <= last_published_frame_id) {
@@ -410,17 +483,24 @@ int MppEncoder::drain_packets(bool non_block, size_t max_packets) {
       }
       last_published_frame_id = extra.frame_id;
       seen_first_published = true;
-      uint8_t *pkt = (uint8_t*)mpp_packet_get_pos(packet);
-      size_t pkt_size = mpp_packet_get_length(packet);
+
+      RK_S32 is_intra = 0;
+      if (mpp_packet_has_meta(packet)) {
+        MppMeta meta = mpp_packet_get_meta(packet);
+        mpp_meta_get_s32_d(meta, KEY_OUTPUT_INTRA, &is_intra, 0);
+      }
+      unsigned int frame_flags = is_intra ? V4L2_BUF_FLAG_KEYFRAME : 0;
 
       if (env_debug_encoder) {
-        printf("%20s got %8zu bytes idx %4d id %8d\n", encoder_info.publish_name, pkt_size, counter, extra.frame_id);
+        printf("%20s got %8zu bytes idx %4d id %8d%s\n",
+               encoder_info.publish_name, payload.size(), counter, extra.frame_id,
+               is_intra ? " [I]" : "");
       }
 
       publisher_publish(segment_num, counter, extra,
-        V4L2_BUF_FLAG_KEYFRAME,
-        kj::arrayPtr<capnp::byte>(pkt, (size_t)0), // TODO: get header
-        kj::arrayPtr<capnp::byte>(pkt, pkt_size));
+        frame_flags,
+        codec_header.asPtr(),
+        payload);
       counter++;
 
       mpp_packet_deinit(&packet);

@@ -549,11 +549,9 @@ void encoderd_thread(const LogCameraInfo (&cameras)[N]) {
 
 int main(int argc, char* argv[]) {
   if (!Hardware::PC()) {
-    const bool deterministic_mode =
 #if defined(RK3588)
+    const bool deterministic_mode =
       !(getenv("ENCODERD_DETERMINISTIC_DISABLE") != nullptr && atoi(getenv("ENCODERD_DETERMINISTIC_DISABLE")) != 0);
-#else
-      false;
 #endif
     int ret = util::set_realtime_priority(
 #if defined(RK3588)
