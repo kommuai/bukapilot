@@ -1,9 +1,28 @@
 #!/usr/bin/env python3
+import logging
 import threading
+import os
 from time import monotonic, sleep
 from queue import SimpleQueue
 from bluezero import adapter, peripheral
 from openpilot.common.swaglog import cloudlog
+
+# --- MALLOC SAFETY INITIALISATION ---
+import dbus
+import dbus.mainloop.glib
+
+# Initialise threads to ensure the underlying C library uses locks, preventing
+# heap corruption and subsequent malloc crashes during concurrent D-Bus calls.
+try:
+  dbus.mainloop.glib.threads_init()
+except Exception:
+  pass
+# -------------------------------------
+
+# bluezero is noisy at INFO and also uses bare print() in its advertisement
+# callbacks. Silence its logger and suppress stdout during publish().
+logging.getLogger("bluezero").setLevel(logging.WARNING)
+logging.getLogger("bluezero.GATT").setLevel(logging.WARNING)
 
 # BLE Nordic UART UUIDs
 UART_SERVICE      = '6E400001-B5A3-F393-E0A9-E50E24DCCA9E'
@@ -15,6 +34,10 @@ CHUNK_TIMEOUT = 1.0  # seconds before dropping incomplete message
 class BLEBridge:
   """Threaded BLE Nordic UART bridge with RX and TX."""
   def __init__(self, local_name=None):
+    # Capture process identifier at start-up. If a fork occurs,
+    # the connection becomes unsafe and must be terminated to avoid corruption.
+    self._initial_pid = os.getpid()
+
     self.ad = list(adapter.Adapter.available())[0]
     self.dev = peripheral.Peripheral(self.ad.address, local_name=local_name, appearance=963)
 
@@ -46,6 +69,12 @@ class BLEBridge:
     self.dev.on_disconnect = self.on_disconnect
     self.connected = False
 
+  def _check_fork(self):
+    """Verifies that the process identifier remains unchanged."""
+    if os.getpid() != self._initial_pid:
+      cloudlog.error("BLEBridge: Process forked. Terminating connection to prevent memory corruption.")
+      raise RuntimeError("Unsafe D-Bus usage detected after fork.")
+
   def on_connect(self, dev):
     self.connected = True
     print(f"BLE Connected: {dev.address}")
@@ -64,6 +93,7 @@ class BLEBridge:
 
   def send(self, payload: bytes):
     """Send bytes to phone via BLE."""
+    self._check_fork()
     if not (tx_char := self.tx_char):
       return
 
@@ -89,6 +119,7 @@ class BLEBridge:
 
   def start(self):
     """Start BLE peripheral loop."""
+    self._check_fork()
     self.dev.publish()
     while True:
       sleep(0.1) # keep thread running

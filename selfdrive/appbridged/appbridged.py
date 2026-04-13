@@ -18,7 +18,7 @@ from openpilot.system.hardware import HARDWARE
 from opendbc.car.car_helpers import supported_cars
 from openpilot.common.features import Features
 from openpilot.selfdrive.appbridged.ble_helper import BLEBridge, ChunkReceiver
-from system.hardware.ka2.hardware import Ka2
+from openpilot.selfdrive.appbridged.hardware_helper import HardwareHelper
 
 # BLE Constants
 MESSAGE_HZ = 16 # Expected message rate, must match app visualisation value
@@ -40,17 +40,6 @@ UPDATE_PROCESS = "system.updated.updated"
 HOTSPOT_SERVICE = "wlan1-setup.service"
 SM_UPDATE_INTERVAL = 33 # in ms, the interval where capnp submaster updates
 features = Features()
-KA2 = Ka2()
-NetworkType = log.DeviceState.NetworkType
-NETWORK_TYPES = {
-  NetworkType.none: "Offline",
-  NetworkType.wifi: "Wi-Fi",
-  NetworkType.cell2G: "2G",
-  NetworkType.cell3G: "3G",
-  NetworkType.cell4G: "4G",
-  NetworkType.cell5G: "5G",
-  NetworkType.ethernet: "Ethernet",
-}
 
 # Call functions with cached values only once
 SUPPORTED_CARS = supported_cars()
@@ -138,7 +127,6 @@ def _systemctl(action, service=HOTSPOT_SERVICE):
 
 def enable_hotspot():
   def worker():
-    _systemctl("enable", HOTSPOT_SERVICE)
     _systemctl("start", HOTSPOT_SERVICE)
   threading.Thread(target=worker, daemon=True).start()
 
@@ -146,7 +134,6 @@ def disable_hotspot():
   def worker():
     subprocess.run(["sudo", "ip", "link", "set", "wlan1", "down"], check=False)
     _systemctl("stop", HOTSPOT_SERVICE)
-    _systemctl("disable", HOTSPOT_SERVICE)
   threading.Thread(target=worker, daemon=True).start()
 
 def update_dict_from_sm(target_dict, sm_subset, keys):
@@ -169,7 +156,7 @@ def quantize(o):
     return None if math.isnan(o) else round(o, 3)
   return o
 
-class Streamer:
+class AppBridge:
   """Handles visualisation and settings BLE streams."""
   def __init__(self, sm=None):
     self.ble = BLEBridge(local_name=BLE_NAME)
@@ -191,6 +178,7 @@ class Streamer:
     self.send_car_names_cnt = -1
     self.hotspot_enabled = False
     self.hotspot_ip = None
+    self.hw_helper = HardwareHelper()
 
   def scan_wifi(self):
     if hasattr(self, "wifiScanProcess"): # Avoid starting a new scan until the previous one finishes
@@ -250,8 +238,8 @@ class Streamer:
     threading.Thread(target=run_nmcli, daemon=True).start()
     return True
 
-  def update_network_info(self):
-    def get_network_info():
+  def update_wlan_info(self):
+    def get_wlan_info():
       def get_ip(iface):
         return next((a.address for a in psutil.net_if_addrs().get(iface, []) if a.family == socket.AF_INET), None)
       try:
@@ -262,7 +250,7 @@ class Streamer:
         self.hotspot_ip = wlan1_ip
       except Exception:
         self.local_wlan_ip, self.active_wlan_ssid, self.hotspot_enabled, self.hotspot_ip = None, None, False, None
-    threading.Thread(target=get_network_info, daemon=True).start()
+    threading.Thread(target=get_wlan_info, daemon=True).start()
 
   def send_visualisation_message(self, is_metric):
     (data := extract_model_data((sm := self.sm)['modelV2'].to_dict()))
@@ -296,8 +284,9 @@ class Streamer:
       f"Connecting to\n{attempt_ssid}" if (attempt_ssid := self.wifi_connect_attempt_ssid) else self.active_wlan_ssid
     sett['hotspotEnabled'] = self.hotspot_enabled
     sett['hotspotIp'] = self.hotspot_ip
-    sett['networkType'] = NETWORK_TYPES[KA2.get_network_type()]
-    sett['remainingDataUpload'] = f"{int(self.sm['uploaderState'].immediateQueueSize)} MB"
+    sett['networkType'] = self.hw_helper.get_network_type()
+    sett['simStatus'] = self.hw_helper.get_sim_status()
+    sett['remainingDataUpload'] = f"{int(self.sm['uploaderState'].immediateQueueSize)} MB" if (sd := self.hw_helper.get_sd_status()) is None else sd
 
     if 0 <= self.send_car_names_cnt < 3:
       sett['carNames'] = SUPPORTED_CARS
@@ -432,7 +421,7 @@ class Streamer:
       return None
     return c, m # Other message types, pass to next function
 
-  def streamd_thread(self):
+  def appbridged_thread(self):
     is_metric = None
     while True:
       (sm := self.sm).update(SM_UPDATE_INTERVAL)
@@ -442,7 +431,7 @@ class Streamer:
       if (cur_time := monotonic()) - self.last_1hz_task_time >= 1:
         self.last_1hz_task_time = cur_time
         # Check WiFi and hotspot
-        self.update_network_info()
+        self.update_wlan_info()
         if attempt_ssid := self.wifi_connect_attempt_ssid:
           if ((connected := self.active_wlan_ssid == attempt_ssid) or
               (cur_time - self.wifi_connect_attempt_start_time) >= WIFI_CONNECT_TIMEOUT_SECONDS):
@@ -485,7 +474,7 @@ class Streamer:
       rk.keep_time()
 
 def main():
-  Streamer().streamd_thread()
+  AppBridge().appbridged_thread()
 
 if __name__ == "__main__":
   main()

@@ -1,46 +1,25 @@
 #!/usr/bin/env python3
-import os
-import subprocess
-
 import cereal.messaging as messaging
 from cereal import log
 from openpilot.common.params import Params
+from openpilot.system.hardware.ka2.hardware import Ka2
 from openpilot.common.swaglog import cloudlog
 
-def format_device(device_path="/dev/mmcblk1p1"):
-  try:
-      # Unmount the device (ignore errors if not mounted)
-      subprocess.run(
-          ["sudo", "umount", device_path],
-          stderr=subprocess.DEVNULL,
-          check=False,
-      )
-
-      # Format the device as ext4 (automatically confirms 'y')
-      subprocess.run(
-          f"echo y | sudo mkfs.ext4 {device_path}",
-          shell=True,
-          check=True,
-      )
-      cloudlog.info(f"Successfully formatted {device_path} as ext4.")
-  except Exception as e:
-      cloudlog.warning(f"Unexpected error: {e}")
+_ka2 = Ka2()
 
 def main():
-  sm = messaging.SubMaster(["pandaStates"], poll="pandaStates")
-  p = Params()
-
+  sm, p = messaging.SubMaster(["pandaStates"], poll="pandaStates"), Params()
   while True:
     sm.update()
     pandaStates = sm['pandaStates']
-    if sm.updated['pandaStates'] and len(pandaStates) > 0:
+    if sm.updated['pandaStates'] and pandaStates:
       ignition = any(ps.ignitionLine or ps.ignitionCan for ps in pandaStates if ps.pandaType != log.PandaState.PandaType.unknown)
-
       if not ignition:
-        cloudlog.info("Formatting")
-        format_device()
-        p.put_bool_nonblocking("FormatSDCard", False)
+        if (st := _ka2.sd_status()) is None or ("not inserted" not in (st_l := st.lower()) and "formatting" not in st_l):
+          cloudlog.info("Formatting SD card")
+          _ka2.format_sd()
+          p.put_bool_nonblocking("FormatSDCard", False)
         break
 
 if __name__ == "__main__":
-    main()
+  main()
