@@ -48,6 +48,7 @@ from tinygrad.runtime.ops_cl import set_external_cl_context, get_cl_buffer_ptr, 
 
 PROCESS_NAME = "selfdrive.modeld.modeld"
 SEND_RAW_PRED = os.getenv('SEND_RAW_PRED')
+KA2_MODEL_X_OFFSET_PIX = -30.0
 
 MODEL_DIR = Path(__file__).parent / 'models'
 VISION_PKL_PATH = MODEL_DIR / 'driving_vision_tinygrad.pkl'
@@ -651,8 +652,18 @@ def main(demo=False):
     if sm.updated["liveCalibration"] and sm.seen['roadCameraState'] and sm.seen['deviceState']:
       device_from_calib_euler = np.array(sm["liveCalibration"].rpyCalib, dtype=np.float32)
       dc = DEVICE_CAMERAS[(str(sm['deviceState'].deviceType), str(sm['roadCameraState'].sensor))]
-      model_transform_main = get_warp_matrix(device_from_calib_euler, dc.ecam.intrinsics if main_wide_camera else dc.fcam.intrinsics, False).astype(np.float32)
-      model_transform_extra = get_warp_matrix(device_from_calib_euler, dc.ecam.intrinsics, True).astype(np.float32)
+      model_transform_main = get_warp_matrix(
+        device_from_calib_euler,
+        dc.ecam.intrinsics if main_wide_camera else dc.fcam.intrinsics,
+        False,
+        x_offset_pix=KA2_MODEL_X_OFFSET_PIX,
+      ).astype(np.float32)
+      model_transform_extra = get_warp_matrix(
+        device_from_calib_euler,
+        dc.ecam.intrinsics,
+        True,
+        x_offset_pix=KA2_MODEL_X_OFFSET_PIX,
+      ).astype(np.float32)
       live_calib_seen = True
 
     traffic_convention = np.zeros(2)

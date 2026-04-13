@@ -62,9 +62,19 @@ calib_from_medmodel = np.linalg.inv(medmodel_frame_from_calib_frame[:, :3])
 calib_from_sbigmodel = np.linalg.inv(sbigmodel_frame_from_calib_frame[:, :3])
 
 # This function is verified to give similar results to xx.uncommon.utils.transform_img
-def get_warp_matrix(device_from_calib_euler: np.ndarray, intrinsics: np.ndarray, bigmodel_frame: bool = False) -> np.ndarray:
+def get_warp_matrix(device_from_calib_euler: np.ndarray, intrinsics: np.ndarray, bigmodel_frame: bool = False,
+                    *, x_offset_pix: float = 0.0, y_offset_pix: float = 0.0) -> np.ndarray:
   calib_from_model = calib_from_sbigmodel if bigmodel_frame else calib_from_medmodel
   device_from_calib = rot_from_euler(device_from_calib_euler)
   camera_from_calib = intrinsics @ view_frame_from_device_frame @ device_from_calib
   warp_matrix: np.ndarray = camera_from_calib @ calib_from_model
+  if x_offset_pix != 0.0 or y_offset_pix != 0.0:
+    # warpPerspective samples src using dst pixel coords: src ~= M * [dx, dy, 1].
+    # Pre-translating dst coords is equivalent to right-multiplying by translation.
+    T = np.array([
+      [1.0, 0.0, float(x_offset_pix)],
+      [0.0, 1.0, float(y_offset_pix)],
+      [0.0, 0.0, 1.0],
+    ], dtype=np.float32)
+    warp_matrix = warp_matrix @ T
   return warp_matrix
