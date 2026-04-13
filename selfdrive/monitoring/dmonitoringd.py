@@ -5,7 +5,7 @@ from openpilot.common.realtime import config_realtime_process
 from openpilot.selfdrive.monitoring.helpers import DriverMonitoring
 from openpilot.system.hardware import HARDWARE
 
-KA2_DM_MIN_HZ = 10.0
+KA2_DM_MIN_HZ = 5.0
 KA2_DM_MAX_DT_S = 1.0 / KA2_DM_MIN_HZ
 
 
@@ -29,7 +29,7 @@ def dmonitoringd_thread():
       continue
 
     if is_ka2:
-      # On KA2, keep strict alive/valid checks, but accept dmonitoring model down to ~10Hz.
+      # On KA2, keep strict alive/valid checks, but accept dmonitoring model down to ~5Hz.
       # Poll-based SubMaster frequency checks are too strict for mixed-rate dependencies here.
       valid = sm.all_alive() and sm.all_valid()
       cur_driverstate_t = sm.logMonoTime['driverStateV2'] * 1e-9
