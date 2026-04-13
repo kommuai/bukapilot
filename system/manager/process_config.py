@@ -31,6 +31,9 @@ def ublox(started: bool, params: Params, CP: car.CarParams) -> bool:
     params.put_bool("UbloxAvailable", use_ublox)
   return started and use_ublox
 
+def plotter(started: bool, params: Params, CP: car.CarParams) -> bool:
+  return started and params.get_bool("PlotterDebugMode")
+
 def joystick(started: bool, params: Params, CP: car.CarParams) -> bool:
   return started and params.get_bool("JoystickDebugMode")
 
@@ -116,6 +119,7 @@ procs = [
   PythonProcess("feedbackd", "selfdrive.ui.feedback.feedbackd", only_onroad),
 
   # debug procs
+  PythonProcess("plotter", "tools.tune_plotter.server", and_(plotter, iscar)),
   NativeProcess("bridge", "cereal/messaging", ["./bridge"], notcar),
   PythonProcess("webrtcd", "system.webrtc.webrtcd", notcar),
   PythonProcess("webjoystick", "tools.bodyteleop.web", notcar),

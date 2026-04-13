@@ -313,6 +313,13 @@ def get_max_seg_number_cached(sr: 'SegmentRange') -> int:
     assert isinstance(max_seg_number, int)
     return max_seg_number
   except Exception as e:
+    # LogReader needs segment indices before trying sources; comma has no route (404) for Kommu-only uploads.
+    if isinstance(e, APIError) and getattr(e, "status_code", None) == 404:
+      from openpilot.tools.lib.file_sources import kommu_max_seg_number
+
+      km = kommu_max_seg_number(sr)
+      if km is not None:
+        return km
     raise Exception("unable to get max_segment_number. ensure you have access to this route or the route is public.") from e
 
 

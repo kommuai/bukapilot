@@ -36,6 +36,10 @@ def setup_source_scenario(mocker, is_internal=False):
   comma_api_source_mock = mocker.patch("openpilot.tools.lib.logreader.comma_api_source")
   comma_api_source_mock.__name__ = comma_api_source_mock._mock_name
 
+  kommu_source_mock = mocker.patch("openpilot.tools.lib.logreader.kommu_source")
+  kommu_source_mock.__name__ = kommu_source_mock._mock_name
+  kommu_source_mock.return_value = {}
+
   if is_internal:
     internal_source_mock.return_value = {3: QLOG_FILE}
   else:

@@ -10,7 +10,6 @@ import sys
 import tqdm
 import urllib.parse
 import warnings
-import requests
 import zstandard as zstd
 
 from collections.abc import Iterable, Iterator
@@ -19,7 +18,14 @@ from urllib.parse import parse_qs, urlparse
 from cereal import log as capnp_log
 from openpilot.common.swaglog import cloudlog
 from openpilot.tools.lib.filereader import FileReader
-from openpilot.tools.lib.file_sources import comma_api_source, internal_source, openpilotci_source, comma_car_segments_source, Source
+from openpilot.tools.lib.file_sources import (
+  comma_api_source,
+  comma_car_segments_source,
+  internal_source,
+  kommu_source,
+  openpilotci_source,
+  Source,
+)
 from openpilot.tools.lib.route import SegmentRange, FileName
 from openpilot.tools.lib.log_time_series import msgs_to_time_series
 
@@ -150,47 +156,6 @@ class LogsUnavailable(Exception):
 def direct_source(file_or_url: str) -> list[str]:
   return [file_or_url]
 
-def try_download_segment(base_url: str, prefix: str, seg: int, log_type: str) -> str | None:
-  remote_url = f"{base_url}/{prefix}{seg}---{log_type}.bz2"
-  local_path = f"/tmp/{prefix}{seg}---{log_type}.bz2"
-
-  try:
-    # Send partial request first to avoid full download if not found
-    head = requests.get(remote_url, headers={"Range": "bytes=0-200"}, timeout=2)
-    if b'"message":"Not Found"' in head.content:
-      return None
-
-    # Full download
-    r = requests.get(remote_url, timeout=5)
-    r.raise_for_status()
-    
-    print(f"Downloading {log_type} segment {seg}")
-    with open(local_path, "wb") as f:
-      f.write(r.content)
-    return local_path
-  except requests.RequestException:
-    return None
-
-def probe_and_download_segments(dongle: str, ts: str, base_url: str, max_segments: int = 100) -> LogPaths:
-  prefix = f"{dongle}---{ts}--"
-  downloaded = []
-
-  for i in range(max_segments):
-    path = try_download_segment(base_url, prefix, i, "rlog")
-    if not path:
-      path = try_download_segment(base_url, prefix, i, "qlog")
-
-    if not path:
-      break  # stop at first missing segment
-    downloaded.append(path)
-
-  return downloaded
-
-def kommu_source(sr: SegmentRange, mode: ReadMode) -> LogPaths:
-  dongle = sr.dongle_id
-  ts = sr.timestamp
-  base = f"https://web.kommu.ai/depot/upload/{dongle}"
-  return probe_and_download_segments(dongle, ts, base)
 
 # TODO this should apply to camera files as well
 def auto_source(identifier: str, sources: list[Source], default_mode: ReadMode) -> list[str]:
@@ -292,7 +257,13 @@ class LogReader:
   def __init__(self, identifier: str | list[str], default_mode: ReadMode = ReadMode.RLOG,
                sources: list[Source] | None = None, sort_by_time=False, only_union_types=False):
     if sources is None:
-      sources = [internal_source, comma_api_source, openpilotci_source, comma_car_segments_source]
+      sources = [
+        internal_source,
+        comma_api_source,
+        openpilotci_source,
+        comma_car_segments_source,
+        kommu_source,
+      ]
 
     self.default_mode = default_mode
     self.sources = sources
