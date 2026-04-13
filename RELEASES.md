@@ -1,3 +1,17 @@
+Version 10.1.0 (2026-04-13)
+========================
+* Bump to openpilot v0.10.3
+* Revamp Proton longitudinal controller
+* Revamp DNGA longitudinal controller
+* SIM Card & SD Card status on KommuAI app
+* Driver monitoring improvements
+* RK-AGNOS 12.0.0
+  * Front camera view higher exposure
+  * Modem Manager now properly display sim status
+  * Auto APN coverage extended
+  * Reduce spam on kernel logs
+  * OS recovery through flash.kommu.ai
+
 Version 10.0.5 (2026-02-18)
 ========================
 * Full driving log support
