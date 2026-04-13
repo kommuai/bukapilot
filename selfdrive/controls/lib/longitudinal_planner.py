@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import math
+import time
 import numpy as np
 
 import cereal.messaging as messaging
@@ -21,6 +22,14 @@ A_CRUISE_MAX_BP = [0., 10.0, 25., 40.]
 CONTROL_N_T_IDX = ModelConstants.T_IDXS[:CONTROL_N]
 ALLOW_THROTTLE_THRESHOLD = 0.4
 MIN_ALLOW_THROTTLE_SPEED = 2.5
+# Radar leadOne.vRel is v_lead - v_ego (m/s). Negative => closing. Ramp decel when
+# |closing| >= these magnitudes (hysteresis: OFF releases before ON re-arms).
+DANGER_VREL_ON_MPS = 6.0
+DANGER_VREL_OFF_MPS = 4.5
+DANGER_DECEL_VEGO_BP = [0.0, 10.0]
+DANGER_DECEL_VEGO_V = [-1.2, -1.4]
+DANGER_DECEL_RAMP_RATE = 1.0  # m/s^3, how quickly danger decel can ramp in
+DANGER_HOLD_SECONDS = 0.3
 
 # Lookup table for turns
 _A_TOTAL_MAX_V = [1.7, 3.2]
@@ -63,6 +72,10 @@ class LongitudinalPlanner:
     self.prev_accel_clip = [ACCEL_MIN, ACCEL_MAX]
     self.output_a_target = 0.0
     self.output_should_stop = False
+    self.danger_override_active = False
+    self._danger_override_active = False
+    self._danger_hold_until_t = 0.0
+    self._danger_decel_cmd = ACCEL_MAX
 
     self.v_desired_trajectory = np.zeros(CONTROL_N)
     self.a_desired_trajectory = np.zeros(CONTROL_N)
@@ -170,6 +183,33 @@ class LongitudinalPlanner:
       output_a_target = min(output_a_target_mpc, output_a_target_e2e)
       self.output_should_stop = output_should_stop_e2e or output_should_stop_mpc
 
+    lead = sm['radarState'].leadOne
+    v_rel = float(lead.vRel) if lead.status else 0.0
+    danger_rel_on = lead.status and v_rel <= -DANGER_VREL_ON_MPS
+    danger_rel_off = lead.status and v_rel <= -DANGER_VREL_OFF_MPS
+
+    now_t = time.monotonic()
+    was_danger_override = self._danger_override_active
+    danger_on = danger_rel_on
+    danger_keep = danger_rel_off
+    if danger_on or (self._danger_override_active and danger_keep):
+      self._danger_hold_until_t = now_t + DANGER_HOLD_SECONDS
+    self._danger_override_active = now_t < self._danger_hold_until_t
+    danger_override = self._danger_override_active
+
+    if danger_override:
+      self.danger_override_active = True
+      danger_decel = float(np.interp(v_ego, DANGER_DECEL_VEGO_BP, DANGER_DECEL_VEGO_V))
+      a_target_before = float(output_a_target)
+      if not was_danger_override:
+        self._danger_decel_cmd = a_target_before
+      decel_step = DANGER_DECEL_RAMP_RATE * self.dt
+      self._danger_decel_cmd = max(danger_decel, self._danger_decel_cmd - decel_step)
+      output_a_target = min(output_a_target, self._danger_decel_cmd)
+    else:
+      self.danger_override_active = False
+      self._danger_decel_cmd = ACCEL_MAX
+
     for idx in range(2):
       accel_clip[idx] = np.clip(accel_clip[idx], self.prev_accel_clip[idx] - 0.05, self.prev_accel_clip[idx] + 0.05)
     self.output_a_target = np.clip(output_a_target, accel_clip[0], accel_clip[1])
@@ -197,5 +237,6 @@ class LongitudinalPlanner:
     longitudinalPlan.shouldStop = bool(self.output_should_stop)
     longitudinalPlan.allowBrake = True
     longitudinalPlan.allowThrottle = bool(self.allow_throttle)
+    longitudinalPlan.dangerOverrideActive = bool(self.danger_override_active)
 
     pm.send('longitudinalPlan', plan_send)
