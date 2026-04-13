@@ -38,7 +38,6 @@ find . -name '*.pyc' -delete
 find . -name '__pycache__' -delete
 rm -rf panda/certs panda/crypto
 rm -rf .sconsign.dblite Jenkinsfile release/
-rm selfdrive/modeld/models/*.dlc
 rm selfdrive/modeld/models/*.onnx
 
 # Restore third_party
