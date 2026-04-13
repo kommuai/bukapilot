@@ -17,7 +17,7 @@ export SKIP_FW_QUERY=0
 export QCOM_PRIORITY=12
 
 if [ -z "$AGNOS_VERSION" ]; then
-  export AGNOS_VERSION="11.3.2"
+  export AGNOS_VERSION="12.0.0"
 fi
 
 export STAGING_ROOT="/data/safe_staging"

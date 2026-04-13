@@ -72,6 +72,34 @@ def run(cmd: list[str], cwd: str | None = None) -> str:
   return subprocess.check_output(cmd, cwd=cwd, stderr=subprocess.STDOUT, encoding='utf8')
 
 
+def get_submodule_paths(cwd: str) -> list[str]:
+  try:
+    output = run(["git", "config", "--file", ".gitmodules", "--get-regexp", "path"], cwd)
+  except subprocess.CalledProcessError:
+    return []
+
+  paths: list[str] = []
+  for line in output.splitlines():
+    parts = line.strip().split(maxsplit=1)
+    if len(parts) == 2 and parts[1]:
+      paths.append(parts[1])
+  return paths
+
+
+def clear_submodule_path_conflicts(cwd: str) -> None:
+  # On some branch transitions (vendored dir -> submodule), stale directories can
+  # remain at submodule paths and make clone fail with "already exists".
+  for rel_path in get_submodule_paths(cwd):
+    abs_path = os.path.join(cwd, rel_path)
+    try:
+      if os.path.islink(abs_path) or os.path.isfile(abs_path):
+        os.unlink(abs_path)
+      elif os.path.isdir(abs_path):
+        shutil.rmtree(abs_path)
+    except Exception:
+      cloudlog.exception(f"failed clearing submodule path conflict: {rel_path}")
+
+
 def set_consistent_flag(consistent: bool) -> None:
   os.sync()
   consistent_file = Path(os.path.join(FINALIZED, ".overlay_consistent"))
@@ -205,7 +233,7 @@ def finalize_update() -> None:
 
 def handle_agnos_update() -> None:
   if HARDWARE.get_device_type() == 'ka2':
-    from openpilot.system.hardware.ka2.agnos import flash_agnos_update, get_target_slot_number, verify_agnos_update, swap
+    from openpilot.system.hardware.ka2.agnos import flash_agnos_update, get_target_slot_number
   else:
     from openpilot.system.hardware.tici.agnos import flash_agnos_update, get_target_slot_number
 
@@ -229,12 +257,6 @@ def handle_agnos_update() -> None:
     manifest_path = os.path.join(OVERLAY_MERGED, "system/hardware/tici/agnos.json")
   target_slot_number = get_target_slot_number()
   flash_agnos_update(manifest_path, target_slot_number, cloudlog)
-  if HARDWARE.get_device_type() == 'ka2':
-    if verify_agnos_update(manifest_path, target_slot_number):
-      # remove any overlay rootfs changes
-      run(["sudo", "rm", "-rf", "/data/rootfs_overlay"])
-      swap(manifest_path, target_slot_number, cloudlog)
-      subprocess.run(["python3", "/usr/kommu/ws2812.py", "rainbow"], check=True)
   set_offroad_alert("Offroad_NeosUpdate", False)
 
 
@@ -407,10 +429,11 @@ class Updater:
       ["git", "reset", "--hard"],
       ["git", "clean", "-xdff"],
       ["git", "submodule", "sync"],
-      ["git", "submodule", "update", "--init", "--recursive"],
       ["git", "submodule", "foreach", "--recursive", "git", "reset", "--hard"],
     ]
     r = [run(cmd, OVERLAY_MERGED) for cmd in cmds]
+    clear_submodule_path_conflicts(OVERLAY_MERGED)
+    r.append(run(["git", "submodule", "update", "--init", "--recursive"], OVERLAY_MERGED))
     cloudlog.info("git reset success: %s", '\n'.join(r))
 
     # TODO: show agnos download progress
