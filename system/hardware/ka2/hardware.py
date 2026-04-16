@@ -394,12 +394,13 @@ class Ka2(HardwareBase):
       return 0
 
   def get_npu_usage_percent(self):
-    if npu_load := sudo_read("/sys/kernel/debug/rknpu/load"):
-      try:
-        return [int(x.split('%')[0]) for x in npu_load.split() if '%' in x]
-      except ValueError:
-        pass
-    return [0, 0, 0]
+    with open("/sys/kernel/debug/rknpu/load", "r") as f:
+      npu_load = f.read().strip()
+
+    try:
+      return [int(x.split('%')[0]) for x in npu_load.split() if '%' in x]
+    except ValueError:
+      return [0, 0, 0]
 
   def initialize_hardware(self):
     os.system("sudo chmod -R a+r /sys/class/net/wwan0/statistics/")
