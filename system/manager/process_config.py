@@ -32,7 +32,7 @@ def ublox(started: bool, params: Params, CP: car.CarParams) -> bool:
   return started and use_ublox
 
 def plotter(started: bool, params: Params, CP: car.CarParams) -> bool:
-  return params.get_bool("PlotterDebugMode")
+  return started and params.get_bool("PlotterDebugMode")
 
 def joystick(started: bool, params: Params, CP: car.CarParams) -> bool:
   return started and params.get_bool("JoystickDebugMode")
@@ -68,7 +68,7 @@ def and_(*fns):
   return lambda *args: operator.and_(*(fn(*args) for fn in fns))
 
 procs = [
-  DaemonProcess("manage_athenad", "system.athena.manage_athenad", "AthenadPid"),
+  #DaemonProcess("manage_athenad", "system.athena.manage_athenad", "AthenadPid"),
 
   NativeProcess("loggerd", "system/loggerd", ["./loggerd"], logging),
   NativeProcess("encoderd", "system/loggerd", ["./encoderd"], only_onroad),
@@ -119,7 +119,7 @@ procs = [
   PythonProcess("feedbackd", "selfdrive.ui.feedback.feedbackd", only_onroad),
 
   # debug procs
-  PythonProcess("plotter", "tools.tune_plotter.server", and_(plotter, iscar)),
+  PythonProcess("plotter", "tools.tune_plotter.server", plotter),
   NativeProcess("bridge", "cereal/messaging", ["./bridge"], notcar),
   PythonProcess("webrtcd", "system.webrtc.webrtcd", notcar),
   PythonProcess("webjoystick", "tools.bodyteleop.web", notcar),
