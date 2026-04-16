@@ -50,7 +50,7 @@ def safe_get(obj, name: str, default):
 
 
 def sampler_loop(sample_hz: float):
-  sm = messaging.SubMaster(["controlsState", "carState", "longitudinalPlan", "radarState"])
+  sm = messaging.SubMaster(["controlsState", "carState", "longitudinalPlan", "radarState", "carOutput"])
   dt = 1.0 / sample_hz
   last_t = 0.0
   while True:
@@ -64,6 +64,7 @@ def sampler_loop(sample_hz: float):
     car_state = sm["carState"]
     long_plan = sm["longitudinalPlan"]
     lead_one = sm["radarState"].leadOne
+    car_output = sm["carOutput"]
 
     lat_source = "none"
     lat_p = 0.0
@@ -97,6 +98,7 @@ def sampler_loop(sample_hz: float):
       "latI": lat_i,
       "latF": lat_f,
       "stockAccCmd": float(car_state.stockAccelCmd),
+      "dngaBrakeMagnitudeRaw": float(car_output.actuatorsOutput.brake),
       "leadRelDist": float(lead_one.dRel) if lead_one.status else 0.0,
       "leadRelSpeed": float(lead_one.vRel) if lead_one.status else 0.0,
       "leadProb": lead_prob,
