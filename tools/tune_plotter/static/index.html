@@ -85,13 +85,6 @@
       </div>
       <canvas id="c3"></canvas>
     </div>
-    <div class="chart">
-      <div class="legend">
-        <span class="muted">DNGA Brake Magnitude (raw shaped output)</span>
-        <span><span class="sw" style="background:#f43f5e"></span>dngaBrakeMagnitudeRaw</span>
-      </div>
-      <canvas id="c4"></canvas>
-    </div>
   </div>
 
   <script>
@@ -110,7 +103,6 @@
       latI: [],
       latF: [],
       stockAccCmd: [],
-      dngaBrakeMagnitudeRaw: [],
       vEgo: 0.0,
       vCruise: 0.0,
       leadRelDist: 0.0,
@@ -134,7 +126,6 @@
       state.latI.push(sample.latI);
       state.latF.push(sample.latF);
       state.stockAccCmd.push(sample.stockAccCmd);
-      state.dngaBrakeMagnitudeRaw.push(sample.dngaBrakeMagnitudeRaw);
       state.vEgo = Number.isFinite(sample.vEgo) ? sample.vEgo : 0.0;
       state.vCruise = Number.isFinite(sample.vCruise) ? sample.vCruise : 0.0;
       state.leadRelDist = Number.isFinite(sample.leadRelDist) ? sample.leadRelDist : 0.0;
@@ -240,7 +231,6 @@
     const c1 = $("c1");
     const c2 = $("c2");
     const c3 = $("c3");
-    const c4 = $("c4");
 
     function render() {
       $("currentSpeed").textContent = `${state.vEgo.toFixed(1)} km/h`;
@@ -265,9 +255,6 @@
       draw(c3, [
         { ys: state.stockAccCmd, color: "#f59e0b" },
       ]);
-      draw(c4, [
-        { ys: state.dngaBrakeMagnitudeRaw, color: "#f43f5e" },
-      ], [0.0, 1.6]);
       requestAnimationFrame(render);
     }
     requestAnimationFrame(render);
