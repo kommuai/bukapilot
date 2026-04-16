@@ -11,6 +11,10 @@ class LatControl(ABC):
 
     # we define the steer torque scale as [-1.0...1.0]
     self.steer_max = 1.0
+    thr = float(CP.steerSaturationThreshold)
+    if thr <= 0.0 or thr > self.steer_max:
+      thr = self.steer_max
+    self.steer_saturation_threshold = thr
 
   @abstractmethod
   def update(self, active: bool, CS, VM, params, steer_limited_by_safety: bool, desired_curvature: float, curvature_limited: bool, lat_delay: float):
