@@ -57,6 +57,26 @@ cd "$BUILD_DIR"
 rm -f panda/board/obj/panda.bin.signed
 rm -f panda/board/obj/panda_h7.bin.signed
 
+# KA2 fix: modeld transform kernels use compile-time paths from SConscript.
+# Building in /data/openpilot-release but running from /data/openpilot can break OpenCL loads.
+# Rewrite path defines to a stable runtime base path (default: /data/openpilot).
+OPENPILOT_RUNTIME_BASE="${OPENPILOT_RUNTIME_BASE:-/data/openpilot}"
+python - "$OPENPILOT_RUNTIME_BASE" <<'PY'
+from pathlib import Path
+import sys
+
+runtime_base = sys.argv[1].rstrip("/")
+sconscript = Path("selfdrive/modeld/SConscript")
+text = sconscript.read_text()
+needle = "xenv['CXXFLAGS'].append(f'-D{pathdef}_PATH=\\\\\"{File(fn).abspath}\\\\\"')"
+replacement = f"xenv['CXXFLAGS'].append(f'-D{{pathdef}}_PATH=\\\\\\\"{runtime_base}/selfdrive/modeld/{{fn}}\\\\\\\"')"
+if needle not in text:
+  raise SystemExit("Failed to patch selfdrive/modeld/SConscript for runtime OpenCL paths")
+text = text.replace(needle, replacement)
+sconscript.write_text(text)
+print(f"patched {sconscript} with OPENPILOT_RUNTIME_BASE={runtime_base}")
+PY
+
 VERSION=$(cat common/version.h | awk -F[\"-]  '{print $2}')
 echo "[-] committing version $VERSION T=$SECONDS"
 # Kommu convention: mark release builds in version string
@@ -76,15 +96,61 @@ if [ -z "${JOBS:-}" ]; then
   fi
 fi
 
-scons -j"$JOBS" --minimal
+# KA2 runtime needs modeld/dmonitoring OpenCL pieces available.
+# Some minimal builds can lead to runtime clutil assertions:
+# "program contains no kernel information".
+# Default to full build on KA2; allow explicit opt-in to minimal.
+if [ "${RELEASE_SCONS_MINIMAL:-0}" = "1" ]; then
+  scons -j"$JOBS" --minimal
+else
+  scons -j"$JOBS"
+fi
 
-if [ -z "${PANDA_DEBUG_BUILD:-}" ]; then
+# Default: do NOT sign panda (debug/unsigned-style build).
+# To build signed release panda firmware, set SIGN_PANDA_RELEASE=1 and provide CERT (or PANDA_CERT).
+if [ -n "${SIGN_PANDA_RELEASE:-}" ]; then
+  # RELEASE panda build requires CERT to be an absolute path to a certificate file.
+  # You can provide CERT directly, or point PANDA_CERT at either a file or a directory
+  # containing a cert file.
   PANDA_CERT="${PANDA_CERT:-/data/pandaextra/certs/release}"
-  if [ -d "$PANDA_CERT" ]; then
-    CERT="$PANDA_CERT" RELEASE=1 scons -j"$JOBS" panda/
-  else
-    RELEASE=1 scons -j"$JOBS" panda/
+
+  CERT_PATH="${CERT:-}"
+  if [ -z "$CERT_PATH" ] && [ -n "$PANDA_CERT" ]; then
+    if [ -f "$PANDA_CERT" ]; then
+      CERT_PATH="$PANDA_CERT"
+    elif [ -d "$PANDA_CERT" ]; then
+      for c in \
+        "$PANDA_CERT/release" \
+        "$PANDA_CERT/release.pem" \
+        "$PANDA_CERT/release.key" \
+        "$PANDA_CERT/cert.pem" \
+        "$PANDA_CERT/certificate.pem" \
+        "$PANDA_CERT/signing.pem" \
+        "$PANDA_CERT/signing.key"
+      do
+        if [ -f "$c" ]; then
+          CERT_PATH="$c"
+          break
+        fi
+      done
+      if [ -z "$CERT_PATH" ]; then
+        for c in $(compgen -G "$PANDA_CERT/*.pem" || true); do
+          if [ -f "$c" ]; then
+            CERT_PATH="$c"
+            break
+          fi
+        done
+      fi
+    fi
   fi
+
+  if [ -z "$CERT_PATH" ] || [ ! -f "$CERT_PATH" ]; then
+    echo "Missing panda signing certificate for RELEASE build."
+    echo "Set CERT=/absolute/path/to/cert (file), or set PANDA_CERT to a cert file or directory."
+    exit 1
+  fi
+
+  CERT="$CERT_PATH" RELEASE=1 scons -j"$JOBS" panda/
 else
   scons -j"$JOBS" panda/
 fi
@@ -129,8 +195,5 @@ if [ -z "${SKIP_TESTS:-}" ]; then
   cd "$BUILD_DIR"
   RELEASE=1 pytest -n0 -s selfdrive/test/test_onroad.py
 fi
-
-echo "[-] pushing release T=$SECONDS"
-git push -f origin "$RELEASE_BRANCH:$RELEASE_BRANCH"
 
 echo "[-] done T=$SECONDS"
