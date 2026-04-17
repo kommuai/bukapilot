@@ -219,7 +219,7 @@ class CarState(CarStateBase):
 
     self.cruise_speed = self._clip_cruise_speed(self.cruise_speed)
     ret.cruiseState.speedCluster = self.cruise_speed
-    ret.cruiseState.speed = ret.cruiseState.speedCluster
+    ret.cruiseState.speed = float(ret.cruiseState.speedCluster / np.interp(ret.vEgo, [0, 140], [1.0615, 1.0170]))
 
     ret.cruiseState.standstill = False
     ret.cruiseState.nonAdaptive = False
