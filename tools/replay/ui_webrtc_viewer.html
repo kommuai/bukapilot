@@ -1,0 +1,106 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Replay UI WebRTC Viewer</title>
+  <style>
+    body { margin: 0; padding: 16px; background: #111; color: #eee; font-family: sans-serif; }
+    video { width: min(96vw, 1400px); max-height: 85vh; border: 1px solid #444; background: #000; }
+    .row { margin-top: 10px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    input { background: #222; color: #eee; border: 1px solid #555; padding: 6px 8px; }
+    button { padding: 6px 10px; }
+    .dim { color: #aaa; }
+  </style>
+</head>
+<body>
+  <h3>Replay UI WebRTC Viewer</h3>
+  <video id="video" autoplay playsinline controls muted></video>
+  <div class="row">
+    <label>Signaling URL</label>
+    <input id="signalUrl" size="48" />
+    <button id="connect">Connect</button>
+    <button id="disconnect">Disconnect</button>
+    <span id="status" class="dim">idle</span>
+  </div>
+
+  <script>
+    let pc = null;
+    const statusEl = document.getElementById("status");
+    const signalUrlEl = document.getElementById("signalUrl");
+    const videoEl = document.getElementById("video");
+
+    function setStatus(s) { statusEl.textContent = s; }
+
+    function defaultSignalingUrl() {
+      const isHttp = window.location.protocol === "http:" || window.location.protocol === "https:";
+      const host = window.location.hostname || "127.0.0.1";
+      const port = window.location.port || "8083";
+      if (isHttp) return `${window.location.protocol}//${host}:${port}/offer`;
+      return `http://${host}:8083/offer`;
+    }
+
+    async function connect() {
+      if (pc) {
+        await disconnect();
+      }
+      setStatus("connecting...");
+      const offerUrl = signalUrlEl.value.trim();
+      pc = new RTCPeerConnection({ sdpSemantics: "unified-plan" });
+      pc.addTransceiver("video", { direction: "recvonly" });
+      pc.ontrack = (ev) => { videoEl.srcObject = ev.streams[0]; };
+
+      const offer = await pc.createOffer();
+      await pc.setLocalDescription(offer);
+
+      await new Promise((resolve) => {
+        if (pc.iceGatheringState === "complete") return resolve();
+        const done = () => {
+          if (pc.iceGatheringState === "complete") {
+            pc.removeEventListener("icegatheringstatechange", done);
+            resolve();
+          }
+        };
+        pc.addEventListener("icegatheringstatechange", done);
+      });
+
+      const resp = await fetch(offerUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sdp: pc.localDescription.sdp,
+          type: pc.localDescription.type,
+        }),
+      });
+
+      if (!resp.ok) {
+        throw new Error(`signaling failed: ${resp.status}`);
+      }
+
+      const ans = await resp.json();
+      await pc.setRemoteDescription(ans);
+      setStatus("connected");
+    }
+
+    async function disconnect() {
+      if (pc) {
+        pc.close();
+        pc = null;
+      }
+      videoEl.srcObject = null;
+      setStatus("disconnected");
+    }
+
+    document.getElementById("connect").onclick = async () => {
+      try {
+        await connect();
+      } catch (e) {
+        setStatus(`error: ${e.message || e}`);
+      }
+    };
+    document.getElementById("disconnect").onclick = disconnect;
+
+    signalUrlEl.value = defaultSignalingUrl();
+  </script>
+</body>
+</html>
