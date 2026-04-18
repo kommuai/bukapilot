@@ -96,17 +96,50 @@ def slot_number_to_suffix(slot_number: int) -> str:
   return '_a' if slot_number == 0 else '_b'
 
 
-def slot_number_to_partition_suffix(slot_number: int) -> str:
-  assert slot_number in (0, 1)
-  return '' if slot_number == 0 else '_b'
-
-
 def get_partition_path(target_slot_number: int, partition: dict) -> str:
+  # On KA2 the inactive slot is always labeled `<name>_b` and the active
+  # slot is always labeled `<name>` (see /usr/kommu/rename_labels.sh, which
+  # runs on every swap). `target_slot_number` is, by definition, the
+  # inactive slot, so resolve writes via the label convention instead of
+  # a slot-index lookup. The previous implementation indexed by slot
+  # number (slot 0 -> "", slot 1 -> "_b"), which was only correct while
+  # slot A was active; on slot B the "target" path resolved to the
+  # currently-mounted root partition and a flash would overwrite it.
+  del target_slot_number  # unused; kept in signature for API compatibility
   path = f"/dev/disk/by-partlabel/{partition['name']}"
   if partition.get('has_ab', True):
-    path += slot_number_to_partition_suffix(target_slot_number)
-
+    path += "_b"
   return path
+
+
+def _assert_safe_target_path(path: str) -> None:
+  """Refuse to write to a device node currently mounted as the root fs.
+
+  Defense-in-depth against any future slot-resolution bug that could cause
+  the updater to target the running filesystem's backing partition.
+  """
+  mounted_root: str | None = None
+  try:
+    with open("/proc/mounts", "r") as f:
+      for line in f:
+        parts = line.split()
+        if len(parts) >= 2 and parts[1] == "/":
+          mounted_root = parts[0]
+          break
+  except Exception:
+    return  # fail-open if /proc/mounts is unreadable; don't block legit flashes
+  if not mounted_root:
+    return
+  try:
+    target_real = os.path.realpath(path)
+    root_real = os.path.realpath(mounted_root)
+  except Exception:
+    return
+  if target_real and target_real == root_real:
+    raise Exception(
+      f"refusing to flash {path}: it resolves to the currently-mounted "
+      f"root partition ({mounted_root}); aborting to protect the active slot."
+    )
 
 
 def get_raw_hash(path: str, partition_size: int) -> str:
@@ -145,6 +178,7 @@ def verify_partition(target_slot_number: int, partition: dict[str, str | int], f
 
 def clear_partition_hash(target_slot_number: int, partition: dict) -> None:
   path = get_partition_path(target_slot_number, partition)
+  _assert_safe_target_path(path)
   with open(path, 'wb+') as out:
     partition_size = partition['size']
 
@@ -155,6 +189,7 @@ def clear_partition_hash(target_slot_number: int, partition: dict) -> None:
 
 def extract_compressed_image(target_slot_number: int, partition: dict, cloudlog):
   path = get_partition_path(target_slot_number, partition)
+  _assert_safe_target_path(path)
   downloader = StreamingDecompressor(partition['url'])
 
   with open(path, 'wb+') as out:
@@ -184,8 +219,15 @@ def extract_compressed_image(target_slot_number: int, partition: dict, cloudlog)
 
 def extract_casync_image(target_slot_number: int, partition: dict, cloudlog):
   path = get_partition_path(target_slot_number, partition)
-  seed_slot_number = 1 - target_slot_number
-  seed_path = get_partition_path(seed_slot_number, partition)
+  # Seed from the currently-active slot. On KA2 the active partition is
+  # always labeled `<name>` (no suffix) per /usr/kommu/rename_labels.sh.
+  # Note: casync is not exercised on KA2 today (flash_partition always
+  # takes the extract_compressed_image path), but keep this correct in
+  # case it is ever enabled.
+  if partition.get('has_ab', True):
+    seed_path = f"/dev/disk/by-partlabel/{partition['name']}"
+  else:
+    seed_path = path
 
   target = casync.parse_caibx(partition['casync_caibx'])
 
@@ -245,6 +287,7 @@ def flash_partition(target_slot_number: int, partition: dict, cloudlog, standalo
 
   # Write hash after successful flash
   if not full_check:
+    _assert_safe_target_path(path)
     with open(path, 'wb+') as out:
       out.seek(partition['size'])
       out.write(partition['hash_raw'].lower().encode())
