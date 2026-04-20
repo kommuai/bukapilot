@@ -14,7 +14,7 @@ from openpilot.system.hardware.ka2 import iwlist
 # Use nmcli/mmcli subprocesses instead of python-dbus to avoid
 # "malloc unaligned fastbin chunk detected" thread-unsafe C-library D-Bus errors.
 
-SD_CARD_PARTITION_DEVICE = "/dev/mmcblk1p1"
+SD_CARD_DEVICE = "/dev/mmcblk1"
 NetworkType = log.DeviceState.NetworkType
 NetworkStrength = log.DeviceState.NetworkStrength
 
@@ -63,8 +63,8 @@ class Ka2(HardwareBase):
 
   def _sd_inserted(self) -> bool:
     try:
-      out = (subprocess.run(["lsblk", "-d", "-n", "-o", "NAME"], capture_output=True, text=True).stdout or "").strip()
-      return out and SD_CARD_PARTITION_DEVICE.rsplit("/", 1)[-1].replace("p1", "") in out.splitlines()
+      out = subprocess.run(["lsblk", "-d", "-n", "-o", "NAME"], capture_output=True, text=True).stdout.strip()
+      return SD_CARD_DEVICE.rsplit("/", 1)[-1] in out.splitlines()
     except Exception:
       return False
 
@@ -75,23 +75,36 @@ class Ka2(HardwareBase):
         return "SD card not inserted"
       if subprocess.run(["pgrep", "-x", "mkfs.ext4"], check=False).returncode == 0:
         return "Formatting SD card"
-      return None if (subprocess.run(  # None if already formatted.
-        ["blkid", "-o", "value", "-s", "TYPE", SD_CARD_PARTITION_DEVICE],
-        capture_output=True, text=True
-      ).stdout or "").strip() == "ext4" else nf
+      if not (out := subprocess.run(["lsblk", "-n", "-r", "-o", "NAME,TYPE", SD_CARD_DEVICE],
+                                    capture_output=True, text=True).stdout.splitlines()):
+        return nf
+      parts = [line.split()[0] for line in out if "part" in line]
+      if len(parts) != 1 or (fs := subprocess.run(["blkid", "-o", "value", "-s", "TYPE", f"/dev/{parts[0]}"],
+                                                  capture_output=True, text=True).stdout.strip()) != "ext4":
+        return nf
+      return None
     except Exception:
       return nf
 
-  def format_sd(self) -> bool:
+  def format_sd(self) -> None:
     from openpilot.common.swaglog import cloudlog
     try:
-      subprocess.run(["sudo", "umount", SD_CARD_PARTITION_DEVICE], stderr=subprocess.DEVNULL, check=False)
-      subprocess.run(f"echo y | sudo mkfs.ext4 {SD_CARD_PARTITION_DEVICE}", shell=True, check=True)
-      cloudlog.info(f"Successfully formatted {SD_CARD_PARTITION_DEVICE} as ext4.")
-      return True
+      if (st := self.sd_status()) is None or ("not inserted" not in (st_l := st.lower()) and "formatting" not in st_l):
+        def worker():
+          try:
+            # Run unmount and wipe together so the device is cleared right after unmount, avoiding remount and busy errors
+            subprocess.run(f"sudo umount {SD_CARD_DEVICE}p*; sudo wipefs -a {SD_CARD_DEVICE}", shell=True, check=True)
+            subprocess.run(["sudo", "sfdisk", SD_CARD_DEVICE], input="label: dos\n,;\n", text=True, check=True)
+            subprocess.run(["sudo", "partprobe", SD_CARD_DEVICE], check=True)
+            subprocess.run(["sudo", "udevadm", "trigger"], check=True)
+            subprocess.run(f"echo y | sudo mkfs.ext4 {SD_CARD_DEVICE}p1", shell=True, check=True)
+            r = subprocess.run(["sudo", "mount", "-a"], capture_output=True, text=True)
+            cloudlog.info("SD card formatted and mounted successfully." if r.returncode == 0 else f"Mount failed: {r.stderr.strip()}")
+          except Exception as e:
+            cloudlog.warning(f"SD format error: {e}")
+        threading.Thread(target=worker, daemon=True).start()
     except Exception as e:
-      cloudlog.warning(f"Unexpected error while formatting SD: {e}")
-      return False
+      cloudlog.warning(f"SD format error: {e}")
 
   def _run_nmcli(self, args, timeout=5) -> str:
     try:

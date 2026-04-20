@@ -4,6 +4,7 @@ import threading
 from cereal import log
 from openpilot.system.hardware.ka2.hardware import Ka2
 
+# Rate limit interval to avoid repeated D-Bus calls that can crash
 QUERY_INTERVAL = 2.0
 
 NetworkType = log.DeviceState.NetworkType
@@ -17,13 +18,13 @@ NETWORK_TYPES = {
 
 class HardwareHelper:
   # Provides a self-contained cache with refresh loop to ensure values stay current
-  def __init__(self, query_interval=QUERY_INTERVAL):
+  def __init__(self):
     self._ka2 = Ka2()
     self._lock = threading.Lock()
     self._cached_network_type = NetworkType.none
     self._cached_cellular_bundle = self._default_cellular_bundle()
     self._cached_sd_status = None
-    self._query_interval = query_interval
+    self._last_sd_format_time = 0
     threading.Thread(target=self._refresh_loop, daemon=True).start()
 
   def _default_cellular_bundle(self) -> dict:
@@ -56,7 +57,7 @@ class HardwareHelper:
         self._cached_network_type = nt
         self._cached_cellular_bundle = cb
         self._cached_sd_status = sd
-      time.sleep(self._query_interval)
+      time.sleep(QUERY_INTERVAL)
 
   def get_network_type(self) -> str:
     with self._lock:
@@ -69,3 +70,9 @@ class HardwareHelper:
   def get_sd_status(self) -> str | None:
     with self._lock:
       return self._cached_sd_status
+
+  def format_sd(self) -> None:
+    if (now := time.monotonic()) - self._last_sd_format_time < QUERY_INTERVAL:
+      return
+    self._last_sd_format_time = now
+    self._ka2.format_sd()

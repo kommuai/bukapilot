@@ -389,7 +389,7 @@ class AppBridge:
                 forget_wifi_network(ssid)
         case 'formatSD':
           if is_offroad:
-            safe_put_all({"FormatSDCard": True}, True)
+            self.hw_helper.format_sd()
         case 'remoteSupport':
           self.run_remote_support()
         case 'scanWifi':

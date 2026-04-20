@@ -58,9 +58,6 @@ def only_onroad(started: bool, params: Params, CP: car.CarParams) -> bool:
 def only_offroad(started: bool, params: Params, CP: car.CarParams) -> bool:
   return not started
 
-def format_sd(started: bool, params: Params, CP: car.CarParams) -> bool:
-  return params.get_bool("FormatSDCard")
-
 def or_(*fns):
   return lambda *args: operator.or_(*(fn(*args) for fn in fns))
 
@@ -82,7 +79,6 @@ procs = [
   PythonProcess("micd", "system.micd", iscar),
   PythonProcess("timed", "system.timed", always_run, enabled=not PC),
   PythonProcess("appbridged", "selfdrive.appbridged.appbridged", always_run, enabled=not PC),
-  PythonProcess("sdformatterd", "system.hardware.ka2.formatdevice", format_sd, enabled=not PC),
   PythonProcess("setapnd", "system.hardware.ka2.setapn", always_run, enabled=KA2),
   PythonProcess("indicatord", "system.hardware.ka2.status_led.indicatord", always_run, enabled=KA2),
 
