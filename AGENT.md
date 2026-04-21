@@ -19,7 +19,7 @@ This repo runs on a **Kommu KA2** (Rockchip RK3588). Hardware selection is **run
 
 - **Process supervisor**: `openpilot/system/manager/manager.py`
 - **Process list + gating**: `openpilot/system/manager/process_config.py`
-  - KA2-only processes include `system.hardware.ka2.setapn`, `system.hardware.ka2.status_led.indicatord`, `system.hardware.ka2.formatdevice`
+  - KA2-only processes include `system.hardware.ka2.status_led.indicatord`
 - **Device state / onroad-offroad logic**: `openpilot/system/hardware/hardwared.py`
 - **Device paths (logs/params)**: `openpilot/system/hardware/hw.h` (C++ Path helpers used widely)
 
@@ -31,7 +31,8 @@ This repo runs on a **Kommu KA2** (Rockchip RK3588). Hardware selection is **run
 - **AGNOS updater for KA2**: `openpilot/system/hardware/ka2/agnos.py` + `agnos.json`
   - `launch_chffrplus.sh` picks KA2 manifest when `/KA2` exists
 - **Status LED service**: `openpilot/system/hardware/ka2/status_led/indicatord.py`
-- **APN override loop**: `openpilot/system/hardware/ka2/setapn.py`
+- **APN (`GsmApn`) updates from the app**: `openpilot/selfdrive/appbridged/appbridged.py`
+  - writes `GsmApn` then runs `/usr/kommu/lte/wwan0-setup.sh` (the script reads `GsmApn` for manual APN vs auto APN)
 
 ### Repo top-level map (what’s where)
 
@@ -56,6 +57,6 @@ This repo runs on a **Kommu KA2** (Rockchip RK3588). Hardware selection is **run
 ### Fast “where is X handled?” pointers
 
 - **Start/stop conditions**: `hardwared.py` publishes `deviceState.started`; `manager.py` uses it to gate processes.
-- **Network/modem**: KA2 modem logic in `system/hardware/ka2/hardware.py`; APN policy in `system/hardware/ka2/setapn.py`.
+- **Network/modem**: KA2 modem bring-up in `system/hardware/ka2/hardware.py`; APN selection + `wwan0` setup in `/usr/kommu/lte/wwan0-setup.sh` (reads `GsmApn`); BLE-driven APN changes in `selfdrive/appbridged/appbridged.py`.
 - **Adding a new daemon**: add to `process_config.py` and ensure gating function reflects KA2 needs.
 

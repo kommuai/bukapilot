@@ -79,7 +79,6 @@ procs = [
   PythonProcess("micd", "system.micd", iscar),
   PythonProcess("timed", "system.timed", always_run, enabled=not PC),
   PythonProcess("appbridged", "selfdrive.appbridged.appbridged", always_run, enabled=not PC),
-  PythonProcess("setapnd", "system.hardware.ka2.setapn", always_run, enabled=KA2),
   PythonProcess("indicatord", "system.hardware.ka2.status_led.indicatord", always_run, enabled=KA2),
 
   PythonProcess("modeld", "selfdrive.modeld.modeld", only_onroad),

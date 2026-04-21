@@ -40,6 +40,7 @@ UPDATE_PROCESS = "system.updated.updated"
 HOTSPOT_SERVICE = "wlan1-setup.service"
 SM_UPDATE_INTERVAL = 33 # in ms, the interval where capnp submaster updates
 features = Features()
+WWAN_SETUP = "/usr/kommu/lte/wwan0-setup.sh"
 
 # Call functions with cached values only once
 SUPPORTED_CARS = supported_cars()
@@ -352,6 +353,13 @@ class AppBridge:
             features.set_features(features_to_set)
           if (apn := settings.pop('GsmApn', None)) is not None:
             params.put_nonblocking("GsmApn", apn)
+            def apply_apn_worker():
+              try:
+                mcc_mnc = str((HARDWARE.get_sim_info() or {}).get("mcc_mnc", "")).strip()
+                subprocess.run(["bash", WWAN_SETUP, mcc_mnc], timeout=60, check=False)
+              except Exception as e:
+                cloudlog.warning(f"GSM APN apply error: {e}")
+            threading.Thread(target=apply_apn_worker, daemon=True).start()
           # Put string setting if not one of the above keys, ensure above keys are popped so they will not be set below
           safe_put_all(settings)
         case 'resetCalibration':
