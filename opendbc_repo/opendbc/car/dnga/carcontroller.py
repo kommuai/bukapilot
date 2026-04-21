@@ -80,8 +80,8 @@ class CarController(CarControllerBase):
 
   def _get_desired_speed(self, CS, acceleration):
     accel_cmd = acceleration
-    t_lookup = 0.42 + 0.07 * CS.out.vEgo
-    a_tau = (accel_cmd * t_lookup) if CS.out.vEgo > 1.2 else 0.0
+    t_lookup = 0.35 + 0.07 * CS.out.vEgo
+    a_tau = (accel_cmd * t_lookup)
     desired_speed = CS.out.vEgo + a_tau
     return accel_cmd, desired_speed
 
@@ -89,7 +89,7 @@ class CarController(CarControllerBase):
     if CS.out.gasPressed or acceleration >= 0.0:
       apply_brake = 0.0
     else:
-      speed_scale = float(np.interp(CS.out.vEgo, [0.0, 140.0 * CV.KPH_TO_MS], [1.0, 1.0 / 2.0]))
+      speed_scale = float(np.interp(CS.out.vEgo, [0.0, 140.0 * CV.KPH_TO_MS], [1.0, 1.0 / 1.5]))
       base_brake = abs(acceleration * self.brake_scale * speed_scale)
       apply_brake = float(np.clip(base_brake, 0.0, BRAKE_DECEL_CMD_MAX))
     return apply_brake
@@ -145,7 +145,7 @@ class CarController(CarControllerBase):
 
     new_steer = int(round(actuators.torque * self.params.STEER_MAX))
     apply_steer = apply_driver_steer_torque_limits(
-      new_steer, self.last_steer, CS.out.steeringTorqueEps, self.params
+      new_steer, self.last_steer, 0, self.params
     )
 
     stock_brake_mag = float(getattr(CS, "stock_brake_mag", 0.0))
