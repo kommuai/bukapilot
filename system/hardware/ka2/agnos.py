@@ -7,6 +7,7 @@ import struct
 import subprocess
 import time
 from collections.abc import Generator
+from typing import Callable
 
 import requests
 
@@ -16,11 +17,22 @@ SPARSE_CHUNK_FMT = struct.Struct('H2xI4x')
 CAIBX_URL = "https://commadist.azureedge.net/agnosupdate/"
 
 
+def _pct_done(numer: int, denom: int) -> int:
+  return 0 if denom <= 0 else max(0, min(100, (numer * 100 + denom - 1) // denom))
+
+
+def _emit_progress(progress_callback: Callable[[int], None] | None, p: int) -> None:
+  progress_callback and progress_callback(p)
+
+
 class StreamingDecompressor:
-  def __init__(self, url: str) -> None:
+  def __init__(self, url: str, on_download_percent: Callable[[int], None] | None = None) -> None:
     self.buf = b""
+    self.on_download_percent = on_download_percent
+    self.downloaded_bytes = 0
 
     self.req = requests.get(url, stream=True, headers={'Accept-Encoding': None}, timeout=60)
+    self.total_bytes = int(cl) if (cl := self.req.headers.get("Content-Length")) is not None else 0
     self.it = self.req.iter_content(chunk_size=1024 * 1024)
     self.decompressor = lzma.LZMADecompressor(format=lzma.FORMAT_AUTO)
     self.eof = False
@@ -34,7 +46,12 @@ class StreamingDecompressor:
         compressed = next(self.it)
       except StopIteration:
         self.eof = True
+        if (progress_callback := self.on_download_percent) is not None and (tb := self.total_bytes) > 0:
+          _emit_progress(progress_callback, _pct_done(max(self.downloaded_bytes, tb), tb))
         break
+      self.downloaded_bytes += len(compressed)
+      if (tb := self.total_bytes) > 0:
+        _emit_progress(self.on_download_percent, _pct_done(self.downloaded_bytes, tb))
       out = self.decompressor.decompress(compressed)
       self.buf += out
 
@@ -187,47 +204,54 @@ def clear_partition_hash(target_slot_number: int, partition: dict) -> None:
     os.sync()
 
 
-def extract_compressed_image(target_slot_number: int, partition: dict, cloudlog):
+def extract_compressed_image(target_slot_number: int, partition: dict, cloudlog, on_progress: Callable[[int], None] | None = None):
   path = get_partition_path(target_slot_number, partition)
   _assert_safe_target_path(path)
-  downloader = StreamingDecompressor(partition['url'])
+  size, last_download_p, last_emitted_p = partition['size'], -1, -1
 
+  def emit_monotonic_progress(progress_percent: int) -> None:
+    nonlocal last_emitted_p
+    if (p := max(last_emitted_p, progress_percent)) != last_emitted_p:
+      last_emitted_p = p
+      _emit_progress(on_progress, p)
+
+  def on_download_progress(download_percent: int) -> None:
+    nonlocal last_download_p
+    if (p := max(0, min(download_percent, 100))) != last_download_p:
+      last_download_p = p
+      emit_monotonic_progress(p)
+
+  downloader = StreamingDecompressor(partition['url'], on_download_percent=on_download_progress)
   with open(path, 'wb+') as out:
     # Flash partition
-    last_p = 0
-    raw_hash = hashlib.sha256()
-    f = unsparsify if partition['sparse'] else noop
+    last_p, raw_hash, f = 0, hashlib.sha256(), unsparsify if partition['sparse'] else noop
     for chunk in f(downloader):
       raw_hash.update(chunk)
       out.write(chunk)
-      p = int(out.tell() / partition['size'] * 100)
-      if p != last_p:
+      if (p := _pct_done(out.tell(), size)) != last_p:
         last_p = p
         print(f"Installing {partition['name']}: {p}", flush=True)
+        emit_monotonic_progress(p)
 
-    if raw_hash.hexdigest().lower() != partition['hash_raw'].lower():
-      raise Exception(f"Raw hash mismatch '{raw_hash.hexdigest().lower()}'")
-
-    if downloader.sha256.hexdigest().lower() != partition['hash'].lower():
-      raise Exception(f"Uncompressed hash mismatch '{downloader.sha256.hexdigest().lower()}'")
-
-    if out.tell() != partition['size']:
+    if (rh := raw_hash.hexdigest().lower()) != partition['hash_raw'].lower():
+      raise Exception(f"Raw hash mismatch '{rh}'")
+    if (dh := downloader.sha256.hexdigest().lower()) != partition['hash'].lower():
+      raise Exception(f"Uncompressed hash mismatch '{dh}'")
+    if (tell := out.tell()) != size:
       raise Exception("Uncompressed size mismatch")
-
+    emit_monotonic_progress(_pct_done(tell, size))
     os.sync()
 
 
-def extract_casync_image(target_slot_number: int, partition: dict, cloudlog):
+def extract_casync_image(target_slot_number: int, partition: dict, cloudlog, on_progress: Callable[[int], None] | None = None):
   path = get_partition_path(target_slot_number, partition)
   # Seed from the currently-active slot. On KA2 the active partition is
   # always labeled `<name>` (no suffix) per /usr/kommu/rename_labels.sh.
   # Note: casync is not exercised on KA2 today (flash_partition always
   # takes the extract_compressed_image path), but keep this correct in
   # case it is ever enabled.
-  if partition.get('has_ab', True):
-    seed_path = f"/dev/disk/by-partlabel/{partition['name']}"
-  else:
-    seed_path = path
+  size = partition['size']
+  seed_path = f"/dev/disk/by-partlabel/{partition['name']}" if partition.get('has_ab', True) else path
 
   target = casync.parse_caibx(partition['casync_caibx'])
 
@@ -235,7 +259,7 @@ def extract_casync_image(target_slot_number: int, partition: dict, cloudlog):
 
   # First source is the current partition.
   try:
-    raw_hash = get_raw_hash(seed_path, partition['size'])
+    raw_hash = get_raw_hash(seed_path, size)
     caibx_url = f"{CAIBX_URL}{partition['name']}-{raw_hash}.caibx"
 
     try:
@@ -253,13 +277,14 @@ def extract_casync_image(target_slot_number: int, partition: dict, cloudlog):
   sources += [('remote', casync.RemoteChunkReader(partition['casync_store']), casync.build_chunk_dict(target))]
 
   last_p = 0
+  _emit_progress(on_progress, _pct_done(0, size))
 
   def progress(cur):
     nonlocal last_p
-    p = int(cur / partition['size'] * 100)
-    if p != last_p:
+    if (p := _pct_done(cur, size)) != last_p:
       last_p = p
       print(f"Installing {partition['name']}: {p}", flush=True)
+      _emit_progress(on_progress, p)
 
   stats = casync.extract(target, sources, path, progress)
   cloudlog.error(f'casync done {json.dumps(stats)}')
@@ -267,9 +292,10 @@ def extract_casync_image(target_slot_number: int, partition: dict, cloudlog):
   os.sync()
   if not verify_partition(target_slot_number, partition, force_full_check=True):
     raise Exception(f"Raw hash mismatch '{partition['hash_raw'].lower()}'")
+  _emit_progress(on_progress, _pct_done(size, size))
 
 
-def flash_partition(target_slot_number: int, partition: dict, cloudlog, standalone=False):
+def flash_partition(target_slot_number: int, partition: dict, cloudlog, standalone=False, on_progress: Callable[[int], None] | None = None):
   cloudlog.info(f"Downloading and writing {partition['name']}")
 
   if verify_partition(target_slot_number, partition):
@@ -283,7 +309,7 @@ def flash_partition(target_slot_number: int, partition: dict, cloudlog, standalo
 
   path = get_partition_path(target_slot_number, partition)
 
-  extract_compressed_image(target_slot_number, partition, cloudlog)
+  extract_compressed_image(target_slot_number, partition, cloudlog, on_progress)
 
   # Write hash after successful flash
   if not full_check:
@@ -310,29 +336,46 @@ def swap(manifest_path: str, target_slot_number: int, cloudlog) -> None:
       cloudlog.error(f"Swap failed {out}")
 
 
-def flash_agnos_update(manifest_path: str, target_slot_number: int, cloudlog, standalone=False) -> None:
+def flash_agnos_update(manifest_path: str, target_slot_number: int, cloudlog, standalone=False,
+                       on_progress: Callable[[int], None] | None = None) -> None:
   update = json.load(open(manifest_path))
+  last_emitted_p = -1
+  total_size = sum(p['size'] for p in update if isinstance(p.get('size'), int))
+  completed_size = 0
+
+  def on_overall_progress(progress_percent: int) -> None:
+    nonlocal last_emitted_p
+    if (p := max(last_emitted_p, progress_percent)) != last_emitted_p:
+      last_emitted_p = p
+      _emit_progress(on_progress, p)
 
   cloudlog.info(f"Target slot {target_slot_number}")
 
   for partition in update:
-    success = False
+    partition_size = partition['size'] if isinstance(partition.get('size'), int) else 0
+
+    def on_partition_progress(partition_percent: int, base: int = completed_size, size: int = partition_size) -> None:
+      if total_size > 0:
+        on_overall_progress((base * 100 + size * max(0, min(partition_percent, 100))) // total_size)
+      else:
+        on_overall_progress(max(0, min(partition_percent, 100)))
 
     for retries in range(10):
       try:
-        flash_partition(target_slot_number, partition, cloudlog, standalone)
-        success = True
+        flash_partition(target_slot_number, partition, cloudlog, standalone, on_partition_progress)
         break
-
       except requests.exceptions.RequestException:
         cloudlog.exception("Failed")
         cloudlog.info(f"Failed to download {partition['name']}, retrying ({retries})")
         time.sleep(10)
-
-    if not success:
+    else:
       cloudlog.info(f"Failed to flash {partition['name']}, aborting")
       raise Exception("Maximum retries exceeded")
+    completed_size += partition_size
+    if total_size > 0:
+      on_overall_progress(_pct_done(completed_size, total_size))
 
+  on_overall_progress(_pct_done(total_size, total_size))
   cloudlog.info(f"AGNOS ready on slot {target_slot_number}")
 
 

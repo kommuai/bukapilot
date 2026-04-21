@@ -232,7 +232,7 @@ def finalize_update() -> None:
 
 
 def handle_agnos_update() -> None:
-  if HARDWARE.get_device_type() == 'ka2':
+  if is_ka2 := HARDWARE.get_device_type() == 'ka2':
     from openpilot.system.hardware.ka2.agnos import flash_agnos_update, get_target_slot_number
   else:
     from openpilot.system.hardware.tici.agnos import flash_agnos_update, get_target_slot_number
@@ -251,12 +251,16 @@ def handle_agnos_update() -> None:
   cloudlog.info(f"Beginning background installation for AGNOS {updated_version}")
   set_offroad_alert("Offroad_NeosUpdate", True)
 
-  if HARDWARE.get_device_type() == 'ka2':
-    manifest_path = os.path.join(OVERLAY_MERGED, "system/hardware/ka2/agnos.json")
-  else:
-    manifest_path = os.path.join(OVERLAY_MERGED, "system/hardware/tici/agnos.json")
+  manifest_path = os.path.join(OVERLAY_MERGED, "system/hardware/ka2/agnos.json" if is_ka2 else "system/hardware/tici/agnos.json")
   target_slot_number = get_target_slot_number()
-  flash_agnos_update(manifest_path, target_slot_number, cloudlog)
+  if is_ka2:
+    params = Params()
+    flash_agnos_update(
+      manifest_path, target_slot_number, cloudlog,
+      on_progress=lambda p: params.put("UpdaterState", f"download and install OS {p}%"),
+    )
+  else:
+    flash_agnos_update(manifest_path, target_slot_number, cloudlog)
   set_offroad_alert("Offroad_NeosUpdate", False)
 
 
