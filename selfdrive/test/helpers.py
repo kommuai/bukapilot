@@ -28,6 +28,11 @@ def set_params_enabled():
   msg.liveCalibration.rpyCalib = [0.0, 0.0, 0.0]
   params.put("CalibrationParams", msg.to_bytes())
 
+
+def unset_params_enabled():
+  params = Params()
+  params.remove("CalibrationParams")
+
 def release_only(f):
   @wraps(f)
   def wrap(self, *args, **kwargs):

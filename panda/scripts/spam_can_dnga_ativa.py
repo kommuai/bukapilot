@@ -36,6 +36,7 @@ def main() -> None:
     "brake": 0.01,              # 100 Hz
     "steering_module": 0.01,    # 100 Hz
     "gas_pedal": 1.0 / 60.0,    # 60 Hz
+    "gas_pedal_2": 1.0 / 60.0,  # 60 Hz
     "transmission": 1.0 / 30.0, # 30 Hz
     "pcm_buttons": 1.0 / 30.0,  # 30 Hz
     "wheel_speed": 0.02,        # 50 Hz
@@ -124,6 +125,13 @@ def main() -> None:
           "APPS_3": 0,
         }))
         next_send["gas_pedal"] += periods["gas_pedal"]
+
+      if now >= next_send["gas_pedal_2"]:
+        p.can_send(*packer.make_can_msg("GAS_PEDAL_2", PT_BUS, {
+          # CarState expects this frame at 60Hz. 1 means not pressed.
+          "GAS_PEDAL_STEP": 1,
+        }))
+        next_send["gas_pedal_2"] += periods["gas_pedal_2"]
 
       if now >= next_send["transmission"]:
         p.can_send(*packer.make_can_msg("TRANSMISSION", PT_BUS, {"GEAR": 2}))
