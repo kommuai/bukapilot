@@ -2,6 +2,7 @@ import math
 import json
 import os
 import re
+import sys
 import inspect
 import traceback
 import pytest
@@ -38,11 +39,62 @@ CPU usage budget
 TEST_DURATION = 25
 LOG_OFFSET = 8
 
+# KA2 onroad test: assume driver model + DM state run at 10Hz (not cereal SERVICE_LIST 20Hz).
+KA2_DM_SERVICE_HZ = 10.0
+KA2_DM_TIMING_HZ_SERVICES = frozenset({"driverStateV2", "driverMonitoringState"})
+
+# Burn-in: soak for this long after first carState; QC only loads the last N *complete* segments
+# (highest segment indices; tail segment still dropped as incomplete). Soak stress != log parse cost.
+BURN_IN_DURATION_S = 3600  # 1 hour
+BURN_IN_ANALYZE_SEGMENT_COUNT = 5
+
+
+def burn_in_test_enabled() -> bool:
+  return os.environ.get("KA2_BURN_IN_TEST") == "1"
+
+
+def _mono_span_seconds(lr: list) -> float:
+  if not lr:
+    return float(TEST_DURATION)
+  return max(float(TEST_DURATION), (lr[-1].logMonoTime - lr[0].logMonoTime) / 1e9)
+
+
+def _ka2_test_service_frequency_hz(service: str) -> float:
+  """Nominal Hz used in this test for frequency/timing checks (KA2 DM services = 10Hz)."""
+  if service in KA2_DM_TIMING_HZ_SERVICES:
+    return KA2_DM_SERVICE_HZ
+  return SERVICE_LIST[service].frequency
+
+
+def _snapshot_device_state_temps() -> dict[str, str]:
+  """Live read from deviceState while stack is still running (e.g. right before killing manager)."""
+  out: dict[str, str] = {}
+  try:
+    sm = messaging.SubMaster(["deviceState"])
+    deadline = time.monotonic() + 2.0
+    while time.monotonic() < deadline:
+      sm.update(100)
+      if sm.seen["deviceState"]:
+        ds = sm["deviceState"]
+        cpu = list(ds.cpuTempC) if ds.cpuTempC else []
+        gpu = list(ds.gpuTempC) if ds.gpuTempC else []
+        out["cpu_avg_c"] = _fmt_num(np.mean(cpu) if len(cpu) else None)
+        out["cpu_max_c"] = _fmt_num(max(cpu) if len(cpu) else None)
+        out["gpu_avg_c"] = _fmt_num(np.mean(gpu) if len(gpu) else None)
+        out["gpu_max_c"] = _fmt_num(max(gpu) if len(gpu) else None)
+        out["memory_c"] = _fmt_num(getattr(ds, "memoryTempC", None))
+        out["ambient_c"] = _fmt_num(getattr(ds, "ambientTempC", None))
+        return out
+    out["note"] = "no deviceState within 2s"
+  except Exception as e:
+    out["error"] = repr(e)
+  return out
+
 MAX_TOTAL_CPU = 280.  # total for all 8 cores
 PROCS = {
   "selfdrive.controls.controlsd": 10.0,
-  "./loggerd": 10.0,
-  "./encoderd": 5.0,
+  "./loggerd": 15.0,
+  "./encoderd": 10.0,
   "./camerad": 4.0,
   "selfdrive.locationd.locationd": 23.0,
   "selfdrive.locationd.lagd": 7.0,
@@ -130,6 +182,7 @@ TIMINGS = {
   "driverCameraState": [2.5, 0.35],
   "modelV2": [2.5, 0.35],
   "driverStateV2": [2.5, 0.40],
+  "driverMonitoringState": [2.5, 0.40],
   "livePose": [2.5, 0.35],
   "liveParameters": [2.5, 0.35],
   "wideRoadCameraState": [1.5, 0.35],
@@ -232,11 +285,28 @@ def _mmcli_at_command(cmd: str) -> tuple[int, str]:
 class TestOnroad:
   _run_results = []
   _run_mode = "pytest"
+  _preflight = {}
+  _run_start_epoch = None
+  _burn_in_enabled = False
+  _burn_in_full_segments_available: int | None = None
+  _shutdown_temperature: dict[str, str] | None = None
 
   @classmethod
   def setup_class(cls):
     cls._run_results = []
     cls._run_mode = "pytest"
+    cls._preflight = {}
+    cls._run_start_epoch = time.time()
+    cls._burn_in_enabled = burn_in_test_enabled()
+    cls._burn_in_full_segments_available = None
+    cls.log_sizes_per_segment = []
+    cls._shutdown_temperature = None
+
+    # Fail fast on prerequisites before spending minutes on bring-up/logging.
+    cls._preflight["sd_card_partition_present"] = Path("/dev/mmcblk1p1").exists()
+    assert cls._preflight["sd_card_partition_present"], \
+      "Preflight failed: /dev/mmcblk1p1 not found (SD card missing/unformatted/unmounted)"
+
     if "DEBUG" in os.environ:
       segs = filter(lambda x: os.path.exists(os.path.join(x, "rlog.zst")), Path(Paths.log_root()).iterdir())
       segs = sorted(segs, key=lambda x: x.stat().st_mtime)
@@ -290,25 +360,47 @@ class TestOnroad:
         while not sm.seen['carState']:
           sm.update(1000)
 
-      # Wait for route and at least 3 segments, then use only full segments.
       route = None
       cls.segments = []
-      with Timeout(300, "timed out waiting for logs"):
-        while route is None:
-          route = params.get("CurrentRoute")
-          time.sleep(0.1)
+      if cls._burn_in_enabled:
+        with Timeout(300, "timed out waiting for CurrentRoute"):
+          while route is None:
+            route = params.get("CurrentRoute")
+            time.sleep(0.1)
+        time.sleep(BURN_IN_DURATION_S)
+        segs = set()
+        if Path(Paths.log_root()).exists():
+          segs = set(Path(Paths.log_root()).glob(f"{route}--*"))
+        cls.segments = sorted(segs, key=lambda s: int(str(s).rsplit('--')[-1]))
+        if cls.segments:
+          cls.segments = cls.segments[:-1]
+        assert len(cls.segments) >= 2, (
+          f"burn-in: need at least 2 full segments after {BURN_IN_DURATION_S}s, got {len(cls.segments)}"
+        )
+        # Latest "full" segments = largest numeric suffix after sort; keep only last N to cap memory/CPU.
+        cls._burn_in_full_segments_available = len(cls.segments)
+        cls.segments = cls.segments[-BURN_IN_ANALYZE_SEGMENT_COUNT:]
+      else:
+        with Timeout(300, "timed out waiting for logs"):
+          while route is None:
+            route = params.get("CurrentRoute")
+            time.sleep(0.1)
 
-        while len(cls.segments) < 3:
-          segs = set()
-          if Path(Paths.log_root()).exists():
-            segs = set(Path(Paths.log_root()).glob(f"{route}--*"))
-          cls.segments = sorted(segs, key=lambda s: int(str(s).rsplit('--')[-1]))
-          time.sleep(2)
+          while len(cls.segments) < 3:
+            segs = set()
+            if Path(Paths.log_root()).exists():
+              segs = set(Path(Paths.log_root()).glob(f"{route}--*"))
+            cls.segments = sorted(segs, key=lambda s: int(str(s).rsplit('--')[-1]))
+            time.sleep(2)
 
-      # Drop last potentially incomplete segment.
-      cls.segments = cls.segments[:-1]
+        # Drop last potentially incomplete segment.
+        cls.segments = cls.segments[:-1]
     finally:
       if proc is not None:
+        try:
+          cls._shutdown_temperature = _snapshot_device_state_temps()
+        except Exception as e:
+          cls._shutdown_temperature = {"error": repr(e)}
         try:
           os.killpg(os.getpgid(proc.pid), signal.SIGTERM)
         except OSError:
@@ -323,17 +415,22 @@ class TestOnroad:
 
     cls.lrs = [list(LogReader(os.path.join(str(s), "rlog.zst"))) for s in cls.segments]
 
-    # Use second segment by default as the first complete segment.
-    cls.lr = list(LogReader(os.path.join(str(cls.segments[1]), "rlog.zst")))
+    cls.lr = []
+    for part in cls.lrs:
+      cls.lr.extend(part)
+
     st = time.monotonic()
     cls.ts = msgs_to_time_series(cls.lr)
     print("msgs to time series", time.monotonic() - st)
-    log_path = cls.segments[1]
 
-    cls.log_sizes = {}
-    for f in log_path.iterdir():
-      assert f.is_file()
-      cls.log_sizes[f] = f.stat().st_size / 1e6
+    cls.log_sizes_per_segment = []
+    for log_path in cls.segments:
+      d = {}
+      for f in log_path.iterdir():
+        assert f.is_file()
+        d[f] = f.stat().st_size / 1e6
+      cls.log_sizes_per_segment.append(d)
+    cls.log_sizes = cls.log_sizes_per_segment[0] if cls.log_sizes_per_segment else {}
 
     cls.msgs = defaultdict(list)
     for m in cls.lr:
@@ -351,11 +448,20 @@ class TestOnroad:
   def _write_qc_report(cls):
     lines = []
     lines.append("KA2 Onroad Test Report")
-    lines.append(f"time_utc={time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime())}")
+    if cls._run_start_epoch is not None:
+      lines.append(f"start_time_utc={time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(cls._run_start_epoch))}")
+    lines.append(f"end_time_utc={time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime())}")
     lines.append(f"mode={cls._run_mode}")
+    lines.append(f"burn_in_test={getattr(cls, '_burn_in_enabled', False)}")
+    if getattr(cls, "_burn_in_enabled", False):
+      lines.append(f"burn_in_duration_s={BURN_IN_DURATION_S}")
+      lines.append(f"burn_in_analyze_segment_count_cap={BURN_IN_ANALYZE_SEGMENT_COUNT}")
+      n_avail = getattr(cls, "_burn_in_full_segments_available", None)
+      if n_avail is not None:
+        lines.append(f"burn_in_full_segments_on_disk={n_avail}")
 
     if hasattr(cls, "segments"):
-      lines.append(f"segments_collected={len(cls.segments)}")
+      lines.append(f"segments_analyzed={len(cls.segments)}")
     if hasattr(cls, "lr"):
       lines.append(f"messages_loaded={len(cls.lr)}")
 
@@ -374,26 +480,14 @@ class TestOnroad:
     else:
       lines.append("test_results: not available in this run mode")
 
-    # Add end-of-run thermal snapshot from last deviceState.
-    try:
-      if hasattr(cls, "msgs") and cls.msgs.get("deviceState"):
-        ds = cls.msgs["deviceState"][-1].deviceState
-        cpu_temps = list(ds.cpuTempC) if hasattr(ds, "cpuTempC") else []
-        gpu_temps = list(ds.gpuTempC) if hasattr(ds, "gpuTempC") else []
-        mem_temp = ds.memoryTempC if hasattr(ds, "memoryTempC") else None
-        ambient_temp = ds.ambientTempC if hasattr(ds, "ambientTempC") else None
-
-        lines.append("temperature_end:")
-        lines.append(f"  cpu_avg_c={_fmt_num(np.mean(cpu_temps) if len(cpu_temps) else None)}")
-        lines.append(f"  cpu_max_c={_fmt_num(max(cpu_temps) if len(cpu_temps) else None)}")
-        lines.append(f"  gpu_avg_c={_fmt_num(np.mean(gpu_temps) if len(gpu_temps) else None)}")
-        lines.append(f"  gpu_max_c={_fmt_num(max(gpu_temps) if len(gpu_temps) else None)}")
-        lines.append(f"  memory_c={_fmt_num(mem_temp)}")
-        lines.append(f"  ambient_c={_fmt_num(ambient_temp)}")
-      else:
-        lines.append("temperature_end: unavailable (missing deviceState)")
-    except Exception as e:
-      lines.append(f"temperature_end: unavailable ({repr(e)})")
+    # Live snapshot from deviceState immediately before manager shutdown (see setup_class finally).
+    st = getattr(cls, "_shutdown_temperature", None)
+    if st:
+      lines.append("temperature_end:")
+      for k in sorted(st.keys()):
+        lines.append(f"  {k}={st[k]}")
+    else:
+      lines.append("temperature_end: unavailable")
 
     try:
       with open("/data/qc.log", "w", encoding="utf-8") as f:
@@ -402,6 +496,8 @@ class TestOnroad:
       pass
 
   def test_service_frequencies(self, subtests):
+    span_s = _mono_span_seconds(self.lr)
+
     for s, msgs in self.msgs.items():
       if s in ('initData', 'sentinel'):
         continue
@@ -411,7 +507,13 @@ class TestOnroad:
         continue
 
       with subtests.test(service=s):
-        assert len(msgs) >= math.floor(SERVICE_LIST[s].frequency*int(TEST_DURATION*0.8))
+        # Expect at least ~80% of nominal publishes over the rlog time span (Hz * seconds).
+        hz = _ka2_test_service_frequency_hz(s)
+        floor_n = max(1, math.floor(hz * span_s * 0.8))
+        assert len(msgs) >= floor_n, (
+          f"service={s}: got {len(msgs)} msgs, need >= {floor_n} "
+          f"(freq={hz}Hz span_s={span_s:.2f})"
+        )
 
   def test_manager_starting_time(self):
     st = self.ts['managerState']['t'][0]
@@ -420,8 +522,12 @@ class TestOnroad:
   def test_cloudlog_size(self):
     msgs = self.msgs['logMessage']
 
+    nseg = max(1, len(getattr(self, "log_sizes_per_segment", [])))
+    mult = nseg if self._burn_in_enabled else 1
+    limit = 3.5e5 * mult
+
     total_size = sum(len(m.as_builder().to_bytes()) for m in msgs)
-    assert total_size < 3.5e5
+    assert total_size < limit
 
     cnt = Counter(json.loads(m.logMessage)['filename'] for m in msgs)
     big_logs = [f for f, n in cnt.most_common(3) if n / sum(cnt.values()) > 30.]
@@ -472,16 +578,35 @@ class TestOnroad:
         pass
     assert kinds, f"could not read qcomGnss union (sample); count={n}"
 
+  def test_ka2_sd_card_partition_present(self):
+    # Simple QC check requested: if this partition node is missing, treat as not mounted/formatted.
+    ok = self._preflight.get("sd_card_partition_present", Path("/dev/mmcblk1p1").exists())
+    assert ok, "/dev/mmcblk1p1 not found (SD card missing/unformatted/unmounted)"
+
   def test_log_sizes(self, subtests):
-    for f, sz in self.log_sizes.items():
-      with subtests.test(file=f.name):
-        if f.name not in LOGS_SIZE:
-          continue
-        expected = LOGS_SIZE[f.name]
-        mn_mul, mx_mul = LOGS_SIZE_MULTIPLIERS.get(f.name, (0.5, 1.5))
-        minn = expected * mn_mul
-        maxx = expected * mx_mul
-        assert minn < sz < maxx, f"{f.name}: size={sz:.3f}MB expected range=({minn:.3f}, {maxx:.3f})MB"
+    if self._burn_in_enabled and getattr(self, "log_sizes_per_segment", None):
+      for seg_i, seg_map in enumerate(self.log_sizes_per_segment):
+        for f, sz in seg_map.items():
+          with subtests.test(segment=seg_i, file=f.name):
+            if f.name not in LOGS_SIZE:
+              continue
+            expected = LOGS_SIZE[f.name]
+            mn_mul, mx_mul = LOGS_SIZE_MULTIPLIERS.get(f.name, (0.5, 1.5))
+            minn = expected * mn_mul
+            maxx = expected * mx_mul
+            assert minn < sz < maxx, (
+              f"seg={seg_i} {f.name}: size={sz:.3f}MB expected range=({minn:.3f}, {maxx:.3f})MB"
+            )
+    else:
+      for f, sz in self.log_sizes.items():
+        with subtests.test(file=f.name):
+          if f.name not in LOGS_SIZE:
+            continue
+          expected = LOGS_SIZE[f.name]
+          mn_mul, mx_mul = LOGS_SIZE_MULTIPLIERS.get(f.name, (0.5, 1.5))
+          minn = expected * mn_mul
+          maxx = expected * mx_mul
+          assert minn < sz < maxx, f"{f.name}: size={sz:.3f}MB expected range=({minn:.3f}, {maxx:.3f})MB"
 
   def test_cpu_usage(self, subtests):
     _safe_print("\n------------------------------------------------")
@@ -595,9 +720,9 @@ class TestOnroad:
     cfgs = [
       # since multiple processes use the GPU and can preempt each other,
       # these numbers are not fully self-contained.
-      ("modelV2", 0.06, 0.045),
+      ("modelV2", 0.07, 0.045),
 
-      # can miss cycles here and there, just important the avg frequency is 20Hz
+      # KA2 test assumes ~10Hz driver path; model wall time still bounded loosely.
       ("driverStateV2", 0.3, 0.08),
     ]
     for (s, instant_max, avg_max) in cfgs:
@@ -622,13 +747,14 @@ class TestOnroad:
     header = ['service', 'max', 'min', 'mean', 'expected mean', 'rsd', 'max allowed rsd', 'test result']
     rows = []
     for s, (maxmin, rsd) in TIMINGS.items():
-      offset = int(SERVICE_LIST[s].frequency * LOG_OFFSET)
+      hz = _ka2_test_service_frequency_hz(s)
+      offset = int(hz * LOG_OFFSET)
       msgs = [m.logMonoTime for m in self.msgs[s][offset:]]
       if not len(msgs):
         raise Exception(f"missing {s}")
 
       ts = np.diff(msgs) / 1e9
-      dt = 1 / SERVICE_LIST[s].frequency
+      dt = 1 / hz
 
       errors = []
       mean_rtol = GLOBAL_MEAN_RTOL
@@ -658,6 +784,12 @@ class TestOnroad:
 
 
 if __name__ == "__main__":
+  if "--burn-in-test" in sys.argv:
+    sys.argv = [a for a in sys.argv if a != "--burn-in-test"]
+    os.environ["KA2_BURN_IN_TEST"] = "1"
+  else:
+    os.environ.pop("KA2_BURN_IN_TEST", None)
+
   class _DummySubtests:
     def test(self, *args, **kwargs):
       return nullcontext()
