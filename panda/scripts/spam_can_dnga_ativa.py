@@ -21,7 +21,9 @@ def main() -> None:
   packer = CANPacker("dnga_general_pt")
 
   p = Panda()
+  p.set_power_save(0)
   p.set_safety_mode(CarParams.SafetyModel.allOutput)
+  p.send_heartbeat(False)
 
   phase_enabled = True
   phase_started = time.monotonic()
@@ -50,6 +52,8 @@ def main() -> None:
     "lkas_hud": 0.05,           # 20 Hz
     # Ignition spoof frame for panda ignition_can hook
     "ignition_spoof": 0.1,      # 10 Hz
+    "panda_heartbeat": 0.2,     # 5 Hz keeps recent_heartbeat true -> prevents bootkick
+    "panda_health": 1.0,        # 1 Hz heartbeat to keep host<->panda link active
   }
   next_send = {k: phase_started for k in periods}
 
@@ -68,6 +72,8 @@ def main() -> None:
   print("Spamming DNGA Ativa CAN set...")
   print("ACC spoof phase: ENABLED (3s)")
   print("Spoof speed: 50 km/h")
+  print("Panda power save: disabled")
+  print("Panda heartbeat: enabled (bootkick guard)")
   print("Press Ctrl+C to stop.")
 
   try:
@@ -228,10 +234,23 @@ def main() -> None:
         }))
         next_send["lkas_hud"] += periods["lkas_hud"]
 
+      if now >= next_send["panda_heartbeat"]:
+        # bootkick.h disables bootkick whenever recent_heartbeat is true.
+        p.send_heartbeat(False)
+        next_send["panda_heartbeat"] += periods["panda_heartbeat"]
+
       if now >= next_send["ignition_spoof"]:
         # Simple, robust ignition spoof frame recognized by panda hook.
         p.can_send(IGNITION_ADDR, b"\x01\x00\x00\x00\x00\x00\x00\x00", PT_BUS)
         next_send["ignition_spoof"] += periods["ignition_spoof"]
+
+      if now >= next_send["panda_health"]:
+        # Periodic health poll acts as a host-side heartbeat.
+        health = p.health()
+        if health.get("power_save_enabled", 0):
+          # If another process toggles power save, immediately clear it.
+          p.set_power_save(0)
+        next_send["panda_health"] += periods["panda_health"]
 
       if now >= next_send["meter_cluster"]:
         p.can_send(*packer.make_can_msg("METER_CLUSTER", PT_BUS, {

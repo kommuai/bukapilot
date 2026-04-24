@@ -29,6 +29,7 @@ from openpilot.selfdrive.controls.lib.alc_helper import ALCHelper
 REPLAY = "REPLAY" in os.environ
 SIMULATION = "SIMULATION" in os.environ
 TESTING_CLOSET = "TESTING_CLOSET" in os.environ
+IGNORE_RELAY_MALFUNCTION_IN_REPLAY = REPLAY and ("IGNORE_RELAY_MALFUNCTION_IN_REPLAY" in os.environ)
 
 LONGITUDINAL_PERSONALITY_MAP = {v: k for k, v in log.LongitudinalPersonality.schema.enumerants.items()}
 
@@ -294,7 +295,7 @@ class SelfdriveD:
       if (safety_mismatch and self.sm.frame*DT_CTRL > 10.) or pandaState.safetyRxChecksInvalid or self.mismatch_counter >= 200:
         self.events.add(EventName.controlsMismatch)
 
-      if log.PandaState.FaultType.relayMalfunction in pandaState.faults:
+      if (not IGNORE_RELAY_MALFUNCTION_IN_REPLAY) and (log.PandaState.FaultType.relayMalfunction in pandaState.faults):
         self.events.add(EventName.relayMalfunction)
 
     # Handle HW and system malfunctions
