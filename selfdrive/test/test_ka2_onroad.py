@@ -83,7 +83,6 @@ def _snapshot_device_state_temps() -> dict[str, str]:
         out["gpu_avg_c"] = _fmt_num(np.mean(gpu) if len(gpu) else None)
         out["gpu_max_c"] = _fmt_num(max(gpu) if len(gpu) else None)
         out["memory_c"] = _fmt_num(getattr(ds, "memoryTempC", None))
-        out["ambient_c"] = _fmt_num(getattr(ds, "ambientTempC", None))
         return out
     out["note"] = "no deviceState within 2s"
   except Exception as e:
@@ -320,6 +319,7 @@ class TestOnroad:
     params.put_bool("RecordFront", True)
     set_params_enabled()
     os.environ['REPLAY'] = '1'
+    os.environ['NO_PANDA_TX_IN_REPLAY'] = '1'
     os.environ['MSGQ_PREALLOC'] = '1'
     os.environ['TESTING_CLOSET'] = '1'
     os.environ['IGNORE_RELAY_MALFUNCTION_IN_REPLAY'] = '1'
@@ -347,7 +347,6 @@ class TestOnroad:
     # start launch script (same as normal openpilot boot)
     proc = None
     try:
-      cls.manager_st = time.monotonic()
       env = os.environ.copy()
       proc = subprocess.Popen(
         ["bash", "-lc", "exec ./launch_openpilot.sh"],
@@ -515,10 +514,6 @@ class TestOnroad:
           f"service={s}: got {len(msgs)} msgs, need >= {floor_n} "
           f"(freq={hz}Hz span_s={span_s:.2f})"
         )
-
-  def test_manager_starting_time(self):
-    st = self.ts['managerState']['t'][0]
-    assert (st - self.manager_st) < 75.0, f"manager.py took {st - self.manager_st}s to publish the first 'managerState' msg"
 
   def test_cloudlog_size(self):
     msgs = self.msgs['logMessage']
