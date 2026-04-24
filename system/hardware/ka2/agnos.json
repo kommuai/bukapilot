@@ -1,10 +1,10 @@
 [
   {
     "name": "rootfs",
-    "url": "https://web.kommu.ai/depot/upload/publicbox/rootfs-482dbfbb4453cb3dbfbcfa211a36f37d293eecfa2c0ab29f81a156eac05994b5.simg.xz",
-    "hash": "c9f86dda7c755080598c9be881b93b6bd2928ca44dcf5a3c49e9da7d1d69be3f",
-    "hash_raw": "482dbfbb4453cb3dbfbcfa211a36f37d293eecfa2c0ab29f81a156eac05994b5",
-    "size": 4777795584,
+    "url": "https://web.kommu.ai/depot/upload/publicbox/rootfs-f995ef64cc7f94b01a8caf3d1775ffef39dd9092cf3c3d5f9bbf27048fd6f51b.simg.xz",
+    "hash": "31fce7c8674abf5f2a5fac93ab2436479cc50b750f2ccd20c0983e1bcca59ab0",
+    "hash_raw": "f995ef64cc7f94b01a8caf3d1775ffef39dd9092cf3c3d5f9bbf27048fd6f51b",
+    "size": 4779323392,
     "sparse": true,
     "full_check": false,
     "has_ab": true
