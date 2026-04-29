@@ -4,6 +4,7 @@ FEATURE_DELIMITER = ', '
 
 FEATURES = {
   "lks-tactile",
+  "ignore-dm",
   "stock-acc",
 }
 

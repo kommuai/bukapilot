@@ -7,12 +7,13 @@ from openpilot.selfdrive.selfdrived.events import Events
 from openpilot.selfdrive.selfdrived.alertmanager import set_offroad_alert
 from openpilot.common.realtime import DT_DMON
 from openpilot.common.filter_simple import FirstOrderFilter
+from openpilot.common.features import Features
 from openpilot.common.params import Params
 from openpilot.common.stat_live import RunningStatFilter
 from openpilot.common.transformations.camera import DEVICE_CAMERAS
 from openpilot.system.hardware import HARDWARE
 
-IGNORE_DM = False
+IGNORE_DM = Features().has("ignore-dm")
 
 EventName = log.OnroadEvent.EventName
 
