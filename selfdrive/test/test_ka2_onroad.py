@@ -322,6 +322,7 @@ class TestOnroad:
     os.environ['REPLAY'] = '1'
     os.environ['MSGQ_PREALLOC'] = '1'
     os.environ['TESTING_CLOSET'] = '1'
+    os.environ['IGNORE_RELAY_MALFUNCTION_IN_REPLAY'] = '1'
     os.environ['BLOCK'] = 'uploader'
     os.environ["FINGERPRINT"] = "PERODUA_ATIVA"
     os.environ["SKIP_FW_QUERY"] = "1"
