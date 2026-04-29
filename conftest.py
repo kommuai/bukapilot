@@ -99,6 +99,37 @@ def pytest_collection_modifyitems(config, items):
       item.add_marker(pytest.mark.xdist_group(class_property_value))
 
 
+def pytest_addoption(parser):
+  parser.addoption(
+    "--burn-in-test",
+    action="store_true",
+    default=False,
+    help="KA2 onroad: collect 1 hour of logs after first carState, analyze all full segments",
+  )
+
+
+@pytest.hookimpl(hookwrapper=True)
+def pytest_runtest_makereport(item, call):
+  """Record final pass/fail for TestOnroad (subtests can fail without raising; fixture try/else is wrong)."""
+  outcome = yield
+  rep = outcome.get_result()
+  if rep.when != "call":
+    return
+  cls = getattr(item, "cls", None)
+  if cls is None:
+    return
+  try:
+    from openpilot.selfdrive.test.test_ka2_onroad import TestOnroad
+  except Exception:
+    return
+  if cls is not TestOnroad:
+    return
+  ok = rep.outcome == "passed"
+  err = "" if ok else str(rep.longrepr)
+  TestOnroad._run_mode = "pytest"
+  TestOnroad._run_results.append((item.name, ok, err))
+
+
 @pytest.hookimpl(trylast=True)
 def pytest_configure(config):
   config_line = "xdist_group_class_property: group tests by a property of the class that contains them"
@@ -109,3 +140,8 @@ def pytest_configure(config):
 
   config_line = "shared_download_cache: share download cache between tests"
   config.addinivalue_line("markers", config_line)
+
+  if config.getoption("burn_in_test", default=False):
+    os.environ["KA2_BURN_IN_TEST"] = "1"
+  else:
+    os.environ.pop("KA2_BURN_IN_TEST", None)
