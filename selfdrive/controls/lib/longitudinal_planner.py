@@ -25,11 +25,11 @@ MIN_ALLOW_THROTTLE_SPEED = 2.5
 # Radar leadOne.vRel is v_lead - v_ego (m/s). Negative => closing. Ramp decel when
 # |closing| >= these magnitudes (hysteresis: OFF releases before ON re-arms).
 DANGER_VREL_ON_MPS = 4.5
-DANGER_VREL_OFF_MPS = 3.0
+DANGER_VREL_OFF_MPS = 3.5
 DANGER_DECEL_VEGO_BP = [0.0, 10.0]
 DANGER_DECEL_VEGO_V = [-1.0, -1.2]
 DANGER_DECEL_RAMP_RATE = 1.0  # m/s^3, how quickly danger decel can ramp in
-DANGER_HOLD_SECONDS = 0.3
+DANGER_HOLD_SECONDS = 0.2
 
 # Lookup table for turns
 _A_TOTAL_MAX_V = [1.7, 3.2]
