@@ -19,19 +19,18 @@ This repo runs on a **Kommu KA2** (Rockchip RK3588). Hardware selection is **run
 
 - **Process supervisor**: `openpilot/system/manager/manager.py`
 - **Process list + gating**: `openpilot/system/manager/process_config.py`
-  - KA2-only processes include `system.hardware.ka2.setapn`, `system.hardware.ka2.status_led.indicatord`, `system.hardware.ka2.formatdevice`
+  - KA2-only processes include `system.hardware.ka2.status_led.indicatord`
 - **Device state / onroad-offroad logic**: `openpilot/system/hardware/hardwared.py`
 - **Device paths (logs/params)**: `openpilot/system/hardware/hw.h` (C++ Path helpers used widely)
 
 ### KA2-specific code (only)
 
 - **KA2 hardware implementation**: `openpilot/system/hardware/ka2/hardware.py`
-  - modem bring-up uses `/usr/kommu/lte/wwan0-setup.sh`
-  - SD card: `/dev/mmcblk1p1` formatting support
+  - modem bring-up handled in KA2 modem code (`configure_modem`)
+  - SD card: formatting support on `/dev/mmcblk1` (partitioned during format)
 - **AGNOS updater for KA2**: `openpilot/system/hardware/ka2/agnos.py` + `agnos.json`
   - `launch_chffrplus.sh` picks KA2 manifest when `/KA2` exists
 - **Status LED service**: `openpilot/system/hardware/ka2/status_led/indicatord.py`
-- **APN override loop**: `openpilot/system/hardware/ka2/setapn.py`
 
 ### Repo top-level map (what’s where)
 
@@ -56,6 +55,6 @@ This repo runs on a **Kommu KA2** (Rockchip RK3588). Hardware selection is **run
 ### Fast “where is X handled?” pointers
 
 - **Start/stop conditions**: `hardwared.py` publishes `deviceState.started`; `manager.py` uses it to gate processes.
-- **Network/modem**: KA2 modem logic in `system/hardware/ka2/hardware.py`; APN policy in `system/hardware/ka2/setapn.py`.
+- **Network/modem**: KA2 modem logic in `system/hardware/ka2/hardware.py`.
 - **Adding a new daemon**: add to `process_config.py` and ensure gating function reflects KA2 needs.
 

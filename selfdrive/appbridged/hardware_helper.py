@@ -3,6 +3,7 @@ import time
 import threading
 from cereal import log
 from openpilot.system.hardware.ka2.hardware import Ka2
+from openpilot.common.params import Params
 
 # Rate limit interval to avoid repeated D-Bus calls that can crash
 QUERY_INTERVAL = 2.0
@@ -15,6 +16,8 @@ NETWORK_TYPES = {
   NetworkType.cell3G: "3G",
   NetworkType.cell4G: "4G",
 }
+
+params = Params()
 
 class HardwareHelper:
   # Provides a self-contained cache with refresh loop to ensure values stay current
@@ -76,3 +79,9 @@ class HardwareHelper:
       return
     self._last_sd_format_time = now
     self._ka2.format_sd()
+
+  def update_gsm_apn(self, apn: str = "") -> None:
+    def worker():
+      params.put("GsmApn", apn) # Wait for parameter to be put.
+      self._ka2.configure_wwan()
+    threading.Thread(target=worker, daemon=True).start()

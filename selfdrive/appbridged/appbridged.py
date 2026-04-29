@@ -351,7 +351,7 @@ class AppBridge:
           if (features_to_set := settings.pop('FeaturesPackage', None)) is not None:
             features.set_features(features_to_set)
           if (apn := settings.pop('GsmApn', None)) is not None:
-            params.put_nonblocking("GsmApn", apn)
+            self.hw_helper.update_gsm_apn(apn)
           # Put string setting if not one of the above keys, ensure above keys are popped so they will not be set below
           safe_put_all(settings)
         case 'resetCalibration':
@@ -373,15 +373,11 @@ class AppBridge:
             case 'fetch':
               send_update_signal("fetch")
         case 'ssh':
-          # Empty string is falsy, allows removal
           if username := settings.get('username'):
             params.put_nonblocking("GithubUsername", username)
             params.put_nonblocking("GithubSshKeys", settings.get('keys'))
-          else:
-            params.remove("GithubUsername")
-            params.remove("GithubSshKeys")
         case 'wifi':
-          if (ssid := settings.get('ssid')):
+          if ssid := settings.get('ssid'):
             match settings.get('action'):
               case 'connect':
                 self.connect_to_wifi(ssid, settings.get('password'), cur_time)

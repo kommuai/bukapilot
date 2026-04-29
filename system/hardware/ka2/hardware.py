@@ -5,6 +5,9 @@ import subprocess
 import threading
 import time
 from pathlib import Path
+import shutil
+import re
+import xml.etree.ElementTree as ET
 
 from cereal import log
 from openpilot.common.gpio import get_irqs_for_action
@@ -162,6 +165,96 @@ class Ka2(HardwareBase):
     if any(x in techs for x in ("umts", "hspa")):
       return NetworkType.cell3G
     return NetworkType.cell2G
+
+  def _extract_kv(self, text: str, key: str) -> str:
+    return next((line.split(":",1)[1].strip() for line in text.splitlines() if line.startswith(key)), "")
+
+  def _get_bearer_info(self, mid: str):
+    for _ in range(30):
+      if out := subprocess.run(["mmcli","-m",mid],capture_output=True,text=True).stdout:
+        for line in out.splitlines():
+          if "/Bearer/" in line and (bpath := line.strip().split()[-1]):
+            bkv = subprocess.run(["mmcli","-b",bpath,"--output-keyvalue"],capture_output=True,text=True).stdout
+            if "bearer.status.interface: wwan0" in bkv:
+              return (
+                self._extract_kv(bkv,"bearer.ipv4-config.address"),
+                self._extract_kv(bkv,"bearer.ipv4-config.prefix"),
+                self._extract_kv(bkv,"bearer.ipv4-config.gateway"),
+                self._extract_kv(bkv,"bearer.ipv4-config.dns.value[1]"),
+                self._extract_kv(bkv,"bearer.ipv4-config.dns.value[2]"),
+                self._extract_kv(bkv,"bearer.ipv4-config.mtu"),
+              )
+      time.sleep(1)
+    return None
+
+  def lookup_apn(self) -> str:
+    with self._lock:
+      if not (code := str((self.get_sim_info() or {}).get("mcc_mnc", "")).strip()):
+        return ""
+      mcc, mnc = code[:3], code[3:]
+      try:
+        root = ET.parse("/usr/share/mobile-broadband-provider-info/serviceproviders.xml").getroot()
+        for p in root.iter("provider"):
+          if any(n.get("mcc") == mcc and n.get("mnc") == mnc for n in p.iter("network-id")):
+            return next((a.get("value") for a in p.iter("apn")
+                         if any(u.get("type") == "internet" for u in a.iter("usage"))), "")
+      except Exception:
+        return ""
+      return ""
+
+  def find_modem_id(self) -> str:
+    with self._lock:
+      for _ in range(30):
+        if (out := subprocess.run(["mmcli", "-L"], capture_output=True, text=True).stdout):
+          if (m := re.search(r'/Modem/(\d+)', out)):
+            return m.group(1)
+        time.sleep(1)
+      print("ERROR: no modem found after 30s")
+      return ""
+
+  def configure_wwan(self) -> None:
+    from openpilot.common.params import Params
+    if ((apn := Params().get("GsmApn")) and (apn_source := "manual")) or ((apn := self.lookup_apn()) and (apn_source := "auto")):
+      print(f"{apn_source} APN: {apn}")
+    else:
+      print("ERROR: no APN found")
+      return
+
+    # Find modem ID
+    if not (mid := self.find_modem_id()):
+      return
+
+    # Connect with APN
+    subprocess.run(["mmcli", "-m", mid, "--simple-disconnect"], capture_output=True, text=True)
+    time.sleep(1)
+    mmcli_out = subprocess.run(["mmcli", "-m", mid, f"--simple-connect=apn={apn},ip-type=ipv4"], capture_output=True, text=True)
+    if mmcli_out.returncode and not any(x in (err := mmcli_out.stderr.lower()) for x in ("already connected", "already registered", "no actions")):
+      print(err)
+      return
+
+    # Get bearer info
+    if not (info := self._get_bearer_info(mid)):
+      print("ERROR: bearer missing IPv4 info")
+      return
+    addr, prefix, gw, dns1, dns2, mtu = info
+
+    # Configure wwan0
+    subprocess.run(["sudo", "ip", "link", "set", "wwan0", "up"])
+    subprocess.run(["sudo", "ip", "-4", "addr", "flush", "dev", "wwan0"])
+    subprocess.run(["sudo", "ip", "-4", "addr", "add", f"{addr}/{prefix}", "dev", "wwan0"])
+
+    # Cleanup old default routes for wwan0
+    while subprocess.run(["sudo", "ip", "route", "del", "default", "dev", "wwan0"], capture_output=True).returncode == 0:
+      pass
+
+    # Add new default route
+    subprocess.run(["sudo", "ip", "route", "add", "default", "via", gw, "dev", "wwan0", "metric", "2000"])
+
+    if mtu:
+        subprocess.run(["sudo", "ip", "link", "set", "dev", "wwan0", "mtu", mtu])
+    if shutil.which("resolvectl"):
+        subprocess.run(["sudo", "resolvectl", "dns", "wwan0", dns1, dns2])
+    print(f"wwan0: {addr}/{prefix} via {gw} metric=2000 (dns: {dns1} {dns2}, mtu: {mtu})")
 
   # -- trivial overrides --
 
@@ -427,11 +520,7 @@ class Ka2(HardwareBase):
     sudo_write("2112000000", "/sys/class/devfreq/dmc/userspace/set_freq")
 
   def configure_modem(self):
-    with self._lock:
-      sim_info = self.get_sim_info() or {}
-      mcc_mnc = str(sim_info.get('mcc_mnc', '')).strip()
-
-    os.system("bash /usr/kommu/lte/wwan0-setup.sh " + mcc_mnc)
+    self.configure_wwan()
 
     for cmd in [
       'AT+QNVW=5280,0,"0102000000000000"',
