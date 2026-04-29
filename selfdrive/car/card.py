@@ -21,6 +21,7 @@ from openpilot.selfdrive.pandad import can_capnp_to_list, can_list_to_can_capnp
 from openpilot.selfdrive.car.cruise import VCruiseHelper
 
 REPLAY = "REPLAY" in os.environ
+NO_PANDA_TX_IN_REPLAY = REPLAY and ("NO_PANDA_TX_IN_REPLAY" in os.environ)
 
 EventName = log.OnroadEvent.EventName
 
@@ -113,6 +114,11 @@ class Car:
     controller_available = self.CI.CC is not None and openpilot_enabled_toggle and not self.CP.dashcamOnly
     self.CP.passive = not controller_available or self.CP.dashcamOnly
     if self.CP.passive:
+      safety_config = structs.CarParams.SafetyConfig()
+      safety_config.safetyModel = structs.CarParams.SafetyModel.noOutput
+      self.CP.safetyConfigs = [safety_config]
+    elif NO_PANDA_TX_IN_REPLAY:
+      # Test-only replay knob: keep normal flow, but block panda TX at safety layer.
       safety_config = structs.CarParams.SafetyConfig()
       safety_config.safetyModel = structs.CarParams.SafetyModel.noOutput
       self.CP.safetyConfigs = [safety_config]
