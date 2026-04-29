@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-import bz2
 import math
 import json
 import os
@@ -21,11 +20,12 @@ from cereal.services import SERVICE_LIST
 from openpilot.common.basedir import BASEDIR
 from openpilot.common.timeout import Timeout
 from openpilot.common.params import Params
-from openpilot.selfdrive.controls.lib.events import EVENTS, ET
+from openpilot.selfdrive.selfdrived.events import EVENTS, ET
 from openpilot.system.hardware import HARDWARE
 from openpilot.selfdrive.test.helpers import set_params_enabled, unset_params_enabled, release_only
 from openpilot.system.hardware.hw import Paths
 from openpilot.tools.lib.logreader import LogReader
+from openpilot.tools.lib.log_time_series import msgs_to_time_series
 
 # Baseline CPU usage by process
 PROCS = {
@@ -114,10 +114,10 @@ class TestOnroad(unittest.TestCase):
   @classmethod
   def setUpClass(cls):
     if "DEBUG" in os.environ:
-      segs = filter(lambda x: os.path.exists(os.path.join(x, "rlog")), Path(Paths.log_root()).iterdir())
+      segs = filter(lambda x: os.path.exists(os.path.join(x, "rlog.zst")), Path(Paths.log_root()).iterdir())
       segs = sorted(segs, key=lambda x: x.stat().st_mtime)
       print(segs[-3])
-      cls.lr = list(LogReader(os.path.join(segs[-3], "rlog")))
+      cls.lr = list(LogReader(os.path.join(segs[-3], "rlog.zst")))
       return
 
     # setup env
@@ -137,7 +137,8 @@ class TestOnroad(unittest.TestCase):
     # start manager and run openpilot for a minute
     proc = None
     try:
-      manager_path = os.path.join(BASEDIR, "selfdrive/manager/manager.py")
+      manager_path = os.path.join(BASEDIR, "system/manager/manager.py")
+      cls.manager_st = time.monotonic()
       proc = subprocess.Popen(["python", manager_path])
 
       sm = messaging.SubMaster(['carState'])
@@ -171,19 +172,17 @@ class TestOnroad(unittest.TestCase):
         if proc.wait(60) is None:
           proc.kill()
 
-    cls.lrs = [list(LogReader(os.path.join(str(s), "rlog"))) for s in cls.segments]
+    cls.lrs = [list(LogReader(os.path.join(str(s), "rlog.zst"))) for s in cls.segments]
 
     # use the second segment by default as it's the first full segment
-    cls.lr = list(LogReader(os.path.join(str(cls.segments[1]), "rlog")))
+    cls.lr = list(LogReader(os.path.join(str(cls.segments[1]), "rlog.zst")))
+    cls.ts = msgs_to_time_series(cls.lr)
     cls.log_path = cls.segments[1]
 
     cls.log_sizes = {}
     for f in cls.log_path.iterdir():
       assert f.is_file()
-      cls.log_sizes[f]  = f.stat().st_size / 1e6
-      if f.name in ("qlog", "rlog"):
-        with open(f, 'rb') as ff:
-          cls.log_sizes[f] = len(bz2.compress(ff.read())) / 1e6
+      cls.log_sizes[f] = f.stat().st_size / 1e6
 
   @classmethod
   def tearDownClass(cls):
@@ -220,13 +219,17 @@ class TestOnroad(unittest.TestCase):
     big_logs = [f for f, n in cnt.most_common(3) if n / sum(cnt.values()) > 30.]
     self.assertEqual(len(big_logs), 0, f"Log spam: {big_logs}")
 
+  def test_manager_starting_time(self):
+    st = self.ts['managerState']['t'][0]
+    self.assertLess(st - self.manager_st, 15.0, f"manager.py took {st - self.manager_st}s to publish the first 'managerState' msg")
+
   def test_log_sizes(self):
     for f, sz in self.log_sizes.items():
       if f.name == "qcamera.ts":
         assert 0.3 < sz < 0.6
-      elif f.name == "qlog":
+      elif f.name == "qlog.zst":
         assert 0.5 < sz < 1.0
-      elif f.name == "rlog":
+      elif f.name == "rlog.zst":
         assert 5 < sz < 50
       elif f.name.endswith('.hevc'):
         assert 70 < sz < 78
