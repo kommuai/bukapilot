@@ -2,6 +2,12 @@
 set -e
 set -x
 
+# Avoid inheriting release-signing env from parent shells/CI.
+# Default behavior should be unsigned panda unless explicitly requested below.
+unset RELEASE
+unset CERT
+unset PANDA_CERT
+
 if [ -z "$RELEASE_BRANCH" ]; then
   echo "RELEASE_BRANCH is not set"
   exit 1
@@ -108,7 +114,7 @@ fi
 
 # Default: do NOT sign panda (debug/unsigned-style build).
 # To build signed release panda firmware, set SIGN_PANDA_RELEASE=1 and provide CERT (or PANDA_CERT).
-if [ -n "${SIGN_PANDA_RELEASE:-}" ]; then
+if [ "${SIGN_PANDA_RELEASE:-0}" = "1" ]; then
   # RELEASE panda build requires CERT to be an absolute path to a certificate file.
   # You can provide CERT directly, or point PANDA_CERT at either a file or a directory
   # containing a cert file.
