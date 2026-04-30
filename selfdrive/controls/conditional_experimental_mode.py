@@ -110,8 +110,9 @@ class ConditionalExperimentalMode:
       should_enable = curve_detected or slow_lead_detected
       personality_type = int(self.params.get("LongitudinalPersonality"))
 
-      if (personality_type == 0) or not self.cem_enabled:
-        should_enable = False
+      if (personality_type == 0):
+        if not self.cem_enabled:
+          should_enable = False
       elif (personality_type == 1):
         should_enable |= model_stopping_detected
       else:
