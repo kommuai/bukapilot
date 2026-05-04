@@ -1,0 +1,668 @@
+[
+    {
+        "command": "clang++ -o common/params.o -c -std=c++1z -DRK3588 -g -fPIC -O2 -Wunused -Werror -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -DRK3588 -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include -Ithird_party/opencl/include -Ithird_party/rknpu/include -I/usr/include/rockchip -I/usr/local/include/rockchip common/params.cc",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/common/params.cc",
+        "output": "/data/openpilot-release/common/params.o"
+    },
+    {
+        "command": "clang++ -o common/swaglog.o -c -std=c++1z -DRK3588 -g -fPIC -O2 -Wunused -Werror -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -DRK3588 -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include -Ithird_party/opencl/include -Ithird_party/rknpu/include -I/usr/include/rockchip -I/usr/local/include/rockchip common/swaglog.cc",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/common/swaglog.cc",
+        "output": "/data/openpilot-release/common/swaglog.o"
+    },
+    {
+        "command": "clang++ -o common/util.o -c -std=c++1z -DRK3588 -g -fPIC -O2 -Wunused -Werror -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -DRK3588 -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include -Ithird_party/opencl/include -Ithird_party/rknpu/include -I/usr/include/rockchip -I/usr/local/include/rockchip common/util.cc",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/common/util.cc",
+        "output": "/data/openpilot-release/common/util.o"
+    },
+    {
+        "command": "clang++ -o common/ratekeeper.o -c -std=c++1z -DRK3588 -g -fPIC -O2 -Wunused -Werror -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -DRK3588 -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include -Ithird_party/opencl/include -Ithird_party/rknpu/include -I/usr/include/rockchip -I/usr/local/include/rockchip common/ratekeeper.cc",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/common/ratekeeper.cc",
+        "output": "/data/openpilot-release/common/ratekeeper.o"
+    },
+    {
+        "command": "clang++ -o common/clutil.o -c -std=c++1z -DRK3588 -g -fPIC -O2 -Wunused -Werror -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -DRK3588 -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include -Ithird_party/opencl/include -Ithird_party/rknpu/include -I/usr/include/rockchip -I/usr/local/include/rockchip common/clutil.cc",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/common/clutil.cc",
+        "output": "/data/openpilot-release/common/clutil.o"
+    },
+    {
+        "command": "clang++ -o common/rkutil.o -c -std=c++1z -DRK3588 -g -fPIC -O2 -Wunused -Werror -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -DRK3588 -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include -Ithird_party/opencl/include -Ithird_party/rknpu/include -I/usr/include/rockchip -I/usr/local/include/rockchip common/rkutil.cc",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/common/rkutil.cc",
+        "output": "/data/openpilot-release/common/rkutil.o"
+    },
+    {
+        "command": "clang++ -o common/params_pyx.o -c -std=c++1z -DRK3588 -g -fPIC -O2 -Wunused -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -DRK3588 -Wno-#warnings -Wno-shadow -Wno-deprecated-declarations -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include -Ithird_party/opencl/include -Ithird_party/rknpu/include -I/usr/include/rockchip -I/usr/local/include/rockchip -I/usr/local/uv/python/cpython-3.12.3-linux-aarch64-gnu/include/python3.12 -I/usr/local/venv/lib/python3.12/site-packages/numpy/core/include common/params_pyx.cpp",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/common/params_pyx.cpp",
+        "output": "/data/openpilot-release/common/params_pyx.o"
+    },
+    {
+        "command": "clang++ -o msgq_repo/msgq/ipc.os -c -std=c++1z -DRK3588 -DSWAGLOG=\"\\\"common/swaglog.h\\\"\" -g -fPIC -O2 -Wunused -Werror -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -DRK3588 -fPIC -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include -Ithird_party/opencl/include -Ithird_party/rknpu/include -I/usr/include/rockchip -I/usr/local/include/rockchip msgq_repo/msgq/ipc.cc",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/msgq_repo/msgq/ipc.cc",
+        "output": "/data/openpilot-release/msgq_repo/msgq/ipc.os"
+    },
+    {
+        "command": "clang++ -o msgq_repo/msgq/event.os -c -std=c++1z -DRK3588 -DSWAGLOG=\"\\\"common/swaglog.h\\\"\" -g -fPIC -O2 -Wunused -Werror -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -DRK3588 -fPIC -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include -Ithird_party/opencl/include -Ithird_party/rknpu/include -I/usr/include/rockchip -I/usr/local/include/rockchip msgq_repo/msgq/event.cc",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/msgq_repo/msgq/event.cc",
+        "output": "/data/openpilot-release/msgq_repo/msgq/event.os"
+    },
+    {
+        "command": "clang++ -o msgq_repo/msgq/impl_zmq.os -c -std=c++1z -DRK3588 -DSWAGLOG=\"\\\"common/swaglog.h\\\"\" -g -fPIC -O2 -Wunused -Werror -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -DRK3588 -fPIC -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include -Ithird_party/opencl/include -Ithird_party/rknpu/include -I/usr/include/rockchip -I/usr/local/include/rockchip msgq_repo/msgq/impl_zmq.cc",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/msgq_repo/msgq/impl_zmq.cc",
+        "output": "/data/openpilot-release/msgq_repo/msgq/impl_zmq.os"
+    },
+    {
+        "command": "clang++ -o msgq_repo/msgq/impl_msgq.os -c -std=c++1z -DRK3588 -DSWAGLOG=\"\\\"common/swaglog.h\\\"\" -g -fPIC -O2 -Wunused -Werror -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -DRK3588 -fPIC -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include -Ithird_party/opencl/include -Ithird_party/rknpu/include -I/usr/include/rockchip -I/usr/local/include/rockchip msgq_repo/msgq/impl_msgq.cc",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/msgq_repo/msgq/impl_msgq.cc",
+        "output": "/data/openpilot-release/msgq_repo/msgq/impl_msgq.os"
+    },
+    {
+        "command": "clang++ -o msgq_repo/msgq/impl_fake.os -c -std=c++1z -DRK3588 -DSWAGLOG=\"\\\"common/swaglog.h\\\"\" -g -fPIC -O2 -Wunused -Werror -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -DRK3588 -fPIC -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include -Ithird_party/opencl/include -Ithird_party/rknpu/include -I/usr/include/rockchip -I/usr/local/include/rockchip msgq_repo/msgq/impl_fake.cc",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/msgq_repo/msgq/impl_fake.cc",
+        "output": "/data/openpilot-release/msgq_repo/msgq/impl_fake.os"
+    },
+    {
+        "command": "clang++ -o msgq_repo/msgq/msgq.os -c -std=c++1z -DRK3588 -DSWAGLOG=\"\\\"common/swaglog.h\\\"\" -g -fPIC -O2 -Wunused -Werror -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -DRK3588 -fPIC -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include -Ithird_party/opencl/include -Ithird_party/rknpu/include -I/usr/include/rockchip -I/usr/local/include/rockchip msgq_repo/msgq/msgq.cc",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/msgq_repo/msgq/msgq.cc",
+        "output": "/data/openpilot-release/msgq_repo/msgq/msgq.os"
+    },
+    {
+        "command": "clang++ -o msgq_repo/msgq/ipc_pyx.o -c -std=c++1z -DRK3588 -g -fPIC -O2 -Wunused -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -DRK3588 -Wno-#warnings -Wno-shadow -Wno-deprecated-declarations -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include -Ithird_party/opencl/include -Ithird_party/rknpu/include -I/usr/include/rockchip -I/usr/local/include/rockchip -I/usr/local/uv/python/cpython-3.12.3-linux-aarch64-gnu/include/python3.12 -I/usr/local/venv/lib/python3.12/site-packages/numpy/core/include msgq_repo/msgq/ipc_pyx.cpp",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/msgq_repo/msgq/ipc_pyx.cpp",
+        "output": "/data/openpilot-release/msgq_repo/msgq/ipc_pyx.o"
+    },
+    {
+        "command": "clang++ -o msgq_repo/msgq/visionipc/visionipc.os -c -std=c++1z -DRK3588 -DSWAGLOG=\"\\\"common/swaglog.h\\\"\" -g -fPIC -O2 -Wunused -Werror -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -DRK3588 -fPIC -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include -Ithird_party/opencl/include -Ithird_party/rknpu/include -I/usr/include/rockchip -I/usr/local/include/rockchip msgq_repo/msgq/visionipc/visionipc.cc",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/msgq_repo/msgq/visionipc/visionipc.cc",
+        "output": "/data/openpilot-release/msgq_repo/msgq/visionipc/visionipc.os"
+    },
+    {
+        "command": "clang++ -o msgq_repo/msgq/visionipc/visionipc_server.os -c -std=c++1z -DRK3588 -DSWAGLOG=\"\\\"common/swaglog.h\\\"\" -g -fPIC -O2 -Wunused -Werror -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -DRK3588 -fPIC -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include -Ithird_party/opencl/include -Ithird_party/rknpu/include -I/usr/include/rockchip -I/usr/local/include/rockchip msgq_repo/msgq/visionipc/visionipc_server.cc",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/msgq_repo/msgq/visionipc/visionipc_server.cc",
+        "output": "/data/openpilot-release/msgq_repo/msgq/visionipc/visionipc_server.os"
+    },
+    {
+        "command": "clang++ -o msgq_repo/msgq/visionipc/visionipc_client.os -c -std=c++1z -DRK3588 -DSWAGLOG=\"\\\"common/swaglog.h\\\"\" -g -fPIC -O2 -Wunused -Werror -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -DRK3588 -fPIC -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include -Ithird_party/opencl/include -Ithird_party/rknpu/include -I/usr/include/rockchip -I/usr/local/include/rockchip msgq_repo/msgq/visionipc/visionipc_client.cc",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/msgq_repo/msgq/visionipc/visionipc_client.cc",
+        "output": "/data/openpilot-release/msgq_repo/msgq/visionipc/visionipc_client.os"
+    },
+    {
+        "command": "clang++ -o msgq_repo/msgq/visionipc/visionbuf.os -c -std=c++1z -DRK3588 -DSWAGLOG=\"\\\"common/swaglog.h\\\"\" -g -fPIC -O2 -Wunused -Werror -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -DRK3588 -fPIC -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include -Ithird_party/opencl/include -Ithird_party/rknpu/include -I/usr/include/rockchip -I/usr/local/include/rockchip msgq_repo/msgq/visionipc/visionbuf.cc",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/msgq_repo/msgq/visionipc/visionbuf.cc",
+        "output": "/data/openpilot-release/msgq_repo/msgq/visionipc/visionbuf.os"
+    },
+    {
+        "command": "clang++ -o msgq_repo/msgq/visionipc/visionbuf_cl.os -c -std=c++1z -DRK3588 -DSWAGLOG=\"\\\"common/swaglog.h\\\"\" -g -fPIC -O2 -Wunused -Werror -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -DRK3588 -fPIC -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include -Ithird_party/opencl/include -Ithird_party/rknpu/include -I/usr/include/rockchip -I/usr/local/include/rockchip msgq_repo/msgq/visionipc/visionbuf_cl.cc",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/msgq_repo/msgq/visionipc/visionbuf_cl.cc",
+        "output": "/data/openpilot-release/msgq_repo/msgq/visionipc/visionbuf_cl.os"
+    },
+    {
+        "command": "clang++ -o msgq_repo/msgq/visionipc/visionipc_pyx.o -c -std=c++1z -DRK3588 -g -fPIC -O2 -Wunused -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -DRK3588 -Wno-#warnings -Wno-shadow -Wno-deprecated-declarations -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include -Ithird_party/opencl/include -Ithird_party/rknpu/include -I/usr/include/rockchip -I/usr/local/include/rockchip -I/usr/local/uv/python/cpython-3.12.3-linux-aarch64-gnu/include/python3.12 -I/usr/local/venv/lib/python3.12/site-packages/numpy/core/include msgq_repo/msgq/visionipc/visionipc_pyx.cpp",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/msgq_repo/msgq/visionipc/visionipc_pyx.cpp",
+        "output": "/data/openpilot-release/msgq_repo/msgq/visionipc/visionipc_pyx.o"
+    },
+    {
+        "command": "clang++ -o cereal/gen/cpp/log.capnp.o -c -std=c++1z -DRK3588 -g -fPIC -O2 -Wunused -Werror -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -DRK3588 -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include -Ithird_party/opencl/include -Ithird_party/rknpu/include -I/usr/include/rockchip -I/usr/local/include/rockchip cereal/gen/cpp/log.capnp.c++",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/cereal/gen/cpp/log.capnp.c++",
+        "output": "/data/openpilot-release/cereal/gen/cpp/log.capnp.o"
+    },
+    {
+        "command": "clang++ -o cereal/gen/cpp/car.capnp.o -c -std=c++1z -DRK3588 -g -fPIC -O2 -Wunused -Werror -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -DRK3588 -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include -Ithird_party/opencl/include -Ithird_party/rknpu/include -I/usr/include/rockchip -I/usr/local/include/rockchip cereal/gen/cpp/car.capnp.c++",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/cereal/gen/cpp/car.capnp.c++",
+        "output": "/data/openpilot-release/cereal/gen/cpp/car.capnp.o"
+    },
+    {
+        "command": "clang++ -o cereal/gen/cpp/legacy.capnp.o -c -std=c++1z -DRK3588 -g -fPIC -O2 -Wunused -Werror -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -DRK3588 -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include -Ithird_party/opencl/include -Ithird_party/rknpu/include -I/usr/include/rockchip -I/usr/local/include/rockchip cereal/gen/cpp/legacy.capnp.c++",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/cereal/gen/cpp/legacy.capnp.c++",
+        "output": "/data/openpilot-release/cereal/gen/cpp/legacy.capnp.o"
+    },
+    {
+        "command": "clang++ -o cereal/gen/cpp/custom.capnp.o -c -std=c++1z -DRK3588 -g -fPIC -O2 -Wunused -Werror -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -DRK3588 -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include -Ithird_party/opencl/include -Ithird_party/rknpu/include -I/usr/include/rockchip -I/usr/local/include/rockchip cereal/gen/cpp/custom.capnp.c++",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/cereal/gen/cpp/custom.capnp.c++",
+        "output": "/data/openpilot-release/cereal/gen/cpp/custom.capnp.o"
+    },
+    {
+        "command": "clang++ -o cereal/messaging/bridge.o -c -std=c++1z -DRK3588 -g -fPIC -O2 -Wunused -Werror -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -DRK3588 -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include -Ithird_party/opencl/include -Ithird_party/rknpu/include -I/usr/include/rockchip -I/usr/local/include/rockchip cereal/messaging/bridge.cc",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/cereal/messaging/bridge.cc",
+        "output": "/data/openpilot-release/cereal/messaging/bridge.o"
+    },
+    {
+        "command": "clang++ -o cereal/messaging/msgq_to_zmq.o -c -std=c++1z -DRK3588 -g -fPIC -O2 -Wunused -Werror -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -DRK3588 -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include -Ithird_party/opencl/include -Ithird_party/rknpu/include -I/usr/include/rockchip -I/usr/local/include/rockchip cereal/messaging/msgq_to_zmq.cc",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/cereal/messaging/msgq_to_zmq.cc",
+        "output": "/data/openpilot-release/cereal/messaging/msgq_to_zmq.o"
+    },
+    {
+        "command": "clang++ -o cereal/messaging/socketmaster.o -c -std=c++1z -DRK3588 -g -fPIC -O2 -Wunused -Werror -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -DRK3588 -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include -Ithird_party/opencl/include -Ithird_party/rknpu/include -I/usr/include/rockchip -I/usr/local/include/rockchip cereal/messaging/socketmaster.cc",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/cereal/messaging/socketmaster.cc",
+        "output": "/data/openpilot-release/cereal/messaging/socketmaster.o"
+    },
+    {
+        "command": "arm-none-eabi-gcc -mcpu=cortex-m7 -mhard-float -DSTM32H7 -DSTM32H725xx -Iboard/stm32h7/inc -mfpu=fpv5-d16 -DALLOW_DEBUG -Wall -Wextra -Wstrict-prototypes -Werror -mlittle-endian -mthumb -nostdlib -fno-builtin -std=gnu11 -fmax-errors=1 -Tpanda/board/stm32h7/stm32h7x5_flash.ld -fsingle-precision-constant -Os -g -o panda/board/stm32h7/board/obj/panda_h7startup_stm32h7x5xx.o -c panda/board/stm32h7/startup_stm32h7x5xx.s",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/panda/board/stm32h7/startup_stm32h7x5xx.s",
+        "output": "/data/openpilot-release/panda/board/stm32h7/board/obj/panda_h7startup_stm32h7x5xx.o"
+    },
+    {
+        "command": "arm-none-eabi-gcc -o panda/crypto/board/obj/panda_h7rsa.o -c -mcpu=cortex-m7 -mhard-float -DSTM32H7 -DSTM32H725xx -Iboard/stm32h7/inc -mfpu=fpv5-d16 -DALLOW_DEBUG -Wall -Wextra -Wstrict-prototypes -Werror -mlittle-endian -mthumb -nostdlib -fno-builtin -std=gnu11 -fmax-errors=1 -Tpanda/board/stm32h7/stm32h7x5_flash.ld -fsingle-precision-constant -Os -g -DBOOTSTUB -Ipanda -Ipanda/board/stm32h7/inc -Iopendbc_repo panda/crypto/rsa.c",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/panda/crypto/rsa.c",
+        "output": "/data/openpilot-release/panda/crypto/board/obj/panda_h7rsa.o"
+    },
+    {
+        "command": "arm-none-eabi-gcc -o panda/crypto/board/obj/panda_h7sha.o -c -mcpu=cortex-m7 -mhard-float -DSTM32H7 -DSTM32H725xx -Iboard/stm32h7/inc -mfpu=fpv5-d16 -DALLOW_DEBUG -Wall -Wextra -Wstrict-prototypes -Werror -mlittle-endian -mthumb -nostdlib -fno-builtin -std=gnu11 -fmax-errors=1 -Tpanda/board/stm32h7/stm32h7x5_flash.ld -fsingle-precision-constant -Os -g -DBOOTSTUB -Ipanda -Ipanda/board/stm32h7/inc -Iopendbc_repo panda/crypto/sha.c",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/panda/crypto/sha.c",
+        "output": "/data/openpilot-release/panda/crypto/board/obj/panda_h7sha.o"
+    },
+    {
+        "command": "arm-none-eabi-gcc -o panda/board/board/obj/panda_h7bootstub.o -c -mcpu=cortex-m7 -mhard-float -DSTM32H7 -DSTM32H725xx -Iboard/stm32h7/inc -mfpu=fpv5-d16 -DALLOW_DEBUG -Wall -Wextra -Wstrict-prototypes -Werror -mlittle-endian -mthumb -nostdlib -fno-builtin -std=gnu11 -fmax-errors=1 -Tpanda/board/stm32h7/stm32h7x5_flash.ld -fsingle-precision-constant -Os -g -DBOOTSTUB -Ipanda -Ipanda/board/stm32h7/inc -Iopendbc_repo panda/board/bootstub.c",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/panda/board/bootstub.c",
+        "output": "/data/openpilot-release/panda/board/board/obj/panda_h7bootstub.o"
+    },
+    {
+        "command": "arm-none-eabi-gcc -o panda/board/board/obj/panda_h7main.o -c -mcpu=cortex-m7 -mhard-float -DSTM32H7 -DSTM32H725xx -Iboard/stm32h7/inc -mfpu=fpv5-d16 -DALLOW_DEBUG -Wall -Wextra -Wstrict-prototypes -Werror -mlittle-endian -mthumb -nostdlib -fno-builtin -std=gnu11 -fmax-errors=1 -Tpanda/board/stm32h7/stm32h7x5_flash.ld -fsingle-precision-constant -Os -g -Ipanda -Ipanda/board/stm32h7/inc -Iopendbc_repo panda/board/main.c",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/panda/board/main.c",
+        "output": "/data/openpilot-release/panda/board/board/obj/panda_h7main.o"
+    },
+    {
+        "command": "arm-none-eabi-gcc -mcpu=cortex-m7 -mhard-float -DSTM32H7 -DSTM32H725xx -Iboard/stm32h7/inc -mfpu=fpv5-d16 -DPANDA_JUNGLE -DALLOW_DEBUG -Wall -Wextra -Wstrict-prototypes -Werror -mlittle-endian -mthumb -nostdlib -fno-builtin -std=gnu11 -fmax-errors=1 -Tpanda/board/stm32h7/stm32h7x5_flash.ld -fsingle-precision-constant -Os -g -o panda/board/stm32h7/board/obj/panda_jungle_h7startup_stm32h7x5xx.o -c panda/board/stm32h7/startup_stm32h7x5xx.s",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/panda/board/stm32h7/startup_stm32h7x5xx.s",
+        "output": "/data/openpilot-release/panda/board/stm32h7/board/obj/panda_jungle_h7startup_stm32h7x5xx.o"
+    },
+    {
+        "command": "arm-none-eabi-gcc -o panda/crypto/board/obj/panda_jungle_h7rsa.o -c -mcpu=cortex-m7 -mhard-float -DSTM32H7 -DSTM32H725xx -Iboard/stm32h7/inc -mfpu=fpv5-d16 -DPANDA_JUNGLE -DALLOW_DEBUG -Wall -Wextra -Wstrict-prototypes -Werror -mlittle-endian -mthumb -nostdlib -fno-builtin -std=gnu11 -fmax-errors=1 -Tpanda/board/stm32h7/stm32h7x5_flash.ld -fsingle-precision-constant -Os -g -DBOOTSTUB -Ipanda -Ipanda/board/stm32h7/inc -Iopendbc_repo panda/crypto/rsa.c",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/panda/crypto/rsa.c",
+        "output": "/data/openpilot-release/panda/crypto/board/obj/panda_jungle_h7rsa.o"
+    },
+    {
+        "command": "arm-none-eabi-gcc -o panda/crypto/board/obj/panda_jungle_h7sha.o -c -mcpu=cortex-m7 -mhard-float -DSTM32H7 -DSTM32H725xx -Iboard/stm32h7/inc -mfpu=fpv5-d16 -DPANDA_JUNGLE -DALLOW_DEBUG -Wall -Wextra -Wstrict-prototypes -Werror -mlittle-endian -mthumb -nostdlib -fno-builtin -std=gnu11 -fmax-errors=1 -Tpanda/board/stm32h7/stm32h7x5_flash.ld -fsingle-precision-constant -Os -g -DBOOTSTUB -Ipanda -Ipanda/board/stm32h7/inc -Iopendbc_repo panda/crypto/sha.c",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/panda/crypto/sha.c",
+        "output": "/data/openpilot-release/panda/crypto/board/obj/panda_jungle_h7sha.o"
+    },
+    {
+        "command": "arm-none-eabi-gcc -o panda/board/board/obj/panda_jungle_h7bootstub.o -c -mcpu=cortex-m7 -mhard-float -DSTM32H7 -DSTM32H725xx -Iboard/stm32h7/inc -mfpu=fpv5-d16 -DPANDA_JUNGLE -DALLOW_DEBUG -Wall -Wextra -Wstrict-prototypes -Werror -mlittle-endian -mthumb -nostdlib -fno-builtin -std=gnu11 -fmax-errors=1 -Tpanda/board/stm32h7/stm32h7x5_flash.ld -fsingle-precision-constant -Os -g -DBOOTSTUB -Ipanda -Ipanda/board/stm32h7/inc -Iopendbc_repo panda/board/bootstub.c",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/panda/board/bootstub.c",
+        "output": "/data/openpilot-release/panda/board/board/obj/panda_jungle_h7bootstub.o"
+    },
+    {
+        "command": "arm-none-eabi-gcc -o panda/board/jungle/board/obj/panda_jungle_h7main.o -c -mcpu=cortex-m7 -mhard-float -DSTM32H7 -DSTM32H725xx -Iboard/stm32h7/inc -mfpu=fpv5-d16 -DPANDA_JUNGLE -DALLOW_DEBUG -Wall -Wextra -Wstrict-prototypes -Werror -mlittle-endian -mthumb -nostdlib -fno-builtin -std=gnu11 -fmax-errors=1 -Tpanda/board/stm32h7/stm32h7x5_flash.ld -fsingle-precision-constant -Os -g -Ipanda -Ipanda/board/stm32h7/inc -Iopendbc_repo panda/board/jungle/main.c",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/panda/board/jungle/main.c",
+        "output": "/data/openpilot-release/panda/board/jungle/board/obj/panda_jungle_h7main.o"
+    },
+    {
+        "command": "arm-none-eabi-gcc -mcpu=cortex-m7 -mhard-float -DSTM32H7 -DSTM32H725xx -Iboard/stm32h7/inc -mfpu=fpv5-d16 -DPANDA_BODY -DALLOW_DEBUG -Wall -Wextra -Wstrict-prototypes -Werror -mlittle-endian -mthumb -nostdlib -fno-builtin -std=gnu11 -fmax-errors=1 -Tpanda/board/stm32h7/stm32h7x5_flash.ld -fsingle-precision-constant -Os -g -o panda/board/stm32h7/board/obj/body_h7startup_stm32h7x5xx.o -c panda/board/stm32h7/startup_stm32h7x5xx.s",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/panda/board/stm32h7/startup_stm32h7x5xx.s",
+        "output": "/data/openpilot-release/panda/board/stm32h7/board/obj/body_h7startup_stm32h7x5xx.o"
+    },
+    {
+        "command": "arm-none-eabi-gcc -o panda/crypto/board/obj/body_h7rsa.o -c -mcpu=cortex-m7 -mhard-float -DSTM32H7 -DSTM32H725xx -Iboard/stm32h7/inc -mfpu=fpv5-d16 -DPANDA_BODY -DALLOW_DEBUG -Wall -Wextra -Wstrict-prototypes -Werror -mlittle-endian -mthumb -nostdlib -fno-builtin -std=gnu11 -fmax-errors=1 -Tpanda/board/stm32h7/stm32h7x5_flash.ld -fsingle-precision-constant -Os -g -DBOOTSTUB -Ipanda -Ipanda/board/stm32h7/inc -Iopendbc_repo panda/crypto/rsa.c",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/panda/crypto/rsa.c",
+        "output": "/data/openpilot-release/panda/crypto/board/obj/body_h7rsa.o"
+    },
+    {
+        "command": "arm-none-eabi-gcc -o panda/crypto/board/obj/body_h7sha.o -c -mcpu=cortex-m7 -mhard-float -DSTM32H7 -DSTM32H725xx -Iboard/stm32h7/inc -mfpu=fpv5-d16 -DPANDA_BODY -DALLOW_DEBUG -Wall -Wextra -Wstrict-prototypes -Werror -mlittle-endian -mthumb -nostdlib -fno-builtin -std=gnu11 -fmax-errors=1 -Tpanda/board/stm32h7/stm32h7x5_flash.ld -fsingle-precision-constant -Os -g -DBOOTSTUB -Ipanda -Ipanda/board/stm32h7/inc -Iopendbc_repo panda/crypto/sha.c",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/panda/crypto/sha.c",
+        "output": "/data/openpilot-release/panda/crypto/board/obj/body_h7sha.o"
+    },
+    {
+        "command": "arm-none-eabi-gcc -o panda/board/board/obj/body_h7bootstub.o -c -mcpu=cortex-m7 -mhard-float -DSTM32H7 -DSTM32H725xx -Iboard/stm32h7/inc -mfpu=fpv5-d16 -DPANDA_BODY -DALLOW_DEBUG -Wall -Wextra -Wstrict-prototypes -Werror -mlittle-endian -mthumb -nostdlib -fno-builtin -std=gnu11 -fmax-errors=1 -Tpanda/board/stm32h7/stm32h7x5_flash.ld -fsingle-precision-constant -Os -g -DBOOTSTUB -Ipanda -Ipanda/board/stm32h7/inc -Iopendbc_repo panda/board/bootstub.c",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/panda/board/bootstub.c",
+        "output": "/data/openpilot-release/panda/board/board/obj/body_h7bootstub.o"
+    },
+    {
+        "command": "arm-none-eabi-gcc -o panda/board/body/board/obj/body_h7main.o -c -mcpu=cortex-m7 -mhard-float -DSTM32H7 -DSTM32H725xx -Iboard/stm32h7/inc -mfpu=fpv5-d16 -DPANDA_BODY -DALLOW_DEBUG -Wall -Wextra -Wstrict-prototypes -Werror -mlittle-endian -mthumb -nostdlib -fno-builtin -std=gnu11 -fmax-errors=1 -Tpanda/board/stm32h7/stm32h7x5_flash.ld -fsingle-precision-constant -Os -g -Ipanda -Ipanda/board/stm32h7/inc -Iopendbc_repo panda/board/body/main.c",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/panda/board/body/main.c",
+        "output": "/data/openpilot-release/panda/board/body/board/obj/body_h7main.o"
+    },
+    {
+        "command": "clang++ -o rednose/helpers/ekf_load.os -c -std=c++1z -DRK3588 -g -fPIC -O2 -Wunused -Werror -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -DRK3588 -fPIC -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include -Ithird_party/opencl/include -Ithird_party/rknpu/include -I/usr/include/rockchip -I/usr/local/include/rockchip rednose/helpers/ekf_load.cc",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/rednose/helpers/ekf_load.cc",
+        "output": "/data/openpilot-release/rednose/helpers/ekf_load.os"
+    },
+    {
+        "command": "clang++ -o rednose/helpers/ekf_sym.os -c -std=c++1z -DRK3588 -g -fPIC -O2 -Wunused -Werror -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -DRK3588 -fPIC -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include -Ithird_party/opencl/include -Ithird_party/rknpu/include -I/usr/include/rockchip -I/usr/local/include/rockchip rednose/helpers/ekf_sym.cc",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/rednose/helpers/ekf_sym.cc",
+        "output": "/data/openpilot-release/rednose/helpers/ekf_sym.os"
+    },
+    {
+        "command": "clang++ -o rednose/helpers/ekf_sym_pyx.o -c -std=c++1z -DRK3588 -g -fPIC -O2 -Wunused -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -DRK3588 -Wno-#warnings -Wno-shadow -Wno-deprecated-declarations -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include -Ithird_party/opencl/include -Ithird_party/rknpu/include -I/usr/include/rockchip -I/usr/local/include/rockchip -I/usr/local/uv/python/cpython-3.12.3-linux-aarch64-gnu/include/python3.12 -I/usr/local/venv/lib/python3.12/site-packages/numpy/core/include rednose/helpers/ekf_sym_pyx.cpp",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/rednose/helpers/ekf_sym_pyx.cpp",
+        "output": "/data/openpilot-release/rednose/helpers/ekf_sym_pyx.o"
+    },
+    {
+        "command": "clang++ -o system/loggerd/logger.o -c -std=c++1z -DRK3588 -g -fPIC -O2 -Wunused -Werror -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -DRK3588 -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include -Ithird_party/opencl/include -Ithird_party/rknpu/include -I/usr/include/rockchip -I/usr/local/include/rockchip system/loggerd/logger.cc",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/system/loggerd/logger.cc",
+        "output": "/data/openpilot-release/system/loggerd/logger.o"
+    },
+    {
+        "command": "clang++ -o system/loggerd/zstd_writer.o -c -std=c++1z -DRK3588 -g -fPIC -O2 -Wunused -Werror -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -DRK3588 -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include -Ithird_party/opencl/include -Ithird_party/rknpu/include -I/usr/include/rockchip -I/usr/local/include/rockchip system/loggerd/zstd_writer.cc",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/system/loggerd/zstd_writer.cc",
+        "output": "/data/openpilot-release/system/loggerd/zstd_writer.o"
+    },
+    {
+        "command": "clang++ -o system/loggerd/memory_pressure.o -c -std=c++1z -DRK3588 -g -fPIC -O2 -Wunused -Werror -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -DRK3588 -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include -Ithird_party/opencl/include -Ithird_party/rknpu/include -I/usr/include/rockchip -I/usr/local/include/rockchip system/loggerd/memory_pressure.cc",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/system/loggerd/memory_pressure.cc",
+        "output": "/data/openpilot-release/system/loggerd/memory_pressure.o"
+    },
+    {
+        "command": "clang++ -o system/loggerd/video_writer.o -c -std=c++1z -DRK3588 -g -fPIC -O2 -Wunused -Werror -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -DRK3588 -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include -Ithird_party/opencl/include -Ithird_party/rknpu/include -I/usr/include/rockchip -I/usr/local/include/rockchip system/loggerd/video_writer.cc",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/system/loggerd/video_writer.cc",
+        "output": "/data/openpilot-release/system/loggerd/video_writer.o"
+    },
+    {
+        "command": "clang++ -o system/loggerd/encoder/encoder.o -c -std=c++1z -DRK3588 -g -fPIC -O2 -Wunused -Werror -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -DRK3588 -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include -Ithird_party/opencl/include -Ithird_party/rknpu/include -I/usr/include/rockchip -I/usr/local/include/rockchip system/loggerd/encoder/encoder.cc",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/system/loggerd/encoder/encoder.cc",
+        "output": "/data/openpilot-release/system/loggerd/encoder/encoder.o"
+    },
+    {
+        "command": "clang++ -o system/loggerd/encoder/v4l_encoder.o -c -std=c++1z -DRK3588 -g -fPIC -O2 -Wunused -Werror -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -DRK3588 -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include -Ithird_party/opencl/include -Ithird_party/rknpu/include -I/usr/include/rockchip -I/usr/local/include/rockchip system/loggerd/encoder/v4l_encoder.cc",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/system/loggerd/encoder/v4l_encoder.cc",
+        "output": "/data/openpilot-release/system/loggerd/encoder/v4l_encoder.o"
+    },
+    {
+        "command": "clang++ -o system/loggerd/encoder/jpeg_encoder.o -c -std=c++1z -DRK3588 -g -fPIC -O2 -Wunused -Werror -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -DRK3588 -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include -Ithird_party/opencl/include -Ithird_party/rknpu/include -I/usr/include/rockchip -I/usr/local/include/rockchip system/loggerd/encoder/jpeg_encoder.cc",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/system/loggerd/encoder/jpeg_encoder.cc",
+        "output": "/data/openpilot-release/system/loggerd/encoder/jpeg_encoder.o"
+    },
+    {
+        "command": "clang++ -o system/loggerd/encoder/mpp_encoder.o -c -std=c++1z -DRK3588 -g -fPIC -O2 -Wunused -Werror -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -DRK3588 -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include -Ithird_party/opencl/include -Ithird_party/rknpu/include -I/usr/include/rockchip -I/usr/local/include/rockchip system/loggerd/encoder/mpp_encoder.cc",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/system/loggerd/encoder/mpp_encoder.cc",
+        "output": "/data/openpilot-release/system/loggerd/encoder/mpp_encoder.o"
+    },
+    {
+        "command": "clang++ -o system/loggerd/loggerd.o -c -std=c++1z -DRK3588 -g -fPIC -O2 -Wunused -Werror -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -DRK3588 -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include -Ithird_party/opencl/include -Ithird_party/rknpu/include -I/usr/include/rockchip -I/usr/local/include/rockchip system/loggerd/loggerd.cc",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/system/loggerd/loggerd.cc",
+        "output": "/data/openpilot-release/system/loggerd/loggerd.o"
+    },
+    {
+        "command": "clang++ -o system/loggerd/encoderd.o -c -std=c++1z -DRK3588 -g -fPIC -O2 -Wunused -Werror -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -DRK3588 -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include -Ithird_party/opencl/include -Ithird_party/rknpu/include -I/usr/include/rockchip -I/usr/local/include/rockchip system/loggerd/encoderd.cc",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/system/loggerd/encoderd.cc",
+        "output": "/data/openpilot-release/system/loggerd/encoderd.o"
+    },
+    {
+        "command": "clang++ -o system/loggerd/bootlog.o -c -std=c++1z -DRK3588 -g -fPIC -O2 -Wunused -Werror -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -DRK3588 -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include -Ithird_party/opencl/include -Ithird_party/rknpu/include -I/usr/include/rockchip -I/usr/local/include/rockchip system/loggerd/bootlog.cc",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/system/loggerd/bootlog.cc",
+        "output": "/data/openpilot-release/system/loggerd/bootlog.o"
+    },
+    {
+        "command": "clang++ -o system/camerad/cameras/camera_rk.o -c -std=c++1z -DRK3588 -g -fPIC -O2 -Wunused -Werror -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -DRK3588 -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include -Ithird_party/opencl/include -Ithird_party/rknpu/include -I/usr/include/rockchip -I/usr/local/include/rockchip system/camerad/cameras/camera_rk.cc",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/system/camerad/cameras/camera_rk.cc",
+        "output": "/data/openpilot-release/system/camerad/cameras/camera_rk.o"
+    },
+    {
+        "command": "clang++ -o system/camerad/cameras/camera_common.o -c -std=c++1z -DRK3588 -g -fPIC -O2 -Wunused -Werror -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -DRK3588 -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include -Ithird_party/opencl/include -Ithird_party/rknpu/include -I/usr/include/rockchip -I/usr/local/include/rockchip system/camerad/cameras/camera_common.cc",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/system/camerad/cameras/camera_common.cc",
+        "output": "/data/openpilot-release/system/camerad/cameras/camera_common.o"
+    },
+    {
+        "command": "clang++ -o system/camerad/sensors/ox03c10.o -c -std=c++1z -DRK3588 -g -fPIC -O2 -Wunused -Werror -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -DRK3588 -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include -Ithird_party/opencl/include -Ithird_party/rknpu/include -I/usr/include/rockchip -I/usr/local/include/rockchip system/camerad/sensors/ox03c10.cc",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/system/camerad/sensors/ox03c10.cc",
+        "output": "/data/openpilot-release/system/camerad/sensors/ox03c10.o"
+    },
+    {
+        "command": "clang++ -o system/camerad/main.o -c -std=c++1z -DRK3588 -g -fPIC -O2 -Wunused -Werror -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -DRK3588 -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include -Ithird_party/opencl/include -Ithird_party/rknpu/include -I/usr/include/rockchip -I/usr/local/include/rockchip system/camerad/main.cc",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/system/camerad/main.cc",
+        "output": "/data/openpilot-release/system/camerad/main.o"
+    },
+    {
+        "command": "clang++ -o third_party/json11/json11.o -c -std=c++1z -DRK3588 -g -fPIC -O2 -Wunused -Werror -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -DRK3588 -Wno-unqualified-std-cast-call -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include -Ithird_party/opencl/include -Ithird_party/rknpu/include -I/usr/include/rockchip -I/usr/local/include/rockchip third_party/json11/json11.cpp",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/third_party/json11/json11.cpp",
+        "output": "/data/openpilot-release/third_party/json11/json11.o"
+    },
+    {
+        "command": "clang++ -o selfdrive/pandad/panda.o -c -std=c++1z -DRK3588 -g -fPIC -O2 -Wunused -Werror -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -DRK3588 -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include -Ithird_party/opencl/include -Ithird_party/rknpu/include -I/usr/include/rockchip -I/usr/local/include/rockchip selfdrive/pandad/panda.cc",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/selfdrive/pandad/panda.cc",
+        "output": "/data/openpilot-release/selfdrive/pandad/panda.o"
+    },
+    {
+        "command": "clang++ -o selfdrive/pandad/panda_comms.o -c -std=c++1z -DRK3588 -g -fPIC -O2 -Wunused -Werror -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -DRK3588 -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include -Ithird_party/opencl/include -Ithird_party/rknpu/include -I/usr/include/rockchip -I/usr/local/include/rockchip selfdrive/pandad/panda_comms.cc",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/selfdrive/pandad/panda_comms.cc",
+        "output": "/data/openpilot-release/selfdrive/pandad/panda_comms.o"
+    },
+    {
+        "command": "clang++ -o selfdrive/pandad/spi.o -c -std=c++1z -DRK3588 -g -fPIC -O2 -Wunused -Werror -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -DRK3588 -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include -Ithird_party/opencl/include -Ithird_party/rknpu/include -I/usr/include/rockchip -I/usr/local/include/rockchip selfdrive/pandad/spi.cc",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/selfdrive/pandad/spi.cc",
+        "output": "/data/openpilot-release/selfdrive/pandad/spi.o"
+    },
+    {
+        "command": "clang++ -o selfdrive/pandad/main.o -c -std=c++1z -DRK3588 -g -fPIC -O2 -Wunused -Werror -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -DRK3588 -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include -Ithird_party/opencl/include -Ithird_party/rknpu/include -I/usr/include/rockchip -I/usr/local/include/rockchip selfdrive/pandad/main.cc",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/selfdrive/pandad/main.cc",
+        "output": "/data/openpilot-release/selfdrive/pandad/main.o"
+    },
+    {
+        "command": "clang++ -o selfdrive/pandad/pandad.o -c -std=c++1z -DRK3588 -g -fPIC -O2 -Wunused -Werror -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -DRK3588 -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include -Ithird_party/opencl/include -Ithird_party/rknpu/include -I/usr/include/rockchip -I/usr/local/include/rockchip selfdrive/pandad/pandad.cc",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/selfdrive/pandad/pandad.cc",
+        "output": "/data/openpilot-release/selfdrive/pandad/pandad.o"
+    },
+    {
+        "command": "clang++ -o selfdrive/pandad/panda_safety.o -c -std=c++1z -DRK3588 -g -fPIC -O2 -Wunused -Werror -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -DRK3588 -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include -Ithird_party/opencl/include -Ithird_party/rknpu/include -I/usr/include/rockchip -I/usr/local/include/rockchip selfdrive/pandad/panda_safety.cc",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/selfdrive/pandad/panda_safety.cc",
+        "output": "/data/openpilot-release/selfdrive/pandad/panda_safety.o"
+    },
+    {
+        "command": "clang++ -o selfdrive/pandad/can_list_to_can_capnp.o -c -std=c++1z -DRK3588 -g -fPIC -O2 -Wunused -Werror -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -DRK3588 -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include -Ithird_party/opencl/include -Ithird_party/rknpu/include -I/usr/include/rockchip -I/usr/local/include/rockchip selfdrive/pandad/can_list_to_can_capnp.cc",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/selfdrive/pandad/can_list_to_can_capnp.cc",
+        "output": "/data/openpilot-release/selfdrive/pandad/can_list_to_can_capnp.o"
+    },
+    {
+        "command": "clang++ -o selfdrive/pandad/pandad_api_impl.o -c -std=c++1z -DRK3588 -g -fPIC -O2 -Wunused -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -DRK3588 -Wno-#warnings -Wno-shadow -Wno-deprecated-declarations -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include -Ithird_party/opencl/include -Ithird_party/rknpu/include -I/usr/include/rockchip -I/usr/local/include/rockchip -I/usr/local/uv/python/cpython-3.12.3-linux-aarch64-gnu/include/python3.12 -I/usr/local/venv/lib/python3.12/site-packages/numpy/core/include selfdrive/pandad/pandad_api_impl.cpp",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/selfdrive/pandad/pandad_api_impl.cpp",
+        "output": "/data/openpilot-release/selfdrive/pandad/pandad_api_impl.o"
+    },
+    {
+        "command": "clang -o selfdrive/controls/lib/lateral_mpc_lib/c_generated_code/acados_solver_lat.os -c -std=gnu11 -DACADOS_WITH_QPOASES -g -fPIC -O2 -Wunused -Werror -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -DRK3588 -Wno-unused -fPIC -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include -Ithird_party/opencl/include -Ithird_party/rknpu/include -I/usr/include/rockchip -I/usr/local/include/rockchip selfdrive/controls/lib/lateral_mpc_lib/c_generated_code/acados_solver_lat.c",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/selfdrive/controls/lib/lateral_mpc_lib/c_generated_code/acados_solver_lat.c",
+        "output": "/data/openpilot-release/selfdrive/controls/lib/lateral_mpc_lib/c_generated_code/acados_solver_lat.os"
+    },
+    {
+        "command": "clang -o selfdrive/controls/lib/lateral_mpc_lib/c_generated_code/lat_model/lat_expl_ode_fun.os -c -std=gnu11 -DACADOS_WITH_QPOASES -g -fPIC -O2 -Wunused -Werror -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -DRK3588 -Wno-unused -fPIC -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include -Ithird_party/opencl/include -Ithird_party/rknpu/include -I/usr/include/rockchip -I/usr/local/include/rockchip selfdrive/controls/lib/lateral_mpc_lib/c_generated_code/lat_model/lat_expl_ode_fun.c",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/selfdrive/controls/lib/lateral_mpc_lib/c_generated_code/lat_model/lat_expl_ode_fun.c",
+        "output": "/data/openpilot-release/selfdrive/controls/lib/lateral_mpc_lib/c_generated_code/lat_model/lat_expl_ode_fun.os"
+    },
+    {
+        "command": "clang -o selfdrive/controls/lib/lateral_mpc_lib/c_generated_code/lat_model/lat_expl_vde_forw.os -c -std=gnu11 -DACADOS_WITH_QPOASES -g -fPIC -O2 -Wunused -Werror -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -DRK3588 -Wno-unused -fPIC -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include -Ithird_party/opencl/include -Ithird_party/rknpu/include -I/usr/include/rockchip -I/usr/local/include/rockchip selfdrive/controls/lib/lateral_mpc_lib/c_generated_code/lat_model/lat_expl_vde_forw.c",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/selfdrive/controls/lib/lateral_mpc_lib/c_generated_code/lat_model/lat_expl_vde_forw.c",
+        "output": "/data/openpilot-release/selfdrive/controls/lib/lateral_mpc_lib/c_generated_code/lat_model/lat_expl_vde_forw.os"
+    },
+    {
+        "command": "clang -o selfdrive/controls/lib/lateral_mpc_lib/c_generated_code/lat_cost/lat_cost_y_fun.os -c -std=gnu11 -DACADOS_WITH_QPOASES -g -fPIC -O2 -Wunused -Werror -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -DRK3588 -Wno-unused -fPIC -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include -Ithird_party/opencl/include -Ithird_party/rknpu/include -I/usr/include/rockchip -I/usr/local/include/rockchip selfdrive/controls/lib/lateral_mpc_lib/c_generated_code/lat_cost/lat_cost_y_fun.c",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/selfdrive/controls/lib/lateral_mpc_lib/c_generated_code/lat_cost/lat_cost_y_fun.c",
+        "output": "/data/openpilot-release/selfdrive/controls/lib/lateral_mpc_lib/c_generated_code/lat_cost/lat_cost_y_fun.os"
+    },
+    {
+        "command": "clang -o selfdrive/controls/lib/lateral_mpc_lib/c_generated_code/lat_cost/lat_cost_y_fun_jac_ut_xt.os -c -std=gnu11 -DACADOS_WITH_QPOASES -g -fPIC -O2 -Wunused -Werror -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -DRK3588 -Wno-unused -fPIC -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include -Ithird_party/opencl/include -Ithird_party/rknpu/include -I/usr/include/rockchip -I/usr/local/include/rockchip selfdrive/controls/lib/lateral_mpc_lib/c_generated_code/lat_cost/lat_cost_y_fun_jac_ut_xt.c",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/selfdrive/controls/lib/lateral_mpc_lib/c_generated_code/lat_cost/lat_cost_y_fun_jac_ut_xt.c",
+        "output": "/data/openpilot-release/selfdrive/controls/lib/lateral_mpc_lib/c_generated_code/lat_cost/lat_cost_y_fun_jac_ut_xt.os"
+    },
+    {
+        "command": "clang -o selfdrive/controls/lib/lateral_mpc_lib/c_generated_code/lat_cost/lat_cost_y_hess.os -c -std=gnu11 -DACADOS_WITH_QPOASES -g -fPIC -O2 -Wunused -Werror -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -DRK3588 -Wno-unused -fPIC -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include -Ithird_party/opencl/include -Ithird_party/rknpu/include -I/usr/include/rockchip -I/usr/local/include/rockchip selfdrive/controls/lib/lateral_mpc_lib/c_generated_code/lat_cost/lat_cost_y_hess.c",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/selfdrive/controls/lib/lateral_mpc_lib/c_generated_code/lat_cost/lat_cost_y_hess.c",
+        "output": "/data/openpilot-release/selfdrive/controls/lib/lateral_mpc_lib/c_generated_code/lat_cost/lat_cost_y_hess.os"
+    },
+    {
+        "command": "clang -o selfdrive/controls/lib/lateral_mpc_lib/c_generated_code/lat_cost/lat_cost_y_e_fun.os -c -std=gnu11 -DACADOS_WITH_QPOASES -g -fPIC -O2 -Wunused -Werror -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -DRK3588 -Wno-unused -fPIC -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include -Ithird_party/opencl/include -Ithird_party/rknpu/include -I/usr/include/rockchip -I/usr/local/include/rockchip selfdrive/controls/lib/lateral_mpc_lib/c_generated_code/lat_cost/lat_cost_y_e_fun.c",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/selfdrive/controls/lib/lateral_mpc_lib/c_generated_code/lat_cost/lat_cost_y_e_fun.c",
+        "output": "/data/openpilot-release/selfdrive/controls/lib/lateral_mpc_lib/c_generated_code/lat_cost/lat_cost_y_e_fun.os"
+    },
+    {
+        "command": "clang -o selfdrive/controls/lib/lateral_mpc_lib/c_generated_code/lat_cost/lat_cost_y_e_fun_jac_ut_xt.os -c -std=gnu11 -DACADOS_WITH_QPOASES -g -fPIC -O2 -Wunused -Werror -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -DRK3588 -Wno-unused -fPIC -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include -Ithird_party/opencl/include -Ithird_party/rknpu/include -I/usr/include/rockchip -I/usr/local/include/rockchip selfdrive/controls/lib/lateral_mpc_lib/c_generated_code/lat_cost/lat_cost_y_e_fun_jac_ut_xt.c",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/selfdrive/controls/lib/lateral_mpc_lib/c_generated_code/lat_cost/lat_cost_y_e_fun_jac_ut_xt.c",
+        "output": "/data/openpilot-release/selfdrive/controls/lib/lateral_mpc_lib/c_generated_code/lat_cost/lat_cost_y_e_fun_jac_ut_xt.os"
+    },
+    {
+        "command": "clang -o selfdrive/controls/lib/lateral_mpc_lib/c_generated_code/lat_cost/lat_cost_y_e_hess.os -c -std=gnu11 -DACADOS_WITH_QPOASES -g -fPIC -O2 -Wunused -Werror -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -DRK3588 -Wno-unused -fPIC -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include -Ithird_party/opencl/include -Ithird_party/rknpu/include -I/usr/include/rockchip -I/usr/local/include/rockchip selfdrive/controls/lib/lateral_mpc_lib/c_generated_code/lat_cost/lat_cost_y_e_hess.c",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/selfdrive/controls/lib/lateral_mpc_lib/c_generated_code/lat_cost/lat_cost_y_e_hess.c",
+        "output": "/data/openpilot-release/selfdrive/controls/lib/lateral_mpc_lib/c_generated_code/lat_cost/lat_cost_y_e_hess.os"
+    },
+    {
+        "command": "clang -o selfdrive/controls/lib/lateral_mpc_lib/c_generated_code/lat_cost/lat_cost_y_0_fun.os -c -std=gnu11 -DACADOS_WITH_QPOASES -g -fPIC -O2 -Wunused -Werror -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -DRK3588 -Wno-unused -fPIC -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include -Ithird_party/opencl/include -Ithird_party/rknpu/include -I/usr/include/rockchip -I/usr/local/include/rockchip selfdrive/controls/lib/lateral_mpc_lib/c_generated_code/lat_cost/lat_cost_y_0_fun.c",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/selfdrive/controls/lib/lateral_mpc_lib/c_generated_code/lat_cost/lat_cost_y_0_fun.c",
+        "output": "/data/openpilot-release/selfdrive/controls/lib/lateral_mpc_lib/c_generated_code/lat_cost/lat_cost_y_0_fun.os"
+    },
+    {
+        "command": "clang -o selfdrive/controls/lib/lateral_mpc_lib/c_generated_code/lat_cost/lat_cost_y_0_fun_jac_ut_xt.os -c -std=gnu11 -DACADOS_WITH_QPOASES -g -fPIC -O2 -Wunused -Werror -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -DRK3588 -Wno-unused -fPIC -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include -Ithird_party/opencl/include -Ithird_party/rknpu/include -I/usr/include/rockchip -I/usr/local/include/rockchip selfdrive/controls/lib/lateral_mpc_lib/c_generated_code/lat_cost/lat_cost_y_0_fun_jac_ut_xt.c",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/selfdrive/controls/lib/lateral_mpc_lib/c_generated_code/lat_cost/lat_cost_y_0_fun_jac_ut_xt.c",
+        "output": "/data/openpilot-release/selfdrive/controls/lib/lateral_mpc_lib/c_generated_code/lat_cost/lat_cost_y_0_fun_jac_ut_xt.os"
+    },
+    {
+        "command": "clang -o selfdrive/controls/lib/lateral_mpc_lib/c_generated_code/lat_cost/lat_cost_y_0_hess.os -c -std=gnu11 -DACADOS_WITH_QPOASES -g -fPIC -O2 -Wunused -Werror -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -DRK3588 -Wno-unused -fPIC -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include -Ithird_party/opencl/include -Ithird_party/rknpu/include -I/usr/include/rockchip -I/usr/local/include/rockchip selfdrive/controls/lib/lateral_mpc_lib/c_generated_code/lat_cost/lat_cost_y_0_hess.c",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/selfdrive/controls/lib/lateral_mpc_lib/c_generated_code/lat_cost/lat_cost_y_0_hess.c",
+        "output": "/data/openpilot-release/selfdrive/controls/lib/lateral_mpc_lib/c_generated_code/lat_cost/lat_cost_y_0_hess.os"
+    },
+    {
+        "command": "clang -o selfdrive/controls/lib/lateral_mpc_lib/c_generated_code/acados_ocp_solver_pyx.o -c -std=gnu11 -g -fPIC -O2 -Wunused -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -DRK3588 -Wno-#warnings -Wno-shadow -Wno-deprecated-declarations -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include -Ithird_party/opencl/include -Ithird_party/rknpu/include -I/usr/include/rockchip -I/usr/local/include/rockchip -I/usr/local/uv/python/cpython-3.12.3-linux-aarch64-gnu/include/python3.12 -I/usr/local/venv/lib/python3.12/site-packages/numpy/core/include selfdrive/controls/lib/lateral_mpc_lib/c_generated_code/acados_ocp_solver_pyx.c",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/selfdrive/controls/lib/lateral_mpc_lib/c_generated_code/acados_ocp_solver_pyx.c",
+        "output": "/data/openpilot-release/selfdrive/controls/lib/lateral_mpc_lib/c_generated_code/acados_ocp_solver_pyx.o"
+    },
+    {
+        "command": "clang -o selfdrive/controls/lib/longitudinal_mpc_lib/c_generated_code/acados_solver_long.os -c -std=gnu11 -DACADOS_WITH_QPOASES -g -fPIC -O2 -Wunused -Werror -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -DRK3588 -Wno-unused -fPIC -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include -Ithird_party/opencl/include -Ithird_party/rknpu/include -I/usr/include/rockchip -I/usr/local/include/rockchip selfdrive/controls/lib/longitudinal_mpc_lib/c_generated_code/acados_solver_long.c",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/selfdrive/controls/lib/longitudinal_mpc_lib/c_generated_code/acados_solver_long.c",
+        "output": "/data/openpilot-release/selfdrive/controls/lib/longitudinal_mpc_lib/c_generated_code/acados_solver_long.os"
+    },
+    {
+        "command": "clang -o selfdrive/controls/lib/longitudinal_mpc_lib/c_generated_code/long_model/long_expl_ode_fun.os -c -std=gnu11 -DACADOS_WITH_QPOASES -g -fPIC -O2 -Wunused -Werror -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -DRK3588 -Wno-unused -fPIC -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include -Ithird_party/opencl/include -Ithird_party/rknpu/include -I/usr/include/rockchip -I/usr/local/include/rockchip selfdrive/controls/lib/longitudinal_mpc_lib/c_generated_code/long_model/long_expl_ode_fun.c",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/selfdrive/controls/lib/longitudinal_mpc_lib/c_generated_code/long_model/long_expl_ode_fun.c",
+        "output": "/data/openpilot-release/selfdrive/controls/lib/longitudinal_mpc_lib/c_generated_code/long_model/long_expl_ode_fun.os"
+    },
+    {
+        "command": "clang -o selfdrive/controls/lib/longitudinal_mpc_lib/c_generated_code/long_model/long_expl_vde_forw.os -c -std=gnu11 -DACADOS_WITH_QPOASES -g -fPIC -O2 -Wunused -Werror -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -DRK3588 -Wno-unused -fPIC -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include -Ithird_party/opencl/include -Ithird_party/rknpu/include -I/usr/include/rockchip -I/usr/local/include/rockchip selfdrive/controls/lib/longitudinal_mpc_lib/c_generated_code/long_model/long_expl_vde_forw.c",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/selfdrive/controls/lib/longitudinal_mpc_lib/c_generated_code/long_model/long_expl_vde_forw.c",
+        "output": "/data/openpilot-release/selfdrive/controls/lib/longitudinal_mpc_lib/c_generated_code/long_model/long_expl_vde_forw.os"
+    },
+    {
+        "command": "clang -o selfdrive/controls/lib/longitudinal_mpc_lib/c_generated_code/long_cost/long_cost_y_fun.os -c -std=gnu11 -DACADOS_WITH_QPOASES -g -fPIC -O2 -Wunused -Werror -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -DRK3588 -Wno-unused -fPIC -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include -Ithird_party/opencl/include -Ithird_party/rknpu/include -I/usr/include/rockchip -I/usr/local/include/rockchip selfdrive/controls/lib/longitudinal_mpc_lib/c_generated_code/long_cost/long_cost_y_fun.c",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/selfdrive/controls/lib/longitudinal_mpc_lib/c_generated_code/long_cost/long_cost_y_fun.c",
+        "output": "/data/openpilot-release/selfdrive/controls/lib/longitudinal_mpc_lib/c_generated_code/long_cost/long_cost_y_fun.os"
+    },
+    {
+        "command": "clang -o selfdrive/controls/lib/longitudinal_mpc_lib/c_generated_code/long_cost/long_cost_y_fun_jac_ut_xt.os -c -std=gnu11 -DACADOS_WITH_QPOASES -g -fPIC -O2 -Wunused -Werror -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -DRK3588 -Wno-unused -fPIC -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include -Ithird_party/opencl/include -Ithird_party/rknpu/include -I/usr/include/rockchip -I/usr/local/include/rockchip selfdrive/controls/lib/longitudinal_mpc_lib/c_generated_code/long_cost/long_cost_y_fun_jac_ut_xt.c",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/selfdrive/controls/lib/longitudinal_mpc_lib/c_generated_code/long_cost/long_cost_y_fun_jac_ut_xt.c",
+        "output": "/data/openpilot-release/selfdrive/controls/lib/longitudinal_mpc_lib/c_generated_code/long_cost/long_cost_y_fun_jac_ut_xt.os"
+    },
+    {
+        "command": "clang -o selfdrive/controls/lib/longitudinal_mpc_lib/c_generated_code/long_cost/long_cost_y_hess.os -c -std=gnu11 -DACADOS_WITH_QPOASES -g -fPIC -O2 -Wunused -Werror -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -DRK3588 -Wno-unused -fPIC -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include -Ithird_party/opencl/include -Ithird_party/rknpu/include -I/usr/include/rockchip -I/usr/local/include/rockchip selfdrive/controls/lib/longitudinal_mpc_lib/c_generated_code/long_cost/long_cost_y_hess.c",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/selfdrive/controls/lib/longitudinal_mpc_lib/c_generated_code/long_cost/long_cost_y_hess.c",
+        "output": "/data/openpilot-release/selfdrive/controls/lib/longitudinal_mpc_lib/c_generated_code/long_cost/long_cost_y_hess.os"
+    },
+    {
+        "command": "clang -o selfdrive/controls/lib/longitudinal_mpc_lib/c_generated_code/long_cost/long_cost_y_e_fun.os -c -std=gnu11 -DACADOS_WITH_QPOASES -g -fPIC -O2 -Wunused -Werror -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -DRK3588 -Wno-unused -fPIC -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include -Ithird_party/opencl/include -Ithird_party/rknpu/include -I/usr/include/rockchip -I/usr/local/include/rockchip selfdrive/controls/lib/longitudinal_mpc_lib/c_generated_code/long_cost/long_cost_y_e_fun.c",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/selfdrive/controls/lib/longitudinal_mpc_lib/c_generated_code/long_cost/long_cost_y_e_fun.c",
+        "output": "/data/openpilot-release/selfdrive/controls/lib/longitudinal_mpc_lib/c_generated_code/long_cost/long_cost_y_e_fun.os"
+    },
+    {
+        "command": "clang -o selfdrive/controls/lib/longitudinal_mpc_lib/c_generated_code/long_cost/long_cost_y_e_fun_jac_ut_xt.os -c -std=gnu11 -DACADOS_WITH_QPOASES -g -fPIC -O2 -Wunused -Werror -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -DRK3588 -Wno-unused -fPIC -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include -Ithird_party/opencl/include -Ithird_party/rknpu/include -I/usr/include/rockchip -I/usr/local/include/rockchip selfdrive/controls/lib/longitudinal_mpc_lib/c_generated_code/long_cost/long_cost_y_e_fun_jac_ut_xt.c",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/selfdrive/controls/lib/longitudinal_mpc_lib/c_generated_code/long_cost/long_cost_y_e_fun_jac_ut_xt.c",
+        "output": "/data/openpilot-release/selfdrive/controls/lib/longitudinal_mpc_lib/c_generated_code/long_cost/long_cost_y_e_fun_jac_ut_xt.os"
+    },
+    {
+        "command": "clang -o selfdrive/controls/lib/longitudinal_mpc_lib/c_generated_code/long_cost/long_cost_y_e_hess.os -c -std=gnu11 -DACADOS_WITH_QPOASES -g -fPIC -O2 -Wunused -Werror -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -DRK3588 -Wno-unused -fPIC -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include -Ithird_party/opencl/include -Ithird_party/rknpu/include -I/usr/include/rockchip -I/usr/local/include/rockchip selfdrive/controls/lib/longitudinal_mpc_lib/c_generated_code/long_cost/long_cost_y_e_hess.c",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/selfdrive/controls/lib/longitudinal_mpc_lib/c_generated_code/long_cost/long_cost_y_e_hess.c",
+        "output": "/data/openpilot-release/selfdrive/controls/lib/longitudinal_mpc_lib/c_generated_code/long_cost/long_cost_y_e_hess.os"
+    },
+    {
+        "command": "clang -o selfdrive/controls/lib/longitudinal_mpc_lib/c_generated_code/long_cost/long_cost_y_0_fun.os -c -std=gnu11 -DACADOS_WITH_QPOASES -g -fPIC -O2 -Wunused -Werror -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -DRK3588 -Wno-unused -fPIC -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include -Ithird_party/opencl/include -Ithird_party/rknpu/include -I/usr/include/rockchip -I/usr/local/include/rockchip selfdrive/controls/lib/longitudinal_mpc_lib/c_generated_code/long_cost/long_cost_y_0_fun.c",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/selfdrive/controls/lib/longitudinal_mpc_lib/c_generated_code/long_cost/long_cost_y_0_fun.c",
+        "output": "/data/openpilot-release/selfdrive/controls/lib/longitudinal_mpc_lib/c_generated_code/long_cost/long_cost_y_0_fun.os"
+    },
+    {
+        "command": "clang -o selfdrive/controls/lib/longitudinal_mpc_lib/c_generated_code/long_cost/long_cost_y_0_fun_jac_ut_xt.os -c -std=gnu11 -DACADOS_WITH_QPOASES -g -fPIC -O2 -Wunused -Werror -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -DRK3588 -Wno-unused -fPIC -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include -Ithird_party/opencl/include -Ithird_party/rknpu/include -I/usr/include/rockchip -I/usr/local/include/rockchip selfdrive/controls/lib/longitudinal_mpc_lib/c_generated_code/long_cost/long_cost_y_0_fun_jac_ut_xt.c",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/selfdrive/controls/lib/longitudinal_mpc_lib/c_generated_code/long_cost/long_cost_y_0_fun_jac_ut_xt.c",
+        "output": "/data/openpilot-release/selfdrive/controls/lib/longitudinal_mpc_lib/c_generated_code/long_cost/long_cost_y_0_fun_jac_ut_xt.os"
+    },
+    {
+        "command": "clang -o selfdrive/controls/lib/longitudinal_mpc_lib/c_generated_code/long_cost/long_cost_y_0_hess.os -c -std=gnu11 -DACADOS_WITH_QPOASES -g -fPIC -O2 -Wunused -Werror -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -DRK3588 -Wno-unused -fPIC -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include -Ithird_party/opencl/include -Ithird_party/rknpu/include -I/usr/include/rockchip -I/usr/local/include/rockchip selfdrive/controls/lib/longitudinal_mpc_lib/c_generated_code/long_cost/long_cost_y_0_hess.c",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/selfdrive/controls/lib/longitudinal_mpc_lib/c_generated_code/long_cost/long_cost_y_0_hess.c",
+        "output": "/data/openpilot-release/selfdrive/controls/lib/longitudinal_mpc_lib/c_generated_code/long_cost/long_cost_y_0_hess.os"
+    },
+    {
+        "command": "clang -o selfdrive/controls/lib/longitudinal_mpc_lib/c_generated_code/long_constraints/long_constr_h_fun.os -c -std=gnu11 -DACADOS_WITH_QPOASES -g -fPIC -O2 -Wunused -Werror -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -DRK3588 -Wno-unused -fPIC -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include -Ithird_party/opencl/include -Ithird_party/rknpu/include -I/usr/include/rockchip -I/usr/local/include/rockchip selfdrive/controls/lib/longitudinal_mpc_lib/c_generated_code/long_constraints/long_constr_h_fun.c",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/selfdrive/controls/lib/longitudinal_mpc_lib/c_generated_code/long_constraints/long_constr_h_fun.c",
+        "output": "/data/openpilot-release/selfdrive/controls/lib/longitudinal_mpc_lib/c_generated_code/long_constraints/long_constr_h_fun.os"
+    },
+    {
+        "command": "clang -o selfdrive/controls/lib/longitudinal_mpc_lib/c_generated_code/long_constraints/long_constr_h_fun_jac_uxt_zt.os -c -std=gnu11 -DACADOS_WITH_QPOASES -g -fPIC -O2 -Wunused -Werror -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -DRK3588 -Wno-unused -fPIC -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include -Ithird_party/opencl/include -Ithird_party/rknpu/include -I/usr/include/rockchip -I/usr/local/include/rockchip selfdrive/controls/lib/longitudinal_mpc_lib/c_generated_code/long_constraints/long_constr_h_fun_jac_uxt_zt.c",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/selfdrive/controls/lib/longitudinal_mpc_lib/c_generated_code/long_constraints/long_constr_h_fun_jac_uxt_zt.c",
+        "output": "/data/openpilot-release/selfdrive/controls/lib/longitudinal_mpc_lib/c_generated_code/long_constraints/long_constr_h_fun_jac_uxt_zt.os"
+    },
+    {
+        "command": "clang -o selfdrive/controls/lib/longitudinal_mpc_lib/c_generated_code/acados_ocp_solver_pyx.o -c -std=gnu11 -g -fPIC -O2 -Wunused -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -DRK3588 -Wno-#warnings -Wno-shadow -Wno-deprecated-declarations -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include -Ithird_party/opencl/include -Ithird_party/rknpu/include -I/usr/include/rockchip -I/usr/local/include/rockchip -I/usr/local/uv/python/cpython-3.12.3-linux-aarch64-gnu/include/python3.12 -I/usr/local/venv/lib/python3.12/site-packages/numpy/core/include selfdrive/controls/lib/longitudinal_mpc_lib/c_generated_code/acados_ocp_solver_pyx.c",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/selfdrive/controls/lib/longitudinal_mpc_lib/c_generated_code/acados_ocp_solver_pyx.c",
+        "output": "/data/openpilot-release/selfdrive/controls/lib/longitudinal_mpc_lib/c_generated_code/acados_ocp_solver_pyx.o"
+    },
+    {
+        "command": "clang++ -o selfdrive/locationd/models/generated/pose.os -c -std=c++1z -DRK3588 -g -fPIC -O2 -Wunused -Werror -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -DRK3588 -fPIC -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include -Ithird_party/opencl/include -Ithird_party/rknpu/include -I/usr/include/rockchip -I/usr/local/include/rockchip selfdrive/locationd/models/generated/pose.cpp",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/selfdrive/locationd/models/generated/pose.cpp",
+        "output": "/data/openpilot-release/selfdrive/locationd/models/generated/pose.os"
+    },
+    {
+        "command": "clang++ -o selfdrive/locationd/models/generated/car.os -c -std=c++1z -DRK3588 -g -fPIC -O2 -Wunused -Werror -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -DRK3588 -fPIC -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include -Ithird_party/opencl/include -Ithird_party/rknpu/include -I/usr/include/rockchip -I/usr/local/include/rockchip selfdrive/locationd/models/generated/car.cpp",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/selfdrive/locationd/models/generated/car.cpp",
+        "output": "/data/openpilot-release/selfdrive/locationd/models/generated/car.os"
+    },
+    {
+        "command": "clang++ -o selfdrive/modeld/models/commonmodel.o -c -std=c++1z -DRK3588 -DTRANSFORM_PATH=\\\"/data/openpilot/selfdrive/modeld/transforms/transform.cl\\\" -DLOADYUV_PATH=\\\"/data/openpilot/selfdrive/modeld/transforms/loadyuv.cl\\\" -g -fPIC -O2 -Wunused -Werror -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -DRK3588 -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include -Ithird_party/opencl/include -Ithird_party/rknpu/include -I/usr/include/rockchip -I/usr/local/include/rockchip selfdrive/modeld/models/commonmodel.cc",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/selfdrive/modeld/models/commonmodel.cc",
+        "output": "/data/openpilot-release/selfdrive/modeld/models/commonmodel.o"
+    },
+    {
+        "command": "clang++ -o selfdrive/modeld/transforms/loadyuv.o -c -std=c++1z -DRK3588 -DTRANSFORM_PATH=\\\"/data/openpilot/selfdrive/modeld/transforms/transform.cl\\\" -DLOADYUV_PATH=\\\"/data/openpilot/selfdrive/modeld/transforms/loadyuv.cl\\\" -g -fPIC -O2 -Wunused -Werror -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -DRK3588 -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include -Ithird_party/opencl/include -Ithird_party/rknpu/include -I/usr/include/rockchip -I/usr/local/include/rockchip selfdrive/modeld/transforms/loadyuv.cc",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/selfdrive/modeld/transforms/loadyuv.cc",
+        "output": "/data/openpilot-release/selfdrive/modeld/transforms/loadyuv.o"
+    },
+    {
+        "command": "clang++ -o selfdrive/modeld/transforms/transform.o -c -std=c++1z -DRK3588 -DTRANSFORM_PATH=\\\"/data/openpilot/selfdrive/modeld/transforms/transform.cl\\\" -DLOADYUV_PATH=\\\"/data/openpilot/selfdrive/modeld/transforms/loadyuv.cl\\\" -g -fPIC -O2 -Wunused -Werror -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -DRK3588 -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include -Ithird_party/opencl/include -Ithird_party/rknpu/include -I/usr/include/rockchip -I/usr/local/include/rockchip selfdrive/modeld/transforms/transform.cc",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/selfdrive/modeld/transforms/transform.cc",
+        "output": "/data/openpilot-release/selfdrive/modeld/transforms/transform.o"
+    },
+    {
+        "command": "clang++ -o selfdrive/modeld/runners/rknnmodel.o -c -std=c++1z -DRK3588 -DTRANSFORM_PATH=\\\"/data/openpilot/selfdrive/modeld/transforms/transform.cl\\\" -DLOADYUV_PATH=\\\"/data/openpilot/selfdrive/modeld/transforms/loadyuv.cl\\\" -g -fPIC -O2 -Wunused -Werror -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -DRK3588 -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include -Ithird_party/opencl/include -Ithird_party/rknpu/include -I/usr/include/rockchip -I/usr/local/include/rockchip selfdrive/modeld/runners/rknnmodel.cc",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/selfdrive/modeld/runners/rknnmodel.cc",
+        "output": "/data/openpilot-release/selfdrive/modeld/runners/rknnmodel.o"
+    },
+    {
+        "command": "clang++ -o selfdrive/modeld/runners/runmodel_pyx.o -c -std=c++1z -DRK3588 -DTRANSFORM_PATH=\\\"/data/openpilot/selfdrive/modeld/transforms/transform.cl\\\" -DLOADYUV_PATH=\\\"/data/openpilot/selfdrive/modeld/transforms/loadyuv.cl\\\" -g -fPIC -O2 -Wunused -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -DRK3588 -Wno-#warnings -Wno-shadow -Wno-deprecated-declarations -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include -Ithird_party/opencl/include -Ithird_party/rknpu/include -I/usr/include/rockchip -I/usr/local/include/rockchip -I/usr/local/uv/python/cpython-3.12.3-linux-aarch64-gnu/include/python3.12 -I/usr/local/venv/lib/python3.12/site-packages/numpy/core/include selfdrive/modeld/runners/runmodel_pyx.cpp",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/selfdrive/modeld/runners/runmodel_pyx.cpp",
+        "output": "/data/openpilot-release/selfdrive/modeld/runners/runmodel_pyx.o"
+    },
+    {
+        "command": "clang++ -o selfdrive/modeld/runners/rknnmodel.o -c -std=c++1z -DRK3588 -DTRANSFORM_PATH=\\\"/data/openpilot/selfdrive/modeld/transforms/transform.cl\\\" -DLOADYUV_PATH=\\\"/data/openpilot/selfdrive/modeld/transforms/loadyuv.cl\\\" -g -fPIC -O2 -Wunused -Werror -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -DRK3588 -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include -Ithird_party/opencl/include -Ithird_party/rknpu/include -I/usr/include/rockchip -I/usr/local/include/rockchip selfdrive/modeld/runners/rknnmodel.cc",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/selfdrive/modeld/runners/rknnmodel.cc",
+        "output": "/data/openpilot-release/selfdrive/modeld/runners/rknnmodel.o"
+    },
+    {
+        "command": "clang++ -o selfdrive/modeld/runners/rknnmodel_pyx.o -c -std=c++1z -DRK3588 -DTRANSFORM_PATH=\\\"/data/openpilot/selfdrive/modeld/transforms/transform.cl\\\" -DLOADYUV_PATH=\\\"/data/openpilot/selfdrive/modeld/transforms/loadyuv.cl\\\" -g -fPIC -O2 -Wunused -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -DRK3588 -Wno-#warnings -Wno-shadow -Wno-deprecated-declarations -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include -Ithird_party/opencl/include -Ithird_party/rknpu/include -I/usr/include/rockchip -I/usr/local/include/rockchip -I/usr/local/uv/python/cpython-3.12.3-linux-aarch64-gnu/include/python3.12 -I/usr/local/venv/lib/python3.12/site-packages/numpy/core/include selfdrive/modeld/runners/rknnmodel_pyx.cpp",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/selfdrive/modeld/runners/rknnmodel_pyx.cpp",
+        "output": "/data/openpilot-release/selfdrive/modeld/runners/rknnmodel_pyx.o"
+    },
+    {
+        "command": "clang++ -o selfdrive/modeld/runners/driving_rknnmodel.o -c -std=c++1z -DRK3588 -DTRANSFORM_PATH=\\\"/data/openpilot/selfdrive/modeld/transforms/transform.cl\\\" -DLOADYUV_PATH=\\\"/data/openpilot/selfdrive/modeld/transforms/loadyuv.cl\\\" -g -fPIC -O2 -Wunused -Werror -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -DRK3588 -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include -Ithird_party/opencl/include -Ithird_party/rknpu/include -I/usr/include/rockchip -I/usr/local/include/rockchip selfdrive/modeld/runners/driving_rknnmodel.cc",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/selfdrive/modeld/runners/driving_rknnmodel.cc",
+        "output": "/data/openpilot-release/selfdrive/modeld/runners/driving_rknnmodel.o"
+    },
+    {
+        "command": "clang++ -o selfdrive/modeld/runners/driving_rknnmodel_pyx.o -c -std=c++1z -DRK3588 -DTRANSFORM_PATH=\\\"/data/openpilot/selfdrive/modeld/transforms/transform.cl\\\" -DLOADYUV_PATH=\\\"/data/openpilot/selfdrive/modeld/transforms/loadyuv.cl\\\" -g -fPIC -O2 -Wunused -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -DRK3588 -Wno-#warnings -Wno-shadow -Wno-deprecated-declarations -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include -Ithird_party/opencl/include -Ithird_party/rknpu/include -I/usr/include/rockchip -I/usr/local/include/rockchip -I/usr/local/uv/python/cpython-3.12.3-linux-aarch64-gnu/include/python3.12 -I/usr/local/venv/lib/python3.12/site-packages/numpy/core/include selfdrive/modeld/runners/driving_rknnmodel_pyx.cpp",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/selfdrive/modeld/runners/driving_rknnmodel_pyx.cpp",
+        "output": "/data/openpilot-release/selfdrive/modeld/runners/driving_rknnmodel_pyx.o"
+    },
+    {
+        "command": "clang++ -o selfdrive/modeld/runners/dmonitoring_rknnmodel.o -c -std=c++1z -DRK3588 -DTRANSFORM_PATH=\\\"/data/openpilot/selfdrive/modeld/transforms/transform.cl\\\" -DLOADYUV_PATH=\\\"/data/openpilot/selfdrive/modeld/transforms/loadyuv.cl\\\" -g -fPIC -O2 -Wunused -Werror -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -DRK3588 -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include -Ithird_party/opencl/include -Ithird_party/rknpu/include -I/usr/include/rockchip -I/usr/local/include/rockchip selfdrive/modeld/runners/dmonitoring_rknnmodel.cc",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/selfdrive/modeld/runners/dmonitoring_rknnmodel.cc",
+        "output": "/data/openpilot-release/selfdrive/modeld/runners/dmonitoring_rknnmodel.o"
+    },
+    {
+        "command": "clang++ -o selfdrive/modeld/runners/dmonitoring_rknnmodel_pyx.o -c -std=c++1z -DRK3588 -DTRANSFORM_PATH=\\\"/data/openpilot/selfdrive/modeld/transforms/transform.cl\\\" -DLOADYUV_PATH=\\\"/data/openpilot/selfdrive/modeld/transforms/loadyuv.cl\\\" -g -fPIC -O2 -Wunused -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -DRK3588 -Wno-#warnings -Wno-shadow -Wno-deprecated-declarations -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include -Ithird_party/opencl/include -Ithird_party/rknpu/include -I/usr/include/rockchip -I/usr/local/include/rockchip -I/usr/local/uv/python/cpython-3.12.3-linux-aarch64-gnu/include/python3.12 -I/usr/local/venv/lib/python3.12/site-packages/numpy/core/include selfdrive/modeld/runners/dmonitoring_rknnmodel_pyx.cpp",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/selfdrive/modeld/runners/dmonitoring_rknnmodel_pyx.cpp",
+        "output": "/data/openpilot-release/selfdrive/modeld/runners/dmonitoring_rknnmodel_pyx.o"
+    },
+    {
+        "command": "clang++ -o selfdrive/modeld/models/commonmodel_pyx.o -c -std=c++1z -DRK3588 -DTRANSFORM_PATH=\\\"/data/openpilot/selfdrive/modeld/transforms/transform.cl\\\" -DLOADYUV_PATH=\\\"/data/openpilot/selfdrive/modeld/transforms/loadyuv.cl\\\" -g -fPIC -O2 -Wunused -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -DRK3588 -Wno-#warnings -Wno-shadow -Wno-deprecated-declarations -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include -Ithird_party/opencl/include -Ithird_party/rknpu/include -I/usr/include/rockchip -I/usr/local/include/rockchip -I/usr/local/uv/python/cpython-3.12.3-linux-aarch64-gnu/include/python3.12 -I/usr/local/venv/lib/python3.12/site-packages/numpy/core/include selfdrive/modeld/models/commonmodel_pyx.cpp",
+        "directory": "/data/openpilot-release",
+        "file": "/data/openpilot-release/selfdrive/modeld/models/commonmodel_pyx.cpp",
+        "output": "/data/openpilot-release/selfdrive/modeld/models/commonmodel_pyx.o"
+    }
+]
