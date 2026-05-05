@@ -80,7 +80,7 @@ KA2_DM_TIMING_HZ_SERVICES = frozenset({"driverStateV2", "driverMonitoringState"}
 
 # Burn-in: soak for this long after first carState; QC only loads the last N *complete* segments
 # (highest segment indices; tail segment still dropped as incomplete). Soak stress != log parse cost.
-BURN_IN_DURATION_S = 3600  # 1 hour
+BURN_IN_DURATION_S = 86400  # 24 hours
 BURN_IN_ANALYZE_SEGMENT_COUNT = 5
 
 SD_PREFLIGHT_FORMAT_TIMEOUT_S = 900.0
@@ -247,11 +247,10 @@ LOGS_SIZE_MULTIPLIERS = {
   "qlog.zst": (0.35, 2.0),
   "rlog.zst": (0.45, 2.0),
   "qcamera.ts": (0.10, 2.5),
-  "ecamera.hevc": (0.75, 1.35),
-  "fcamera.hevc": (0.75, 1.35),
-  # Driver camera can start late / be intermittent on KA2 during bring-up.
-  # Keep a low floor to avoid flakiness while still catching empty logs.
-  "dcamera.hevc": (0.15, 1.35),
+  # 76.5 MB * 0.33 ~= 25 MB minimum, keep max at 1.35 * 76.5 = 103.275 MB.
+  "ecamera.hevc": (0.33, 1.35),
+  "fcamera.hevc": (0.33, 1.35),
+  "dcamera.hevc": (0.33, 1.35),
 }
 
 
