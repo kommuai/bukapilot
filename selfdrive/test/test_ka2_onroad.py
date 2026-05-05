@@ -9,6 +9,7 @@ import pytest
 import shutil
 import signal
 import subprocess
+import threading
 import time
 import numpy as np
 from collections import Counter, defaultdict
@@ -24,10 +25,44 @@ from openpilot.common.timeout import Timeout
 from openpilot.common.params import Params
 from openpilot.selfdrive.selfdrived.events import EVENTS, ET
 from openpilot.system.hardware import HARDWARE
+from openpilot.system.hardware.ka2.hardware import Ka2
 from openpilot.selfdrive.test.helpers import set_params_enabled, unset_params_enabled, release_only
 from openpilot.system.hardware.hw import Paths
 from openpilot.tools.lib.logreader import LogReader
 from openpilot.tools.lib.log_time_series import msgs_to_time_series
+
+# After setup_class kills manager, USB heartbeats stop and Panda may bootkick on CAN ignition edges
+# (panda/board/drivers/bootkick.h). Keep 0xf3 heartbeats from this process until pytest exits (daemon thread).
+_panda_hb_guard_stop = threading.Event()
+_panda_hb_guard_thread: threading.Thread | None = None
+
+
+def _start_ka2_panda_heartbeat_guard_after_manager_exit() -> None:
+  """Send Panda USB heartbeats faster than 1Hz so heartbeat_counter stays cleared (panda/board/main.c)."""
+  global _panda_hb_guard_thread
+  if _panda_hb_guard_thread is not None and _panda_hb_guard_thread.is_alive():
+    return
+  _panda_hb_guard_stop.clear()
+
+  def run() -> None:
+    time.sleep(0.5)
+    try:
+      from panda import Panda
+
+      p = Panda()
+    except Exception:
+      return
+    while not _panda_hb_guard_stop.wait(0.25):
+      try:
+        p.send_heartbeat(False)
+      except Exception:
+        break
+
+  _panda_hb_guard_thread = threading.Thread(
+    target=run, name="ka2_onroad_panda_heartbeat_guard", daemon=True,
+  )
+  _panda_hb_guard_thread.start()
+
 
 """
 CPU usage budget
@@ -48,6 +83,9 @@ KA2_DM_TIMING_HZ_SERVICES = frozenset({"driverStateV2", "driverMonitoringState"}
 BURN_IN_DURATION_S = 3600  # 1 hour
 BURN_IN_ANALYZE_SEGMENT_COUNT = 5
 
+SD_PREFLIGHT_FORMAT_TIMEOUT_S = 900.0
+SD_PREFLIGHT_POLL_S = 2.0
+
 
 def burn_in_test_enabled() -> bool:
   return os.environ.get("KA2_BURN_IN_TEST") == "1"
@@ -66,8 +104,8 @@ def _ka2_test_service_frequency_hz(service: str) -> float:
   return SERVICE_LIST[service].frequency
 
 
-def _snapshot_device_state_temps() -> dict[str, str]:
-  """Live read from deviceState while stack is still running (e.g. right before killing manager)."""
+def _snapshot_device_state_shutdown() -> dict[str, str]:
+  """Live read: deviceState temps, nmcli Wi-Fi signal %, Ka2 SIM presence (e.g. before killing manager)."""
   out: dict[str, str] = {}
   try:
     sm = messaging.SubMaster(["deviceState"])
@@ -83,8 +121,14 @@ def _snapshot_device_state_temps() -> dict[str, str]:
         out["gpu_avg_c"] = _fmt_num(np.mean(gpu) if len(gpu) else None)
         out["gpu_max_c"] = _fmt_num(max(gpu) if len(gpu) else None)
         out["memory_c"] = _fmt_num(getattr(ds, "memoryTempC", None))
+
+        pct = _nmcli_wifi_signal_pct()
+        out["nmcli_wifi_signal_pct"] = pct if pct is not None else "n/a"
+
+        out["sim_inserted"] = _ka2_sim_inserted_str()
         return out
     out["note"] = "no deviceState within 2s"
+    out["sim_inserted"] = _ka2_sim_inserted_str()
   except Exception as e:
     out["error"] = repr(e)
   return out
@@ -230,6 +274,61 @@ def _fmt_num(v):
     return "n/a"
 
 
+def _nmcli_wifi_signal_pct() -> str | None:
+  """Active Wi-Fi connection signal percent from nmcli (matches Ka2.get_network_strength source)."""
+  try:
+    p = subprocess.run(
+      ["nmcli", "-t", "-f", "IN-USE,SIGNAL", "dev", "wifi"],
+      capture_output=True, text=True, timeout=3,
+    )
+    if p.returncode != 0:
+      return None
+    for line in (p.stdout or "").splitlines():
+      if line.startswith("*"):
+        parts = line.split(":")
+        if len(parts) >= 2:
+          return parts[-1].strip()
+    return None
+  except Exception:
+    return None
+
+
+def _mmcli_modem_enumerated() -> bool:
+  """True if ModemManager lists a modem (matches mmcli -L usage elsewhere in this test)."""
+  try:
+    p = subprocess.run(["mmcli", "-L"], capture_output=True, text=True, timeout=3)
+    return p.returncode == 0 and "/Modem/" in (p.stdout or "")
+  except Exception:
+    return False
+
+
+def _ka2_sim_inserted_str() -> str:
+  """yes/no/n/a: MM can report READY with an empty slot; require ICCID or PLMN like get_cellular_display_status + get_sim_info."""
+  if not isinstance(HARDWARE, Ka2):
+    return "n/a"
+  try:
+    hw: Ka2 = HARDWARE  # type: ignore[assignment]
+    if not _mmcli_modem_enumerated():
+      return "n/a"
+    cell = hw.get_cellular_display_status()
+    if str(cell.get("modem_state", "")).lower() == "unavailable":
+      return "n/a"
+    if (cell.get("summary") or "").strip() == "SIM not inserted":
+      return "no"
+    info = hw.get_sim_info() or {}
+    states = list(info.get("sim_state") or [])
+    if "ABSENT" in states:
+      return "no"
+    iccid = str(info.get("sim_id") or "").strip()
+    mcc_mnc = info.get("mcc_mnc")
+    has_plmn = mcc_mnc is not None and str(mcc_mnc).strip() != ""
+    if iccid or has_plmn:
+      return "yes"
+    return "no"
+  except Exception:
+    return "n/a"
+
+
 # Quectel + qcomgpsd: enough messages for ~10s of nominal 2Hz service (rlog is often longer).
 _MIN_QCOM_GNSS_MSGS = 20
 
@@ -278,6 +377,45 @@ def _mmcli_at_command(cmd: str) -> tuple[int, str]:
     return -1, repr(e)
 
 
+def _wait_ka2_sd_ready(hw: Ka2, timeout_s: float, phase: str) -> None:
+  """Poll Ka2.sd_status() until None (same semantics as system/hardware/ka2/hardware.py)."""
+  deadline = time.monotonic() + timeout_s
+  while time.monotonic() < deadline:
+    st = hw.sd_status()
+    if st is None:
+      return
+    if st == "SD card not inserted":
+      assert False, f"Preflight failed: SD card not inserted ({phase})"
+    time.sleep(SD_PREFLIGHT_POLL_S)
+  assert False, (
+    f"Preflight failed: SD not ready within {timeout_s}s ({phase}; last sd_status={hw.sd_status()!r})"
+  )
+
+
+def _ensure_ka2_sd_ready() -> None:
+  """Require SD inserted; if unformatted, run Ka2.format_sd() and wait for completion."""
+  if not isinstance(HARDWARE, Ka2):
+    return
+  hw = HARDWARE
+  st = hw.sd_status()
+  if st == "SD card not inserted":
+    assert False, "Preflight failed: SD card not inserted"
+  if st == "Formatting SD card":
+    _wait_ka2_sd_ready(hw, SD_PREFLIGHT_FORMAT_TIMEOUT_S, "format in progress")
+  elif st == "SD card not formatted":
+    hw.format_sd()
+    _wait_ka2_sd_ready(hw, SD_PREFLIGHT_FORMAT_TIMEOUT_S, "after format_sd")
+  elif st is not None:
+    assert False, f"Preflight failed: unexpected SD status {st!r}"
+
+  assert Path("/dev/mmcblk1p1").exists(), (
+    "Preflight failed: /dev/mmcblk1p1 not found (SD missing or not mounted after format)"
+  )
+  assert hw.sd_status() is None, (
+    f"Preflight failed: SD not usable ({hw.sd_status()!r})"
+  )
+
+
 @pytest.mark.ka2
 class TestOnroad:
   _run_results = []
@@ -286,7 +424,8 @@ class TestOnroad:
   _run_start_epoch = None
   _burn_in_enabled = False
   _burn_in_full_segments_available: int | None = None
-  _shutdown_temperature: dict[str, str] | None = None
+  _shutdown_device_state: dict[str, str] | None = None
+  _ka2_power_save_disabled_for_test: bool = False
 
   @classmethod
   def setup_class(cls):
@@ -297,9 +436,11 @@ class TestOnroad:
     cls._burn_in_enabled = burn_in_test_enabled()
     cls._burn_in_full_segments_available = None
     cls.log_sizes_per_segment = []
-    cls._shutdown_temperature = None
+    cls._shutdown_device_state = None
+    cls._ka2_power_save_disabled_for_test = False
 
     # Fail fast on prerequisites before spending minutes on bring-up/logging.
+    _ensure_ka2_sd_ready()
     cls._preflight["sd_card_partition_present"] = Path("/dev/mmcblk1p1").exists()
     assert cls._preflight["sd_card_partition_present"], \
       "Preflight failed: /dev/mmcblk1p1 not found (SD card missing/unformatted/unmounted)"
@@ -341,6 +482,12 @@ class TestOnroad:
 
     if os.path.exists(Paths.log_root()):
       shutil.rmtree(Paths.log_root())
+
+    # SoM: force performance governor / cores on for the test run (hardwared may re-evaluate while stack runs).
+    # After manager teardown, restore default power-save idle via teardown_class.
+    if isinstance(HARDWARE, Ka2):
+      HARDWARE.set_power_save(False)
+      cls._ka2_power_save_disabled_for_test = True
 
     # start launch script (same as normal openpilot boot)
     proc = None
@@ -396,9 +543,9 @@ class TestOnroad:
     finally:
       if proc is not None:
         try:
-          cls._shutdown_temperature = _snapshot_device_state_temps()
+          cls._shutdown_device_state = _snapshot_device_state_shutdown()
         except Exception as e:
-          cls._shutdown_temperature = {"error": repr(e)}
+          cls._shutdown_device_state = {"error": repr(e)}
         try:
           os.killpg(os.getpgid(proc.pid), signal.SIGTERM)
         except OSError:
@@ -410,6 +557,8 @@ class TestOnroad:
             os.killpg(os.getpgid(proc.pid), signal.SIGKILL)
           except OSError:
             pass
+
+        _start_ka2_panda_heartbeat_guard_after_manager_exit()
 
     cls.lrs = [list(LogReader(os.path.join(str(s), "rlog.zst"))) for s in cls.segments]
 
@@ -439,6 +588,12 @@ class TestOnroad:
     cls._write_qc_report()
     unset_params_enabled()
     Params().remove("RecordFront")
+    if getattr(cls, "_ka2_power_save_disabled_for_test", False):
+      try:
+        HARDWARE.set_power_save(True)
+      except Exception:
+        pass
+      cls._ka2_power_save_disabled_for_test = False
     if os.path.exists(Paths.log_root()):
       shutil.rmtree(Paths.log_root())
 
@@ -478,14 +633,14 @@ class TestOnroad:
     else:
       lines.append("test_results: not available in this run mode")
 
-    # Live snapshot from deviceState immediately before manager shutdown (see setup_class finally).
-    st = getattr(cls, "_shutdown_temperature", None)
+    # Live snapshot from deviceState (temps + network) immediately before manager shutdown (see setup_class finally).
+    st = getattr(cls, "_shutdown_device_state", None)
     if st:
-      lines.append("temperature_end:")
+      lines.append("shutdown_device_state:")
       for k in sorted(st.keys()):
         lines.append(f"  {k}={st[k]}")
     else:
-      lines.append("temperature_end: unavailable")
+      lines.append("shutdown_device_state: unavailable")
 
     try:
       with open("/data/qc.log", "w", encoding="utf-8") as f:
