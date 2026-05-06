@@ -24,7 +24,6 @@ from openpilot.selfdrive.appbridged.hardware_helper import HardwareHelper
 MESSAGE_HZ = 16 # Expected message rate, must match app visualisation value
 params = Params()
 DONGLE_ID = params.get("DongleId") or ""
-BLE_NAME = f"kommu-{DONGLE_ID}" # BLE advertising name
 
 # BLE Channel IDs
 CHANNEL_VISUALISATION = 0x01
@@ -159,7 +158,7 @@ def quantize(o):
 class AppBridge:
   """Handles visualisation and settings BLE streams."""
   def __init__(self, sm=None):
-    self.ble = BLEBridge(local_name=BLE_NAME)
+    self.ble = BLEBridge()
     self.sm = sm if sm else messaging.SubMaster([
       'modelV2', 'selfdriveState', 'radarState', 'liveCalibration',
       'driverMonitoringState', 'carState',

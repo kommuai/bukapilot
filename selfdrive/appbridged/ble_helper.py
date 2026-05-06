@@ -2,6 +2,7 @@
 import logging
 import threading
 import os
+import subprocess
 from time import monotonic, sleep
 from queue import SimpleQueue
 from bluezero import adapter, peripheral
@@ -33,13 +34,20 @@ CHUNK_TIMEOUT = 1.0  # seconds before dropping incomplete message
 
 class BLEBridge:
   """Threaded BLE Nordic UART bridge with RX and TX."""
-  def __init__(self, local_name=None):
+  def __init__(self):
+    # Power cycle BLE adapter with pauses to ensure a clean state
+    sleep(1.0) # Wait for recovery mode to stop
+    subprocess.run(["bluetoothctl", "power", "off"], check=False, capture_output=True)
+    sleep(0.1)
+    subprocess.run(["bluetoothctl", "power", "on"], check=False, capture_output=True)
+    sleep(0.1)
+
     # Capture process identifier at start-up. If a fork occurs,
     # the connection becomes unsafe and must be terminated to avoid corruption.
     self._initial_pid = os.getpid()
 
     self.ad = list(adapter.Adapter.available())[0]
-    self.dev = peripheral.Peripheral(self.ad.address, local_name=local_name, appearance=963)
+    self.dev = peripheral.Peripheral(self.ad.address, local_name=os.uname().nodename, appearance=963)
 
     self.rx_queue = SimpleQueue()
     self.tx_char = None
