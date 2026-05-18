@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - snapshot_ka2
+      - bumpbump
   pull_request:
     branches:
       - snapshot_ka2
@@ -21,20 +22,127 @@ jobs:
       - name: Setup Ubuntu environment
         run: ./tools/ubuntu_setup.sh
 
+      # GitHub forks do not store LFS blobs under the fork URL (404). Pointer
+      # files are committed, but blobs live on the GitLab batch API from
+      # .lfsconfig (same OIDs as upstream). Point lfs.url there before pull.
+      - name: Pull Git LFS blobs from GitLab batch store
+        env:
+          GIT_TERMINAL_PROMPT: "0"
+        run: |
+          set -e
+          git lfs install
+          LFS_URL=$(git config -f .lfsconfig --get lfs.url 2>/dev/null || true)
+          if [ -z "$LFS_URL" ]; then
+            LFS_URL=https://gitlab.com/commaai/openpilot-lfs.git/info/lfs
+          fi
+          echo "Using LFS batch URL: $LFS_URL"
+          git config --global lfs.url "$LFS_URL"
+          ok=0
+          for attempt in 1 2 3; do
+            if git lfs pull; then ok=1; break; fi
+            echo "git lfs pull failed (attempt $attempt), retrying in 10s..."
+            sleep 10
+          done
+          if [ "$ok" != 1 ]; then
+            FALLBACK=https://gitlab.com/commaai/openpilot-lfs.git/info/lfs
+            if [ "$LFS_URL" != "$FALLBACK" ]; then
+              echo "Retrying LFS pull against comma.ai public store..."
+              git config --global lfs.url "$FALLBACK"
+              ok=0
+              for attempt in 1 2 3; do
+                if git lfs pull; then ok=1; break; fi
+                echo "git lfs pull (fallback) failed (attempt $attempt), retrying in 10s..."
+                sleep 10
+              done
+            fi
+          fi
+          if [ "$ok" != 1 ]; then
+            echo "error: git lfs pull failed after retries" >&2
+            exit 1
+          fi
+          git submodule foreach --recursive '
+            git lfs install || true
+            git lfs pull || true
+          '
+
+      # Fallback if LFS pull missed catch.hpp (e.g. private LFS mirror).
+      - name: Materialize catch.hpp when still an LFS pointer
+        run: |
+          set -e
+          CATCH=third_party/catch2/include/catch2/catch.hpp
+          if [ ! -f "$CATCH" ]; then
+            echo "error: missing $CATCH" >&2
+            exit 1
+          fi
+          if head -1 "$CATCH" | grep -q "https://git-lfs.github.com/spec/v1"; then
+            echo "Replacing Git LFS pointer with Catch2 v2.13.9 single_include header."
+            curl -fsSL --retry 3 --retry-delay 2 \
+              -o "$CATCH" \
+              "https://raw.githubusercontent.com/catchorg/Catch2/v2.13.9/single_include/catch2/catch.hpp"
+          fi
+
       - name: Run Python syntax checks
         run: |
           source .venv/bin/activate
           python -m compileall ./selfdrive
 
       - name: Build extensions with SCons
+        env:
+          # Headless CI: skip UI installers (need third_party/raylib/*/libraylib.a
+          # from build.sh) and other --extras targets; car tests only need core.
+          OPENPILOT_BUILD_GUI: "0"
         run: |
           source .venv/bin/activate
-          scons -j$(nproc)
+          scons -j$(nproc) --minimal
 
-      - name: Run car tests
+      - name: Build opendbc libsafety for safety tests
         run: |
           source .venv/bin/activate
-          ./selfdrive/car/tests/test_car_interfaces.py
-          ./selfdrive/car/tests/test_models.py
-          python3 ./opendbc_repo/opendbc/car/tests/test_can_fingerprint.py
-          python3 ./opendbc_repo/opendbc/car/tests/test_docs.py
+          cd opendbc_repo
+          export PYTHONPATH="$PWD"
+          scons -j$(nproc) opendbc/safety/tests/libsafety/libsafety.so
+
+      - name: Run tests
+        env:
+          CI: "1"
+          PYTHONPATH: ${{ github.workspace }}
+          # Keep hypothesis / fuzzy tests bounded on CI runners.
+          MAX_EXAMPLES: "25"
+        run: |
+          set -e
+          source .venv/bin/activate
+          cd "${{ github.workspace }}"
+
+          PYTEST_COMMON=(pytest -v --tb=short -n "$(nproc)")
+
+          echo "=== opendbc: CAN ==="
+          "${PYTEST_COMMON[@]}" opendbc/can/tests/
+
+          echo "=== opendbc: car metadata & fingerprints ==="
+          "${PYTEST_COMMON[@]}" \
+            opendbc/car/tests/test_can_fingerprint.py \
+            opendbc/car/tests/test_docs.py \
+            opendbc/car/tests/test_routes.py \
+            opendbc/car/tests/test_platform_configs.py \
+            opendbc/car/tests/test_vehicle_model.py \
+            opendbc/car/tests/test_fw_fingerprint.py \
+            opendbc/car/tests/test_car_interfaces.py
+
+          echo "=== opendbc: Kommu safety modes ==="
+          "${PYTEST_COMMON[@]}" \
+            opendbc/safety/tests/test_proton.py \
+            opendbc/safety/tests/test_dnga.py \
+            opendbc/safety/tests/test_chery.py \
+            opendbc/safety/tests/test_defaults.py
+
+          echo "=== openpilot: car interfaces (controls integration) ==="
+          "${PYTEST_COMMON[@]}" selfdrive/car/tests/test_car_interfaces.py
+
+          echo "=== openpilot: cruise & docs ==="
+          "${PYTEST_COMMON[@]}" \
+            selfdrive/car/tests/test_cruise_speed.py \
+            selfdrive/car/tests/test_docs.py
+
+          # test_models.py is entirely @pytest.mark.slow (replay real routes from
+          # openpilotci/comma-api). Kommu platforms are in non_tested_cars with no
+          # routes anyway. Run locally or add a dedicated job with -m slow + cache.
