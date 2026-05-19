@@ -61,7 +61,11 @@ MAX_UPLOAD_SIZES = {
 UPLOAD_QLOG_QCAM_MAX_SIZE = 100 * 1e6  # MB (default when max_size not passed)
 UPLOAD_FULL_LOG_MAX_SIZE = 300 * 1e6  # MB (on-demand full-segment uploads)
 
-FULL_SEGMENT_FILES = ("fcamera.hevc", "ecamera.hevc", "dcamera.hevc", "rlog", "qlog", "qcamera.ts")
+FULL_SEGMENT_FILES = (
+  "fcamera.hevc", "ecamera.hevc", "dcamera.hevc",
+  "rlog.zst", "qlog.zst",
+  "qcamera.ts",
+)
 
 allow_sleep = bool(int(os.getenv("UPLOADER_SLEEP", "1")))
 force_wifi = os.getenv("FORCEWIFI") is not None
@@ -311,7 +315,9 @@ class Uploader:
   def upload_full_segment_file(
     self, logdir: str, name: str, fn: str, network_type: int, metered: bool
   ) -> bool:
-    """Upload one file for an on-demand full segment. Uses UPLOAD_FULL_LOG_MAX_SIZE; compresses rlog/qlog."""
+    """Upload one file for an on-demand full segment. Uses UPLOAD_FULL_LOG_MAX_SIZE.
+
+    """
     try:
       sz = os.path.getsize(fn)
     except OSError:
