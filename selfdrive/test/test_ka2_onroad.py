@@ -91,6 +91,64 @@ def burn_in_test_enabled() -> bool:
   return os.environ.get("KA2_BURN_IN_TEST") == "1"
 
 
+def can_replay_test_enabled() -> bool:
+  return os.environ.get("KA2_CAN_REPLAY") == "1"
+
+
+def burn_in_duration_s() -> int:
+  try:
+    return max(1, int(os.environ.get("KA2_BURN_IN_DURATION_S", str(BURN_IN_DURATION_S))))
+  except ValueError:
+    return BURN_IN_DURATION_S
+
+
+# selfdrived "Communication Issue Between Processes" / "Low Communication Rate..." (events.py).
+# Bench + CAN replay often trip these while cameras/radar/msgq are not production-perfect.
+KA2_IGNORE_NO_ENTRY_EVENTS = frozenset({
+  "commIssue",
+  "commIssueAvgFreq",
+})
+
+
+def _onroad_event_name(evt) -> str:
+  n = evt.name
+  return n if isinstance(n, str) else str(n)
+
+
+def _comm_issue_details_from_log(msgs: dict) -> dict[str, set[str]]:
+  """Parse selfdrived cloudlog.event('commIssue') payloads from rlog logMessage."""
+  invalid: set[str] = set()
+  not_alive: set[str] = set()
+  not_freq_ok: set[str] = set()
+  for m in msgs.get("logMessage", []):
+    try:
+      j = json.loads(m.logMessage)
+    except (json.JSONDecodeError, TypeError):
+      continue
+    if j.get("event") != "commIssue":
+      continue
+    invalid.update(j.get("invalid") or [])
+    not_alive.update(j.get("not_alive") or [])
+    not_freq_ok.update(j.get("not_freq_ok") or [])
+  return {"invalid": invalid, "not_alive": not_alive, "not_freq_ok": not_freq_ok}
+
+
+def _stop_existing_openpilot() -> None:
+  """Stop any prior manager / launch_openpilot session before starting this test."""
+  for pattern in (
+    "launch_openpilot.sh",
+    "launch_chffrplus.sh",
+    "system.manager.manager",
+    "system/manager/manager.py",
+    "selfdrive/test/ka2_can_replay_feeder.py",
+  ):
+    try:
+      subprocess.run(["pkill", "-f", pattern], check=False)
+    except OSError:
+      pass
+  time.sleep(3.0)
+
+
 def _mono_span_seconds(lr: list) -> float:
   if not lr:
     return float(TEST_DURATION)
@@ -425,6 +483,8 @@ class TestOnroad:
   _burn_in_full_segments_available: int | None = None
   _shutdown_device_state: dict[str, str] | None = None
   _ka2_power_save_disabled_for_test: bool = False
+  _feeder_proc = None
+  _can_replay_route: str | None = None
 
   @classmethod
   def setup_class(cls):
@@ -437,6 +497,10 @@ class TestOnroad:
     cls.log_sizes_per_segment = []
     cls._shutdown_device_state = None
     cls._ka2_power_save_disabled_for_test = False
+    cls._feeder_proc = None
+    cls._can_replay_route = None
+
+    _stop_existing_openpilot()
 
     # Fail fast on prerequisites before spending minutes on bring-up/logging.
     _ensure_ka2_sd_ready()
@@ -452,6 +516,9 @@ class TestOnroad:
       return
 
     # setup env
+    from opendbc.car.car_helpers import interfaces
+    from openpilot.selfdrive.test.ka2_can_replay_feeder import KA2_QC_RLOG_URL, load_route_can_msgs
+
     params = Params()
     params.remove("CurrentRoute")
     params.put_bool("RecordFront", True)
@@ -461,8 +528,16 @@ class TestOnroad:
     os.environ['MSGQ_PREALLOC'] = '1'
     os.environ['TESTING_CLOSET'] = '1'
     os.environ['IGNORE_RELAY_MALFUNCTION_IN_REPLAY'] = '1'
-    os.environ['BLOCK'] = 'uploader'
-    os.environ["FINGERPRINT"] = "PERODUA_ATIVA"
+    fingerprint = "PERODUA_ATIVA"
+    block = "uploader"
+    if can_replay_test_enabled():
+      cls._can_replay_route = os.environ.get("KA2_CAN_REPLAY_ROUTE", KA2_QC_RLOG_URL).strip()
+      _, cp = load_route_can_msgs(cls._can_replay_route)
+      fingerprint = cp.carFingerprint
+      assert fingerprint in interfaces, f"unsupported fingerprint {fingerprint!r}"
+      block = "pandad,uploader"
+    os.environ['BLOCK'] = block
+    os.environ["FINGERPRINT"] = fingerprint
     os.environ["SKIP_FW_QUERY"] = "1"
 
     # Reset rkaiq 3A server so camera stack starts from a clean state.
@@ -491,6 +566,16 @@ class TestOnroad:
     # start launch script (same as normal openpilot boot)
     proc = None
     try:
+      if can_replay_test_enabled():
+        feeder_script = os.path.join(BASEDIR, "selfdrive/test/ka2_can_replay_feeder.py")
+        cls._feeder_proc = subprocess.Popen(
+          [sys.executable, feeder_script, cls._can_replay_route],
+          cwd=BASEDIR,
+          env=os.environ.copy(),
+        )
+        time.sleep(1.0)
+        assert cls._feeder_proc.poll() is None, "CAN replay feeder exited early"
+
       env = os.environ.copy()
       proc = subprocess.Popen(
         ["bash", "-lc", "exec ./launch_openpilot.sh"],
@@ -511,7 +596,7 @@ class TestOnroad:
           while route is None:
             route = params.get("CurrentRoute")
             time.sleep(0.1)
-        time.sleep(BURN_IN_DURATION_S)
+        time.sleep(burn_in_duration_s())
         segs = set()
         if Path(Paths.log_root()).exists():
           segs = set(Path(Paths.log_root()).glob(f"{route}--*"))
@@ -519,7 +604,7 @@ class TestOnroad:
         if cls.segments:
           cls.segments = cls.segments[:-1]
         assert len(cls.segments) >= 2, (
-          f"burn-in: need at least 2 full segments after {BURN_IN_DURATION_S}s, got {len(cls.segments)}"
+          f"burn-in: need at least 2 full segments after {burn_in_duration_s()}s, got {len(cls.segments)}"
         )
         # Latest "full" segments = largest numeric suffix after sort; keep only last N to cap memory/CPU.
         cls._burn_in_full_segments_available = len(cls.segments)
@@ -540,6 +625,12 @@ class TestOnroad:
         # Drop last potentially incomplete segment.
         cls.segments = cls.segments[:-1]
     finally:
+      if cls._feeder_proc is not None and cls._feeder_proc.poll() is None:
+        cls._feeder_proc.terminate()
+        try:
+          cls._feeder_proc.wait(10)
+        except subprocess.TimeoutExpired:
+          cls._feeder_proc.kill()
       if proc is not None:
         try:
           cls._shutdown_device_state = _snapshot_device_state_shutdown()
@@ -606,11 +697,21 @@ class TestOnroad:
     lines.append(f"mode={cls._run_mode}")
     lines.append(f"burn_in_test={getattr(cls, '_burn_in_enabled', False)}")
     if getattr(cls, "_burn_in_enabled", False):
-      lines.append(f"burn_in_duration_s={BURN_IN_DURATION_S}")
+      lines.append(f"burn_in_duration_s={burn_in_duration_s()}")
       lines.append(f"burn_in_analyze_segment_count_cap={BURN_IN_ANALYZE_SEGMENT_COUNT}")
       n_avail = getattr(cls, "_burn_in_full_segments_available", None)
       if n_avail is not None:
         lines.append(f"burn_in_full_segments_on_disk={n_avail}")
+    if getattr(cls, "_can_replay_route", None):
+      lines.append(f"can_replay_route={cls._can_replay_route}")
+    if hasattr(cls, "msgs"):
+      comm_detail = _comm_issue_details_from_log(cls.msgs)
+      if any(comm_detail.values()):
+        lines.append("comm_issue_services:")
+        for key in ("invalid", "not_alive", "not_freq_ok"):
+          if comm_detail[key]:
+            lines.append(f"  {key}={','.join(sorted(comm_detail[key]))}")
+      lines.append(f"ignored_no_entry_events={','.join(sorted(KA2_IGNORE_NO_ENTRY_EVENTS))}")
 
     if hasattr(cls, "segments"):
       lines.append(f"segments_analyzed={len(cls.segments)}")
@@ -923,12 +1024,29 @@ class TestOnroad:
     for m in self.msgs['onroadEvents']:
       for evt in m.onroadEvents:
         if evt.noEntry:
-          no_entries[evt.name] += 1
+          no_entries[_onroad_event_name(evt)] += 1
+
+    comm_detail = _comm_issue_details_from_log(self.msgs)
+    if comm_detail["invalid"] or comm_detail["not_alive"] or comm_detail["not_freq_ok"]:
+      _safe_print("commIssue services from rlog logMessage:")
+      _safe_print(f"  invalid: {sorted(comm_detail['invalid'])}")
+      _safe_print(f"  not_alive: {sorted(comm_detail['not_alive'])}")
+      _safe_print(f"  not_freq_ok: {sorted(comm_detail['not_freq_ok'])}")
+
+    ignored = {k: no_entries[k] for k in KA2_IGNORE_NO_ENTRY_EVENTS if k in no_entries}
+    if ignored:
+      _safe_print(f"ignored noEntry (KA2 bench): {dict(ignored)}")
+
+    remaining = {k: v for k, v in no_entries.items() if k not in KA2_IGNORE_NO_ENTRY_EVENTS}
 
     offset = int(SERVICE_LIST['selfdriveState'].frequency * LOG_OFFSET)
     eng = [m.selfdriveState.engageable for m in self.msgs['selfdriveState'][offset:]]
-    assert all(eng), \
-           f"Not engageable for whole segment:\n- selfdriveState.engageable: {Counter(eng)}\n- No entry events: {no_entries}"
+    assert all(eng), (
+      f"Not engageable for whole segment:\n"
+      f"- selfdriveState.engageable: {Counter(eng)}\n"
+      f"- No entry events: {remaining}\n"
+      f"- commIssue detail: {comm_detail}"
+    )
 
 
 if __name__ == "__main__":
@@ -937,6 +1055,11 @@ if __name__ == "__main__":
     os.environ["KA2_BURN_IN_TEST"] = "1"
   else:
     os.environ.pop("KA2_BURN_IN_TEST", None)
+  if "--can-replay" in sys.argv:
+    sys.argv = [a for a in sys.argv if a != "--can-replay"]
+    os.environ["KA2_CAN_REPLAY"] = "1"
+  else:
+    os.environ.pop("KA2_CAN_REPLAY", None)
 
   class _DummySubtests:
     def test(self, *args, **kwargs):
