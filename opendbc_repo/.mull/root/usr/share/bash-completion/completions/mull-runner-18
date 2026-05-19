@@ -1,0 +1,94 @@
+_mull-runner-18() {
+    local i cur prev opts cmd
+    COMPREPLY=()
+    if [[ "${BASH_VERSINFO[0]}" -ge 4 ]]; then
+        cur="$2"
+    else
+        cur="${COMP_WORDS[COMP_CWORD]}"
+    fi
+    prev="$3"
+    cmd=""
+    opts=""
+
+    for i in "${COMP_WORDS[@]:0:COMP_CWORD}"
+    do
+        case "${cmd},${i}" in
+            ",$1")
+                cmd="mull__runner"
+                ;;
+            *)
+                ;;
+        esac
+    done
+
+    case "${cmd}" in
+        mull__runner)
+            opts="-h -V --test-program --workers --timeout --include-not-covered --dry-run --ld-search-path --coverage-info --debug-coverage --minimum-timeout --reporters --report-dir --report-name --report-patch-base --ide-reporter-show-killed --debug --strict --allow-surviving --mutation-score-threshold --no-test-output --no-mutant-output --no-output --sqlite-busy-timeout --help --version <EXECUTABLE> [RUNNER_ARGS]..."
+            if [[ ${cur} == -* || ${COMP_CWORD} -eq 1 ]] ; then
+                COMPREPLY=( $(compgen -W "${opts}" -- "${cur}") )
+                return 0
+            fi
+            case "${prev}" in
+                --test-program)
+                    COMPREPLY=($(compgen -f "${cur}"))
+                    return 0
+                    ;;
+                --workers)
+                    COMPREPLY=($(compgen -f "${cur}"))
+                    return 0
+                    ;;
+                --timeout)
+                    COMPREPLY=($(compgen -f "${cur}"))
+                    return 0
+                    ;;
+                --ld-search-path)
+                    COMPREPLY=($(compgen -f "${cur}"))
+                    return 0
+                    ;;
+                --coverage-info)
+                    COMPREPLY=($(compgen -f "${cur}"))
+                    return 0
+                    ;;
+                --minimum-timeout)
+                    COMPREPLY=($(compgen -f "${cur}"))
+                    return 0
+                    ;;
+                --reporters)
+                    COMPREPLY=($(compgen -W "IDE SQLite GitHubAnnotations Patches Elements Sarif" -- "${cur}"))
+                    return 0
+                    ;;
+                --report-dir)
+                    COMPREPLY=($(compgen -f "${cur}"))
+                    return 0
+                    ;;
+                --report-name)
+                    COMPREPLY=($(compgen -f "${cur}"))
+                    return 0
+                    ;;
+                --report-patch-base)
+                    COMPREPLY=($(compgen -f "${cur}"))
+                    return 0
+                    ;;
+                --mutation-score-threshold)
+                    COMPREPLY=($(compgen -f "${cur}"))
+                    return 0
+                    ;;
+                --sqlite-busy-timeout)
+                    COMPREPLY=($(compgen -f "${cur}"))
+                    return 0
+                    ;;
+                *)
+                    COMPREPLY=()
+                    ;;
+            esac
+            COMPREPLY=( $(compgen -W "${opts}" -- "${cur}") )
+            return 0
+            ;;
+    esac
+}
+
+if [[ "${BASH_VERSINFO[0]}" -eq 4 && "${BASH_VERSINFO[1]}" -ge 4 || "${BASH_VERSINFO[0]}" -gt 4 ]]; then
+    complete -F _mull-runner-18 -o nosort -o bashdefault -o default mull-runner-18
+else
+    complete -F _mull-runner-18 -o bashdefault -o default mull-runner-18
+fi

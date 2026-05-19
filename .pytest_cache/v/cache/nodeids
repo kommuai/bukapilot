@@ -1,0 +1,3 @@
+[
+  "opendbc/car/tests/test_docs.py::TestCarDocs::test_year_format"
+]

@@ -1,0 +1,7 @@
+{
+  "selfdrive/selfdrived/tests/test_panda_vehicle_safety.py::TestVehiclePandaSafetyFault::test_cherry_safety_param_mismatch": true,
+  "selfdrive/selfdrived/tests/test_panda_vehicle_safety.py::TestVehiclePandaSafetyFault::test_vehicle_panda_rx_invalid_reported": true,
+  "selfdrive/selfdrived/tests/test_panda_vehicle_safety.py::TestVehiclePandaSafetyFault::test_elm327_rx_invalid_not_reported": true,
+  "selfdrive/selfdrived/tests/test_panda_vehicle_safety.py::TestVehiclePandaSafetyFault::test_elm327_then_cherry_maps_to_first_safety_config": true,
+  "selfdrive/selfdrived/tests/test_panda_vehicle_safety.py::TestVehiclePandaSafetyFault::test_elm327_skipped_no_mismatch_with_cherry_config": true
+}
