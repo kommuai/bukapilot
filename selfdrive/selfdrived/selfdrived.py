@@ -408,7 +408,12 @@ class SelfdriveD:
       if self.sm['modelV2'].frameDropPerc > 20:
         self.events.add(EventName.modeldLagging)
 
-    # Decrement personality on distance button press
+    # Stock follow-distance from car (e.g. HUD gap bars). -1 means no override; keep param personality.
+    if CS.personality != -1 and self.personality != CS.personality:
+      self.personality = CS.personality
+      self.params.put_nonblocking('LongitudinalPersonality', self.personality)
+
+    # Decrement personality on distance button press (OP longitudinal only)
     if self.CP.openpilotLongitudinalControl:
       if any(not be.pressed and be.type == ButtonType.gapAdjustCruise for be in CS.buttonEvents):
         if CS.personality != -1:
