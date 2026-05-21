@@ -25,7 +25,7 @@ from openpilot.system.hardware.power_monitoring import PowerMonitoring
 from openpilot.system.hardware.fan_controller import FanController
 from openpilot.system.version import terms_version, training_version
 from openpilot.system.athena.registration import UNREGISTERED_DONGLE_ID
-from opendbc.car.car_helpers import ignore_ignition_line_for_onroad
+from opendbc.car.car_helpers import ignition_onroad
 
 ThermalStatus = log.DeviceState.ThermalStatus
 NetworkType = log.DeviceState.NetworkType
@@ -228,15 +228,7 @@ def hardware_thread(end_event, hw_queue) -> None:
     if sm.updated['pandaStates'] and len(pandaStates) > 0:
 
       # Set ignition based on any panda connected
-      ignore_ign_line = ignore_ignition_line_for_onroad(params.get("CarName"))
-      if ignore_ign_line:
-        onroad_conditions["ignition"] = any(
-          ps.ignitionCan for ps in pandaStates if ps.pandaType != log.PandaState.PandaType.unknown
-        )
-      else:
-        onroad_conditions["ignition"] = any(
-          ps.ignitionLine or ps.ignitionCan for ps in pandaStates if ps.pandaType != log.PandaState.PandaType.unknown
-        )
+      onroad_conditions["ignition"] = ignition_onroad(pandaStates)
 
       pandaState = pandaStates[0]
 
