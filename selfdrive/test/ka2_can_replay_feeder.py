@@ -18,16 +18,23 @@ KA2_QC_RLOG_URL = "http://web.kommu.ai/depot/upload/publicbox/qc_rlog.zst"
 def load_route_can_msgs(route_or_segment_name: str):
   print(f"Loading CAN from {route_or_segment_name!r}...")
   lr = LogReader(route_or_segment_name)
-  cp = lr.first("carParams")
-  if cp is None:
+  cp = None
+  cp_bytes = None
+  mbytes = []
+  for m in lr:
+    if m.which() == "carParams" and cp_bytes is None:
+      cp = m.carParams
+      cp_bytes = m.as_builder().to_bytes()
+    elif m.which() == "can":
+      mbytes.append(m.as_builder().to_bytes())
+  if cp is None or cp_bytes is None:
     raise ValueError(f"no carParams in {route_or_segment_name!r}")
   print(f"carFingerprint: '{cp.carFingerprint}'")
-  mbytes = [m.as_builder().to_bytes() for m in lr if m.which() == "can"]
   can_msgs = [m[1] for m in can_capnp_to_list(mbytes)]
   if not can_msgs:
     raise ValueError(f"no CAN in {route_or_segment_name!r}")
   print(f"loaded {len(can_msgs)} CAN batches")
-  return can_msgs, cp
+  return can_msgs, cp, cp_bytes
 
 
 def default_route() -> str:
@@ -39,7 +46,7 @@ def main() -> None:
   os.environ.setdefault("FILEREADER_CACHE", "1")
   config_realtime_process(3, 55)
 
-  can_msgs, cp = load_route_can_msgs(route)
+  can_msgs, cp, _ = load_route_can_msgs(route)
   safety = cp.safetyConfigs[-1] if len(cp.safetyConfigs) else None
   safety_model = safety.safetyModel if safety is not None else log.CarParams.SafetyModel.noOutput
   safety_param = safety.safetyParam if safety is not None else 0
