@@ -83,5 +83,5 @@ class HardwareHelper:
   def update_gsm_apn(self, apn: str = "") -> None:
     def worker():
       params.put("GsmApn", apn) # Wait for parameter to be put.
-      self._ka2.configure_wwan()
+      self._ka2.configure_modem()
     threading.Thread(target=worker, daemon=True).start()

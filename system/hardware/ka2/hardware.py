@@ -169,21 +169,32 @@ class Ka2(HardwareBase):
   def _extract_kv(self, text: str, key: str) -> str:
     return next((line.split(":",1)[1].strip() for line in text.splitlines() if line.startswith(key)), "")
 
-  def _get_bearer_info(self, mid: str):
+  def _sim_not_inserted(self, mg=None) -> bool:
+    if mg is None:
+      with self._lock:
+        mg = self._modem_generic()
+    return bool(mg) and ((not (sim := mg.get("sim")) or sim == "/") or (mg.get("state-failed-reason") or "").lower() == "sim-missing")
+
+  def _get_bearer_info(self, mid: str) -> tuple[str, str, str, str, str] | None:
+    # EC25 QMI newest bearer with ipv4 addr prefix gateway DNS
+    bearer_re = re.compile(r"/org/freedesktop/ModemManager1/Bearer/\d+")
     for _ in range(30):
-      if out := subprocess.run(["mmcli","-m",mid],capture_output=True,text=True).stdout:
-        for line in out.splitlines():
-          if "/Bearer/" in line and (bpath := line.strip().split()[-1]):
-            bkv = subprocess.run(["mmcli","-b",bpath,"--output-keyvalue"],capture_output=True,text=True).stdout
-            if "bearer.status.interface: wwan0" in bkv:
-              return (
-                self._extract_kv(bkv,"bearer.ipv4-config.address"),
-                self._extract_kv(bkv,"bearer.ipv4-config.prefix"),
-                self._extract_kv(bkv,"bearer.ipv4-config.gateway"),
-                self._extract_kv(bkv,"bearer.ipv4-config.dns.value[1]"),
-                self._extract_kv(bkv,"bearer.ipv4-config.dns.value[2]"),
-                self._extract_kv(bkv,"bearer.ipv4-config.mtu"),
-              )
+      if not (out := subprocess.run(["mmcli", "-m", mid], capture_output=True, text=True).stdout):
+        time.sleep(1)
+        continue
+      if not (paths := sorted(set(bearer_re.findall(out)), key=lambda p: int(p.rsplit("/", 1)[-1]), reverse=True)):
+        time.sleep(1)
+        continue
+      for bpath in paths:
+        if not (bkv := subprocess.run(["mmcli", "-b", bpath, "--output-keyvalue"], capture_output=True, text=True).stdout):
+          continue
+        if not (addr := self._extract_kv(bkv, "bearer.ipv4-config.address")):
+          continue
+        if not (prefix := self._extract_kv(bkv, "bearer.ipv4-config.prefix")) or not prefix.isdigit():
+          continue
+        if not (gw := self._extract_kv(bkv, "bearer.ipv4-config.gateway")):
+          continue
+        return addr, prefix, gw, self._extract_kv(bkv, "bearer.ipv4-config.dns.value[1]"), self._extract_kv(bkv, "bearer.ipv4-config.dns.value[2]")
       time.sleep(1)
     return None
 
@@ -211,50 +222,6 @@ class Ka2(HardwareBase):
         time.sleep(1)
       print("ERROR: no modem found after 30s")
       return ""
-
-  def configure_wwan(self) -> None:
-    from openpilot.common.params import Params
-    if ((apn := Params().get("GsmApn")) and (apn_source := "manual")) or ((apn := self.lookup_apn()) and (apn_source := "auto")):
-      print(f"{apn_source} APN: {apn}")
-    else:
-      print("ERROR: no APN found")
-      return
-
-    # Find modem ID
-    if not (mid := self.find_modem_id()):
-      return
-
-    # Connect with APN
-    subprocess.run(["mmcli", "-m", mid, "--simple-disconnect"], capture_output=True, text=True)
-    time.sleep(1)
-    mmcli_out = subprocess.run(["mmcli", "-m", mid, f"--simple-connect=apn={apn},ip-type=ipv4"], capture_output=True, text=True)
-    if mmcli_out.returncode and not any(x in (err := mmcli_out.stderr.lower()) for x in ("already connected", "already registered", "no actions")):
-      print(err)
-      return
-
-    # Get bearer info
-    if not (info := self._get_bearer_info(mid)):
-      print("ERROR: bearer missing IPv4 info")
-      return
-    addr, prefix, gw, dns1, dns2, mtu = info
-
-    # Configure wwan0
-    subprocess.run(["sudo", "ip", "link", "set", "wwan0", "up"])
-    subprocess.run(["sudo", "ip", "-4", "addr", "flush", "dev", "wwan0"])
-    subprocess.run(["sudo", "ip", "-4", "addr", "add", f"{addr}/{prefix}", "dev", "wwan0"])
-
-    # Cleanup old default routes for wwan0
-    while subprocess.run(["sudo", "ip", "route", "del", "default", "dev", "wwan0"], capture_output=True).returncode == 0:
-      pass
-
-    # Add new default route
-    subprocess.run(["sudo", "ip", "route", "add", "default", "via", gw, "dev", "wwan0", "metric", "2000"])
-
-    if mtu:
-        subprocess.run(["sudo", "ip", "link", "set", "dev", "wwan0", "mtu", mtu])
-    if shutil.which("resolvectl"):
-        subprocess.run(["sudo", "resolvectl", "dns", "wwan0", dns1, dns2])
-    print(f"wwan0: {addr}/{prefix} via {gw} metric=2000 (dns: {dns1} {dns2}, mtu: {mtu})")
 
   # -- trivial overrides --
 
@@ -511,6 +478,7 @@ class Ka2(HardwareBase):
   def initialize_hardware(self):
     os.system("sudo chmod -R a+r /sys/class/net/wwan0/statistics/")
     subprocess.run(["sudo", "chmod", "a+w", "/dev/kmsg"], check=False)
+    subprocess.run(["nmcli", "device", "set", "wwan0", "managed", "no"], capture_output=True)
 
     sudo_write("f", "/proc/irq/default_smp_affinity")
 
@@ -520,19 +488,92 @@ class Ka2(HardwareBase):
     sudo_write("2112000000", "/sys/class/devfreq/dmc/userspace/set_freq")
 
   def configure_modem(self):
-    self.configure_wwan()
+    from openpilot.common.params import Params
+    # Tested - more AT commands cause SIM detection and modem hardware issues on the EC25 modem, do not add more even if they appear in openpilot code.
 
-    for cmd in [
-      'AT+QNVW=5280,0,"0102000000000000"',
-      'AT+QNVFW="/nv/item_files/ims/IMS_enable",00',
-      'AT+QNVFW="/nv/item_files/modem/mmode/ue_usage_setting",01',
-    ]:
-      try:
-        subprocess.run(["mmcli", "-m", "0", f"--command={cmd}"], capture_output=True, timeout=5)
-      except Exception:
-        pass
+    if not (mid := self.find_modem_id()):
+      return
 
-    os.system("sudo ip route del default dev wwan0 2>/dev/null || true")
+    if self._sim_not_inserted():
+      return print("Modem Setup: SIM not inserted")
+
+    # Check for user set APN or use auto lookup
+    if ((apn := Params().get("GsmApn")) and (apn_source := "manual")) or ((apn := self.lookup_apn()) and (apn_source := "auto")):
+      print(f"{apn_source} APN: {apn}")
+    else:
+      return print("No APN found")
+
+    def print_modem_setup(cmd, success):
+      print(f"Modem Setup: {cmd} {'success' if success else 'fail'}")
+
+    subprocess.run(["nmcli", "-w", "10", "device", "disconnect", "wwan0"], capture_output=True)  # stop NM wwan0 before mmcli owns APN
+
+    nv_cmds = [
+      {
+        "target": "/nv/item_files/modem/mmode/ue_usage_setting",
+        "val": "01",
+        "is_file": True,
+      },  # data-centric modem behaviour
+      {
+        "target": "5280",
+        "val": "0102000000000000",
+        "is_file": False,
+      },  # disable voice + emergency call capability
+      {
+        "target": "/nv/item_files/ims/IMS_enable",
+        "val": "00",
+        "is_file": True,
+      }   # disable IMS / VoLTE stack
+    ]
+
+    # NV AT read first, write only when the stored value is not already set.
+    for nv in nv_cmds:
+      t, v = nv["target"], nv["val"]
+      if (is_file := nv["is_file"]):
+        r = f'AT+QNVFR="{t}"'
+        w = f'AT+QNVFW="{t}",{v}'
+        pattern = rf'\+QNVFR:\s*(?:"[^"]+",\s*)?{v}\b'
+      else:
+        r = f"AT+QNVR={t},0"
+        w = f'AT+QNVW={t},0,"{v}"'
+        pattern = rf'\+QNVR:\s*(?:\d+,\d+,\s*)?"?{v}"?\b'
+      if (read_out := subprocess.run(["mmcli", "-m", mid, f"--command={r}"], capture_output=True, text=True).stdout) and re.search(pattern, read_out):
+        print_modem_setup(r, True)
+        continue
+      print_modem_setup(w, "OK" in (write_out := subprocess.run(["mmcli", "-m", mid, f"--command={w}"], capture_output=True, text=True).stdout))
+
+    subprocess.run(["mmcli", "-m", mid, "--simple-disconnect"], capture_output=True, text=True)
+    time.sleep(1)
+
+    conn_cmd = f"--simple-connect=apn={apn},ip-type=ipv4"
+    conn_ok = "error" not in (conn_out := subprocess.run(["mmcli", "-m", mid, conn_cmd], capture_output=True, text=True).stdout.lower())
+    print_modem_setup(conn_cmd, conn_ok)
+    if not conn_ok:
+      return
+
+    if not (b := self._get_bearer_info(mid)):
+      return print("Modem Setup: bearer parse fail")
+    addr, prefix, gw, dns1, dns2 = b
+
+    def run_ip(args):
+      cmd = ["ip", *args]
+      print_modem_setup(" ".join(cmd), (ok := subprocess.run(["sudo"] + cmd, capture_output=True).returncode == 0))
+
+    run_ip(["addr", "flush", "dev", "wwan0"])
+    run_ip(["link", "set", "wwan0", "up"])
+    run_ip(["addr", "replace", f"{addr}/{prefix}", "dev", "wwan0"])
+    run_ip(["route", "replace", "default", "via", gw, "dev", "wwan0", "onlink", "metric", "2000"])
+
+    # EC25 DNS program wwan0 via resolvectl if available
+    if (dns1 or dns2) and (resolvectl := shutil.which("resolvectl")):
+      dns_args = ["sudo", resolvectl, "dns", "wwan0"]
+      if dns1:
+        dns_args.append(dns1)
+      if dns2:
+        dns_args.append(dns2)
+      print_modem_setup(" ".join(dns_args), subprocess.run(dns_args, capture_output=True).returncode == 0)
+      domain_args = ["sudo", resolvectl, "domain", "wwan0", "~."]
+      print_modem_setup(" ".join(domain_args), subprocess.run(domain_args, capture_output=True).returncode == 0)
 
   def get_cellular_display_status(self) -> dict:
     tx, rx = self.get_modem_data_usage()
@@ -576,7 +617,7 @@ class Ka2(HardwareBase):
         if state in transient_states:
           summary = "SIM not ready"
         elif state == "failed":
-          summary = "SIM not inserted" if modem_generic.get("state-failed-reason", "").lower() == "sim-missing" else "Modem error"
+          summary = "SIM not inserted" if self._sim_not_inserted(modem_generic) else "Modem error"
         elif state == "locked":
           summary = "SIM locked"
         elif state in ("disabled", "disabling"):
