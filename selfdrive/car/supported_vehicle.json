@@ -435,17 +435,31 @@
       "note": "Longitudinal control uses stock's Adaptive Cruise Control."
     },
     {
-      "brand": "BYD",
-      "model": "Sealion 7",
-      "year": "2025-2026",
+      "brand": "Chery",
+      "model": "Tiggo 8",
+      "year": "2023-2026",
       "variant": "All",
       "acc_low_speed": true,
       "acc_speed_range": "0 - 150",
       "acc_stop_and_go": true,
-      "lkc_torque": "Very High",
+      "lkc_torque": "High",
       "lkc_speed_range": "0 - 150",
-      "max_steering_angle": "120°",
-      "support": "Supports only BYD vehicles that comes with Lane Keep Assist and Adaptive Cruise Control.",
+      "max_steering_angle": "90°",
+      "support": "All variant supported.",
+      "note": "Longitudinal control uses stock's Adaptive Cruise Control."
+    },
+    {
+      "brand": "Jaecoo",
+      "model": "J7",
+      "year": "2024-2026",
+      "variant": "All",
+      "acc_low_speed": true,
+      "acc_speed_range": "0 - 150",
+      "acc_stop_and_go": true,
+      "lkc_torque": "High",
+      "lkc_speed_range": "0 - 150",
+      "max_steering_angle": "90°",
+      "support": "All variant supported.",
       "note": "Longitudinal control uses stock's Adaptive Cruise Control."
     }
   ]
