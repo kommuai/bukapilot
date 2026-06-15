@@ -268,20 +268,6 @@
     },
     {
       "brand": "Toyota",
-      "model": "Innova Zenix",
-      "year": "2024-2026",
-      "variant": "All",
-      "acc_low_speed": true,
-      "acc_speed_range": "0 - 140",
-      "acc_stop_and_go": true,
-      "lkc_torque": "High",
-      "lkc_speed_range": "0 - 140",
-      "max_steering_angle": "60°",
-      "support": "Supports only Toyota vehicles that comes with Toyota Safety Sense 2.0.",
-      "note": "This vehicle gets full Lane Keep Assist and Intelligent Cruise Control."
-    },
-    {
-      "brand": "Toyota",
       "model": "Veloz",
       "year": "2022-2026",
       "variant": "AT",
