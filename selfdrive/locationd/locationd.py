@@ -28,6 +28,8 @@ INPUT_INVALID_LIMIT = 2.0 # 1 (camodo) / 9 (sensor) bad input[s] ignored
 INPUT_INVALID_RECOVERY = 10.0 # ~10 secs to resume after exceeding allowed bad inputs by one
 POSENET_STD_INITIAL_VALUE = 10.0
 POSENET_STD_HIST_HALF = 20
+POSENET_STD_WARMUP_SAMPLES = POSENET_STD_HIST_HALF * 2
+CAMODO_GAP_RESET_S = 2.0
 
 
 def calculate_invalid_input_decay(invalid_limit, recovery_time, frequency):
@@ -54,8 +56,10 @@ class LocationEstimator:
 
     self.debug = debug
 
-    self.posenet_stds = np.array([POSENET_STD_INITIAL_VALUE] * (POSENET_STD_HIST_HALF * 2))
+    self.posenet_stds = np.array([POSENET_STD_INITIAL_VALUE] * POSENET_STD_WARMUP_SAMPLES)
     self.car_speed = 0.0
+    self.last_camodo_time: float | None = None
+    self.camodo_count = 0
     self.camodo_yawrate_distribution = np.array([0.0, 10.0])  # mean, std
     self.device_from_calib = np.eye(3)
 
@@ -158,6 +162,12 @@ class LocationEstimator:
       if not self._validate_timestamp(t):
         return HandleLogResult.TIMING_INVALID
 
+      if self.last_camodo_time is None or (t - self.last_camodo_time) > CAMODO_GAP_RESET_S:
+        self.posenet_stds.fill(POSENET_STD_INITIAL_VALUE)
+        self.camodo_count = 0
+      self.last_camodo_time = t
+      self.camodo_count += 1
+
       rot_device = np.matmul(self.device_from_calib, np.array(msg.rot))
       trans_device = np.matmul(self.device_from_calib, np.array(msg.trans))
 
@@ -229,7 +239,10 @@ class LocationEstimator:
 
     old_mean = np.mean(self.posenet_stds[:POSENET_STD_HIST_HALF])
     new_mean = np.mean(self.posenet_stds[POSENET_STD_HIST_HALF:])
-    std_spike = (new_mean / old_mean) > 4.0 and new_mean > 7.0
+    std_spike = (
+      self.camodo_count >= POSENET_STD_WARMUP_SAMPLES
+      and (new_mean / old_mean) > 4.0 and new_mean > 7.0
+    )
 
     livePose.inputsOK = inputs_valid
     livePose.posenetOK = not std_spike or self.car_speed <= 5.0

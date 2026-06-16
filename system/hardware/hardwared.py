@@ -239,9 +239,10 @@ def hardware_thread(end_event, hw_queue) -> None:
         onroad_conditions["ignition"] = False
         cloudlog.error("panda timed out onroad")
 
-    # Run at 2Hz, plus either edge of ignition
+    # Run at 2Hz, plus either edge of ignition (always publish when ignition drops)
     ign_edge = (started_ts is not None) != all(onroad_conditions.values())
-    if (sm.frame % round(SERVICE_LIST['pandaStates'].frequency * DT_HW) != 0) and not ign_edge:
+    force_publish = not onroad_conditions["ignition"] and started_ts is not None
+    if (sm.frame % round(SERVICE_LIST['pandaStates'].frequency * DT_HW) != 0) and not ign_edge and not force_publish:
       continue
 
     msg = messaging.new_message('deviceState', valid=True)
@@ -365,7 +366,14 @@ def hardware_thread(end_event, hw_queue) -> None:
       except Exception:
         pass
 
-    should_pwrsave = not onroad_conditions["ignition"] and msg.deviceState.screenBrightnessPercent < 1e-3
+    # Defer CPU offline until sustained offroad (rapid on/off must keep camerad's CPU online).
+    OFFROAD_PWRSAVE_DELAY_S = 30.0
+    should_pwrsave = (
+      not onroad_conditions["ignition"]
+      and msg.deviceState.screenBrightnessPercent < 1e-3
+      and off_ts is not None
+      and (time.monotonic() - off_ts) > OFFROAD_PWRSAVE_DELAY_S
+    )
     if should_pwrsave != pwrsave or (count == 0):
       HARDWARE.set_power_save(should_pwrsave)
     pwrsave = should_pwrsave

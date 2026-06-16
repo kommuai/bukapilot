@@ -144,14 +144,20 @@ def manager_thread() -> None:
     if (ignition := ignition_onroad(sm['pandaStates'])) and not ignition_prev:
       params.clear_all(ParamKeyFlag.CLEAR_ON_IGNITION_ON)
 
-    # update onroad params, which drives pandad's safety setter thread
-    if started != started_prev:
+    onroad_transition = started and not started_prev
+    offroad_transition = not started and started_prev
+
+    # Publish IsOnroad before starting processes; defer IsOffroad until vision procs exit.
+    if onroad_transition:
       write_onroad_params(started, params)
 
     started_prev = started
     ignition_prev = ignition
 
     ensure_running(managed_processes.values(), started, params=params, CP=sm['carParams'], not_run=ignore)
+
+    if offroad_transition:
+      write_onroad_params(started, params)
 
     running = ' '.join("{}{}\u001b[0m".format("\u001b[32m" if p.proc.is_alive() else "\u001b[31m", p.name)
                        for p in managed_processes.values() if p.proc)

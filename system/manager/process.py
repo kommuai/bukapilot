@@ -51,6 +51,13 @@ def nativelauncher(pargs: list[str], cwd: str, name: str) -> None:
   os.execvp(pargs[0], pargs)
 
 
+# Block until these exit on offroad so they are gone before the next onroad cycle.
+# Stop consumers before camerad (producer).
+VISION_SHUTDOWN_ORDER = ("encoderd", "modeld", "dmonitoringmodeld", "controlsd", "camerad")
+VISION_SHUTDOWN_BLOCK = frozenset(VISION_SHUTDOWN_ORDER)
+CAMERAD_STOP_TIMEOUT_S = 15.
+
+
 def join_process(process: Process, timeout: float) -> None:
   # Process().join(timeout) will hang due to a python 3 bug: https://bugs.python.org/issue28382
   # We have to poll the exitcode instead
@@ -96,7 +103,8 @@ class ManagerProcess(ABC):
         if not block:
           return None
 
-      join_process(self.proc, 5)
+      stop_timeout = CAMERAD_STOP_TIMEOUT_S if self.name == "camerad" else 5
+      join_process(self.proc, stop_timeout)
 
       # If process failed to die send SIGKILL
       if self.proc.exitcode is None and retry:
@@ -252,6 +260,7 @@ def ensure_running(procs: ValuesView[ManagerProcess], started: bool, params=None
     not_run = []
 
   running = []
+  to_stop = []
   for p in procs:
     if p.enabled and p.name not in not_run and p.should_run(started, params, CP):
       if p.restart_if_crash and p.proc is not None and not p.proc.is_alive():
@@ -259,7 +268,20 @@ def ensure_running(procs: ValuesView[ManagerProcess], started: bool, params=None
         p.restart()
       running.append(p)
     else:
-      p.stop(block=False)
+      to_stop.append(p)
+
+  for p in to_stop:
+    p.stop(block=False)
+
+  by_name = {p.name: p for p in to_stop}
+  for name in VISION_SHUTDOWN_ORDER:
+    p = by_name.get(name)
+    if p is not None:
+      p.stop(block=True)
+
+  for p in to_stop:
+    if p.name not in VISION_SHUTDOWN_BLOCK:
+      p.stop(block=True)
 
   for p in running:
     p.start()

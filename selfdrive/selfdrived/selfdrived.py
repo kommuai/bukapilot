@@ -22,7 +22,7 @@ from openpilot.selfdrive.selfdrived.state import StateMachine
 from openpilot.selfdrive.selfdrived.alertmanager import AlertManager, set_offroad_alert
 
 from openpilot.system.version import get_build_metadata
-from openpilot.system.hardware import HARDWARE
+from openpilot.system.hardware import HARDWARE, KA2
 
 from openpilot.selfdrive.controls.lib.alc_helper import ALCHelper
 
@@ -30,6 +30,9 @@ REPLAY = "REPLAY" in os.environ
 SIMULATION = "SIMULATION" in os.environ
 TESTING_CLOSET = "TESTING_CLOSET" in os.environ
 IGNORE_RELAY_MALFUNCTION_IN_REPLAY = REPLAY and ("IGNORE_RELAY_MALFUNCTION_IN_REPLAY" in os.environ)
+
+# Vision/locationd need time to stabilize after onroad entry (boot, offroad->onroad).
+POSENET_ONROAD_GRACE_S = 30.0
 
 LONGITUDINAL_PERSONALITY_MAP = {v: k for k, v in log.LongitudinalPersonality.schema.enumerants.items()}
 
@@ -80,8 +83,8 @@ class SelfdriveD:
     ignore = self.sensor_packets + self.gps_packets + ['alertDebug']
     if SIMULATION:
       ignore += ['driverCameraState', 'managerState']
-    if REPLAY:
-      # no vipc in replay will make them ignored anyways
+    if REPLAY and not KA2:
+      # no vipc in desktop replay; KA2 CAN replay uses real camerad
       ignore += ['roadCameraState', 'wideRoadCameraState']
 
     ignore_avg_freq = list(ignore)
@@ -117,6 +120,8 @@ class SelfdriveD:
     self.initialized = False
     self.enabled = False
     self.active = False
+    self.started_prev = False
+    self.onroad_started_mono: float | None = None
     self.mismatch_counter = 0
     self.cruise_mismatch_counter = 0
     self.last_steering_pressed_frame = 0
@@ -353,11 +358,16 @@ class SelfdriveD:
     else:
       self.logged_comm_issue = None
 
-    if not self.CP.notCar:
-      if not self.sm['livePose'].posenetOK:
-        self.events.add(EventName.posenetInvalid)
-      if not self.sm['livePose'].inputsOK:
-        self.events.add(EventName.locationdTemporaryError)
+    if not self.CP.notCar and self.sm.alive['livePose'] and self.sm.valid['livePose']:
+      in_posenet_grace = (
+        self.onroad_started_mono is not None
+        and (time.monotonic() - self.onroad_started_mono) < POSENET_ONROAD_GRACE_S
+      )
+      if not in_posenet_grace:
+        if not self.sm['livePose'].posenetOK:
+          self.events.add(EventName.posenetInvalid)
+        if not self.sm['livePose'].inputsOK:
+          self.events.add(EventName.locationdTemporaryError)
       if not self.sm['liveParameters'].valid and cal_status == log.LiveCalibrationData.Status.calibrated and not TESTING_CLOSET and (not SIMULATION or REPLAY):
         self.events.add(EventName.paramsdTemporaryError)
 
@@ -433,10 +443,29 @@ class SelfdriveD:
 
     self.sm.update(0)
 
+    if self.sm.updated['deviceState']:
+      started = self.sm['deviceState'].started
+      if started and not self.started_prev:
+        self.onroad_started_mono = time.monotonic()
+      elif not started:
+        self.onroad_started_mono = None
+      self.started_prev = started
+
     if not self.initialized:
       all_valid = CS.canValid and self.sm.all_checks()
-      timed_out = self.sm.frame * DT_CTRL > 6.
-      if all_valid or timed_out or (SIMULATION and not REPLAY):
+      init_timeout = 30. if KA2 else (15. if TESTING_CLOSET else 6.)
+      timed_out = self.sm.frame * DT_CTRL > init_timeout
+      cameras_ready = (
+        self.sm.alive['roadCameraState']
+        or 'roadCameraState' in self.sm.ignore_alive
+      )
+      pose_ready = self.sm.alive['livePose'] and self.sm.valid['livePose']
+      can_initialize = all_valid or (SIMULATION and not REPLAY)
+      if KA2:
+        can_initialize = can_initialize or (timed_out and cameras_ready and pose_ready)
+      elif timed_out:
+        can_initialize = can_initialize or timed_out
+      if can_initialize:
         available_streams = VisionIpcClient.available_streams("camerad", block=False)
         if VisionStreamType.VISION_STREAM_ROAD not in available_streams:
           self.sm.ignore_alive.append('roadCameraState')
