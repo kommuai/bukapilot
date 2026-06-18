@@ -320,20 +320,15 @@ def _read_memory_usage_pct() -> float | None:
 
 def _set_ignition(feeder_proc, *, on: bool) -> None:
   """
-  Toggle ignition by stopping or starting the CAN replay feeder.
+  Toggle ignition via the replay feeder ignition file.
 
-  Ignition on  = feeder running  → pandaStates has ignitionLine=True
-  Ignition off = feeder stopped  → no pandaStates → selfdrived sets IsOffroad
+  Like real pandad: feeder keeps publishing pandaStates; only ignitionLine changes.
   """
-  if on:
-    pass
-  else:
-    if feeder_proc is not None and feeder_proc.poll() is None:
-      feeder_proc.terminate()
-      try:
-        feeder_proc.wait(5)
-      except subprocess.TimeoutExpired:
-        feeder_proc.kill()
+  from openpilot.selfdrive.test.ka2_can_replay_feeder import set_replay_ignition
+
+  set_replay_ignition(on)
+  if on and feeder_proc is not None and feeder_proc.poll() is not None:
+    raise RuntimeError("CAN replay feeder died; restart test from setup")
 
 
 def _wait_for_onroad(timeout_s: float = ONROAD_TRANSITION_TIMEOUT_S) -> float:
@@ -409,7 +404,11 @@ class TestOnOff:
 
     _stop_existing_openpilot()
 
-    from openpilot.selfdrive.test.ka2_can_replay_feeder import KA2_QC_RLOG_URL, load_route_can_msgs
+    from openpilot.selfdrive.test.ka2_can_replay_feeder import (
+      KA2_QC_RLOG_URL,
+      load_route_can_msgs,
+      set_replay_ignition,
+    )
     from opendbc.car.car_helpers import interfaces
 
     params = Params()
@@ -449,6 +448,7 @@ class TestOnOff:
       pass
 
     try:
+      set_replay_ignition(True)
       cls._feeder_proc = _start_feeder(cls._can_replay_route)
 
       env = os.environ.copy()
@@ -473,9 +473,13 @@ class TestOnOff:
         if mem is not None:
           cls._memory_samples.append(mem)
 
-        # restart feeder if it died between cycles
+        # restart feeder if it died unexpectedly
         if cls._feeder_proc is None or cls._feeder_proc.poll() is not None:
+          set_replay_ignition(True)
           cls._feeder_proc = _start_feeder(cls._can_replay_route)
+
+        if cycle > 0:
+          _set_ignition(cls._feeder_proc, on=True)
 
         # measure onroad transition time
         t_on_start = time.monotonic()
@@ -498,9 +502,8 @@ class TestOnOff:
         _safe_print(f"[cycle {cycle + 1}] staying onroad for {onroad_hold_s}s...")
         time.sleep(onroad_hold_s)
 
-        # ── OFFROAD: kill feeder → ignition off ──────────────────────────
+        # ── OFFROAD: drop ignition (feeder keeps publishing pandaStates) ───
         _set_ignition(cls._feeder_proc, on=False)
-        cls._feeder_proc = None
 
         t_off_start = time.monotonic()
         try:
@@ -529,14 +532,10 @@ class TestOnOff:
         if cycle < ONOFF_CYCLES - 1:
           offroad_hold_s = random.randint(OFFROAD_HOLD_MIN_S, OFFROAD_HOLD_MAX_S)
           _safe_print(f"[cycle {cycle + 1}] staying offroad for {offroad_hold_s}s...")
-          cls._hold_timings.append((onroad_hold_s, offroad_hold_s))  # ADD THIS
+          cls._hold_timings.append((onroad_hold_s, offroad_hold_s))
           time.sleep(offroad_hold_s)
         else:
-          cls._hold_timings.append((onroad_hold_s, 0))  # last cycle, no offroad hold
-
-        # restart feeder for next cycle (except after last cycle)
-        if cycle < ONOFF_CYCLES - 1:
-          cls._feeder_proc = _start_feeder(cls._can_replay_route)
+          cls._hold_timings.append((onroad_hold_s, 0))
 
       # final memory sample after all cycles
       mem = _read_memory_usage_pct()

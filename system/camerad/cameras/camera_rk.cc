@@ -297,6 +297,13 @@ void CameraState::camera_close() {
   // stop devices
   LOG("-- Stop devices %d", camera_num);
 
+  if (video_fd.fd_ >= 0) {
+    int type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
+    if (ioctl(video_fd, VIDIOC_STREAMOFF, &type) < 0) {
+      LOGW("camera %d: VIDIOC_STREAMOFF failed errno=%d '%s'", camera_num, errno, strerror(errno));
+    }
+  }
+
   if (buf.camera_bufs) {
     for (int i = 0; i < FRAME_BUF_COUNT; i++) {
       if (buf.camera_bufs[i].fd >= 0) {

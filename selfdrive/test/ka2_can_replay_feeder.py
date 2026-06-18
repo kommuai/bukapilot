@@ -13,6 +13,20 @@ from openpilot.system.hardware import HARDWARE
 from openpilot.tools.lib.logreader import LogReader
 
 KA2_QC_RLOG_URL = "http://web.kommu.ai/depot/upload/publicbox/qc_rlog.zst"
+KA2_REPLAY_IGNITION_FILE = "/dev/shm/ka2_replay_ignition"
+
+
+def replay_ignition_on() -> bool:
+  try:
+    with open(KA2_REPLAY_IGNITION_FILE) as f:
+      return f.read().strip() != "0"
+  except FileNotFoundError:
+    return True
+
+
+def set_replay_ignition(on: bool) -> None:
+  with open(KA2_REPLAY_IGNITION_FILE, "w") as f:
+    f.write("1" if on else "0")
 
 
 def load_route_can_msgs(route_or_segment_name: str):
@@ -55,16 +69,18 @@ def main() -> None:
   rk = Ratekeeper(1 / DT_CTRL, print_delay_threshold=None)
   frame = 0
   while True:
-    batch = [x for x in can_msgs[frame % len(can_msgs)] if x[-1] <= 2]
-    if batch:
-      pm.send("can", can_list_to_can_capnp(batch))
+    ign_on = replay_ignition_on()
+    if ign_on:
+      batch = [x for x in can_msgs[frame % len(can_msgs)] if x[-1] <= 2]
+      if batch:
+        pm.send("can", can_list_to_can_capnp(batch))
     if frame % 10 == 0:
       ps_msg = messaging.new_message("pandaStates", 1)
       ps_msg.valid = True
       ps = ps_msg.pandaStates[0]
-      ps.ignitionLine = True
-      ps.ignitionCan = True
-      ps.controlsAllowed = True
+      ps.ignitionLine = ign_on
+      ps.ignitionCan = ign_on
+      ps.controlsAllowed = ign_on
       ps.harnessStatus = log.PandaState.HarnessStatus.normal
       ps.pandaType = log.PandaState.PandaType.redPanda
       ps.safetyModel = safety_model
