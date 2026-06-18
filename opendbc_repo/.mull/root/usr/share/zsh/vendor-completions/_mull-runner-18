@@ -1,0 +1,64 @@
+#compdef mull-runner-18
+
+autoload -U is-at-least
+
+_mull-runner-18() {
+    typeset -A opt_args
+    typeset -a _arguments_options
+    local ret=1
+
+    if is-at-least 5.2; then
+        _arguments_options=(-s -S -C)
+    else
+        _arguments_options=(-s -C)
+    fi
+
+    local context curcontext="$curcontext" state line
+    _arguments "${_arguments_options[@]}" : \
+'--test-program=[Path to a test program (if different from input executable)]:PATH:_default' \
+'--workers=[Number of parallel workers for mutation search]:N:_default' \
+'--timeout=[Timeout per test run in milliseconds]:MS:_default' \
+'*--ld-search-path=[Library search path]:DIR:_default' \
+'--coverage-info=[Path to the coverage info file (LLVM profdata)]:PATH:_default' \
+'--minimum-timeout=[Minimum timeout per mutant run in milliseconds. The actual timeout is max(baseline*10, minimum-timeout)]:MS:_default' \
+'*--reporters=[Output reporters to use, more than one can be used at the same time]:REPORTER:((IDE\:"IDE-friendly output with file\:line\:column format"
+SQLite\:"SQLite database for offline analysis"
+GitHubAnnotations\:"GitHub Actions annotation format"
+Patches\:"Generate patch files for each mutation"
+Elements\:"Mutation Testing Elements JSON/HTML report"
+Sarif\:"SARIF 2.1.0 report (Static Analysis Results Interchange Format)"))' \
+'--report-dir=[Directory for report output files]:DIR:_default' \
+'--report-name=[Filename for the report (only for supported reporters)]:NAME:_default' \
+'--report-patch-base=[Base directory for patch file paths]:DIR:_default' \
+'--mutation-score-threshold=[Minimum mutation score (0-100) required for success]:SCORE:_default' \
+'--sqlite-busy-timeout=[SQLite reporter busy timeout in milliseconds. When the database is locked by another writer, mull will retry for this long before giving up with "database is locked"]:MS:_default' \
+'--include-not-covered[Include mutants on lines not covered by tests]' \
+'--dry-run[Skip mutant execution, only discover and report mutants]' \
+'--debug-coverage[Print coverage ranges]' \
+'--ide-reporter-show-killed[Show killed mutations in IDE reporter output]' \
+'--debug[Enable debug mode with additional diagnostic output]' \
+'--strict[Treat warnings as fatal errors]' \
+'--allow-surviving[Do not treat surviving mutants as an error]' \
+'--no-test-output[Does not capture output from test runs]' \
+'--no-mutant-output[Does not capture output from mutant runs]' \
+'--no-output[Combines --no-test-output and --no-mutant-output]' \
+'-h[Print help (see more with '\''--help'\'')]' \
+'--help[Print help (see more with '\''--help'\'')]' \
+'-V[Print version]' \
+'--version[Print version]' \
+':input_file -- Path to the executable under test:_default' \
+'*::runner_args -- Arguments passed to the test runner:_default' \
+&& ret=0
+}
+
+(( $+functions[_mull-runner-18_commands] )) ||
+_mull-runner-18_commands() {
+    local commands; commands=()
+    _describe -t commands 'mull-runner-18 commands' commands "$@"
+}
+
+if [ "$funcstack[1]" = "_mull-runner-18" ]; then
+    _mull-runner-18 "$@"
+else
+    compdef _mull-runner-18 mull-runner-18
+fi

@@ -1,0 +1,13 @@
+zstandard-0.25.0.dist-info/INSTALLER,sha256=5hhM4Q4mYTT9z6QB6PGpUAW81PGNFrYrdXMj4oM_6ak,2
+zstandard-0.25.0.dist-info/METADATA,sha256=A9N3NrJrmuSEUd0XAm2T3_vSUvtwjBoqmuG-DAlm3pI,3275
+zstandard-0.25.0.dist-info/RECORD,,
+zstandard-0.25.0.dist-info/REQUESTED,sha256=47DEQpj8HBSa-_TImW-5JCeuQeRkm5NMpJWZG3hSuFU,0
+zstandard-0.25.0.dist-info/WHEEL,sha256=29GglsfgOKni3MnvXwDNoeBjBZY4LOjl_HH3QTWETk4,153
+zstandard-0.25.0.dist-info/licenses/LICENSE,sha256=eI_oXlNySkCymQUcSryc901Csn55aDJbgIkcJfea20s,1484
+zstandard-0.25.0.dist-info/top_level.txt,sha256=J-wj94pPadY4ipFaanrYBlrMblOSegEYS8o_LdogrpU,10
+zstandard/__init__.py,sha256=XdkJ4LYKlGoLCN6vV1RdF9wET130BAvuxV9-9sb-zRE,7235
+zstandard/__init__.pyi,sha256=j589lb3jaNdIPHOijCT63BTfaWc_FFcDNG09MnrIoDA,13973
+zstandard/_cffi.cpython-312-aarch64-linux-gnu.so,sha256=-ytIGo_OtkKfQsYONcLo8Pt-WpfK5ugfBk6n-eLAukg,11241064
+zstandard/backend_c.cpython-312-aarch64-linux-gnu.so,sha256=F4JJfO78NSDixhlLvzcLeiCgbl99gbTEzwIXbBej6rI,10557936
+zstandard/backend_cffi.py,sha256=CyaK5RXVEVMfHG52BoEj77j3JbT2JISqEeiH-twZdc4,152627
+zstandard/py.typed,sha256=47DEQpj8HBSa-_TImW-5JCeuQeRkm5NMpJWZG3hSuFU,0

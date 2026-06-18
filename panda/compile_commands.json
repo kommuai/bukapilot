@@ -1,0 +1,92 @@
+[
+    {
+        "command": "arm-none-eabi-gcc -mcpu=cortex-m7 -mhard-float -DSTM32H7 -DSTM32H725xx -Iboard/stm32h7/inc -mfpu=fpv5-d16 -DALLOW_DEBUG -Wall -Wextra -Wstrict-prototypes -Werror -mlittle-endian -mthumb -nostdlib -fno-builtin -std=gnu11 -fmax-errors=1 -Tboard/stm32h7/stm32h7x5_flash.ld -fsingle-precision-constant -Os -g -o board/stm32h7/board/obj/panda_h7startup_stm32h7x5xx.o -c board/stm32h7/startup_stm32h7x5xx.s",
+        "directory": "/data/openpilot/panda",
+        "file": "/data/openpilot/panda/board/stm32h7/startup_stm32h7x5xx.s",
+        "output": "/data/openpilot/panda/board/stm32h7/board/obj/panda_h7startup_stm32h7x5xx.o"
+    },
+    {
+        "command": "arm-none-eabi-gcc -o crypto/board/obj/panda_h7rsa.o -c -mcpu=cortex-m7 -mhard-float -DSTM32H7 -DSTM32H725xx -Iboard/stm32h7/inc -mfpu=fpv5-d16 -DALLOW_DEBUG -Wall -Wextra -Wstrict-prototypes -Werror -mlittle-endian -mthumb -nostdlib -fno-builtin -std=gnu11 -fmax-errors=1 -Tboard/stm32h7/stm32h7x5_flash.ld -fsingle-precision-constant -Os -g -DBOOTSTUB -I. -Iboard/stm32h7/inc -I/data/openpilot/opendbc_repo crypto/rsa.c",
+        "directory": "/data/openpilot/panda",
+        "file": "/data/openpilot/panda/crypto/rsa.c",
+        "output": "/data/openpilot/panda/crypto/board/obj/panda_h7rsa.o"
+    },
+    {
+        "command": "arm-none-eabi-gcc -o crypto/board/obj/panda_h7sha.o -c -mcpu=cortex-m7 -mhard-float -DSTM32H7 -DSTM32H725xx -Iboard/stm32h7/inc -mfpu=fpv5-d16 -DALLOW_DEBUG -Wall -Wextra -Wstrict-prototypes -Werror -mlittle-endian -mthumb -nostdlib -fno-builtin -std=gnu11 -fmax-errors=1 -Tboard/stm32h7/stm32h7x5_flash.ld -fsingle-precision-constant -Os -g -DBOOTSTUB -I. -Iboard/stm32h7/inc -I/data/openpilot/opendbc_repo crypto/sha.c",
+        "directory": "/data/openpilot/panda",
+        "file": "/data/openpilot/panda/crypto/sha.c",
+        "output": "/data/openpilot/panda/crypto/board/obj/panda_h7sha.o"
+    },
+    {
+        "command": "arm-none-eabi-gcc -o board/board/obj/panda_h7bootstub.o -c -mcpu=cortex-m7 -mhard-float -DSTM32H7 -DSTM32H725xx -Iboard/stm32h7/inc -mfpu=fpv5-d16 -DALLOW_DEBUG -Wall -Wextra -Wstrict-prototypes -Werror -mlittle-endian -mthumb -nostdlib -fno-builtin -std=gnu11 -fmax-errors=1 -Tboard/stm32h7/stm32h7x5_flash.ld -fsingle-precision-constant -Os -g -DBOOTSTUB -I. -Iboard/stm32h7/inc -I/data/openpilot/opendbc_repo board/bootstub.c",
+        "directory": "/data/openpilot/panda",
+        "file": "/data/openpilot/panda/board/bootstub.c",
+        "output": "/data/openpilot/panda/board/board/obj/panda_h7bootstub.o"
+    },
+    {
+        "command": "arm-none-eabi-gcc -o board/board/obj/panda_h7main.o -c -mcpu=cortex-m7 -mhard-float -DSTM32H7 -DSTM32H725xx -Iboard/stm32h7/inc -mfpu=fpv5-d16 -DALLOW_DEBUG -Wall -Wextra -Wstrict-prototypes -Werror -mlittle-endian -mthumb -nostdlib -fno-builtin -std=gnu11 -fmax-errors=1 -Tboard/stm32h7/stm32h7x5_flash.ld -fsingle-precision-constant -Os -g -I. -Iboard/stm32h7/inc -I/data/openpilot/opendbc_repo board/main.c",
+        "directory": "/data/openpilot/panda",
+        "file": "/data/openpilot/panda/board/main.c",
+        "output": "/data/openpilot/panda/board/board/obj/panda_h7main.o"
+    },
+    {
+        "command": "arm-none-eabi-gcc -mcpu=cortex-m7 -mhard-float -DSTM32H7 -DSTM32H725xx -Iboard/stm32h7/inc -mfpu=fpv5-d16 -DPANDA_JUNGLE -DALLOW_DEBUG -Wall -Wextra -Wstrict-prototypes -Werror -mlittle-endian -mthumb -nostdlib -fno-builtin -std=gnu11 -fmax-errors=1 -Tboard/stm32h7/stm32h7x5_flash.ld -fsingle-precision-constant -Os -g -o board/stm32h7/board/obj/panda_jungle_h7startup_stm32h7x5xx.o -c board/stm32h7/startup_stm32h7x5xx.s",
+        "directory": "/data/openpilot/panda",
+        "file": "/data/openpilot/panda/board/stm32h7/startup_stm32h7x5xx.s",
+        "output": "/data/openpilot/panda/board/stm32h7/board/obj/panda_jungle_h7startup_stm32h7x5xx.o"
+    },
+    {
+        "command": "arm-none-eabi-gcc -o crypto/board/obj/panda_jungle_h7rsa.o -c -mcpu=cortex-m7 -mhard-float -DSTM32H7 -DSTM32H725xx -Iboard/stm32h7/inc -mfpu=fpv5-d16 -DPANDA_JUNGLE -DALLOW_DEBUG -Wall -Wextra -Wstrict-prototypes -Werror -mlittle-endian -mthumb -nostdlib -fno-builtin -std=gnu11 -fmax-errors=1 -Tboard/stm32h7/stm32h7x5_flash.ld -fsingle-precision-constant -Os -g -DBOOTSTUB -I. -Iboard/stm32h7/inc -I/data/openpilot/opendbc_repo crypto/rsa.c",
+        "directory": "/data/openpilot/panda",
+        "file": "/data/openpilot/panda/crypto/rsa.c",
+        "output": "/data/openpilot/panda/crypto/board/obj/panda_jungle_h7rsa.o"
+    },
+    {
+        "command": "arm-none-eabi-gcc -o crypto/board/obj/panda_jungle_h7sha.o -c -mcpu=cortex-m7 -mhard-float -DSTM32H7 -DSTM32H725xx -Iboard/stm32h7/inc -mfpu=fpv5-d16 -DPANDA_JUNGLE -DALLOW_DEBUG -Wall -Wextra -Wstrict-prototypes -Werror -mlittle-endian -mthumb -nostdlib -fno-builtin -std=gnu11 -fmax-errors=1 -Tboard/stm32h7/stm32h7x5_flash.ld -fsingle-precision-constant -Os -g -DBOOTSTUB -I. -Iboard/stm32h7/inc -I/data/openpilot/opendbc_repo crypto/sha.c",
+        "directory": "/data/openpilot/panda",
+        "file": "/data/openpilot/panda/crypto/sha.c",
+        "output": "/data/openpilot/panda/crypto/board/obj/panda_jungle_h7sha.o"
+    },
+    {
+        "command": "arm-none-eabi-gcc -o board/board/obj/panda_jungle_h7bootstub.o -c -mcpu=cortex-m7 -mhard-float -DSTM32H7 -DSTM32H725xx -Iboard/stm32h7/inc -mfpu=fpv5-d16 -DPANDA_JUNGLE -DALLOW_DEBUG -Wall -Wextra -Wstrict-prototypes -Werror -mlittle-endian -mthumb -nostdlib -fno-builtin -std=gnu11 -fmax-errors=1 -Tboard/stm32h7/stm32h7x5_flash.ld -fsingle-precision-constant -Os -g -DBOOTSTUB -I. -Iboard/stm32h7/inc -I/data/openpilot/opendbc_repo board/bootstub.c",
+        "directory": "/data/openpilot/panda",
+        "file": "/data/openpilot/panda/board/bootstub.c",
+        "output": "/data/openpilot/panda/board/board/obj/panda_jungle_h7bootstub.o"
+    },
+    {
+        "command": "arm-none-eabi-gcc -o board/jungle/board/obj/panda_jungle_h7main.o -c -mcpu=cortex-m7 -mhard-float -DSTM32H7 -DSTM32H725xx -Iboard/stm32h7/inc -mfpu=fpv5-d16 -DPANDA_JUNGLE -DALLOW_DEBUG -Wall -Wextra -Wstrict-prototypes -Werror -mlittle-endian -mthumb -nostdlib -fno-builtin -std=gnu11 -fmax-errors=1 -Tboard/stm32h7/stm32h7x5_flash.ld -fsingle-precision-constant -Os -g -I. -Iboard/stm32h7/inc -I/data/openpilot/opendbc_repo board/jungle/main.c",
+        "directory": "/data/openpilot/panda",
+        "file": "/data/openpilot/panda/board/jungle/main.c",
+        "output": "/data/openpilot/panda/board/jungle/board/obj/panda_jungle_h7main.o"
+    },
+    {
+        "command": "arm-none-eabi-gcc -mcpu=cortex-m7 -mhard-float -DSTM32H7 -DSTM32H725xx -Iboard/stm32h7/inc -mfpu=fpv5-d16 -DPANDA_BODY -DALLOW_DEBUG -Wall -Wextra -Wstrict-prototypes -Werror -mlittle-endian -mthumb -nostdlib -fno-builtin -std=gnu11 -fmax-errors=1 -Tboard/stm32h7/stm32h7x5_flash.ld -fsingle-precision-constant -Os -g -o board/stm32h7/board/obj/body_h7startup_stm32h7x5xx.o -c board/stm32h7/startup_stm32h7x5xx.s",
+        "directory": "/data/openpilot/panda",
+        "file": "/data/openpilot/panda/board/stm32h7/startup_stm32h7x5xx.s",
+        "output": "/data/openpilot/panda/board/stm32h7/board/obj/body_h7startup_stm32h7x5xx.o"
+    },
+    {
+        "command": "arm-none-eabi-gcc -o crypto/board/obj/body_h7rsa.o -c -mcpu=cortex-m7 -mhard-float -DSTM32H7 -DSTM32H725xx -Iboard/stm32h7/inc -mfpu=fpv5-d16 -DPANDA_BODY -DALLOW_DEBUG -Wall -Wextra -Wstrict-prototypes -Werror -mlittle-endian -mthumb -nostdlib -fno-builtin -std=gnu11 -fmax-errors=1 -Tboard/stm32h7/stm32h7x5_flash.ld -fsingle-precision-constant -Os -g -DBOOTSTUB -I. -Iboard/stm32h7/inc -I/data/openpilot/opendbc_repo crypto/rsa.c",
+        "directory": "/data/openpilot/panda",
+        "file": "/data/openpilot/panda/crypto/rsa.c",
+        "output": "/data/openpilot/panda/crypto/board/obj/body_h7rsa.o"
+    },
+    {
+        "command": "arm-none-eabi-gcc -o crypto/board/obj/body_h7sha.o -c -mcpu=cortex-m7 -mhard-float -DSTM32H7 -DSTM32H725xx -Iboard/stm32h7/inc -mfpu=fpv5-d16 -DPANDA_BODY -DALLOW_DEBUG -Wall -Wextra -Wstrict-prototypes -Werror -mlittle-endian -mthumb -nostdlib -fno-builtin -std=gnu11 -fmax-errors=1 -Tboard/stm32h7/stm32h7x5_flash.ld -fsingle-precision-constant -Os -g -DBOOTSTUB -I. -Iboard/stm32h7/inc -I/data/openpilot/opendbc_repo crypto/sha.c",
+        "directory": "/data/openpilot/panda",
+        "file": "/data/openpilot/panda/crypto/sha.c",
+        "output": "/data/openpilot/panda/crypto/board/obj/body_h7sha.o"
+    },
+    {
+        "command": "arm-none-eabi-gcc -o board/board/obj/body_h7bootstub.o -c -mcpu=cortex-m7 -mhard-float -DSTM32H7 -DSTM32H725xx -Iboard/stm32h7/inc -mfpu=fpv5-d16 -DPANDA_BODY -DALLOW_DEBUG -Wall -Wextra -Wstrict-prototypes -Werror -mlittle-endian -mthumb -nostdlib -fno-builtin -std=gnu11 -fmax-errors=1 -Tboard/stm32h7/stm32h7x5_flash.ld -fsingle-precision-constant -Os -g -DBOOTSTUB -I. -Iboard/stm32h7/inc -I/data/openpilot/opendbc_repo board/bootstub.c",
+        "directory": "/data/openpilot/panda",
+        "file": "/data/openpilot/panda/board/bootstub.c",
+        "output": "/data/openpilot/panda/board/board/obj/body_h7bootstub.o"
+    },
+    {
+        "command": "arm-none-eabi-gcc -o board/body/board/obj/body_h7main.o -c -mcpu=cortex-m7 -mhard-float -DSTM32H7 -DSTM32H725xx -Iboard/stm32h7/inc -mfpu=fpv5-d16 -DPANDA_BODY -DALLOW_DEBUG -Wall -Wextra -Wstrict-prototypes -Werror -mlittle-endian -mthumb -nostdlib -fno-builtin -std=gnu11 -fmax-errors=1 -Tboard/stm32h7/stm32h7x5_flash.ld -fsingle-precision-constant -Os -g -I. -Iboard/stm32h7/inc -I/data/openpilot/opendbc_repo board/body/main.c",
+        "directory": "/data/openpilot/panda",
+        "file": "/data/openpilot/panda/board/body/main.c",
+        "output": "/data/openpilot/panda/board/body/board/obj/body_h7main.o"
+    }
+]
