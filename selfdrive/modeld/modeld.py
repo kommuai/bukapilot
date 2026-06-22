@@ -33,7 +33,7 @@ from openpilot.common.params import Params
 from openpilot.common.filter_simple import FirstOrderFilter
 from openpilot.common.realtime import config_realtime_process, DT_MDL
 from openpilot.common.transformations.camera import DEVICE_CAMERAS
-from openpilot.common.transformations.model import get_warp_matrix
+from openpilot.common.transformations.model import get_warp_matrix, medmodel_fl, sbigmodel_fl
 from openpilot.selfdrive.controls.lib.desire_helper import DesireHelper
 from openpilot.selfdrive.controls.lib.drive_helpers import get_accel_from_plan, smooth_value, get_curvature_from_plan
 from openpilot.selfdrive.modeld.parse_model_outputs import Parser
@@ -67,6 +67,40 @@ def _use_rknn_driving() -> bool:
 LAT_SMOOTH_SECONDS = 0.0
 LONG_SMOOTH_SECONDS = 0.3
 MIN_LAT_CONTROL_SPEED = 0.3
+
+DRIVE_PATH_OFFSET_LIMIT_M = 0.25
+DRIVE_PATH_OFFSET_STEP = 0.05
+DRIVE_PATH_OFFSET_REF_X_M = 20.0
+
+
+def drive_path_offset_pix(offset_m: float, model_fl: float) -> float:
+  return 0.0 if not offset_m else model_fl * offset_m / DRIVE_PATH_OFFSET_REF_X_M
+
+
+def apply_parallel_output_shift(model_output: dict[str, np.ndarray], offset_m: float) -> None:
+  if offset_m and (delta := offset_m - (plan := model_output['plan'][0])[0, (yc := Plan.POSITION.start + 1)]):
+    plan[:, yc] += delta
+    (ll := model_output['lane_lines'][0])[1, :, 1] += delta
+    ll[2, :, 1] += delta
+
+
+def read_drive_path_offset(params: Params) -> float:
+  raw = params.get("DrivePathOffset")
+  try:
+    val = float(raw or "0.0")
+    if not -DRIVE_PATH_OFFSET_LIMIT_M <= val <= DRIVE_PATH_OFFSET_LIMIT_M:
+      raise ValueError
+    steps = int(round(2 * DRIVE_PATH_OFFSET_LIMIT_M / DRIVE_PATH_OFFSET_STEP))
+    if not 0 <= (idx := int(round((val + DRIVE_PATH_OFFSET_LIMIT_M) / DRIVE_PATH_OFFSET_STEP))) <= steps:
+      raise ValueError
+    val = round(-DRIVE_PATH_OFFSET_LIMIT_M + idx * DRIVE_PATH_OFFSET_STEP, 2)
+  except (TypeError, ValueError):
+    cloudlog.warning("DrivePathOffset invalid (%r), resetting to 0.0", raw)
+    val = 0.0
+
+  if (stored := "0.0" if val == 0.0 else f"{val:.2f}") != raw:
+    params.put("DrivePathOffset", stored)
+  return val
 
 def get_action_from_model(model_output: dict[str, np.ndarray], prev_action: log.ModelDataV2.Action,
                           lat_action_t: float, long_action_t: float, v_ego: float) -> log.ModelDataV2.Action:
@@ -600,6 +634,11 @@ def main(demo=False):
   else:
     CP = messaging.log_from_bytes(params.get("CarParams", block=True), car.CarParams)
   cloudlog.info("modeld got CarParams: %s", CP.brand)
+  drive_path_offset = read_drive_path_offset(params)
+  drive_path_pix_main, drive_path_pix_extra = tuple(
+    drive_path_offset_pix(drive_path_offset, fl) for fl in (medmodel_fl, sbigmodel_fl))
+  cloudlog.info("modeld DrivePathOffset: %.2f m (warp +%.3f/+%.3f px)",
+                drive_path_offset, drive_path_pix_main, drive_path_pix_extra)
 
   # TODO this needs more thought, use .2s extra for now to estimate other delays
   # TODO Move smooth seconds to action function
@@ -656,13 +695,13 @@ def main(demo=False):
         device_from_calib_euler,
         dc.ecam.intrinsics if main_wide_camera else dc.fcam.intrinsics,
         False,
-        x_offset_pix=KA2_MODEL_X_OFFSET_PIX,
+        x_offset_pix=KA2_MODEL_X_OFFSET_PIX - drive_path_pix_main,
       ).astype(np.float32)
       model_transform_extra = get_warp_matrix(
         device_from_calib_euler,
         dc.ecam.intrinsics,
         True,
-        x_offset_pix=KA2_MODEL_X_OFFSET_PIX,
+        x_offset_pix=KA2_MODEL_X_OFFSET_PIX - drive_path_pix_extra,
       ).astype(np.float32)
       live_calib_seen = True
 
@@ -703,6 +742,7 @@ def main(demo=False):
       drivingdata_send = messaging.new_message('drivingModelData')
       posenet_send = messaging.new_message('cameraOdometry')
 
+      apply_parallel_output_shift(model_output, drive_path_offset)
       action = get_action_from_model(model_output, prev_action, lat_delay + DT_MDL, long_delay + DT_MDL, v_ego)
       prev_action = action
       fill_model_msg(drivingdata_send, modelv2_send, model_output, action,

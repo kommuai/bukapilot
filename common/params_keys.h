@@ -41,6 +41,7 @@ inline static std::unordered_map<std::string, ParamKeyAttributes> keys = {
     {"DisengageOnAccelerator", {PERSISTENT, BOOL, "0"}},
     {"DmModelInitialized", {CLEAR_ON_ONROAD_TRANSITION, BOOL}},
     {"DongleId", {PERSISTENT, STRING}},
+    {"DrivePathOffset", {PERSISTENT, STRING, "0.0"}},
     {"DoReboot", {CLEAR_ON_MANAGER_START, BOOL}},
     {"DoShutdown", {CLEAR_ON_MANAGER_START, BOOL}},
     {"DoUninstall", {CLEAR_ON_MANAGER_START, BOOL}},
