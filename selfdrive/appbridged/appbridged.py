@@ -314,6 +314,7 @@ class AppBridge:
       sett[key] = safe_get(key, True)
     for key in string_keys:
       sett[key] = safe_get(key, False)
+    sett['BrakeMagGain'] = safe_get('BrakeMagGain', False) if self.hw_helper.car_has_openpilot_long() else None
     try:
       self.ble.chunk_and_send(CHANNEL_SETTINGS, msgpack.packb(sett))
     except Exception as e:
@@ -347,10 +348,13 @@ class AppBridge:
         case 'saveConfig':
           if (car_name := settings.pop('CarName', None)) is not None:
             safe_put_all({"CarName": car_name})
+            self.hw_helper.refresh_car_support()
           if (features_to_set := settings.pop('FeaturesPackage', None)) is not None:
             features.set_features(features_to_set)
           if (apn := settings.pop('GsmApn', None)) is not None:
             self.hw_helper.update_gsm_apn(apn)
+          if not self.hw_helper.car_has_openpilot_long():
+            settings.pop('BrakeMagGain', None)
           # Put string setting if not one of the above keys, ensure above keys are popped so they will not be set below
           safe_put_all(settings)
         case 'resetCalibration':

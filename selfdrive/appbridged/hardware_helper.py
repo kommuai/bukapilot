@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 import time
 import threading
-from cereal import log
+import cereal.messaging as messaging
+from cereal import car, log
+from opendbc.car.car_helpers import car_name_to_platform, interfaces
 from openpilot.system.hardware.ka2.hardware import Ka2
 from openpilot.common.params import Params
 
@@ -27,8 +29,37 @@ class HardwareHelper:
     self._cached_network_type = NetworkType.none
     self._cached_cellular_bundle = self._default_cellular_bundle()
     self._cached_sd_status = None
+    self._cached_openpilot_long = False
     self._last_sd_format_time = 0
+    self._refresh_car_support()
     threading.Thread(target=self._refresh_loop, daemon=True).start()
+
+  @staticmethod
+  def _effective_car_platform() -> str | None:
+    if car_name := params.get("CarName"):
+      return car_name_to_platform(car_name)
+    if cp_bytes := params.get("CarParams", block=False):
+      try:
+        if (CP := messaging.log_from_bytes(cp_bytes, car.CarParams)).carFingerprint:
+          return CP.carFingerprint
+      except Exception:
+        pass
+    return None
+
+  def _refresh_car_support(self) -> None:
+    supported = bool(
+      (platform := self._effective_car_platform()) and platform in interfaces
+      and interfaces[platform].get_non_essential_params(platform).openpilotLongitudinalControl
+    )
+    with self._lock:
+      self._cached_openpilot_long = supported
+
+  def refresh_car_support(self) -> None:
+    self._refresh_car_support()
+
+  def car_has_openpilot_long(self) -> bool:
+    with self._lock:
+      return self._cached_openpilot_long
 
   def _default_cellular_bundle(self) -> dict:
     return {
@@ -56,6 +87,7 @@ class HardwareHelper:
         sd = self._ka2.sd_status()
       except Exception:
         sd = None
+      self._refresh_car_support()
       with self._lock:
         self._cached_network_type = nt
         self._cached_cellular_bundle = cb

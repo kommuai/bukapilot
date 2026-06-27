@@ -14,6 +14,7 @@ from openpilot.selfdrive.controls.lib.longitudinal_mpc_lib.long_mpc import Longi
 from openpilot.selfdrive.controls.lib.longitudinal_mpc_lib.long_mpc import T_IDXS as T_IDXS_MPC
 from openpilot.selfdrive.controls.lib.drive_helpers import CONTROL_N, get_accel_from_plan
 from openpilot.selfdrive.car.cruise import V_CRUISE_MAX, V_CRUISE_UNSET
+from openpilot.common.params import Params
 from openpilot.common.swaglog import cloudlog
 
 LON_MPC_STEP = 0.2  # first step is 0.2s
@@ -30,8 +31,32 @@ DANGER_DECEL_VEGO_BP = [0.0, 10.0]
 DANGER_DECEL_VEGO_V = [-1.0, -1.2]
 DANGER_DECEL_RAMP_RATE = 1.0  # m/s^3, how quickly danger decel can ramp in
 DANGER_HOLD_SECONDS = 0.2
+BRAKE_MAG_GAIN_MAX_PCT = 100
+BRAKE_MAG_GAIN_STEP_PCT = 10
 
-# Lookup table for turns
+
+def read_brake_mag_gain_pct(params: Params) -> int:
+  raw = params.get("BrakeMagGain")
+  try:
+    if (val := float(raw or "0")) < 0 or val > BRAKE_MAG_GAIN_MAX_PCT:
+      raise ValueError
+    max_idx = BRAKE_MAG_GAIN_MAX_PCT // BRAKE_MAG_GAIN_STEP_PCT
+    if not 0 <= (idx := int(round(val / BRAKE_MAG_GAIN_STEP_PCT))) <= max_idx:
+      raise ValueError
+    val = idx * BRAKE_MAG_GAIN_STEP_PCT
+  except (TypeError, ValueError):
+    cloudlog.warning("BrakeMagGain invalid (%r), resetting to 0", raw)
+    val = 0.0
+
+  if (stored := str(int(val))) != raw:
+    params.put("BrakeMagGain", stored)
+  return int(val)
+
+
+def brake_mag_gain_multiplier(gain_pct: int) -> float:
+  return 1.0 + gain_pct / 100.0
+
+
 _A_TOTAL_MAX_V = [1.7, 3.2]
 _A_TOTAL_MAX_BP = [20., 40.]
 
@@ -60,6 +85,7 @@ def limit_accel_in_turns(v_ego, angle_steers, a_target, CP):
 class LongitudinalPlanner:
   def __init__(self, CP, init_v=0.0, init_a=0.0, dt=DT_MDL):
     self.CP = CP
+    self.params = Params()
     self.mpc = LongitudinalMpc(dt=dt)
     # TODO remove mpc modes when TR released
     self.mpc.mode = 'acc'
@@ -199,11 +225,14 @@ class LongitudinalPlanner:
 
     if danger_override:
       self.danger_override_active = True
-      danger_decel = float(np.interp(v_ego, DANGER_DECEL_VEGO_BP, DANGER_DECEL_VEGO_V))
+      brake_gain = brake_mag_gain_multiplier(read_brake_mag_gain_pct(self.params))
+      scaled_danger_v = [v * brake_gain for v in DANGER_DECEL_VEGO_V]
+      scaled_ramp_rate = DANGER_DECEL_RAMP_RATE * brake_gain
+      danger_decel = float(np.interp(v_ego, DANGER_DECEL_VEGO_BP, scaled_danger_v))
       a_target_before = float(output_a_target)
       if not was_danger_override:
         self._danger_decel_cmd = a_target_before
-      decel_step = DANGER_DECEL_RAMP_RATE * self.dt
+      decel_step = scaled_ramp_rate * self.dt
       self._danger_decel_cmd = max(danger_decel, self._danger_decel_cmd - decel_step)
       output_a_target = min(output_a_target, self._danger_decel_cmd)
     else:
