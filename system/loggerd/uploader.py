@@ -133,19 +133,24 @@ def get_pending_full_upload_segments() -> list[str]:
     return []
 
 
-def post_full_upload_done(logdir: str) -> None:
+def post_full_upload_done(logdir: str) -> bool:
   """Notify server that full upload for this segment is done."""
   dongle_id = Params().get("DongleId")
   headers = {"X-Kaac-Id": dongle_id} if dongle_id else {}
   try:
-    kapi(
+    if (resp := kapi(
       requests.post,
       WEB_BASE + "/fia/full_upload_done",
       json={"logdir": logdir},
       headers=headers,
-    )
+    )).status_code == 200:
+      return True
+    cloudlog.event("post_full_upload_done_failed", logdir=logdir, status_code=resp.status_code)
+    return False
   except Exception:
-    cloudlog.exception("post_full_upload_done failed", logdir=logdir)
+    cloudlog.exception("post_full_upload_done failed")
+    cloudlog.event("post_full_upload_done_failed", logdir=logdir)
+    return False
 
 
 def resolve_logdir_to_segment_paths(root: str, logdir: str) -> list[str]:
@@ -333,7 +338,8 @@ class Uploader:
           content = f.read()
         data = bz2.compress(content)
       except OSError:
-        cloudlog.exception("upload_full_segment_file compress failed", fn=fn)
+        cloudlog.exception("upload_full_segment_file compress failed")
+        cloudlog.event("upload_full_segment_file_compress_failed", fn=fn)
         return False
       key = self.dongle_id + "---" + logdir + "---" + key_suffix
       cloudlog.event("upload_start", key=key, fn=fn, sz=sz, network_type=network_type, metered=metered)
@@ -359,51 +365,44 @@ class Uploader:
     return self.upload(name, key, fn, network_type, metered, max_size=UPLOAD_FULL_LOG_MAX_SIZE)
 
   def step(self, network_type: int, metered: bool) -> bool | None:
-    # On-demand full upload when we have pending segments (Wi‑Fi, not metered)
-    if not metered:
-      segments = get_pending_full_upload_segments()
-      if segments:
-        logdir = segments[0]
-        segment_dirs = resolve_logdir_to_segment_paths(self.root, logdir)
-        cloudlog.event("upload_full_resolve", logdir=logdir, root=self.root, segment_dirs=segment_dirs)
-        if not segment_dirs:
-          cloudlog.event("upload_full_skip_no_segment", logdir=logdir, root=self.root)
-          post_full_upload_done(logdir)
-          return True
-        if len(segment_dirs) > 1 or segment_dirs[0] != logdir:
-          cloudlog.event("upload_full_resolved_logdir", logdir=logdir, segment_dirs=segment_dirs)
-        any_success = False
-        for segment_dir in segment_dirs:
-          path = os.path.join(self.root, segment_dir)
+    # On-demand full upload when server has pending segments.
+    if segments := get_pending_full_upload_segments():
+      logdir = segments[0]
+      segment_dirs = resolve_logdir_to_segment_paths(self.root, logdir)
+      cloudlog.event("upload_full_resolve", logdir=logdir, root=self.root, segment_dirs=segment_dirs)
+      if not segment_dirs:
+        cloudlog.event("upload_full_skip_no_segment", logdir=logdir, root=self.root)
+        return post_full_upload_done(logdir)
+      if len(segment_dirs) > 1 or segment_dirs[0] != logdir:
+        cloudlog.event("upload_full_resolved_logdir", logdir=logdir, segment_dirs=segment_dirs)
+      for segment_dir in segment_dirs:
+        path = os.path.join(self.root, segment_dir)
+        try:
+          names = os.listdir(path)
+        except OSError:
+          cloudlog.event("upload_full_listdir_failed", segment_dir=segment_dir)
+          continue
+        if any(n.endswith(".lock") for n in names):
+          cloudlog.event("upload_full_skip_locked", segment_dir=segment_dir)
+          continue
+        cloudlog.event("upload_full_start", segment_dir=segment_dir, logdir=logdir)
+        for name in FULL_SEGMENT_FILES:
+          if not os.path.isfile(fn := os.path.join(path, name)):
+            continue
           try:
-            names = os.listdir(path)
+            if getxattr(fn, UPLOAD_ATTR_NAME) == UPLOAD_ATTR_VALUE:
+              continue
           except OSError:
-            cloudlog.event("upload_full_listdir_failed", segment_dir=segment_dir)
             continue
-          if any(n.endswith(".lock") for n in names):
-            cloudlog.event("upload_full_skip_locked", segment_dir=segment_dir)
-            continue
-          cloudlog.event("upload_full_start", segment_dir=segment_dir, logdir=logdir)
-          for name in FULL_SEGMENT_FILES:
-            fn = os.path.join(path, name)
-            if not os.path.isfile(fn):
-              continue
-            try:
-              if getxattr(fn, UPLOAD_ATTR_NAME) == UPLOAD_ATTR_VALUE:
-                continue
-            except OSError:
-              continue
-            if self.upload_full_segment_file(segment_dir, name, fn, network_type, metered):
-              any_success = True
-            else:
-              return False
-          cloudlog.event("upload_full_segment_done", segment_dir=segment_dir)
-        post_full_upload_done(logdir)
-        cloudlog.event("upload_full_done", logdir=logdir, segment_count=len(segment_dirs))
-        return True
+          if not self.upload_full_segment_file(segment_dir, name, fn, network_type, metered):
+            return False
+        cloudlog.event("upload_full_segment_done", segment_dir=segment_dir)
+      if not post_full_upload_done(logdir):
+        return False
+      cloudlog.event("upload_full_done", logdir=logdir, segment_count=len(segment_dirs))
+      return True
 
-    d = self.next_file_to_upload(metered)
-    if d is not None:
+    if d := self.next_file_to_upload(metered):
       name, key, fn = d
       # Keep zstd naming for driving logs.
       if key.endswith(('qlog', 'rlog')):
@@ -486,9 +485,12 @@ def main(exit_event: threading.Event | None = None) -> None:
         time.sleep(60 if offroad else 5)
       continue
 
-    success = uploader.step(sm['deviceState'].networkType.raw, sm['deviceState'].networkMetered)
-
-    uploader.update_queue_stats()
+    try:
+      success = uploader.step(sm['deviceState'].networkType.raw, sm['deviceState'].networkMetered)
+      uploader.update_queue_stats()
+    except Exception:
+      cloudlog.exception("uploader step failed")
+      success = False
 
     msg = messaging.new_message('uploaderState')
     us = msg.uploaderState
