@@ -489,6 +489,48 @@
       "max_steering_angle": "90°",
       "support": "All variant supported.",
       "note": "Longitudinal control uses stock's Adaptive Cruise Control."
+    },
+    {
+      "brand": "Chery",
+      "model": "Tiggo 8 Pro",
+      "year": "2024-2026",
+      "variant": "All",
+      "acc_low_speed": true,
+      "acc_speed_range": "0 - 150",
+      "acc_stop_and_go": true,
+      "lkc_torque": "High",
+      "lkc_speed_range": "0 - 150",
+      "max_steering_angle": "90°",
+      "support": "All variant supported.",
+      "note": "Longitudinal control uses stock's Adaptive Cruise Control."
+    },
+    {
+      "brand": "Chery",
+      "model": "Omoda 5",
+      "year": "2024-2026",
+      "variant": "All",
+      "acc_low_speed": true,
+      "acc_speed_range": "0 - 150",
+      "acc_stop_and_go": true,
+      "lkc_torque": "High",
+      "lkc_speed_range": "0 - 150",
+      "max_steering_angle": "90°",
+      "support": "All variant supported.",
+      "note": "Longitudinal control uses stock's Adaptive Cruise Control."
+    },
+    {
+      "brand": "iCaur",
+      "model": "03",
+      "year": "2024-2026",
+      "variant": "All",
+      "acc_low_speed": true,
+      "acc_speed_range": "0 - 150",
+      "acc_stop_and_go": true,
+      "lkc_torque": "High",
+      "lkc_speed_range": "0 - 150",
+      "max_steering_angle": "90°",
+      "support": "All variant supported.",
+      "note": "Longitudinal control uses stock's Adaptive Cruise Control."
     }
   ]
 }
