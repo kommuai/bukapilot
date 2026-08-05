@@ -102,6 +102,9 @@ class Ka2(HardwareBase):
             subprocess.run(["sudo", "udevadm", "trigger"], check=True)
             subprocess.run(f"echo y | sudo mkfs.ext4 {SD_CARD_DEVICE}p1", shell=True, check=True)
             r = subprocess.run(["sudo", "mount", "-a"], capture_output=True, text=True)
+            mp = subprocess.run(["findmnt", "-n", "-o", "TARGET", f"{SD_CARD_DEVICE}p1"], capture_output=True, text=True).stdout.strip()
+            if r.returncode == 0 and mp:
+              subprocess.run(["sudo", "chown", f"{os.getuid()}:{os.getgid()}", mp], check=False)
             cloudlog.info("SD card formatted and mounted successfully." if r.returncode == 0 else f"Mount failed: {r.stderr.strip()}")
           except Exception as e:
             cloudlog.warning(f"SD format error: {e}")
