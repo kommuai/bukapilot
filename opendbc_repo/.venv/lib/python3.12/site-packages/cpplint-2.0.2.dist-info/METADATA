@@ -1,0 +1,134 @@
+Metadata-Version: 2.4
+Name: cpplint
+Version: 2.0.2
+Summary: Check C++ files configurably against Google's style guide
+Author: Google Inc., Thibault Kruse, cpplint developers
+Author-email: Andrew Davis <theandrewdavis@gmail.com>
+Maintainer-email: Aaron Liu <aaronliu0130@gmail.com>, Christian Clauss <cclauss@me.com>, John Vandenberg <jayvdb@gmail.com>
+License: BSD-3-Clause
+Project-URL: Homepage, https://github.com/cpplint/cpplint
+Keywords: c++,cpp,google style,lint
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Environment :: Console
+Classifier: Intended Audience :: End Users/Desktop
+Classifier: License :: Freely Distributable
+Classifier: License :: OSI Approved :: BSD License
+Classifier: Natural Language :: English
+Classifier: Programming Language :: C++
+Classifier: Programming Language :: Python :: 3 :: Only
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
+Classifier: Programming Language :: Python :: 3.13
+Classifier: Topic :: Software Development :: Quality Assurance
+Requires-Python: >=3.9
+Description-Content-Type: text/x-rst
+License-File: LICENSE
+Provides-Extra: dev
+Requires-Dist: mypy; extra == "dev"
+Requires-Dist: pylint>=3.3.4; extra == "dev"
+Requires-Dist: pytest; extra == "dev"
+Requires-Dist: pytest-cov; extra == "dev"
+Requires-Dist: pytest-timeout; extra == "dev"
+Requires-Dist: testfixtures; extra == "dev"
+Requires-Dist: tox<5; extra == "dev"
+Dynamic: license-file
+
+#####################################
+cpplint - static code checker for C++
+#####################################
+
+.. image:: https://img.shields.io/pypi/v/cpplint.svg
+    :target: https://pypi.python.org/pypi/cpplint
+
+.. image:: https://img.shields.io/pypi/pyversions/cpplint.svg
+    :target: https://pypi.python.org/pypi/cpplint
+
+.. image:: https://img.shields.io/pypi/status/cpplint.svg
+    :target: https://pypi.python.org/pypi/cpplint
+
+.. image:: https://img.shields.io/pypi/l/cpplint.svg
+    :target: https://pypi.python.org/pypi/cpplint
+
+.. image:: https://img.shields.io/pypi/dd/cpplint.svg
+    :target: https://pypi.python.org/pypi/cpplint
+
+.. image:: https://img.shields.io/pypi/dw/cpplint.svg
+    :target: https://pypi.python.org/pypi/cpplint
+
+.. image:: https://img.shields.io/pypi/dm/cpplint.svg
+    :target: https://pypi.python.org/pypi/cpplint
+
+Cpplint is a command-line tool to check C/C++ files for style issues according to `Google's C++ style guide <http://google.github.io/styleguide/cppguide.html>`_.
+
+Cpplint used to be developed and maintained by Google Inc. at `google/styleguide <https://github.com/google/styleguide>`_. Nowadays, `Google is no longer maintaining the public version of cpplint <https://github.com/google/styleguide/pull/528#issuecomment-592315430>`_, and pretty much everything in their repo's PRs and issues about cpplint have gone unimplemented.
+
+This fork aims to update cpplint to modern specifications, and be (somewhat) more open to adding fixes and features to make cpplint usable in wider contexts.
+
+
+Installation
+============
+
+Use [`pipx`](https://pipx.pypa.io) to install cpplint from PyPI, run:
+
+.. code-block:: bash
+
+    $ pipx install cpplint
+
+Usage
+-----
+.. code-block:: bash
+
+    $ cpplint [OPTIONS] files
+
+For full usage instructions, run:
+
+.. code-block:: bash
+
+    $ cpplint --help
+
+cpplint can also be run as a pre-commit hook by adding to `.pre-commit-config.yaml`:
+
+.. code-block:: yaml
+
+  - repo: https://github.com/cpplint/cpplint
+    rev: 2.0.0
+    hooks:
+      - id: cpplint
+        args:
+          - --filter=-whitespace/line_length,-whitespace/parens
+
+Changes
+=======
+
+* python 3 compatibility
+* more default file extensions
+* customizable file extensions with the --extensions argument
+* continuous integration on github
+* support for recursive file discovery via the --recursive argument
+* support for excluding files via --exclude
+* JUnit XML output format
+* Overriding repository root auto-detection via --repository
+* Support ``#pragma once`` as an alternative to header include guards
+* ... and `quite a bit <https://github.com/cpplint/cpplint/blob/master/CHANGELOG.rst>`_ more
+
+Acknowledgements
+================
+
+Thanks to Google Inc. for open-sourcing their in-house tool.
+
+Thanks to `our contributors <https://github.com/cpplint/cpplint/graphs/contributors>`_.
+
+Maintainers
+-----------
+
+* `@aaronliu0130 <https://github.com/aaronliu0130>`_
+* `@jayvdb <https://github.com/jayvdb>`_
+
+Former
+^^^^^^
+
+* `@tkruse <https://github.com/tkruse>`_
+* `@mattyclarkson <https://github.com/mattyclarkson>`_
+* `@theandrewdavis <https://github.com/theandrewdavis>`_

@@ -1,0 +1,2 @@
+libclang-rt-18-dev: arch-dependent-file-not-in-arch-specific-directory *usr/lib/llvm-18/lib/*
+libclang-rt-18-dev: no-code-sections *usr/lib/llvm-18/lib/clang/18*/lib/linux/libclang_rt.asan_static-i386.a*

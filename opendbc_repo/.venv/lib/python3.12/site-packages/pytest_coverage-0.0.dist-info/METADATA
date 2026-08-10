@@ -1,0 +1,14 @@
+Metadata-Version: 2.0
+Name: pytest-coverage
+Version: 0.0
+Summary: Pytest plugin for measuring coverage. Forked from `pytest-cov`.
+Home-page: https://pypi.python.org/pypi/pytest-cover/
+Author: Marc Schlaich
+Author-email: marc.schlaich@gmail.com
+License: UNKNOWN
+Platform: all
+Requires-Dist: pytest-cover
+
+Use `pytest-cover <https://pypi.python.org/pypi/pytest-cover/>`_ instead.
+
+
