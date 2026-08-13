@@ -1,0 +1,33 @@
+scons
+numpy
+crcmod-plus
+tqdm
+pycapnp==2.1.0
+pycryptodome
+
+[docs]
+Jinja2
+
+[examples]
+inputs
+matplotlib
+
+[testing]
+comma-car-segments @ https://huggingface.co/datasets/commaai/commaCarSegments/resolve/main/dist/comma_car_segments-0.1.0-py3-none-any.whl
+cffi
+gcovr
+pytest==8.4.2
+pytest-coverage
+pytest-mock
+pytest-randomly
+pytest-xdist @ git+https://github.com/sshane/pytest-xdist@2b4372bd62699fb412c4fe2f95bf9f01bd2018da
+pytest-subtests
+hypothesis==6.47.*
+parameterized<0.9,>=0.8
+zstandard
+ruff
+ty
+lefthook
+cpplint
+codespell
+cppcheck @ git+https://github.com/commaai/dependencies.git@releases#subdirectory=cppcheck

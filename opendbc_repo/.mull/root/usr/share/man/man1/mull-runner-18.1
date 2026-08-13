@@ -1,0 +1,108 @@
+.ie \n(.g .ds Aq \(aq
+.el .ds Aq '
+.TH mull-runner 1  "mull-runner 0.0.0" 
+.SH NAME
+mull\-runner \- Mull: Practical mutation testing and fault injection for C and C++
+.SH SYNOPSIS
+\fBmull\-runner\fR [\fB\-\-test\-program\fR] [\fB\-\-workers\fR] [\fB\-\-timeout\fR] [\fB\-\-include\-not\-covered\fR] [\fB\-\-dry\-run\fR] [\fB\-\-ld\-search\-path\fR] [\fB\-\-coverage\-info\fR] [\fB\-\-debug\-coverage\fR] [\fB\-\-minimum\-timeout\fR] [\fB\-\-reporters\fR] [\fB\-\-report\-dir\fR] [\fB\-\-report\-name\fR] [\fB\-\-report\-patch\-base\fR] [\fB\-\-ide\-reporter\-show\-killed\fR] [\fB\-\-debug\fR] [\fB\-\-strict\fR] [\fB\-\-allow\-surviving\fR] [\fB\-\-mutation\-score\-threshold\fR] [\fB\-\-no\-test\-output\fR] [\fB\-\-no\-mutant\-output\fR] [\fB\-\-no\-output\fR] [\fB\-\-sqlite\-busy\-timeout\fR] [\fB\-h\fR|\fB\-\-help\fR] [\fB\-V\fR|\fB\-\-version\fR] <\fIEXECUTABLE\fR> [\fIRUNNER_ARGS\fR] 
+.SH DESCRIPTION
+Mull: Practical mutation testing and fault injection for C and C++
+.SH OPTIONS
+.TP
+\fB\-\-test\-program\fR \fI<PATH>\fR
+Path to a test program (if different from input executable)
+.TP
+\fB\-\-workers\fR \fI<N>\fR
+Number of parallel workers for mutation search
+.TP
+\fB\-\-timeout\fR \fI<MS>\fR
+Timeout per test run in milliseconds
+.TP
+\fB\-\-include\-not\-covered\fR
+Include mutants on lines not covered by tests
+.TP
+\fB\-\-dry\-run\fR
+Skip mutant execution, only discover and report mutants
+.TP
+\fB\-\-ld\-search\-path\fR \fI<DIR>\fR
+Library search path
+.TP
+\fB\-\-coverage\-info\fR \fI<PATH>\fR
+Path to the coverage info file (LLVM profdata)
+.TP
+\fB\-\-debug\-coverage\fR
+Print coverage ranges
+.TP
+\fB\-\-minimum\-timeout\fR \fI<MS>\fR
+Minimum timeout per mutant run in milliseconds. The actual timeout is max(baseline*10, minimum\-timeout)
+.TP
+\fB\-\-reporters\fR \fI<REPORTER>\fR
+Output reporters to use, more than one can be used at the same time
+.br
+
+.br
+\fIPossible values:\fR
+.RS 14
+.IP \(bu 2
+IDE: IDE\-friendly output with file:line:column format
+.IP \(bu 2
+SQLite: SQLite database for offline analysis
+.IP \(bu 2
+GitHubAnnotations: GitHub Actions annotation format
+.IP \(bu 2
+Patches: Generate patch files for each mutation
+.IP \(bu 2
+Elements: Mutation Testing Elements JSON/HTML report
+.IP \(bu 2
+Sarif: SARIF 2.1.0 report (Static Analysis Results Interchange Format)
+.RE
+.TP
+\fB\-\-report\-dir\fR \fI<DIR>\fR [default: .]
+Directory for report output files
+.TP
+\fB\-\-report\-name\fR \fI<NAME>\fR
+Filename for the report (only for supported reporters)
+.TP
+\fB\-\-report\-patch\-base\fR \fI<DIR>\fR [default: .]
+Base directory for patch file paths
+.TP
+\fB\-\-ide\-reporter\-show\-killed\fR
+Show killed mutations in IDE reporter output
+.TP
+\fB\-\-debug\fR
+Enable debug mode with additional diagnostic output
+.TP
+\fB\-\-strict\fR
+Treat warnings as fatal errors
+.TP
+\fB\-\-allow\-surviving\fR
+Do not treat surviving mutants as an error
+.TP
+\fB\-\-mutation\-score\-threshold\fR \fI<SCORE>\fR [default: 100]
+Minimum mutation score (0\-100) required for success
+.TP
+\fB\-\-no\-test\-output\fR
+Does not capture output from test runs
+.TP
+\fB\-\-no\-mutant\-output\fR
+Does not capture output from mutant runs
+.TP
+\fB\-\-no\-output\fR
+Combines \-\-no\-test\-output and \-\-no\-mutant\-output
+.TP
+\fB\-\-sqlite\-busy\-timeout\fR \fI<MS>\fR [default: 5000]
+SQLite reporter busy timeout in milliseconds. When the database is locked by another writer, mull will retry for this long before giving up with "database is locked"
+.TP
+\fB\-h\fR, \fB\-\-help\fR
+Print help (see a summary with \*(Aq\-h\*(Aq)
+.TP
+\fB\-V\fR, \fB\-\-version\fR
+Print version
+.TP
+<\fIEXECUTABLE\fR>
+Path to the executable under test
+.TP
+[\fIRUNNER_ARGS\fR]
+Arguments passed to the test runner
+.SH VERSION
+v0.0.0

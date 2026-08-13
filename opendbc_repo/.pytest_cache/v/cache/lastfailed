@@ -1,0 +1,15 @@
+{
+  "opendbc/safety/tests/test_cherry.py::TestCherrySafety::test_lane_keep_tx_whitelist": true,
+  "opendbc/car/cherry/tests/test_cherry_smoke.py": true,
+  "opendbc/car/tests/test_can_fingerprint.py": true,
+  "opendbc/car/tests/test_car_interfaces.py": true,
+  "opendbc/car/tests/test_docs.py": true,
+  "opendbc/car/tests/test_fw_fingerprint.py": true,
+  "opendbc/car/tests/test_lateral_limits.py": true,
+  "opendbc/car/chery/tests/test_chery_smoke.py": true,
+  "opendbc/car/geely/tests/test_geely_smoke.py": true,
+  "opendbc/safety/tests/test_chery.py::TestCheryOmodaNoTorqueSpoofSafety::test_fwd_allows_cam_lkas_to_pt_when_spoof_disabled": true,
+  "opendbc/safety/tests/test_chery.py::TestCheryOmodaNoTorqueSpoofSafety::test_fwd_blocks_camera_lane_keep": true,
+  "opendbc/safety/tests/test_chery.py::TestCheryOmodaSafety::test_fwd_blocks_camera_lane_keep": true,
+  "opendbc/safety/tests/test_perodua_qve.py::TestPeroduaQveSafety::test_rx_vehicle_moving": true
+}
