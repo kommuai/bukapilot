@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import socket
+import os
 import msgpack
 import subprocess
 import psutil
@@ -19,6 +20,10 @@ from opendbc.car.car_helpers import supported_cars
 from openpilot.common.features import Features
 from openpilot.selfdrive.appbridged.ble_helper import BLEBridge, ChunkReceiver
 from openpilot.selfdrive.appbridged.hardware_helper import HardwareHelper
+from openpilot.selfdrive.appbridged.video_constants import VIDEO_KEEPALIVE_PERIOD_SEC
+from openpilot.selfdrive.appbridged.video_protocol import VideoProtocolHandler
+from openpilot.selfdrive.appbridged.video_scanner import validate_storage
+from openpilot.selfdrive.appbridged.video_hotspot import disable_hotspot, enable_hotspot
 
 # BLE Constants
 MESSAGE_HZ = 16 # Expected message rate, must match app visualisation value
@@ -28,6 +33,7 @@ DONGLE_ID = params.get("DongleId") or ""
 # BLE Channel IDs
 CHANNEL_VISUALISATION = 0x01
 CHANNEL_SETTINGS = 0x02
+CHANNEL_VIDEO = 0x03
 
 # Wi-Fi/nmcli Constants
 WIFI_CONNECT_TIMEOUT_SECONDS = 20 # Timeout for device Wi-Fi connection attempts
@@ -36,8 +42,6 @@ WIFI_SCAN_SIGNAL_THRESHOLD = 31 # Minimum signal strength required for Wi-Fi sca
 
 # Device Constants
 UPDATE_PROCESS = "system.updated.updated"
-HOTSPOT_SERVICE = "wlan1-setup.service"
-SM_UPDATE_INTERVAL = 33 # in ms, the interval where capnp submaster updates
 features = Features()
 
 # Call functions with cached values only once
@@ -117,23 +121,6 @@ def do_reboot(state):
   if state == log.SelfdriveState.OpenpilotState.disabled:
     params.put_bool_nonblocking("DoReboot", True)
 
-def _systemctl(action, service=HOTSPOT_SERVICE):
-  try:
-    subprocess.run(["sudo", "systemctl", action, service], check=True)
-    cloudlog.info(f"systemctl {action} {service} succeeded")
-  except Exception as e:
-    cloudlog.error(f"systemctl {action} {service} failed: {e}")
-
-def enable_hotspot():
-  def worker():
-    _systemctl("start", HOTSPOT_SERVICE)
-  threading.Thread(target=worker, daemon=True).start()
-
-def disable_hotspot():
-  def worker():
-    subprocess.run(["sudo", "ip", "link", "set", "wlan1", "down"], check=False)
-    _systemctl("stop", HOTSPOT_SERVICE)
-  threading.Thread(target=worker, daemon=True).start()
 
 def update_dict_from_sm(target_dict, sm_subset, keys):
   try:
@@ -166,6 +153,7 @@ class AppBridge:
     ])
     self.rk = Ratekeeper(MESSAGE_HZ) # Ratekeeper for loop
     self.last_periodic_time = 0 # Track last periodic task
+    self.last_video_heartbeat_time = 0
     self.last_1hz_task_time = 0
     self.local_wlan_ip = None
     self.active_wlan_ssid = None
@@ -178,6 +166,9 @@ class AppBridge:
     self.hotspot_enabled = False
     self.hotspot_ip = None
     self.hw_helper = HardwareHelper()
+    self.video_handler = VideoProtocolHandler(self.ble, self.hw_helper)
+    self.ble.on_connect_callback = self.video_handler.on_ble_connected
+    self.ble.on_disconnect_callback = self.video_handler.on_ble_disconnected
 
   def scan_wifi(self):
     if hasattr(self, "wifiScanProcess"): # Avoid starting a new scan until the previous one finishes
@@ -286,6 +277,7 @@ class AppBridge:
     sett['networkType'] = self.hw_helper.get_network_type()
     sett['simStatus'] = self.hw_helper.get_sim_status()
     sett['remainingDataUpload'] = f"{int(self.sm['uploaderState'].immediateQueueSize)} MB" if (sd := self.hw_helper.get_sd_status()) is None else sd
+    sett['videoDlValid'] = validate_storage(self.hw_helper, sd)[0]
 
     if 0 <= self.send_car_names_cnt < 3:
       sett['carNames'] = SUPPORTED_CARS
@@ -413,13 +405,15 @@ class AppBridge:
     if m.get('msgType') == 'curPage':
       self.send_channel = c
       self.send_car_names_cnt = 0
+      if c == CHANNEL_VIDEO:
+        self.video_handler.on_channel_active()
       return None
     return c, m # Other message types, pass to next function
 
   def appbridged_thread(self):
     is_metric = None
     while True:
-      (sm := self.sm).update(SM_UPDATE_INTERVAL)
+      (sm := self.sm).update(0)
       (rk := self.rk).monitor_time()
 
       # 1 Hz WiFi/hotspot task
@@ -445,11 +439,16 @@ class AppBridge:
         while (msg := self.receiver.get_message()) is not None:
           if not (res := self.handle_send_channel(msg)):
             continue # If dongle ID does not match or it is a curPage message
+          if res[0] == CHANNEL_VIDEO:
+            self.video_handler.handle_message(res[1], cur_time)
+            continue
           if is_offroad is None:
             is_offroad = params.get_bool("IsOffroad")
           if state is None:
             state = sm['selfdriveState'].state
           self.apply_settings_message(res, state, cur_time, is_offroad)
+
+        self.video_handler.tick(cur_time)
 
         # 3 Hz settings send
         if cur_time - self.last_periodic_time >= 0.333:
@@ -465,6 +464,13 @@ class AppBridge:
         # Visualisation send
         if self.send_channel == CHANNEL_VISUALISATION:
           self.send_visualisation_message(is_metric)
+
+        # 2 Hz video keepalive — satisfies app Watchcat without racing videoListReq.
+        if (self.send_channel == CHANNEL_VIDEO
+            and cur_time - self.last_video_heartbeat_time >= VIDEO_KEEPALIVE_PERIOD_SEC
+            and not self.video_handler.should_pause_video_keepalive()):
+          self.last_video_heartbeat_time = cur_time
+          self.video_handler.send_list_keepalive()
 
       rk.keep_time()
 
