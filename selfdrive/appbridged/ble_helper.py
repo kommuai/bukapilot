@@ -31,7 +31,6 @@ RX_CHARACTERISTIC = '6E400002-B5A3-F393-E0A9-E50E24DCCA9E'  # Write from phone
 TX_CHARACTERISTIC = '6E400003-B5A3-F393-E0A9-E50E24DCCA9E'  # Notify to phone
 
 CHUNK_TIMEOUT = 1.0  # seconds before dropping incomplete message
-
 class BLEBridge:
   """Threaded BLE Nordic UART bridge with RX and TX."""
   def __init__(self):
@@ -76,6 +75,8 @@ class BLEBridge:
     self.dev.on_connect = self.on_connect
     self.dev.on_disconnect = self.on_disconnect
     self.connected = False
+    self.on_connect_callback = None
+    self.on_disconnect_callback = None
 
   def _check_fork(self):
     """Verifies that the process identifier remains unchanged."""
@@ -86,10 +87,20 @@ class BLEBridge:
   def on_connect(self, dev):
     self.connected = True
     print(f"BLE Connected: {dev.address}")
+    if self.on_connect_callback:
+      try:
+        self.on_connect_callback()
+      except Exception as e:
+        cloudlog.error(f"BLE connect callback error: {e}")
 
   def on_disconnect(self, adapter_addr, dev_addr):
     self.connected = False
     print(f"BLE Disconnected: {dev_addr}")
+    if self.on_disconnect_callback:
+      try:
+        self.on_disconnect_callback()
+      except Exception as e:
+        cloudlog.error(f"BLE disconnect callback error: {e}")
 
   def notify_state(self, notifying, characteristic):
     self.tx_char = characteristic if notifying else None
