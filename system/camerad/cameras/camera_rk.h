@@ -58,6 +58,9 @@ public:
   Rect ae_xywh = {};
   int i2c_bus = -1;   // /dev/i2c-N
   int i2c_addr = 0x36;
+  unique_fd i2c_fd;   // persistent /dev/i2c-N (avoid open/close per AE)
+  // Skip redundant I2C when HDR regs unchanged
+  std::vector<i2c_random_wr_payload> last_exp_regs;
 
   unique_fd ctrl_fd;
   unique_fd csiphy_fd;
@@ -125,7 +128,6 @@ public:
   void sensors_i2c(const struct i2c_random_wr_payload* dat, int len, int op_code, bool data_word);
 
 private:
-  Params params;
 };
 
 typedef struct MultiCameraState {

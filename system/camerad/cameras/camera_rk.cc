@@ -281,38 +281,44 @@ void CameraState::sensors_i2c(const struct i2c_random_wr_payload *dat, int len, 
   (void)data_word;
   if (i2c_bus < 0 || !dat || len <= 0) return;
   std::lock_guard lk(i2c_lock);
-  char path[32];
-  snprintf(path, sizeof(path), "/dev/i2c-%d", i2c_bus);
-  int fd = open(path, O_RDWR);
-  if (fd < 0) {
-    if (frame_id_last % 120 == 0) {
-      LOGE("camera %d: open %s failed errno=%d", camera_num, path, errno);
-    }
-    return;
-  }
-  for (int i = 0; i < len; i++) {
-    uint8_t i2c_buf[3] = {
-      (uint8_t)((dat[i].reg_addr >> 8) & 0xff),
-      (uint8_t)(dat[i].reg_addr & 0xff),
-      (uint8_t)(dat[i].reg_data & 0xff),
-    };
-    struct i2c_msg msg = {};
-    msg.addr = (uint16_t)i2c_addr;
-    msg.flags = 0;
-    msg.len = 3;
-    msg.buf = i2c_buf;
-    struct i2c_rdwr_ioctl_data ioctl_data = {};
-    ioctl_data.msgs = &msg;
-    ioctl_data.nmsgs = 1;
-    if (ioctl(fd, I2C_RDWR, &ioctl_data) < 0) {
+  if (i2c_fd.fd_ < 0) {
+    char path[32];
+    snprintf(path, sizeof(path), "/dev/i2c-%d", i2c_bus);
+    int fd = open(path, O_RDWR | O_CLOEXEC);
+    if (fd < 0) {
       if (frame_id_last % 120 == 0) {
-        LOGE("camera %d: i2c wr 0x%x=0x%x failed errno=%d", camera_num,
-             (unsigned)dat[i].reg_addr, (unsigned)dat[i].reg_data, errno);
+        LOGE("camera %d: open %s failed errno=%d", camera_num, path, errno);
       }
-      break;
+      return;
     }
+    i2c_fd.fd_ = fd;
   }
-  close(fd);
+  // Batch all register writes into one I2C_RDWR (one open fd, one syscall).
+  constexpr int kMax = 64;
+  if (len > kMax) len = kMax;
+  uint8_t bufs[kMax][3];
+  struct i2c_msg msgs[kMax];
+  for (int i = 0; i < len; i++) {
+    bufs[i][0] = (uint8_t)((dat[i].reg_addr >> 8) & 0xff);
+    bufs[i][1] = (uint8_t)(dat[i].reg_addr & 0xff);
+    bufs[i][2] = (uint8_t)(dat[i].reg_data & 0xff);
+    msgs[i] = {};
+    msgs[i].addr = (uint16_t)i2c_addr;
+    msgs[i].flags = 0;
+    msgs[i].len = 3;
+    msgs[i].buf = bufs[i];
+  }
+  struct i2c_rdwr_ioctl_data ioctl_data = {};
+  ioctl_data.msgs = msgs;
+  ioctl_data.nmsgs = (__u32)len;
+  if (ioctl(i2c_fd, I2C_RDWR, &ioctl_data) < 0) {
+    if (frame_id_last % 120 == 0) {
+      LOGE("camera %d: i2c batch wr n=%d failed errno=%d", camera_num, len, errno);
+    }
+    // fd may be wedged; reopen next time
+    close(i2c_fd.fd_);
+    i2c_fd.fd_ = -1;
+  }
 }
 
 void CameraState::set_camera_exposure(float grey_frac) {
@@ -384,41 +390,45 @@ void CameraState::set_camera_exposure(float grey_frac) {
     exp_reg_array.push_back({0x350a, 0x01});
     exp_reg_array.push_back({0x350b, 0x00});  // 1.0x
   }
-  sensors_i2c(exp_reg_array.data(), (int)exp_reg_array.size(), 0, ci->data_word);
+  // Skip bus traffic when HDR register set is unchanged (steady outdoor floor).
+  const bool regs_changed = last_exp_regs.size() != exp_reg_array.size() ||
+      !std::equal(exp_reg_array.begin(), exp_reg_array.end(), last_exp_regs.begin(),
+                  [](const i2c_random_wr_payload &a, const i2c_random_wr_payload &b) {
+                    return a.reg_addr == b.reg_addr && a.reg_data == b.reg_data;
+                  });
+  if (regs_changed) {
+    sensors_i2c(exp_reg_array.data(), (int)exp_reg_array.size(), 0, ci->data_word);
+    last_exp_regs = std::move(exp_reg_array);
+  }
 
   // Do NOT VIDIOC_S_CTRL exposure/gain after I2C — kernel ox03c10 driver
   // rewrites HCG only and fights SPD/VS/LCG from getExposureRegisters.
 
-  if (buf.cur_frame_data.frame_id % 30 == 0) {
-    LOGW("camera %d AE: grey=%.4f target=%.3f exp=%d gidx=%d gain=%.3f dc=%d i2c=%d",
+  if (buf.cur_frame_data.frame_id % 120 == 0) {
+    LOGD("camera %d AE: grey=%.4f target=%.3f exp=%d gidx=%d gain=%.3f dc=%d",
          camera_num, grey_frac, target_grey, exposure_time, gain_idx, gain,
-         (int)dc_gain_enabled, i2c_bus);
+         (int)dc_gain_enabled);
   }
 }
 
-static float roi_median_grey(const uint8_t *y, int w, int h, Rect r, int x_skip, int y_skip) {
+// Fast subsampled mean (AE does not need a true median).
+static float roi_mean_grey(const uint8_t *y, int w, int h, Rect r, int x_skip, int y_skip) {
   if (!y || w <= 0 || h <= 0) return 0.1f;
   r.x = std::clamp(r.x, 0, w - 1);
   r.y = std::clamp(r.y, 0, h - 1);
   r.w = std::clamp(r.w, 1, w - r.x);
   r.h = std::clamp(r.h, 1, h - r.y);
-  uint32_t bins[256] = {};
+  uint64_t sum = 0;
   unsigned total = 0;
   for (int yy = r.y; yy < r.y + r.h; yy += y_skip) {
     const uint8_t *row = y + yy * w;
     for (int xx = r.x; xx < r.x + r.w; xx += x_skip) {
-      bins[row[xx]]++;
+      sum += row[xx];
       total++;
     }
   }
   if (total == 0) return 0.1f;
-  unsigned acc = 0;
-  int med = 255;
-  for (med = 255; med >= 0; med--) {
-    acc += bins[med];
-    if (acc >= total / 2) break;
-  }
-  return std::clamp(med / 256.0f, 1e-4f, 1.0f);
+  return std::clamp((float)sum / (float)total / 255.0f, 1e-4f, 1.0f);
 }
 
 
@@ -439,67 +449,20 @@ void CameraState::dequeue_buf() {
   const int idx = v4l_buf.index;
   FrameMetadata &md = buf.camera_bufs_metadata[idx];
 
-  // Defaults used when control reads are unavailable.
-  md.integ_lines = 0;
-  md.gain = 1.0f;
-  md.sensor_temp_c = last_sensor_temp_c;  // carry last good across buffer slots
+  // Exposure/gain come from our I2C AE path — skip per-frame V4L2 ctrl readback.
+  md.integ_lines = exposure_time;
+  md.gain = analog_gain_frac * get_gain_factor();
+  md.high_conversion_gain = dc_gain_enabled;
+  md.sensor_temp_c = last_sensor_temp_c;
 
-  int exposure_val = 0, gain_val_raw = 0, analog_gain_val = 0;
-  bool have_exposure = false, have_gain = false, have_analog = false;
-
-  if (ext_ctrl_supported) {
-    struct v4l2_ext_control ext_ctrls[3] = {};
-    struct v4l2_ext_controls ext = {};
-    ext.which = V4L2_CTRL_WHICH_CUR_VAL;
-    ext.count = 3;
-    ext.controls = ext_ctrls;
-    ext_ctrls[0].id = V4L2_CID_EXPOSURE;
-    ext_ctrls[1].id = V4L2_CID_GAIN;
-    ext_ctrls[2].id = V4L2_CID_ANALOGUE_GAIN;
-
-    if (ioctl(ctrl_fd, VIDIOC_G_EXT_CTRLS, &ext) == 0) {
-      exposure_val = ext_ctrls[0].value;
-      gain_val_raw = ext_ctrls[1].value;
-      analog_gain_val = ext_ctrls[2].value;
-      have_exposure = true;
-      have_gain = gain_val_raw > 0;
-      have_analog = analog_gain_val > 0;
-    } else if (errno == EINVAL || errno == ENOTTY) {
-      ext_ctrl_supported = false;
-    }
-  }
-
-  if (!ext_ctrl_supported) {
-    have_exposure = read_ctrl_fd(ctrl_fd, V4L2_CID_EXPOSURE, &exposure_val);
-    have_gain = read_ctrl_fd(ctrl_fd, V4L2_CID_GAIN, &gain_val_raw) && gain_val_raw > 0;
-    have_analog = read_ctrl_fd(ctrl_fd, V4L2_CID_ANALOGUE_GAIN, &analog_gain_val) && analog_gain_val > 0;
-  }
-
-  if (have_exposure) {
-    md.integ_lines = exposure_val;
-  }
-  if (have_gain) {
-    md.gain = static_cast<float>(gain_val_raw);
-  } else if (have_analog) {
-    md.gain = (analog_gain_val >= 65536) ? (analog_gain_val / 65536.0f) : static_cast<float>(analog_gain_val);
-    if (md.gain < 0.01f) md.gain = 1.0f;
-  } else {
-    static bool gain_warned = false;
-    if (!gain_warned) {
-      gain_warned = true;
-      LOGW("V4L2 gain readback not supported on this subdev (AE likely controlled by rkaiq); logging gain=1.0");
-    }
-  }
-
-  // Temperature changes slowly; poll occasionally. Keep last good on failure
-  // so temperaturesC does not flicker to the -999 sentinel.
+  // Temperature changes slowly; poll occasionally.
   if (v4l_buf.sequence % temp_poll_divider == 0) {
     int temp_raw = 0;
     if (read_ctrl_fd(ctrl_fd, V4L2_CID_X3C_SENSOR_TEMPERATURE, &temp_raw)) {
       last_sensor_temp_c = temp_raw / 100.0f;
+      md.sensor_temp_c = last_sensor_temp_c;
     }
   }
-  md.sensor_temp_c = last_sensor_temp_c;
 
   md.frame_id = v4l_buf.sequence;
   md.request_id = v4l_buf.sequence;
@@ -507,25 +470,24 @@ void CameraState::dequeue_buf() {
   md.timestamp_sof = cap_time;
   md.timestamp_eof = cap_time;
 
-  // Comma-parity AE: ROI median grey → set_camera_exposure → ox03c10 HDR I2C regs.
-  // CamHw AE stays OP_MANUAL; do not use V4L2-only rk_isp ae_update.
+  // AE: coarse mean grey every other frame → I2C only when regs change.
   {
     const uint8_t *y = reinterpret_cast<const uint8_t *>(buf.camera_bufs[idx].addr);
     const int w = buf.rgb_width;
     const int h = buf.rgb_height;
-    buf.cur_frame_data = md;  // frame_id for EV ring before AE
+    buf.cur_frame_data = md;
     frame_id_last = md.frame_id;
-    if (y && w > 0 && h > 0 && ci) {
-      const int y_skip = (camera_num == 2) ? 4 : 2;
-      float grey = roi_median_grey(y, w, h, ae_xywh, 2, y_skip);
+    if (y && w > 0 && h > 0 && ci && (md.frame_id & 1) == 0) {
+      float grey = roi_mean_grey(y, w, h, ae_xywh, 4, 4);
       set_camera_exposure(grey);
-    if (md.frame_id % 120 == 1) apply_pwl_on();
-      md.integ_lines = exposure_time;
-      md.gain = analog_gain_frac * get_gain_factor();
-      md.high_conversion_gain = dc_gain_enabled;
-      md.measured_grey_fraction = measured_grey_fraction;
-      md.target_grey_fraction = target_grey_fraction;
     }
+    // Rare PWL refresh (kernel can drift); batched on persistent i2c fd.
+    if (md.frame_id % 600 == 1) apply_pwl_on();
+    md.integ_lines = exposure_time;
+    md.gain = analog_gain_frac * get_gain_factor();
+    md.high_conversion_gain = dc_gain_enabled;
+    md.measured_grey_fraction = measured_grey_fraction;
+    md.target_grey_fraction = target_grey_fraction;
   }
 
   buf.queue(idx);
@@ -623,6 +585,11 @@ void CameraState::camera_close() {
   if (rk_isp) {
     rk_isp->shutdown();
     rk_isp.reset();
+  }
+
+  if (i2c_fd.fd_ >= 0) {
+    close(i2c_fd.fd_);
+    i2c_fd.fd_ = -1;
   }
 
   // unique_fd does not auto-invalidate on manual close; clear fd_ to avoid double-close.

@@ -65,31 +65,23 @@ bool RkIspUserspaceController::ensure_runtime_calib() {
   for (const char *name : kCalibNames) {
     const std::string src = std::string(kCalibEmbedDir) + "/" + name;
     const std::string dst = std::string(kCalibRuntimeDir) + "/" + name;
-    // Always refresh from embed so disable_algos / Enable flips take effect.
-    if (!copy_file(src, dst)) {
-      LOGE("RkIspUserspace: calib copy failed %s -> %s", src.c_str(), dst.c_str());
-      continue;
+    struct stat ss {}, ds {};
+    const bool have_src = (stat(src.c_str(), &ss) == 0);
+    const bool have_dst = (stat(dst.c_str(), &ds) == 0);
+    // Copy only when missing or embed changed (avoid 3 cams × 3×180KB rewrite every start).
+    const bool need = !have_dst || !have_src || ds.st_size != ss.st_size || ds.st_mtime < ss.st_mtime;
+    if (need) {
+      if (!copy_file(src, dst)) {
+        LOGE("RkIspUserspace: calib copy failed %s -> %s", src.c_str(), dst.c_str());
+        continue;
+      }
+      LOGW("RkIspUserspace: installed runtime calib %s", dst.c_str());
     }
     ok++;
-    LOGW("RkIspUserspace: installed runtime calib %s", dst.c_str());
-  }
-  // refresh sizes for log
-  for (const char *name : kCalibNames) {
-    struct stat st {};
-    const std::string dst = std::string(kCalibRuntimeDir) + "/" + name;
-    if (stat(dst.c_str(), &st) == 0) {
-      LOGW("RkIspUserspace: calib ready %s size=%ld", name, (long)st.st_size);
-    }
   }
   if (ok < 3) {
     LOGE("RkIspUserspace: need 3 calib json under %s (from %s); got %d", kCalibRuntimeDir, kCalibEmbedDir, ok);
     return false;
-  }
-  // Prove we are not using vendor /etc/iqfiles ox03c10*
-  if (access("/etc/iqfiles/ox03c10_D2V11K_9420.json", F_OK) == 0) {
-    LOGW("RkIspUserspace: WARNING /etc/iqfiles still has ox03c10 json (should be unused)");
-  } else {
-    LOGW("RkIspUserspace: /etc/iqfiles has no ox03c10* (good)");
   }
   return true;
 }
