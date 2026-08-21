@@ -2,6 +2,7 @@
 
 #include <functional>
 #include <memory>
+#include <mutex>
 #include <utility>
 
 #include "system/camerad/cameras/camera_common.h"
@@ -9,6 +10,7 @@
 #include "common/clutil.h"
 #include "common/params.h"
 #include "common/util.h"
+#include "system/camerad/rk/rk_isp_userspace.h"
 
 void cameras_open(MultiCameraState *s);
 void cameras_init(VisionIpcServer *v, MultiCameraState *s, cl_device_id device_id, cl_context ctx);
@@ -34,51 +36,59 @@ private:
 
 class CameraState {
 public:
-  MultiCameraState *multi_cam_state;
+  MultiCameraState *multi_cam_state = nullptr;
   std::unique_ptr<const SensorInfo> ci;
-  bool enabled;
+  bool enabled = false;
 
   std::mutex exp_lock;
+  std::mutex i2c_lock;
 
-  int exposure_time;
-  bool dc_gain_enabled;
-  int dc_gain_weight;
-  int gain_idx;
-  float analog_gain_frac;
-
-  float cur_ev[3];
-  float best_ev_score;
-  int new_exp_g;
-  int new_exp_t;
-
-  float measured_grey_fraction;
-  float target_grey_fraction;
+  // Comma-parity AE state (camera_qcom2.cc @ 555f48c5)
+  int exposure_time = 5;
+  bool dc_gain_enabled = true;
+  int dc_gain_weight = 1;
+  int gain_idx = 0;
+  float analog_gain_frac = 1.0f;
+  float cur_ev[3] = {};
+  float best_ev_score = 1e6f;
+  int new_exp_g = 0;
+  int new_exp_t = 0;
+  float measured_grey_fraction = 0.f;
+  float target_grey_fraction = 0.3f;
+  Rect ae_xywh = {};
+  int i2c_bus = -1;   // /dev/i2c-N
+  int i2c_addr = 0x36;
 
   unique_fd ctrl_fd;
   unique_fd csiphy_fd;
   unique_fd video_fd;
 
-  int camera_num;
+  int camera_num = 0;
   bool rk_zerocopy_requested = false;
+  std::unique_ptr<RkIspUserspaceController> rk_isp;
   bool rk_zerocopy_active = false;
   bool ext_ctrl_supported = true;
   uint32_t temp_poll_divider = 8;
+  float last_sensor_temp_c = -999.0f;  // last good V4L2 temp; avoid -999 flicker
 
-  uint64_t cap_time;
+  uint64_t cap_time = 0;
 
-  struct v4l2_format fmt;
-  struct v4l2_requestbuffers req;
-  struct v4l2_buffer v4l_buf;
-  struct v4l2_plane planes[1];
-  struct v4l2_control ctrl;
+  struct v4l2_format fmt = {};
+  struct v4l2_requestbuffers req = {};
+  struct v4l2_buffer v4l_buf = {};
+  struct v4l2_plane planes[1] = {};
+  struct v4l2_control ctrl = {};
 
-  void handle_camera_event(void *evdat);
+  float get_gain_factor() const;
+  void apply_pwl_on();
   void update_exposure_score(float desired_ev, int exp_t, int exp_g_idx, float exp_gain);
   void set_camera_exposure(float grey_frac);
 
   void sensors_start();
 
   void camera_open(MultiCameraState *multi_cam_state, int camera_num, bool enabled);
+  // CamHw prepare/start can reset sensor flips; call again after start.
+  void apply_sensor_flips();
   void sensor_set_parameters();
   void camera_map_bufs(MultiCameraState *s);
   void camera_init(MultiCameraState *s, VisionIpcServer *v, cl_device_id device_id, cl_context ctx, VisionStreamType yuv_type);
@@ -86,21 +96,21 @@ public:
   void stream_start();
   void camera_close();
 
-  int32_t session_handle;
-  int32_t sensor_dev_handle;
-  int32_t isp_dev_handle;
-  int32_t csiphy_dev_handle;
+  int32_t session_handle = 0;
+  int32_t sensor_dev_handle = 0;
+  int32_t isp_dev_handle = 0;
+  int32_t csiphy_dev_handle = 0;
 
-  int32_t link_handle;
+  int32_t link_handle = 0;
 
-  int buf0_handle;
-  int buf_handle[FRAME_BUF_COUNT];
-  int sync_objs[FRAME_BUF_COUNT];
-  int request_ids[FRAME_BUF_COUNT];
-  int request_id_last;
-  int frame_id_last;
-  int idx_offset;
-  bool skipped;
+  int buf0_handle = 0;
+  int buf_handle[FRAME_BUF_COUNT] = {};
+  int sync_objs[FRAME_BUF_COUNT] = {};
+  int request_ids[FRAME_BUF_COUNT] = {};
+  int request_id_last = 0;
+  int frame_id_last = 0;
+  int idx_offset = 0;
+  bool skipped = false;
 
   CameraBuf buf;
   MemoryManager mm;
@@ -115,7 +125,6 @@ public:
   void sensors_i2c(const struct i2c_random_wr_payload* dat, int len, int op_code, bool data_word);
 
 private:
-  // for debugging
   Params params;
 };
 

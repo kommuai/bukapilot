@@ -1,3 +1,4 @@
+#include "system/camerad/rk/rk_pwl_regs.h"
 #include "system/camerad/cameras/camera_rk.h"
 
 #include <poll.h>
@@ -10,6 +11,9 @@
 #include <cstdlib>
 #include <cstring>
 #include <fcntl.h>
+#include <unistd.h>
+#include <linux/i2c.h>
+#include <linux/i2c-dev.h>
 #include <string>
 #include <vector>
 
@@ -22,6 +26,7 @@
 #include "third_party/linux/include/v4l2-controls.h"
 #include "common/swaglog.h"
 #include "common/timing.h"
+#include "system/camerad/rk/rk_isp_userspace.h"
 
 // Special defined
 #define V4L2_CID_X3C_SENSOR_TEMPERATURE (V4L2_CID_USER_BASE + 0x100)
@@ -141,17 +146,76 @@ void CameraState::camera_open(MultiCameraState *multi_cam_state_, int camera_num
   ctrl_fd = open(device, O_RDWR);
   assert(ctrl_fd >= 0);
 
-  // set vflip = 1 to all cameras
-  ctrl.id = V4L2_CID_HFLIP;
-  ctrl.value = 0;
-  assert(ioctl(ctrl_fd, VIDIOC_S_CTRL, &ctrl) >= 0);
-  // set vflip = 1 to all cameras
-  ctrl.id = V4L2_CID_VFLIP;
-  ctrl.value = 1;
-  assert(ioctl(ctrl_fd, VIDIOC_S_CTRL, &ctrl) >= 0);
+  apply_sensor_flips();
+
+  // Seed sensor temp once so early frames are not -999.
+  {
+    int temp_raw = 0;
+    if (read_ctrl_fd(ctrl_fd, V4L2_CID_X3C_SENSOR_TEMPERATURE, &temp_raw)) {
+      last_sensor_temp_c = temp_raw / 100.0f;
+      LOGW("camera %d: sensor temp seed %.1fC", camera_num, last_sensor_temp_c);
+    } else {
+      LOGW("camera %d: sensor temp seed failed (will stay -999 until first good read)", camera_num);
+    }
+  }
+
+  // Sensor + AE init (comma ox03c10 recipe)
+  ci = std::make_unique<OX03C10>();
+  // Map camera_num → i2c bus (subdev 2/7/12 → i2c-1/3/6)
+  static const int kI2cBusByCam[3] = {1, 3, 6};
+  i2c_bus = kI2cBusByCam[std::clamp(camera_num, 0, 2)];
+  i2c_addr = 0x36;
+  dc_gain_weight = ci->dc_gain_min_weight;
+  gain_idx = ci->analog_gain_rec_idx;
+  exposure_time = 5;
+  dc_gain_enabled = true;
+  analog_gain_frac = ci->sensor_analog_gains[gain_idx];
+  {
+    float g0 = get_gain_factor() * analog_gain_frac * exposure_time;
+    cur_ev[0] = cur_ev[1] = cur_ev[2] = g0;
+  }
+  // Center ROI ~50% of frame (comma uses focal-length scaled box; same intent)
+  {
+    const int W = 1920, H = 1200;
+    ae_xywh = (Rect){W / 4, H / 4, W / 2, H / 2};
+  }
 
   video_fd = open_v4l_by_name_and_index("rkisp_mainpath", camera_num);
   assert(video_fd >= 0);
+
+  {
+    rk_isp = std::make_unique<RkIspUserspaceController>();
+    RkIspCamConfig cfg;
+    cfg.camera_num = camera_num;
+    cfg.sensor_ctrl_fd = ctrl_fd;
+    // Resolve mainpath node path for librkaiq CamHw bind.
+    {
+      int n = 0;
+      for (int i = 0; i < 64; i++) {
+        char syspath[64], name[128];
+        snprintf(syspath, sizeof(syspath), "/sys/class/video4linux/video%d/name", i);
+        FILE *f = fopen(syspath, "r");
+        if (!f) continue;
+        if (!fgets(name, sizeof(name), f)) { fclose(f); continue; }
+        fclose(f);
+        name[strcspn(name, "\n")] = 0;
+        if (strcmp(name, "rkisp_mainpath") != 0) continue;
+        if (n++ != camera_num) continue;
+        char path[32];
+        snprintf(path, sizeof(path), "/dev/video%d", i);
+        cfg.mainpath_dev = path;
+        break;
+      }
+    }
+    if (!rk_isp->init(cfg)) {
+      LOGE("camera %d: RkIspUserspace CamHw init failed", camera_num);
+      rk_isp->shutdown();
+      rk_isp.reset();
+    } else {
+      rk_isp->enable_frame_ae(false);  // AE via sensors_i2c / set_camera_exposure
+      LOGW("camera %d: choice-2 CamHw in-process + comma AE/I2C (no rkaiq_3A)", camera_num);
+    }
+  }
 }
 
 void CameraState::stream_start() {
@@ -178,8 +242,185 @@ void CameraState::stream_start() {
   if (ioctl(video_fd, VIDIOC_STREAMON, &fmt.type) < 0) {
     LOGE("camera %d: VIDIOC_STREAMON failed errno=%d '%s'", camera_num, errno, strerror(errno));
     enabled = false;
+    return;
+  }
+  // After stream on: kernel finish_mode may leave PWL inconsistent — force comma PWL-ON.
+  apply_pwl_on();
+}
+
+
+float CameraState::get_gain_factor() const {
+  if (!ci) return 1.0f;
+  return (1.0f + dc_gain_weight * (ci->dc_gain_factor - 1.0f) / std::max(1, ci->dc_gain_max_weight));
+}
+
+void CameraState::update_exposure_score(float desired_ev, int exp_t, int exp_g_idx, float exp_gain) {
+  if (!ci) return;
+  float score = ci->getExposureScore(desired_ev, exp_t, exp_g_idx, exp_gain, gain_idx);
+  if (score < best_ev_score) {
+    new_exp_t = exp_t;
+    new_exp_g = exp_g_idx;
+    best_ev_score = score;
   }
 }
+
+void CameraState::apply_pwl_on() {
+  // Kernel module init can leave PWL inconsistent across cams (seen: road 0x5000=0).
+  // Force comma PWL-ON so short-exposure data is packed as Spectra expects.
+  std::vector<i2c_random_wr_payload> wr;
+  wr.reserve(rk_pwl::kOx03c10PwlOnLen);
+  for (size_t i = 0; i < rk_pwl::kOx03c10PwlOnLen; i++) {
+    wr.push_back({rk_pwl::kOx03c10PwlOn[i].addr, rk_pwl::kOx03c10PwlOn[i].data});
+  }
+  sensors_i2c(wr.data(), (int)wr.size(), 0, false);
+  LOGW("camera %d: applied ox03c10 PWL-ON (%zu regs)", camera_num, wr.size());
+}
+
+void CameraState::sensors_i2c(const struct i2c_random_wr_payload *dat, int len, int op_code, bool data_word) {
+  (void)op_code;
+  (void)data_word;
+  if (i2c_bus < 0 || !dat || len <= 0) return;
+  std::lock_guard lk(i2c_lock);
+  char path[32];
+  snprintf(path, sizeof(path), "/dev/i2c-%d", i2c_bus);
+  int fd = open(path, O_RDWR);
+  if (fd < 0) {
+    if (frame_id_last % 120 == 0) {
+      LOGE("camera %d: open %s failed errno=%d", camera_num, path, errno);
+    }
+    return;
+  }
+  for (int i = 0; i < len; i++) {
+    uint8_t i2c_buf[3] = {
+      (uint8_t)((dat[i].reg_addr >> 8) & 0xff),
+      (uint8_t)(dat[i].reg_addr & 0xff),
+      (uint8_t)(dat[i].reg_data & 0xff),
+    };
+    struct i2c_msg msg = {};
+    msg.addr = (uint16_t)i2c_addr;
+    msg.flags = 0;
+    msg.len = 3;
+    msg.buf = i2c_buf;
+    struct i2c_rdwr_ioctl_data ioctl_data = {};
+    ioctl_data.msgs = &msg;
+    ioctl_data.nmsgs = 1;
+    if (ioctl(fd, I2C_RDWR, &ioctl_data) < 0) {
+      if (frame_id_last % 120 == 0) {
+        LOGE("camera %d: i2c wr 0x%x=0x%x failed errno=%d", camera_num,
+             (unsigned)dat[i].reg_addr, (unsigned)dat[i].reg_data, errno);
+      }
+      break;
+    }
+  }
+  close(fd);
+}
+
+void CameraState::set_camera_exposure(float grey_frac) {
+  if (!enabled || !ci) return;
+  std::lock_guard lk(exp_lock);
+
+  // camera_num: 0=wide, 1=road, 2=driver (matches comma target_grey_minimums order)
+  static const float target_grey_minimums[3] = {0.1f, 0.1f, 0.125f};
+  const float tg_min = target_grey_minimums[std::clamp(camera_num, 0, 2)];
+
+  const float dt = 0.05f;
+  const float ts_grey = 10.0f;
+  const float ts_ev = 0.05f;
+  const float k_grey = (dt / ts_grey) / (1.0f + dt / ts_grey);
+  const float k_ev = (dt / ts_ev) / (1.0f + dt / ts_ev);
+
+  const float cur_ev_ = cur_ev[(buf.cur_frame_data.frame_id - 1) % 3] * ci->ev_scale;
+  float new_target_grey = std::clamp(
+      0.4f - 0.3f * log2f(1.0f + ci->target_grey_factor * cur_ev_) / log2f(6000.0f),
+      tg_min, 0.4f);
+  float target_grey = (1.0f - k_grey) * target_grey_fraction + k_grey * new_target_grey;
+
+  grey_frac = std::max(grey_frac, 1e-4f);
+  float desired_ev = std::clamp(cur_ev_ / ci->ev_scale * target_grey / grey_frac, ci->min_ev, ci->max_ev);
+  float k = (1.0f - k_ev) / 3.0f;
+  desired_ev = (k * cur_ev[0]) + (k * cur_ev[1]) + (k * cur_ev[2]) + (k_ev * desired_ev);
+
+  best_ev_score = 1e6f;
+  new_exp_g = gain_idx;
+  new_exp_t = exposure_time;
+
+  bool enable_dc_gain = dc_gain_enabled;
+  if (!enable_dc_gain && target_grey < ci->dc_gain_on_grey) {
+    enable_dc_gain = true;
+    dc_gain_weight = ci->dc_gain_min_weight;
+  } else if (enable_dc_gain && target_grey > ci->dc_gain_off_grey) {
+    enable_dc_gain = false;
+    dc_gain_weight = ci->dc_gain_max_weight;
+  }
+  if (enable_dc_gain && dc_gain_weight < ci->dc_gain_max_weight) dc_gain_weight += 1;
+  if (!enable_dc_gain && dc_gain_weight > ci->dc_gain_min_weight) dc_gain_weight -= 1;
+
+  int min_g = std::max(gain_idx - 1, ci->analog_gain_min_idx);
+  int max_g = std::min(gain_idx + 1, ci->analog_gain_max_idx);
+  for (int g = min_g; g <= max_g; g++) {
+    float gain = ci->sensor_analog_gains[g] * get_gain_factor();
+    int t = std::clamp((int)std::lround(desired_ev / gain), ci->exposure_time_min, ci->exposure_time_max);
+    if (g < ci->analog_gain_rec_idx && t > 20 && g < gain_idx) continue;
+    update_exposure_score(desired_ev, t, g, gain);
+  }
+
+  measured_grey_fraction = grey_frac;
+  target_grey_fraction = target_grey;
+  analog_gain_frac = ci->sensor_analog_gains[new_exp_g];
+  gain_idx = new_exp_g;
+  exposure_time = new_exp_t;
+  dc_gain_enabled = enable_dc_gain;
+
+  float gain = analog_gain_frac * get_gain_factor();
+  cur_ev[buf.cur_frame_data.frame_id % 3] = exposure_time * gain;
+
+  auto exp_reg_array = ci->getExposureRegisters(exposure_time, new_exp_g, dc_gain_enabled);
+  // When exposure is floored but frame still too bright, cut HCG digital gain
+  // (0x350a/0x350b). Comma rarely needs this; rkisp tone leaves less headroom.
+  if (exposure_time <= std::max(ci->exposure_time_min, 2) && grey_frac > target_grey * 1.15f) {
+    exp_reg_array.push_back({0x350a, 0x00});
+    exp_reg_array.push_back({0x350b, 0x80});  // ~0.5x digital
+  } else {
+    exp_reg_array.push_back({0x350a, 0x01});
+    exp_reg_array.push_back({0x350b, 0x00});  // 1.0x
+  }
+  sensors_i2c(exp_reg_array.data(), (int)exp_reg_array.size(), 0, ci->data_word);
+
+  // Do NOT VIDIOC_S_CTRL exposure/gain after I2C — kernel ox03c10 driver
+  // rewrites HCG only and fights SPD/VS/LCG from getExposureRegisters.
+
+  if (buf.cur_frame_data.frame_id % 30 == 0) {
+    LOGW("camera %d AE: grey=%.4f target=%.3f exp=%d gidx=%d gain=%.3f dc=%d i2c=%d",
+         camera_num, grey_frac, target_grey, exposure_time, gain_idx, gain,
+         (int)dc_gain_enabled, i2c_bus);
+  }
+}
+
+static float roi_median_grey(const uint8_t *y, int w, int h, Rect r, int x_skip, int y_skip) {
+  if (!y || w <= 0 || h <= 0) return 0.1f;
+  r.x = std::clamp(r.x, 0, w - 1);
+  r.y = std::clamp(r.y, 0, h - 1);
+  r.w = std::clamp(r.w, 1, w - r.x);
+  r.h = std::clamp(r.h, 1, h - r.y);
+  uint32_t bins[256] = {};
+  unsigned total = 0;
+  for (int yy = r.y; yy < r.y + r.h; yy += y_skip) {
+    const uint8_t *row = y + yy * w;
+    for (int xx = r.x; xx < r.x + r.w; xx += x_skip) {
+      bins[row[xx]]++;
+      total++;
+    }
+  }
+  if (total == 0) return 0.1f;
+  unsigned acc = 0;
+  int med = 255;
+  for (med = 255; med >= 0; med--) {
+    acc += bins[med];
+    if (acc >= total / 2) break;
+  }
+  return std::clamp(med / 256.0f, 1e-4f, 1.0f);
+}
+
 
 void CameraState::dequeue_buf() {
   if (!enabled) return;
@@ -201,7 +442,7 @@ void CameraState::dequeue_buf() {
   // Defaults used when control reads are unavailable.
   md.integ_lines = 0;
   md.gain = 1.0f;
-  if (md.sensor_temp_c == 0.0f) md.sensor_temp_c = -999.0f;
+  md.sensor_temp_c = last_sensor_temp_c;  // carry last good across buffer slots
 
   int exposure_val = 0, gain_val_raw = 0, analog_gain_val = 0;
   bool have_exposure = false, have_gain = false, have_analog = false;
@@ -250,21 +491,42 @@ void CameraState::dequeue_buf() {
     }
   }
 
-  // Temperature changes slowly, so avoid paying this ioctl every frame.
+  // Temperature changes slowly; poll occasionally. Keep last good on failure
+  // so temperaturesC does not flicker to the -999 sentinel.
   if (v4l_buf.sequence % temp_poll_divider == 0) {
     int temp_raw = 0;
     if (read_ctrl_fd(ctrl_fd, V4L2_CID_X3C_SENSOR_TEMPERATURE, &temp_raw)) {
-      md.sensor_temp_c = temp_raw / 100.0f;
-    } else {
-      md.sensor_temp_c = -999.0f;
+      last_sensor_temp_c = temp_raw / 100.0f;
     }
   }
+  md.sensor_temp_c = last_sensor_temp_c;
 
   md.frame_id = v4l_buf.sequence;
   md.request_id = v4l_buf.sequence;
   cap_time = static_cast<uint64_t>(v4l_buf.timestamp.tv_sec * 1000000000 + v4l_buf.timestamp.tv_usec * 1000);
   md.timestamp_sof = cap_time;
   md.timestamp_eof = cap_time;
+
+  // Comma-parity AE: ROI median grey → set_camera_exposure → ox03c10 HDR I2C regs.
+  // CamHw AE stays OP_MANUAL; do not use V4L2-only rk_isp ae_update.
+  {
+    const uint8_t *y = reinterpret_cast<const uint8_t *>(buf.camera_bufs[idx].addr);
+    const int w = buf.rgb_width;
+    const int h = buf.rgb_height;
+    buf.cur_frame_data = md;  // frame_id for EV ring before AE
+    frame_id_last = md.frame_id;
+    if (y && w > 0 && h > 0 && ci) {
+      const int y_skip = (camera_num == 2) ? 4 : 2;
+      float grey = roi_median_grey(y, w, h, ae_xywh, 2, y_skip);
+      set_camera_exposure(grey);
+    if (md.frame_id % 120 == 1) apply_pwl_on();
+      md.integ_lines = exposure_time;
+      md.gain = analog_gain_frac * get_gain_factor();
+      md.high_conversion_gain = dc_gain_enabled;
+      md.measured_grey_fraction = measured_grey_fraction;
+      md.target_grey_fraction = target_grey_fraction;
+    }
+  }
 
   buf.queue(idx);
 
@@ -285,13 +547,52 @@ void cameras_init(VisionIpcServer *v, MultiCameraState *s, cl_device_id device_i
 
 void cameras_open(MultiCameraState *s) {
   LOG("-- Opening devices");
+  // Userspace CamHw only — no rkaiq_3A daemon.
+  RkIspUserspaceController::stop_rkaiq();
+  int n = 0;
+  if (!env_disable_wide_road) n++;
+  if (!env_disable_road) n++;
+  if (!env_disable_driver) n++;
+  RkIspUserspaceController::set_multi_cam_count(n);
   s->wide_road_cam.camera_open(s, 0, !env_disable_wide_road);
   LOGD("wide road camera opened");
   s->road_cam.camera_open(s, 1, !env_disable_road);
   LOGD("road camera opened");
   s->driver_cam.camera_open(s, 2, !env_disable_driver);
   LOGD("driver camera opened");
- }
+
+  {
+    CameraState *cams[3] = {&s->wide_road_cam, &s->road_cam, &s->driver_cam};
+    for (int i = 0; i < 3; i++) {
+      if (!cams[i]->enabled || !cams[i]->rk_isp || !cams[i]->rk_isp->active()) continue;
+      if (!cams[i]->rk_isp->prepare_and_start()) {
+        LOGE("camera %d: CamHw prepare/start failed", cams[i]->camera_num);
+      }
+      // CamHw reprograms the sensor; flips from camera_open are lost without this.
+      cams[i]->apply_sensor_flips();
+    }
+  }
+}
+
+void CameraState::apply_sensor_flips() {
+  if (ctrl_fd < 0) return;
+  ctrl.id = V4L2_CID_HFLIP;
+  ctrl.value = 0;
+  if (ioctl(ctrl_fd, VIDIOC_S_CTRL, &ctrl) < 0) {
+    LOGE("camera %d: HFLIP=0 failed errno=%d '%s'", camera_num, errno, strerror(errno));
+  }
+  ctrl.id = V4L2_CID_VFLIP;
+  ctrl.value = 1;
+  if (ioctl(ctrl_fd, VIDIOC_S_CTRL, &ctrl) < 0) {
+    LOGE("camera %d: VFLIP=1 failed errno=%d '%s'", camera_num, errno, strerror(errno));
+  }
+  int hflip = -1, vflip = -1;
+  ctrl.id = V4L2_CID_HFLIP;
+  if (ioctl(ctrl_fd, VIDIOC_G_CTRL, &ctrl) == 0) hflip = ctrl.value;
+  ctrl.id = V4L2_CID_VFLIP;
+  if (ioctl(ctrl_fd, VIDIOC_G_CTRL, &ctrl) == 0) vflip = ctrl.value;
+  LOGW("camera %d: sensor flips H=%d V=%d (want 0/1)", camera_num, hflip, vflip);
+}
 
 void CameraState::camera_close() {
   // stop devices
@@ -318,6 +619,12 @@ void CameraState::camera_close() {
     }
   }
 
+  // Shut down ISP controller before closing sensor ctrl_fd (it holds that fd).
+  if (rk_isp) {
+    rk_isp->shutdown();
+    rk_isp.reset();
+  }
+
   // unique_fd does not auto-invalidate on manual close; clear fd_ to avoid double-close.
   if (ctrl_fd.fd_ >= 0) {
     close(ctrl_fd.fd_);
@@ -342,10 +649,7 @@ void cameras_close(MultiCameraState *s) {
 
   delete s->pm;
 
-  // restart rkaiq 3A server
-  system("sudo killall -q /usr/kommu/rkaiq_3A_server || true");
-  usleep(2500000);  // blocks for 2.5 seconds
-  system("sudo /usr/kommu/rkaiq_3A_server &");
+  LOGW("RkIspUserspace: not starting rkaiq on close (userspace CamHw is default)");
 
 }
 
@@ -414,13 +718,21 @@ void cameras_run(MultiCameraState *s) {
   // poll events
   LOG("-- Dequeueing Video events");
   while (!do_exit) {
-    struct pollfd fds[3] = {
-      { .fd = s->driver_cam.video_fd, .events = POLLPRI | POLLIN },
-      { .fd = s->road_cam.video_fd, .events = POLLPRI | POLLIN },
-      { .fd = s->wide_road_cam.video_fd, .events = POLLPRI | POLLIN }
-    };
+    std::vector<pollfd> fds;
+    CameraState *cams[3] = {&s->driver_cam, &s->road_cam, &s->wide_road_cam};
+    int video_idx[3];
+    for (int i = 0; i < 3; i++) {
+      video_idx[i] = -1;
+      if (!cams[i]->enabled) continue;
+      video_idx[i] = (int)fds.size();
+      fds.push_back({.fd = cams[i]->video_fd, .events = POLLPRI | POLLIN, .revents = 0});
+    }
 
-    int ret = poll(fds, std::size(fds), 1000);
+    if (fds.empty()) {
+      usleep(10000);
+      continue;
+    }
+    int ret = poll(fds.data(), fds.size(), 1000);
     if (ret < 0) {
       if (errno == EINTR || errno == EAGAIN) continue;
       LOGE("poll failed (%d - %d)", ret, errno);
@@ -428,25 +740,17 @@ void cameras_run(MultiCameraState *s) {
     }
 
     for (int i = 0; i < 3; i++) {
-      if (fds[i].revents & (POLLPRI | POLLIN)) {
-        // Dequeue buffers for the corresponding camera if the file descriptor is ready
-        switch (i) {
-          case 0:
-            s->driver_cam.dequeue_buf();
-            break;
-          case 1:
-            s->road_cam.dequeue_buf();
-            count++;
-            if (count <= (SYNC_CHECK_COUNT + SYNC_CHECK_LEN - 1) && count >= SYNC_CHECK_COUNT) {
-              road_cam_ts[count % SYNC_CHECK_COUNT] = s->road_cam.cap_time;
-            }
-            break;
-          case 2:
-            s->wide_road_cam.dequeue_buf();
-            if (count <= (SYNC_CHECK_COUNT + SYNC_CHECK_LEN - 1) && count >= SYNC_CHECK_COUNT) {
-              wide_cam_ts[count % SYNC_CHECK_COUNT] = s->wide_road_cam.cap_time;
-            }
-            break;
+      if (video_idx[i] >= 0 && (fds[video_idx[i]].revents & (POLLPRI | POLLIN))) {
+        cams[i]->dequeue_buf();
+        if (cams[i] == &s->road_cam) {
+          count++;
+          if (count <= (SYNC_CHECK_COUNT + SYNC_CHECK_LEN - 1) && count >= SYNC_CHECK_COUNT) {
+            road_cam_ts[count % SYNC_CHECK_COUNT] = s->road_cam.cap_time;
+          }
+        } else if (cams[i] == &s->wide_road_cam) {
+          if (count <= (SYNC_CHECK_COUNT + SYNC_CHECK_LEN - 1) && count >= SYNC_CHECK_COUNT) {
+            wide_cam_ts[count % SYNC_CHECK_COUNT] = s->wide_road_cam.cap_time;
+          }
         }
       }
     }
