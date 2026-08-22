@@ -1,0 +1,174 @@
+#!/usr/bin/env bash
+# Live-tune KA2 manual WB (all cams) — persisted under /data/params/ka2_wb_gains.
+set -euo pipefail
+
+WB_FILE="${KA2_WB_FILE:-/data/params/ka2_wb_gains}"
+
+usage() {
+  cat <<'EOF'
+ka2-wb - live manual white balance for KA2 (road + wide + driver)
+
+Camerad reads /data/params/ka2_wb_gains every frame (survives reboot).
+Also checks /tmp/ka2_wb_gains for legacy live tuning.
+
+Usage:
+  ka2-wb                         Show current R G B
+  ka2-wb R B                     Set R and B (G=1)
+  ka2-wb RB                      Set R=B=RB (tied)
+  ka2-wb r R                     Set R only, keep G and B
+  ka2-wb g G                     Set G only, keep R and B
+  ka2-wb b B                     Set B only, keep R and G
+  ka2-wb R G B                   Set all three explicitly
+  ka2-wb +STEP                   Bump R and B by STEP (G unchanged)
+  ka2-wb r +STEP                 Bump R only
+  ka2-wb g +STEP                 Bump G only
+  ka2-wb b -STEP                 Bump B only
+  ka2-wb reset                   Unity gains (1 1 1)
+
+Examples:
+  ka2-wb 1.28 1.28               R=1.28 B=1.28 (G=1)
+  ka2-wb 1.28 1.00 1.28          R G B explicit
+  ka2-wb g 0.98                  Lower green
+  ka2-wb g +0.01                 Nudge green up
+
+EOF
+}
+
+read_wb() {
+  local r=1.0 g=1.0 b=1.0
+  if [[ -f "$WB_FILE" ]]; then
+    # shellcheck disable=SC2034
+    if read -r r g b _ < "$WB_FILE"; then
+      :
+    elif read -r r b _ < "$WB_FILE"; then
+      g=1.0
+    fi
+  fi
+  printf '%s %s %s\n' "$r" "$g" "$b"
+}
+
+write_wb() {
+  local r="$1" g="$2" b="$3"
+  printf '%.4f %.4f %.4f\n' "$r" "$g" "$b" > "$WB_FILE"
+  echo "WB -> R=${r} G=${g} B=${b}  (${WB_FILE})"
+}
+
+is_num() {
+  [[ "$1" =~ ^[+-]?([0-9]*\.?[0-9]+|[0-9]+\.?[0-9]*)([eE][+-]?[0-9]+)?$ ]]
+}
+
+parse_step() {
+  local tok="$1"
+  if [[ "$tok" =~ ^[+-][0-9] ]]; then
+    echo "$tok"
+    return 0
+  fi
+  if is_num "$tok"; then
+    echo "+${tok}"
+    return 0
+  fi
+  echo "invalid step: $tok" >&2
+  exit 1
+}
+
+add_float() {
+  awk -v a="$1" -v b="$2" 'BEGIN { printf "%.4f", a + b }'
+}
+
+if [[ $# -eq 0 ]]; then
+  read -r r g b < <(read_wb)
+  echo "WB now: R=${r} G=${g} B=${b}  (${WB_FILE})"
+  exit 0
+fi
+
+case "${1:-}" in
+  -h|--help|help)
+    usage
+    exit 0
+    ;;
+  reset)
+    write_wb 1.0 1.0 1.0
+    exit 0
+    ;;
+esac
+
+read -r cur_r cur_g cur_b < <(read_wb)
+
+case "${1:-}" in
+  r|R)
+    [[ $# -ge 2 ]] || { echo "need value after r" >&2; exit 1; }
+    tok="$2"
+    if [[ "$tok" =~ ^[+-] ]]; then
+      step="$(parse_step "$tok")"
+      new_r="$(add_float "$cur_r" "$step")"
+      write_wb "$new_r" "$cur_g" "$cur_b"
+    elif is_num "$tok"; then
+      write_wb "$tok" "$cur_g" "$cur_b"
+    else
+      echo "invalid R: $tok" >&2
+      exit 1
+    fi
+    ;;
+  g|G)
+    [[ $# -ge 2 ]] || { echo "need value after g" >&2; exit 1; }
+    tok="$2"
+    if [[ "$tok" =~ ^[+-] ]]; then
+      step="$(parse_step "$tok")"
+      new_g="$(add_float "$cur_g" "$step")"
+      write_wb "$cur_r" "$new_g" "$cur_b"
+    elif is_num "$tok"; then
+      write_wb "$cur_r" "$tok" "$cur_b"
+    else
+      echo "invalid G: $tok" >&2
+      exit 1
+    fi
+    ;;
+  b|B)
+    [[ $# -ge 2 ]] || { echo "need value after b" >&2; exit 1; }
+    tok="$2"
+    if [[ "$tok" =~ ^[+-] ]]; then
+      step="$(parse_step "$tok")"
+      new_b="$(add_float "$cur_b" "$step")"
+      write_wb "$cur_r" "$cur_g" "$new_b"
+    elif is_num "$tok"; then
+      write_wb "$cur_r" "$cur_g" "$tok"
+    else
+      echo "invalid B: $tok" >&2
+      exit 1
+    fi
+    ;;
+  +*|-*)
+    step="$(parse_step "$1")"
+    new_r="$(add_float "$cur_r" "$step")"
+    new_b="$(add_float "$cur_b" "$step")"
+    write_wb "$new_r" "$cur_g" "$new_b"
+    ;;
+  *)
+    if [[ $# -eq 1 ]]; then
+      if is_num "$1"; then
+        write_wb "$1" 1.0 "$1"
+      else
+        echo "invalid value: $1" >&2
+        usage >&2
+        exit 1
+      fi
+    elif [[ $# -eq 2 ]]; then
+      if is_num "$1" && is_num "$2"; then
+        write_wb "$1" 1.0 "$2"
+      else
+        echo "need two numbers: R B" >&2
+        exit 1
+      fi
+    elif [[ $# -eq 3 ]]; then
+      if is_num "$1" && is_num "$2" && is_num "$3"; then
+        write_wb "$1" "$2" "$3"
+      else
+        echo "need three numbers: R G B" >&2
+        exit 1
+      fi
+    else
+      usage >&2
+      exit 1
+    fi
+    ;;
+esac

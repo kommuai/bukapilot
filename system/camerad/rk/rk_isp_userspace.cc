@@ -122,6 +122,54 @@ void RkIspUserspaceController::on_frame_grey(float grey_frac) {
   if (frame_ae_ && active_) ae_update(grey_frac);
 }
 
+void RkIspUserspaceController::apply_mwb(float r, float g, float b) {
+  if (!aiq_) return;
+  rk_aiq_uapiV2_wb_opMode_t op = {};
+  op.mode = RK_AIQ_WB_MODE_MANUAL;
+  rk_aiq_user_api2_awb_SetWpModeAttrib(aiq_, op);
+  rk_aiq_wb_mwb_attrib_t mwb = {};
+  mwb.mode = RK_AIQ_MWB_MODE_WBGAIN;
+  mwb.para.gain.rgain = r;
+  mwb.para.gain.grgain = g;
+  mwb.para.gain.gbgain = g;
+  mwb.para.gain.bgain = b;
+  rk_aiq_user_api2_awb_SetMwbAttrib(aiq_, mwb);
+  rk_aiq_wb_gain_t gg = mwb.para.gain;
+  rk_aiq_uapi2_setMWBGain(aiq_, &gg);
+  rk_aiq_uapi2_setWBMode(aiq_, OP_MANUAL);
+}
+
+static const char kKa2WbGainsPath[] = "/data/params/ka2_wb_gains";
+
+static bool read_wb_gains_file(const char *path, float *r, float *g, float *b) {
+  FILE *f = fopen(path, "r");
+  if (!f) return false;
+  int n = fscanf(f, "%f %f %f", r, g, b);
+  fclose(f);
+  if (n < 2) return false;
+  if (n == 2) {
+    *b = *g;
+    *g = 1.f;
+  }
+  return true;
+}
+
+
+void RkIspUserspaceController::maybe_reload_wb_file() {
+  static const char *kPath = kKa2WbGainsPath;
+  FILE *f = fopen(kPath, "r");
+  if (!f) return;
+  float r = 1.f, g = 1.f, b = 1.f;
+  int n = fscanf(f, "%f %f %f", &r, &g, &b);
+  fclose(f);
+  if (n < 2) return;
+  if (n == 2) { b = g; g = 1.f; }
+  if (r == wb_last_r_ && g == wb_last_g_ && b == wb_last_b_) return;
+  wb_last_r_ = r; wb_last_g_ = g; wb_last_b_ = b;
+  apply_mwb(r, g, b);
+  LOGW("RkIspUserspace cam%d: WB file R=%.3f G=%.3f B=%.3f", cfg_.camera_num, r, g, b);
+}
+
 bool RkIspUserspaceController::init(const RkIspCamConfig &cfg) {
   cfg_ = cfg;
   if (cfg_.mainpath_dev.empty()) {
@@ -153,13 +201,44 @@ bool RkIspUserspaceController::init(const RkIspCamConfig &cfg) {
 }
 
 
+
+static float env_f(const char *k, float d);
+
+static float env_f(const char *k, float d) {
+  const char *e = getenv(k);
+  return (e && e[0]) ? strtof(e, nullptr) : d;
+}
+
+static void resolve_wb_gains(float *r, float *g, float *b) {
+  if (read_wb_gains_file(kKa2WbGainsPath, r, g, b)) return;
+  if (read_wb_gains_file("/tmp/ka2_wb_gains", r, g, b)) return;
+  *r = env_f("KA2_WB_R", 1.30f);
+  *g = env_f("KA2_WB_G", 1.0f);
+  *b = env_f("KA2_WB_B", 1.42f);
+}
+
+
+
+
+static float tone_gamma_y_scale() {
+  static float s = -1.f;
+  if (s < 0.f) {
+    const char *e = getenv("KA2_GAMMA_Y_SCALE");
+    s = (e && e[0]) ? strtof(e, nullptr) : 0.88f;  // rkisp ~12% hot vs Spectra IFE
+    LOGW("RkIspUserspace: gamma Y scale=%.3f", s);
+  }
+  return s;
+}
+
+static uint16_t scaled_gamma_y(int i) {
+  const float sc = tone_gamma_y_scale();
+  int y = (int)lroundf(rk_tone::kOx03c10GammaLinearV11[i] * sc);
+  return (uint16_t)std::clamp(y, 0, 4095);
+}
+
 static void apply_daylight_wb_ccm(const rk_aiq_sys_ctx_t *aiq, int camera_num) {
-  static const float kDayWb[3][4] = {
-    {1.45f, 1.0f, 1.0f, 1.35f},  // wide outdoor mild
-    {1.45f, 1.0f, 1.0f, 1.35f},  // road outdoor mild
-    {1.35f, 1.0f, 1.0f, 1.30f},  // driver
-  };
-  const int ci = std::clamp(camera_num, 0, 2);
+  float wr = 1.30f, wg = 1.0f, wb = 1.42f;
+  resolve_wb_gains(&wr, &wg, &wb);
 
   rk_aiq_uapiV2_wb_opMode_t op = {};
   op.mode = RK_AIQ_WB_MODE_MANUAL;
@@ -167,16 +246,21 @@ static void apply_daylight_wb_ccm(const rk_aiq_sys_ctx_t *aiq, int camera_num) {
 
   rk_aiq_wb_mwb_attrib_t mwb = {};
   mwb.mode = RK_AIQ_MWB_MODE_WBGAIN;
-  mwb.para.gain.rgain = kDayWb[ci][0];
-  mwb.para.gain.grgain = kDayWb[ci][1];
-  mwb.para.gain.gbgain = kDayWb[ci][2];
-  mwb.para.gain.bgain = kDayWb[ci][3];
+  mwb.para.gain.rgain = wr;
+  mwb.para.gain.grgain = wg;
+  mwb.para.gain.gbgain = wg;
+  mwb.para.gain.bgain = wb;
   XCamReturn r2 = rk_aiq_user_api2_awb_SetMwbAttrib(aiq, mwb);
+  rk_aiq_wb_gain_t g = mwb.para.gain;
+  XCamReturn r2b = rk_aiq_uapi2_setMWBGain(aiq, &g);
+  rk_aiq_uapi2_setWBMode(aiq, OP_MANUAL);
+  LOGW("RkIspUserspace cam%d: WB write R=%.3f Gr=%.3f Gb=%.3f B=%.3f",
+       camera_num, g.rgain, g.grgain, g.gbgain, g.bgain);
 
   rk_aiq_wb_querry_info_t qi = {};
   rk_aiq_user_api2_awb_QueryWBInfo(aiq, &qi);
-  LOGW("RkIspUserspace cam%d: WB man set=%d/%d query R=%.3f Gr=%.3f Gb=%.3f B=%.3f",
-       camera_num, (int)r1, (int)r2, qi.gain.rgain, qi.gain.grgain, qi.gain.gbgain, qi.gain.bgain);
+  LOGW("RkIspUserspace cam%d: WB man set=%d/%d/%d query R=%.3f Gr=%.3f Gb=%.3f B=%.3f",
+       camera_num, (int)r1, (int)r2, (int)r2b, qi.gain.rgain, qi.gain.grgain, qi.gain.gbgain, qi.gain.bgain);
 
   auto s12 = [](uint32_t v) -> float {
     int x = static_cast<int>(v & 0xfff);
@@ -194,19 +278,35 @@ static void apply_daylight_wb_ccm(const rk_aiq_sys_ctx_t *aiq, int camera_num) {
 }
 
 
+
+static void apply_lsc_off(const rk_aiq_sys_ctx_t *aiq, int camera_num) {
+  rk_aiq_lsc_attrib_t attr;
+  memset(&attr, 0, sizeof(attr));
+  XCamReturn rg = rk_aiq_user_api2_alsc_GetAttrib(aiq, &attr);
+  attr.byPass = true;
+  attr.sync.sync_mode = RK_AIQ_UAPI_MODE_SYNC;
+  XCamReturn rs = rk_aiq_user_api2_alsc_SetAttrib(aiq, attr);
+  rk_aiq_lsc_querry_info_t qi;
+  memset(&qi, 0, sizeof(qi));
+  rk_aiq_user_api2_alsc_QueryLscInfo(aiq, &qi);
+  LOGW("RkIspUserspace cam%d: LSC OFF byPass get=%d set=%d en=%d",
+       camera_num, (int)rg, (int)rs, qi.lsc_en ? 1 : 0);
+}
+
 static void apply_dehaze(const rk_aiq_sys_ctx_t *aiq, int camera_num) {
   // rkisp ADHAZ (was DISABLE_ADHAZ). Prefer v11 MANUAL with mild outdoor clarity.
   adehaze_sw_v11_t attr;
   memset(&attr, 0, sizeof(attr));
   XCamReturn rg = rk_aiq_user_api2_adehaze_v11_getSwAttrib(aiq, &attr);
+  attr.stAuto.DehazeTuningPara.Enable = false;
 
-  attr.sync.sync_mode = RK_AIQ_UAPI_MODE_DEFAULT;
+  attr.sync.sync_mode = RK_AIQ_UAPI_MODE_SYNC;
   attr.mode = DEHAZE_API_MANUAL;
-  attr.stManual.Enable = true;
+  attr.stManual.Enable = false;  // dehaze+enhance+hist off (comma parity)
   attr.stManual.cfg_alpha = 1.0f;
 
   auto &dz = attr.stManual.dehaze_setting;
-  dz.en = true;
+  dz.en = false;
   dz.air_lc_en = true;
   dz.stab_fnum = 8.f;
   dz.sigma = 6.f;
@@ -238,29 +338,29 @@ static void apply_dehaze(const rk_aiq_sys_ctx_t *aiq, int camera_num) {
   dz.DehazeData.space_sigma_cur = 0.14f;
 
   auto &enh = attr.stManual.enhance_setting;
-  enh.en = true;
+  enh.en = false;
   enh.EnhanceData.enhance_value = 1.0f;
   enh.EnhanceData.enhance_chroma = 1.0f;
   static const float kEnhCurve[17] = {
     0,64,128,192,256,320,384,448,512,576,640,704,768,832,896,960,1023};
   for (int i = 0; i < 17; ++i) enh.enhance_curve[i] = kEnhCurve[i];
 
-  // hist off initially — dehaze+enhance only (less AE interaction)
+  // Dehaze histogram ON (HistData from IQ calib via getSwAttrib)
   attr.stManual.hist_setting.en = false;
   attr.stManual.hist_setting.hist_para_en = false;
 
   attr.Info.updateMDehazeStrth = true;
-  attr.Info.MDehazeStrth = 70;
+  attr.Info.MDehazeStrth = 50;
   attr.Info.updateMEnhanceStrth = true;
   attr.Info.MEnhanceStrth = 40;
 
   XCamReturn rs = rk_aiq_user_api2_adehaze_v11_setSwAttrib(aiq, &attr);
 
   // imgproc strength APIs (active in manual)
-  XCamReturn r0 = rk_aiq_uapi2_setDehazeModuleEnable(aiq, true);
-  XCamReturn r1 = rk_aiq_uapi2_setDehazeEnable(aiq, true);
-  XCamReturn r2 = rk_aiq_uapi2_setEnhanceEnable(aiq, true);
-  XCamReturn r3 = rk_aiq_uapi2_setMDehazeStrth(aiq, 70);
+  XCamReturn r0 = rk_aiq_uapi2_setDehazeModuleEnable(aiq, false);
+  XCamReturn r1 = rk_aiq_uapi2_setDehazeEnable(aiq, false);
+  XCamReturn r2 = rk_aiq_uapi2_setEnhanceEnable(aiq, false);
+  XCamReturn r3 = rk_aiq_uapi2_setMDehazeStrth(aiq, 50);
   XCamReturn r4 = rk_aiq_uapi2_setMEnhanceStrth(aiq, 40);
 
   adehaze_sw_v11_t got;
@@ -270,12 +370,13 @@ static void apply_dehaze(const rk_aiq_sys_ctx_t *aiq, int camera_num) {
   unsigned int str = 0;
   rk_aiq_uapi2_getMDehazeStrth(aiq, &str);
   LOGW("RkIspUserspace cam%d: dehaze get0=%d set=%d img=%d/%d/%d str=%d/%d "
-       "mode=%d manEn=%d dz=%d enh=%d autoEn=%d MStr=%u/%u",
+       "mode=%d manEn=%d dz=%d enh=%d autoEn=%d MStr=%u/%u hist=%d",
        camera_num, (int)rg, (int)rs, (int)r0, (int)r1, (int)r2, (int)r3, (int)r4,
        (int)got.mode, (int)got.stManual.Enable, (int)got.stManual.dehaze_setting.en,
        (int)got.stManual.enhance_setting.en,
-       (int)got.stAuto.DehazeTuningPara.Enable, got.Info.MDehazeStrth, str);
+       (int)got.stAuto.DehazeTuningPara.Enable, got.Info.MDehazeStrth, str, (int)got.stManual.hist_setting.en);
 }
+
 
 bool RkIspUserspaceController::prepare_and_start() {
   if (!active_ || !aiq_ || started_) return active_ && started_;
@@ -284,7 +385,7 @@ bool RkIspUserspaceController::prepare_and_start() {
     LOGE("RkIspUserspace cam%d: prepare failed %d", cfg_.camera_num, (int)r);
     return false;
   }
-  // Daylight WB + ox03c10 CCM (rkisp needs channel WB; Spectra CCM is gray-preserving).
+  // Unity MWB (Comma IFE-parity) + ox03c10 CCM from rk_tone::kOx03c10CcmQ.
   rk_aiq_uapi2_setExpMode(aiq_, OP_MANUAL);
   // BLC: ox03c10 black_level = 0
   {
@@ -328,7 +429,7 @@ bool RkIspUserspaceController::prepare_and_start() {
     gam.stManual.Gamma_en = true;
     gam.stManual.Gamma_out_offset = 0;
     for (int i = 0; i < rk_tone::kGammaKnots; i++) {
-      gam.stManual.Gamma_curve[i] = rk_tone::kOx03c10GammaLinearV11[i];
+      gam.stManual.Gamma_curve[i] = scaled_gamma_y(i);
     }
     XCamReturn gr = rk_aiq_user_api2_agamma_v11_SetAttrib(aiq_, &gam);
     if (gr != XCAM_RETURN_NO_ERROR) {
@@ -369,7 +470,7 @@ bool RkIspUserspaceController::prepare_and_start() {
     gam.stManual.Gamma_en = true;
     gam.stManual.Gamma_out_offset = 0;
     for (int i = 0; i < rk_tone::kGammaKnots; i++) {
-      gam.stManual.Gamma_curve[i] = rk_tone::kOx03c10GammaLinearV11[i];
+      gam.stManual.Gamma_curve[i] = scaled_gamma_y(i);
     }
     XCamReturn gr = rk_aiq_user_api2_agamma_v11_SetAttrib(aiq_, &gam);
     rk_aiq_gamma_v11_attr_t got = {};
@@ -380,16 +481,10 @@ bool RkIspUserspaceController::prepare_and_start() {
          (int)got.stManual.Gamma_curve[48]);
   }
   apply_dehaze(aiq_, cfg_.camera_num);
+  if (cfg_.camera_num == 1) apply_lsc_off(aiq_, cfg_.camera_num);  // road LSC off
 
-  LOGW("RkIspUserspace cam%d: CamHw start ok (BLC0 + Spectra lin + LSC(json road) + daylight WB + ox03c10 CCM/gamma + dehaze, calib=%s)",
+  LOGW("RkIspUserspace cam%d: CamHw start ok (BLC0 + Spectra lin + LSC off(road) + unity WB + ox03c10 CCM/gamma + dehaze, calib=%s)",
        cfg_.camera_num, kCalibRuntimeDir);
-  {
-    rk_aiq_lsc_querry_info_t lq = {};
-    if (rk_aiq_user_api2_alsc_QueryLscInfo(aiq_, &lq) == XCAM_RETURN_NO_ERROR) {
-      LOGW("RkIspUserspace cam%d: LSC query en=%d centerR=%u", cfg_.camera_num,
-           (int)lq.lsc_en, (unsigned)lq.r_data_tbl[144]);
-    }
-  }
 
   return true;
 }

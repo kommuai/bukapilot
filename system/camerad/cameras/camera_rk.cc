@@ -168,7 +168,7 @@ void CameraState::camera_open(MultiCameraState *multi_cam_state_, int camera_num
   dc_gain_weight = ci->dc_gain_min_weight;
   gain_idx = ci->analog_gain_rec_idx;
   exposure_time = 5;
-  dc_gain_enabled = true;
+  dc_gain_enabled = false;  // comma: hysteresis until dark
   analog_gain_frac = ci->sensor_analog_gains[gain_idx];
   {
     float g0 = get_gain_factor() * analog_gain_frac * exposure_time;
@@ -382,10 +382,22 @@ void CameraState::set_camera_exposure(float grey_frac) {
 
   auto exp_reg_array = ci->getExposureRegisters(exposure_time, new_exp_g, dc_gain_enabled);
   // When exposure is floored but frame still too bright, cut HCG digital gain
-  // (0x350a/0x350b). Comma rarely needs this; rkisp tone leaves less headroom.
-  if (exposure_time <= std::max(ci->exposure_time_min, 2) && grey_frac > target_grey * 1.15f) {
+  // (0x350a/0x350b). rkisp NV12 runs hotter than Spectra IFE at min EV.
+  static float dig_cut_margin = -1.f;
+  if (dig_cut_margin < 0.f) {
+    const char *e = getenv("KA2_AE_DIG_CUT_MARGIN");
+    dig_cut_margin = (e && e[0]) ? strtof(e, nullptr) : 1.02f;  // was 1.15
+    LOGW("camera %d: AE dig-cut margin=%.3f", camera_num, dig_cut_margin);
+  }
+  const bool at_exp_floor = exposure_time <= std::max(ci->exposure_time_min, 2);
+  const bool too_bright = grey_frac > target_grey * dig_cut_margin;
+  if (at_exp_floor && too_bright) {
     exp_reg_array.push_back({0x350a, 0x00});
-    exp_reg_array.push_back({0x350b, 0x80});  // ~0.5x digital
+    exp_reg_array.push_back({0x350b, 0x40});  // ~0.25x digital
+    if (buf.cur_frame_data.frame_id % 120 == 0) {
+      LOGW("camera %d AE: dig-gain 0.25x (grey=%.3f target=%.3f integ=%d)",
+           camera_num, grey_frac, target_grey, exposure_time);
+    }
   } else {
     exp_reg_array.push_back({0x350a, 0x01});
     exp_reg_array.push_back({0x350b, 0x00});  // 1.0x
@@ -409,26 +421,6 @@ void CameraState::set_camera_exposure(float grey_frac) {
          camera_num, grey_frac, target_grey, exposure_time, gain_idx, gain,
          (int)dc_gain_enabled);
   }
-}
-
-// Fast subsampled mean (AE does not need a true median).
-static float roi_mean_grey(const uint8_t *y, int w, int h, Rect r, int x_skip, int y_skip) {
-  if (!y || w <= 0 || h <= 0) return 0.1f;
-  r.x = std::clamp(r.x, 0, w - 1);
-  r.y = std::clamp(r.y, 0, h - 1);
-  r.w = std::clamp(r.w, 1, w - r.x);
-  r.h = std::clamp(r.h, 1, h - r.y);
-  uint64_t sum = 0;
-  unsigned total = 0;
-  for (int yy = r.y; yy < r.y + r.h; yy += y_skip) {
-    const uint8_t *row = y + yy * w;
-    for (int xx = r.x; xx < r.x + r.w; xx += x_skip) {
-      sum += row[xx];
-      total++;
-    }
-  }
-  if (total == 0) return 0.1f;
-  return std::clamp((float)sum / (float)total / 255.0f, 1e-4f, 1.0f);
 }
 
 
@@ -478,10 +470,24 @@ void CameraState::dequeue_buf() {
     buf.cur_frame_data = md;
     frame_id_last = md.frame_id;
     if (y && w > 0 && h > 0 && ci && (md.frame_id & 1) == 0) {
-      float grey = roi_mean_grey(y, w, h, ae_xywh, 4, 4);
+      // Comma-parity AE meter: median Y in ROI (calculate_exposure_value), not mean.
+      buf.cur_yuv_buf = &buf.camera_bufs[idx];
+      buf.out_img_width = (uint32_t)w;
+      buf.out_img_height = (uint32_t)h;
+      float grey = calculate_exposure_value(&buf, ae_xywh, 2, 2);
+      // rkisp NV12 is typically brighter than Spectra IFE for same EV; scale meter
+      // so AE drives toward comma-like brightness. Override: KA2_AE_GREY_SCALE.
+      static float grey_scale = -1.f;
+      if (grey_scale < 0.f) {
+        const char *e = getenv("KA2_AE_GREY_SCALE");
+        grey_scale = (e && e[0]) ? strtof(e, nullptr) : 1.0f;
+        LOGW("camera %d: AE median+scale=%.3f", camera_num, grey_scale);
+      }
+      grey = std::min(grey * grey_scale, 0.95f);
       set_camera_exposure(grey);
     }
     // Rare PWL refresh (kernel can drift); batched on persistent i2c fd.
+    if (rk_isp) rk_isp->maybe_reload_wb_file();
     if (md.frame_id % 600 == 1) apply_pwl_on();
     md.integ_lines = exposure_time;
     md.gain = analog_gain_frac * get_gain_factor();

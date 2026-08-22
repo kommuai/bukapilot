@@ -5,6 +5,8 @@
 #include <cstdint>
 #include <memory>
 #include <string>
+#include <ctime>
+#include <sys/types.h>
 
 struct rk_aiq_sys_ctx_s;
 
@@ -23,6 +25,8 @@ public:
   bool prepare_and_start();  // after all cams inited (mul-cam)
   void enable_frame_ae(bool on);
   void on_frame_grey(float grey_frac);
+  void apply_mwb(float r, float g, float b);
+  void maybe_reload_wb_file();
   void shutdown();
 
   bool active() const { return active_; }
@@ -52,5 +56,6 @@ private:
   int again_ = 16;
   int frame_i_ = 0;
 
+  float wb_last_r_ = -1.f, wb_last_g_ = -1.f, wb_last_b_ = -1.f;
   static int multi_cam_n_;
 };
