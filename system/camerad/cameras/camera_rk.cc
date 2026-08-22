@@ -382,22 +382,10 @@ void CameraState::set_camera_exposure(float grey_frac) {
 
   auto exp_reg_array = ci->getExposureRegisters(exposure_time, new_exp_g, dc_gain_enabled);
   // When exposure is floored but frame still too bright, cut HCG digital gain
-  // (0x350a/0x350b). rkisp NV12 runs hotter than Spectra IFE at min EV.
-  static float dig_cut_margin = -1.f;
-  if (dig_cut_margin < 0.f) {
-    const char *e = getenv("KA2_AE_DIG_CUT_MARGIN");
-    dig_cut_margin = (e && e[0]) ? strtof(e, nullptr) : 1.02f;  // was 1.15
-    LOGW("camera %d: AE dig-cut margin=%.3f", camera_num, dig_cut_margin);
-  }
-  const bool at_exp_floor = exposure_time <= std::max(ci->exposure_time_min, 2);
-  const bool too_bright = grey_frac > target_grey * dig_cut_margin;
-  if (at_exp_floor && too_bright) {
+  // (0x350a/0x350b). Comma rarely needs this; rkisp tone leaves less headroom.
+  if (exposure_time <= std::max(ci->exposure_time_min, 2) && grey_frac > target_grey * 1.15f) {
     exp_reg_array.push_back({0x350a, 0x00});
-    exp_reg_array.push_back({0x350b, 0x40});  // ~0.25x digital
-    if (buf.cur_frame_data.frame_id % 120 == 0) {
-      LOGW("camera %d AE: dig-gain 0.25x (grey=%.3f target=%.3f integ=%d)",
-           camera_num, grey_frac, target_grey, exposure_time);
-    }
+    exp_reg_array.push_back({0x350b, 0x80});  // ~0.5x digital
   } else {
     exp_reg_array.push_back({0x350a, 0x01});
     exp_reg_array.push_back({0x350b, 0x00});  // 1.0x

@@ -220,22 +220,6 @@ static void resolve_wb_gains(float *r, float *g, float *b) {
 
 
 
-static float tone_gamma_y_scale() {
-  static float s = -1.f;
-  if (s < 0.f) {
-    const char *e = getenv("KA2_GAMMA_Y_SCALE");
-    s = (e && e[0]) ? strtof(e, nullptr) : 0.88f;  // rkisp ~12% hot vs Spectra IFE
-    LOGW("RkIspUserspace: gamma Y scale=%.3f", s);
-  }
-  return s;
-}
-
-static uint16_t scaled_gamma_y(int i) {
-  const float sc = tone_gamma_y_scale();
-  int y = (int)lroundf(rk_tone::kOx03c10GammaLinearV11[i] * sc);
-  return (uint16_t)std::clamp(y, 0, 4095);
-}
-
 static void apply_daylight_wb_ccm(const rk_aiq_sys_ctx_t *aiq, int camera_num) {
   float wr = 1.30f, wg = 1.0f, wb = 1.42f;
   resolve_wb_gains(&wr, &wg, &wb);
@@ -429,7 +413,7 @@ bool RkIspUserspaceController::prepare_and_start() {
     gam.stManual.Gamma_en = true;
     gam.stManual.Gamma_out_offset = 0;
     for (int i = 0; i < rk_tone::kGammaKnots; i++) {
-      gam.stManual.Gamma_curve[i] = scaled_gamma_y(i);
+      gam.stManual.Gamma_curve[i] = rk_tone::kOx03c10GammaLinearV11[i];
     }
     XCamReturn gr = rk_aiq_user_api2_agamma_v11_SetAttrib(aiq_, &gam);
     if (gr != XCAM_RETURN_NO_ERROR) {
@@ -470,7 +454,7 @@ bool RkIspUserspaceController::prepare_and_start() {
     gam.stManual.Gamma_en = true;
     gam.stManual.Gamma_out_offset = 0;
     for (int i = 0; i < rk_tone::kGammaKnots; i++) {
-      gam.stManual.Gamma_curve[i] = scaled_gamma_y(i);
+      gam.stManual.Gamma_curve[i] = rk_tone::kOx03c10GammaLinearV11[i];
     }
     XCamReturn gr = rk_aiq_user_api2_agamma_v11_SetAttrib(aiq_, &gam);
     rk_aiq_gamma_v11_attr_t got = {};
