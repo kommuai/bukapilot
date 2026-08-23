@@ -1,22 +1,32 @@
 Import('env', 'arch', 'messaging', 'common', 'visionipc', 'device')
+if device == 'KA2':
+  env.Append(CPPPATH=['/usr/include/rkaiq', '/usr/include/rkaiq/algos', '/usr/include/rkaiq/iq_parser', '/usr/include/rkaiq/smartIr', '/usr/include/rkaiq/common', '/usr/include/rkaiq/iq_parser_v2', '/usr/include/rkaiq/isp', '/usr/include/rkaiq/ipc_server', '/usr/include/rkaiq/uAPI2', '/usr/include/rkaiq/xcore', '/usr/include/rkaiq/algos/aynr2', '/usr/include/rkaiq/algos/anr', '/usr/include/rkaiq/algos/adehaze', '/usr/include/rkaiq/algos/aldch', '/usr/include/rkaiq/algos/accm', '/usr/include/rkaiq/algos/again2', '/usr/include/rkaiq/algos/amd', '/usr/include/rkaiq/algos/afec', '/usr/include/rkaiq/algos/auvnr', '/usr/include/rkaiq/algos/aynr3', '/usr/include/rkaiq/algos/acp', '/usr/include/rkaiq/algos/asd', '/usr/include/rkaiq/algos/argbir', '/usr/include/rkaiq/algos/a3dlut', '/usr/include/rkaiq/algos/acnr2', '/usr/include/rkaiq/algos/agamma', '/usr/include/rkaiq/algos/acgc', '/usr/include/rkaiq/algos/acnrV30', '/usr/include/rkaiq/algos/ablcV32', '/usr/include/rkaiq/algos/asharpV33', '/usr/include/rkaiq/algos/atmo', '/usr/include/rkaiq/algos/adegamma', '/usr/include/rkaiq/algos/asharp', '/usr/include/rkaiq/algos/aie', '/usr/include/rkaiq/algos/arawnr2', '/usr/include/rkaiq/algos/amfnr', '/usr/include/rkaiq/algos/acac', '/usr/include/rkaiq/algos/acnr', '/usr/include/rkaiq/algos/alsc', '/usr/include/rkaiq/algos/aeis', '/usr/include/rkaiq/algos/adebayer', '/usr/include/rkaiq/algos/arawnr', '/usr/include/rkaiq/algos/agic', '/usr/include/rkaiq/algos/abayertnrV23', '/usr/include/rkaiq/algos/adpcc', '/usr/include/rkaiq/algos/asharp3', '/usr/include/rkaiq/algos/aorb', '/usr/include/rkaiq/algos/again', '/usr/include/rkaiq/algos/amerge', '/usr/include/rkaiq/algos/adrc', '/usr/include/rkaiq/algos/abayertnrV30', '/usr/include/rkaiq/algos/awb', '/usr/include/rkaiq/algos/asharp4', '/usr/include/rkaiq/algos/asharpV34', '/usr/include/rkaiq/algos/aynrV24', '/usr/include/rkaiq/algos/ae', '/usr/include/rkaiq/algos/ablc', '/usr/include/rkaiq/algos/abayer2dnr2', '/usr/include/rkaiq/algos/acsm', '/usr/include/rkaiq/algos/aynrV22', '/usr/include/rkaiq/algos/acnrV31', '/usr/include/rkaiq/algos/af', '/usr/include/rkaiq/algos/aynr', '/usr/include/rkaiq/algos/abayertnr2', '/usr/include/rkaiq/algos/ayuvmeV1', '/usr/include/rkaiq/algos/abayer2dnrV23', '/usr/include/rkaiq/algos/afd', '/usr/include/rkaiq/common/mediactl', '/usr/include/rkaiq/iq_parser_v2/j2s', '/usr/include/rkaiq/xcore/base', '/usr/include/rkaiq/algos/anr/tnr_md'])
 import os
 
 libs = [common, 'OpenCL', messaging, visionipc, 'jpeg', 'yuv']
 if device == 'KA2':
-  libs += ['rga']
+  libs += ['rga', 'rkaiq', 'dl']
 
 if arch != "Darwin":
   # KA2: only RK camera and ox03c10. No os04c10, no TICI-specific ar0231.
   if device == 'KA2':
     camerad_src = ['cameras/camera_rk.cc', 'cameras/camera_common.cc',
-                   'sensors/ox03c10.cc']
+                   'sensors/ox03c10.cc',
+                   'rk/rk_isp_userspace.cc',
+                   'rk/ka2_camera_backend.cc']
   else:
     camerad_src = ['cameras/camera_rk.cc', 'cameras/camera_common.cc',
                    'sensors/ox03c10.cc', 'sensors/os04c10.cc']
     if os.path.exists(env.Dir('#system/camerad').File('sensors/ar0231.cc').abspath):
       camerad_src.append('sensors/ar0231.cc')
-  camera_obj = env.Object(camerad_src)
-  env.Program('camerad', ['main.cc', camera_obj], LIBS=libs)
+  if device == 'KA2':
+    camerad_env = env.Clone()
+    camerad_env.Append(CCFLAGS=['-Os'])
+    camera_obj = camerad_env.Object(camerad_src)
+    camerad_env.Program('camerad', ['main.cc', camera_obj], LIBS=libs)
+  else:
+    camera_obj = env.Object(camerad_src)
+    env.Program('camerad', ['main.cc', camera_obj], LIBS=libs)
 
   if GetOption("extras") and arch == "x86_64":
     env.Program('test/test_ae_gray', ['test/test_ae_gray.cc', camera_obj], LIBS=libs)
