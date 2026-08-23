@@ -1,6 +1,5 @@
 #include "system/camerad/rk/rk_isp_userspace.h"
 
-#include <atomic>
 #include <algorithm>
 #include <cmath>
 #include <cerrno>
@@ -10,7 +9,6 @@
 #include <string>
 #include <sys/stat.h>
 #include <unistd.h>
-#include <dlfcn.h>
 
 #include <uAPI2/rk_aiq_user_api2_sysctl.h>
 #include <uAPI2/rk_aiq_user_api2_imgproc.h>
@@ -156,53 +154,6 @@ void RkIspUserspaceController::apply_mwb(float r, float g, float b) {
   rk_aiq_uapi2_setWBMode(aiq_, OP_MANUAL);
 }
 
-void RkIspUserspaceController::ensure_sdg_hook() {
-  static std::atomic<bool> install_done{false};
-  static void *hook_handle = nullptr;
-  if (install_done.load(std::memory_order_acquire)) return;
-
-  dlopen("librkaiq.so", RTLD_NOW | RTLD_NOLOAD);
-
-  char exe[4096];
-  const ssize_t n = readlink("/proc/self/exe", exe, sizeof(exe) - 1);
-  if (n <= 0) {
-    LOGW("RkIspUserspace: SDG hook path resolve failed");
-    return;
-  }
-  exe[n] = '\0';
-  std::string hook_path(exe);
-  const auto slash = hook_path.rfind('/');
-  if (slash == std::string::npos) return;
-  hook_path = hook_path.substr(0, slash) + "/rk/librk_sdg_hook.so";
-
-  using InstallFn = int (*)();
-  InstallFn install = nullptr;
-
-  for (int attempt = 0; attempt < 8; attempt++) {
-    if (hook_handle) {
-      dlclose(hook_handle);
-      hook_handle = nullptr;
-    }
-    hook_handle = dlopen(hook_path.c_str(), RTLD_NOW | RTLD_LOCAL);
-    if (!hook_handle) {
-      LOGW("RkIspUserspace: SDG hook dlopen(%s) failed: %s", hook_path.c_str(), dlerror());
-      return;
-    }
-    install = reinterpret_cast<InstallFn>(dlsym(hook_handle, "install_librkaiq_sdg_hook"));
-    if (!install) {
-      LOGW("RkIspUserspace: SDG hook install symbol missing");
-      return;
-    }
-    const int patched = install();
-    if (patched > 0) {
-      install_done.store(true, std::memory_order_release);
-      LOG("RkIspUserspace: SDG hook ok (%d base(s))", patched);
-      return;
-    }
-  }
-  LOGW("RkIspUserspace: SDG hook patch failed (no librkaiq base patched)");
-}
-
 bool RkIspUserspaceController::init(const RkIspCamConfig &cfg) {
   cfg_ = cfg;
   if (cfg_.mainpath_dev.empty()) {
@@ -307,7 +258,6 @@ static void apply_comma_gamma(const rk_aiq_sys_ctx_t *aiq, int camera_num) {
 
 bool RkIspUserspaceController::prepare_and_start() {
   if (!active_ || !aiq_ || started_) return active_ && started_;
-  ensure_sdg_hook();
   XCamReturn r = rk_aiq_uapi2_sysctl_prepare(aiq_, 1920, 1200, RK_AIQ_WORKING_MODE_NORMAL);
   if (r != XCAM_RETURN_NO_ERROR) {
     LOGE("RkIspUserspace cam%d: prepare failed %d", cfg_.camera_num, (int)r);

@@ -358,7 +358,6 @@ void Ka2CameraBackend::prepare_system(MultiCameraState *s) {
   s->wide_road_cam.camera_open(s, 0, kEnableWideRoad);
   s->road_cam.camera_open(s, 1, kEnableRoad);
   s->driver_cam.camera_open(s, 2, kEnableDriver);
-  RkIspUserspaceController::ensure_sdg_hook();
 }
 
 void Ka2CameraBackend::start_isp_all(MultiCameraState *s) {

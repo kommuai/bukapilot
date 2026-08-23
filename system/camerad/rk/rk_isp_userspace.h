@@ -35,8 +35,6 @@ public:
   static void stop_rkaiq();
   static void start_rkaiq();
   static void set_multi_cam_count(int n);
-  // Load SDG hook .so and patch librkaiq (once, before CamHw start).
-  static void ensure_sdg_hook();
   // Install camerad-owned JSON under /tmp/camerad_calib (never /etc/iqfiles).
   static bool ensure_runtime_calib();
 
