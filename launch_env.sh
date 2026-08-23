@@ -21,3 +21,8 @@ if [ -z "$AGNOS_VERSION" ]; then
 fi
 
 export STAGING_ROOT="/data/safe_staging"
+
+# KA2 camerad ISP env (persist across reboot)
+export KA2_OPENCL=0
+export KA2_US_FIX=14
+export KA2_MOUNT_180=1

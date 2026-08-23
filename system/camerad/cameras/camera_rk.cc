@@ -174,11 +174,7 @@ void CameraState::camera_open(MultiCameraState *multi_cam_state_, int camera_num
     float g0 = get_gain_factor() * analog_gain_frac * exposure_time;
     cur_ev[0] = cur_ev[1] = cur_ev[2] = g0;
   }
-  // Center ROI ~50% of frame (comma uses focal-length scaled box; same intent)
-  {
-    const int W = 1920, H = 1200;
-    ae_xywh = (Rect){W / 4, H / 4, W / 2, H / 2};
-  }
+  set_exposure_rect();  // after ci + known 1920x1200
 
   video_fd = open_v4l_by_name_and_index("rkisp_mainpath", camera_num);
   assert(video_fd >= 0);
@@ -321,6 +317,32 @@ void CameraState::sensors_i2c(const struct i2c_random_wr_payload *dat, int len, 
   }
 }
 
+
+void CameraState::set_exposure_rect() {
+  // Same AE ROI as comma camera_qcom2.cc (ox03c10 wide/road/driver).
+  static const struct { Rect r; float fl_ref; float focal_mm; } kAeTargets[3] = {
+    {{96, 400, 1734, 524}, 567.0f, 1.71f},   // wide
+    {{96, 160, 1734, 986}, 2648.0f, 8.0f},   // road
+    {{96, 242, 1736, 906}, 567.0f, 1.71f},   // driver
+  };
+  const int idx = std::clamp(camera_num, 0, 2);
+  const Rect xywh_ref = kAeTargets[idx].r;
+  const float fl_ref = kAeTargets[idx].fl_ref;
+  if (fl_pix <= 0.f && ci) {
+    fl_pix = kAeTargets[idx].focal_mm / ci->pixel_size_mm / std::max(1, ci->out_scale);
+  }
+  // camera_open runs before streaming; out_img_width may still be 1. Use known NV12 size.
+  const int W = (buf.rgb_width > 1) ? (int)buf.rgb_width : 1920;
+  const int H = (buf.rgb_height > 1) ? (int)buf.rgb_height : 1200;
+  const int h_ref = 1208;
+  ae_xywh = (Rect){
+    std::max(0, W / 2 - (int)(fl_pix / fl_ref * xywh_ref.w / 2)),
+    std::max(0, H / 2 - (int)(fl_pix / fl_ref * (h_ref / 2 - xywh_ref.y))),
+    std::min((int)(fl_pix / fl_ref * xywh_ref.w), W / 2 + (int)(fl_pix / fl_ref * xywh_ref.w / 2)),
+    std::min((int)(fl_pix / fl_ref * xywh_ref.h), H / 2 + (int)(fl_pix / fl_ref * (h_ref / 2 - xywh_ref.y))),
+  };
+}
+
 void CameraState::set_camera_exposure(float grey_frac) {
   if (!enabled || !ci) return;
   std::lock_guard lk(exp_lock);
@@ -381,15 +403,6 @@ void CameraState::set_camera_exposure(float grey_frac) {
   cur_ev[buf.cur_frame_data.frame_id % 3] = exposure_time * gain;
 
   auto exp_reg_array = ci->getExposureRegisters(exposure_time, new_exp_g, dc_gain_enabled);
-  // When exposure is floored but frame still too bright, cut HCG digital gain
-  // (0x350a/0x350b). Comma rarely needs this; rkisp tone leaves less headroom.
-  if (exposure_time <= std::max(ci->exposure_time_min, 2) && grey_frac > target_grey * 1.15f) {
-    exp_reg_array.push_back({0x350a, 0x00});
-    exp_reg_array.push_back({0x350b, 0x80});  // ~0.5x digital
-  } else {
-    exp_reg_array.push_back({0x350a, 0x01});
-    exp_reg_array.push_back({0x350b, 0x00});  // 1.0x
-  }
   // Skip bus traffic when HDR register set is unchanged (steady outdoor floor).
   const bool regs_changed = last_exp_regs.size() != exp_reg_array.size() ||
       !std::equal(exp_reg_array.begin(), exp_reg_array.end(), last_exp_regs.begin(),
@@ -462,16 +475,12 @@ void CameraState::dequeue_buf() {
       buf.cur_yuv_buf = &buf.camera_bufs[idx];
       buf.out_img_width = (uint32_t)w;
       buf.out_img_height = (uint32_t)h;
-      float grey = calculate_exposure_value(&buf, ae_xywh, 2, 2);
-      // rkisp NV12 is typically brighter than Spectra IFE for same EV; scale meter
-      // so AE drives toward comma-like brightness. Override: KA2_AE_GREY_SCALE.
-      static float grey_scale = -1.f;
-      if (grey_scale < 0.f) {
-        const char *e = getenv("KA2_AE_GREY_SCALE");
-        grey_scale = (e && e[0]) ? strtof(e, nullptr) : 1.0f;
-        LOGW("camera %d: AE median+scale=%.3f", camera_num, grey_scale);
+      if (!ae_roi_ready_ || ae_xywh.w < 1000) {
+        set_exposure_rect();
+        ae_roi_ready_ = true;
       }
-      grey = std::min(grey * grey_scale, 0.95f);
+      const int y_skip = (camera_num == 2) ? 4 : 2;  // driver: comma uses coarser AE grid
+      float grey = calculate_exposure_value(&buf, ae_xywh, 2, y_skip);
       set_camera_exposure(grey);
     }
     // Rare PWL refresh (kernel can drift); batched on persistent i2c fd.

@@ -5,7 +5,7 @@ import os
 
 libs = [common, 'OpenCL', messaging, visionipc, 'jpeg', 'yuv']
 if device == 'KA2':
-  libs += ['rga', 'rkaiq']
+  libs += ['rga', 'rkaiq', 'dl']
 
 if arch != "Darwin":
   # KA2: only RK camera and ox03c10. No os04c10, no TICI-specific ar0231.

@@ -6,7 +6,7 @@
 // agamma v11 X-grid, scaled to 12-bit (0..4095). Verified bit-identical to formula.
 //
 // Linearization: Spectra IFE linearization_lut + linearization_pts from ox03c10.cc,
-// decoded as 14-bit PWL (knee Y = LUT offsets), resampled onto Rockchip SDG 17 knots.
+// inverse of OX03C10 PWL12 (same knots as Spectra IFE linearization → rkisp SDG).
 //
 // LSC: comma enables vignetting only on narrow road (hw.h). Mesh port TBD; userspace
 // bypasses ALSC until a Spectra→rk LSC converter exists (wrong mesh ≠ parity).
@@ -40,11 +40,15 @@ inline constexpr int kDegammaX[kDegammaKnots] = {
  2304, 2560, 2816, 3072, 3328, 3584, 3840, 4096,
 };
 
-// Spectra IFE linearization (ox03c10.cc), resampled to SDG 12-bit knots
-// Mild PWL inverse: Spectra-shaped through midtones, then linear to 4095 (no early clip).
+// Spectra IFE linearization inverse (ox03c10 PWL12), resampled to SDG 12-bit knots.
 inline constexpr int kOx03c10DegammaY[kDegammaKnots] = {
-     0,   16,   32,   64,  128,  192,  257,  514, 1029,
-  1540, 2050, 2432, 2816, 3200, 3584, 3840, 4095
+     0, 16, 32, 64, 128, 192, 257, 514, 1028, 2053,
+     4095, 4095, 4095, 4095, 4095, 4095, 4095
+};
+
+// Legacy mild curve (pre-SDG-hook experiments).
+inline constexpr int kOx03c10DegammaYMild[kDegammaKnots] = {
+     0, 0, 0, 0, 1, 1, 1, 2, 4, 8, 16, 32, 64, 257, 642, 1544, 4095
 };
 
 // CCM from ox03c10.cc (Q12 / 128) — applied in rk_isp_userspace.cc
@@ -54,4 +58,11 @@ inline constexpr uint32_t kOx03c10CcmQ[9] = {
   0x00000fc2, 0x00000ff6, 0x000000c9,
 };
 
+inline constexpr uint16_t kOx03c10GammaCommaV11[kGammaKnots] = {
+     0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+     0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+     0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+    68,  68,  68,  99, 147, 221, 339, 528, 834,2000,3048,3756,
+  4095,
+};
 }  // namespace rk_tone

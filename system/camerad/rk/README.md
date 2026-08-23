@@ -34,9 +34,12 @@ Behavioral reference: **commaai/openpilot master** camera
 
 ## Tone (gamma / linearization)
 
-- Tables: `rk_tone_tables.h` from openpilot master `ox03c10.cc` + sensor PWL12 inverse.
-- **Gamma:** applied via `agamma_v11` manual (verified SetAttrib OK).
-- **Linearization:** `adegamma` uapi returns -255 — this librkaiq has `RKAIQ_HAVE_DEGAMMA_V1=0`.
-  Full PWL-inverse as a separate ISP stage is not available; composed `g(lin(x))` crushed
-  exposure-limited scenes. Degamma Y table kept for when HW/build supports it.
-- DRC forced off in runtime calib scaffold.
+Comma Spectra sequence (ox03c10):
+
+1. **Linearization** — PWL12 decompand (Spectra `linearization_lut` inverse)
+2. **Gamma** — ox03c10 analytic curve on linear data
+
+On RK3588 CamHw, `adegamma` uapi does not affect pixels (A/B verified). We apply the
+**mathematically equivalent** composed LUT `kOx03c10GammaCommaV11` = gamma(linearize(x))
+via `agamma_v11`, plus calib/uapi degamma for future HW. Tables in `rk_tone_tables.h`.
+

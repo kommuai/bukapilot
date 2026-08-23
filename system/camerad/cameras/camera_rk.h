@@ -54,8 +54,10 @@ public:
   int new_exp_g = 0;
   int new_exp_t = 0;
   float measured_grey_fraction = 0.f;
-  float target_grey_fraction = 0.3f;
+  float target_grey_fraction = 0.125f;
+  float fl_pix = 0.f;
   Rect ae_xywh = {};
+  bool ae_roi_ready_ = false;
   int i2c_bus = -1;   // /dev/i2c-N
   int i2c_addr = 0x36;
   unique_fd i2c_fd;   // persistent /dev/i2c-N (avoid open/close per AE)
@@ -85,6 +87,7 @@ public:
   float get_gain_factor() const;
   void apply_pwl_on();
   void update_exposure_score(float desired_ev, int exp_t, int exp_g_idx, float exp_gain);
+  void set_exposure_rect();
   void set_camera_exposure(float grey_frac);
 
   void sensors_start();

@@ -1,0 +1,11 @@
+#!/bin/bash
+# Launch camerad with ISP3.x SDG hook (Spectra degamma port).
+export KA2_US_FIX="${KA2_US_FIX:-14}"
+HOOK="/data/openpilot/system/camerad/rk/librk_sdg_hook.so"
+export LD_PRELOAD="${HOOK}${LD_PRELOAD:+:$LD_PRELOAD}"
+cd /data/openpilot
+if pgrep -x camerad >/dev/null 2>&1; then
+  killall camerad 2>/dev/null || true
+  sleep 1
+fi
+exec ./system/camerad/camerad "$@"
