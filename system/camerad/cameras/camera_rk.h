@@ -65,6 +65,7 @@ public:
   void camera_map_bufs(MultiCameraState *s);
   void camera_init(MultiCameraState *s, VisionIpcServer *v, cl_device_id device_id, cl_context ctx, VisionStreamType yuv_type);
   void dequeue_buf();
+  void queue_all_buffers();
   void stream_start();
   void camera_close();
 

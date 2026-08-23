@@ -26,7 +26,8 @@ public:
   const RkIspUserspaceController *isp() const { return rk_isp_.get(); }
 
   static void prepare_system(MultiCameraState *s);
-  static void start_isp_all(MultiCameraState *s);
+  static void prepare_isp_all(MultiCameraState *s);
+  static void synced_stream_and_start(MultiCameraState *s);
 
 private:
   float get_gain_factor(const CameraState *cam) const;

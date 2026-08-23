@@ -22,26 +22,34 @@ public:
   ~RkIspUserspaceController() { shutdown(); }
 
   bool init(const RkIspCamConfig &cfg);
-  bool prepare_and_start();  // after all cams inited (mul-cam)
+  bool prepare();              // sysctl_prepare (all cams before stream on)
+  bool wait_isp_stream_start(); // block until rkisp-input-params STREAM_START
+  bool start();                // sysctl_start (barrier-gated multi-cam)
+  bool prepare_and_start();    // single-cam fallback
   void apply_mwb(float r, float g, float b);
   void shutdown();
 
   bool active() const { return active_; }
   bool isp_started() const { return started_; }
+  bool isp_prepared() const { return prepared_; }
   const std::string &mainpath_dev() const { return cfg_.mainpath_dev; }
   int stats_fd() const { return -1; }   // aiq owns stats
-  int params_fd() const { return -1; }
+  int params_fd() const { return params_fd_; }
 
   static void stop_rkaiq();
   static void start_rkaiq();
   static void set_multi_cam_count(int n);
-  // Install camerad-owned JSON under /tmp/camerad_calib (never /etc/iqfiles).
   static bool ensure_runtime_calib();
 
 private:
+  bool subscribe_params_events();
+  void close_params_fd();
+
   RkIspCamConfig cfg_{};
   rk_aiq_sys_ctx_s *aiq_ = nullptr;
+  int params_fd_ = -1;
   bool active_ = false;
+  bool prepared_ = false;
   bool started_ = false;
 
   float wb_last_r_ = -1.f, wb_last_g_ = -1.f, wb_last_b_ = -1.f;

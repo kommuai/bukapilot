@@ -360,14 +360,39 @@ void Ka2CameraBackend::prepare_system(MultiCameraState *s) {
   s->driver_cam.camera_open(s, 2, kEnableDriver);
 }
 
-void Ka2CameraBackend::start_isp_all(MultiCameraState *s) {
+void Ka2CameraBackend::prepare_isp_all(MultiCameraState *s) {
   CameraState *cams[3] = {&s->wide_road_cam, &s->road_cam, &s->driver_cam};
   for (int i = 0; i < 3; i++) {
     if (!cams[i]->enabled || !cams[i]->ka2 || !cams[i]->ka2->isp() || !cams[i]->ka2->isp()->active()) continue;
-    if (!cams[i]->ka2->isp()->prepare_and_start()) {
-      LOGE("camera %d: CamHw prepare/start failed", cams[i]->camera_num);
+    if (!cams[i]->ka2->isp()->prepare()) {
+      LOGE("camera %d: CamHw prepare failed", cams[i]->camera_num);
     }
-    cams[i]->ka2->apply_flips(cams[i]);
-    cams[i]->ka2->log_init_summary(cams[i]);
+  }
+}
+
+void Ka2CameraBackend::synced_stream_and_start(MultiCameraState *s) {
+  CameraState *cams[3] = {&s->wide_road_cam, &s->road_cam, &s->driver_cam};
+
+  LOG("KA2 sync: sysctl_start all ISP contexts");
+  for (int i = 0; i < 3; i++) {
+    if (!cams[i]->enabled || !cams[i]->ka2 || !cams[i]->ka2->isp() || !cams[i]->ka2->isp()->active()) continue;
+    if (!cams[i]->ka2->isp()->start()) {
+      LOGE("camera %d: CamHw start failed", cams[i]->camera_num);
+    }
+  }
+
+  for (int i = 0; i < 3; i++) {
+    if (!cams[i]->enabled) continue;
+    cams[i]->queue_all_buffers();
+    if (ioctl(cams[i]->video_fd, VIDIOC_STREAMON, &cams[i]->fmt.type) < 0) {
+      LOGE("camera %d: VIDIOC_STREAMON failed errno=%d '%s'", cams[i]->camera_num, errno, strerror(errno));
+      cams[i]->enabled = false;
+      continue;
+    }
+    if (cams[i]->ka2) {
+      cams[i]->ka2->on_stream_start(cams[i]);
+      cams[i]->ka2->apply_flips(cams[i]);
+      cams[i]->ka2->log_init_summary(cams[i]);
+    }
   }
 }

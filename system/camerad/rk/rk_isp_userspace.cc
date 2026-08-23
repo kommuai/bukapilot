@@ -6,10 +6,15 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <fcntl.h>
 #include <string>
+#include <sys/ioctl.h>
 #include <sys/stat.h>
+#include <time.h>
 #include <unistd.h>
 
+#include <linux/videodev2.h>
+#include <common/rkisp2-config.h>
 #include <uAPI2/rk_aiq_user_api2_sysctl.h>
 #include <uAPI2/rk_aiq_user_api2_imgproc.h>
 #include <uAPI2/rk_aiq_user_api2_agamma.h>
@@ -33,6 +38,37 @@ const char *kCalibNames[] = {
   "ox03c10_D2V11K_9420.json",
   "ox03c10_D2V12K_9421.json",
 };
+
+static constexpr float kKa2WbR = 1.55f;
+static constexpr float kKa2WbG = 1.00f;
+static constexpr float kKa2WbB = 1.88f;
+
+std::string resolve_v4l_dev_by_name_index(const char *name, int index) {
+  for (int i = 0; i < 64; i++) {
+    char syspath[64], devname[128];
+    snprintf(syspath, sizeof(syspath), "/sys/class/video4linux/video%d/name", i);
+    FILE *f = fopen(syspath, "r");
+    if (!f) continue;
+    if (!fgets(devname, sizeof(devname), f)) {
+      fclose(f);
+      continue;
+    }
+    fclose(f);
+    devname[strcspn(devname, "\n")] = 0;
+    if (strcmp(devname, name) != 0) continue;
+    if (index-- != 0) continue;
+    char path[32];
+    snprintf(path, sizeof(path), "/dev/video%d", i);
+    return path;
+  }
+  return {};
+}
+
+struct RkCamSync {
+  int expected = 1;
+};
+
+RkCamSync g_sync;
 
 bool link_or_copy_calib(const std::string &src, const std::string &dst) {
   struct stat ss {};
@@ -79,16 +115,13 @@ bool link_or_copy_calib(const std::string &src, const std::string &dst) {
   return ok;
 }
 
-static constexpr float kKa2WbR = 1.55f;
-static constexpr float kKa2WbG = 1.00f;
-static constexpr float kKa2WbB = 1.88f;
-
 }  // namespace
 
 int RkIspUserspaceController::multi_cam_n_ = 1;
 
 void RkIspUserspaceController::set_multi_cam_count(int n) {
   multi_cam_n_ = std::max(1, n);
+  g_sync.expected = multi_cam_n_;
 }
 
 bool RkIspUserspaceController::ensure_runtime_calib() {
@@ -122,7 +155,6 @@ void RkIspUserspaceController::stop_rkaiq() {
               "sleep 1");
   if (std::system("pidof rkaiq_3A_server >/dev/null") == 0) {
     LOGE("RkIspUserspace: rkaiq_3A_server still alive after stop");
-  } else {
   }
   ensure_runtime_calib();
 }
@@ -154,6 +186,24 @@ void RkIspUserspaceController::apply_mwb(float r, float g, float b) {
   rk_aiq_uapi2_setWBMode(aiq_, OP_MANUAL);
 }
 
+bool RkIspUserspaceController::subscribe_params_events() {
+  if (params_fd_ < 0) return false;
+  struct v4l2_event_subscription sub = {};
+  sub.type = CIFISP_V4L2_EVENT_STREAM_START;
+  if (ioctl(params_fd_, VIDIOC_SUBSCRIBE_EVENT, &sub) < 0) {
+    LOGE("RkIspUserspace cam%d: subscribe STREAM_START failed errno=%d", cfg_.camera_num, errno);
+    return false;
+  }
+  return true;
+}
+
+void RkIspUserspaceController::close_params_fd() {
+  if (params_fd_ >= 0) {
+    close(params_fd_);
+    params_fd_ = -1;
+  }
+}
+
 bool RkIspUserspaceController::init(const RkIspCamConfig &cfg) {
   cfg_ = cfg;
   if (cfg_.mainpath_dev.empty()) {
@@ -173,9 +223,26 @@ bool RkIspUserspaceController::init(const RkIspCamConfig &cfg) {
     LOGE("RkIspUserspace cam%d: sysctl_init failed (dir=%s)", cfg_.camera_num, kCalibRuntimeDir);
     return false;
   }
+  rk_aiq_uapi2_sysctl_setListenStrmStatus(aiq_, false);
   if (multi_cam_n_ > 1) {
     rk_aiq_uapi2_sysctl_setMulCamConc(aiq_, true);
   }
+
+  const std::string params_dev = resolve_v4l_dev_by_name_index("rkisp-input-params", cfg_.camera_num);
+  if (params_dev.empty()) {
+    LOGE("RkIspUserspace cam%d: rkisp-input-params not found", cfg_.camera_num);
+    return false;
+  }
+  params_fd_ = open(params_dev.c_str(), O_RDWR | O_CLOEXEC);
+  if (params_fd_ < 0) {
+    LOGE("RkIspUserspace cam%d: open %s failed errno=%d", cfg_.camera_num, params_dev.c_str(), errno);
+    return false;
+  }
+  if (!subscribe_params_events()) {
+    close_params_fd();
+    return false;
+  }
+
   active_ = true;
   return true;
 }
@@ -223,7 +290,6 @@ static void apply_daylight_wb_ccm(const rk_aiq_sys_ctx_t *aiq, int camera_num) {
 }
 
 static void apply_road_chroma_guard(const rk_aiq_sys_ctx_t *aiq) {
-  // Road calib disables NR/LSC/dehaze; keep chroma via get-modify-set (slice 3 lesson).
   acp_attrib_t acp = {};
   acp.sync.sync_mode = RK_AIQ_UAPI_MODE_SYNC;
   rk_aiq_user_api2_acp_GetAttrib(aiq, &acp);
@@ -242,7 +308,6 @@ static void apply_road_chroma_guard(const rk_aiq_sys_ctx_t *aiq) {
 }
 
 static void apply_comma_gamma(const rk_aiq_sys_ctx_t *aiq, int camera_num) {
-  // PWL decompand is owned by the SDG librkaiq hook; set ox03c10 gamma only.
   rk_aiq_gamma_v11_attr_t gam = {};
   gam.sync.done = false;
   gam.mode = RK_AIQ_GAMMA_MODE_MANUAL;
@@ -256,8 +321,8 @@ static void apply_comma_gamma(const rk_aiq_sys_ctx_t *aiq, int camera_num) {
   }
 }
 
-bool RkIspUserspaceController::prepare_and_start() {
-  if (!active_ || !aiq_ || started_) return active_ && started_;
+bool RkIspUserspaceController::prepare() {
+  if (!active_ || !aiq_ || prepared_) return active_ && prepared_;
   XCamReturn r = rk_aiq_uapi2_sysctl_prepare(aiq_, 1920, 1200, RK_AIQ_WORKING_MODE_NORMAL);
   if (r != XCAM_RETURN_NO_ERROR) {
     LOGE("RkIspUserspace cam%d: prepare failed %d", cfg_.camera_num, (int)r);
@@ -278,8 +343,36 @@ bool RkIspUserspaceController::prepare_and_start() {
   }
 
   apply_comma_gamma(aiq_, cfg_.camera_num);
+  prepared_ = true;
+  return true;
+}
 
-  r = rk_aiq_uapi2_sysctl_start(aiq_);
+bool RkIspUserspaceController::wait_isp_stream_start() {
+  if (!active_ || params_fd_ < 0) return false;
+  struct v4l2_event event = {};
+  for (;;) {
+    if (ioctl(params_fd_, VIDIOC_DQEVENT, &event) == 0 && event.type == CIFISP_V4L2_EVENT_STREAM_START) {
+      struct timespec ts = {};
+      clock_gettime(CLOCK_MONOTONIC, &ts);
+      LOG("RkIspUserspace cam%d: ISP STREAM_START at %ld.%09ld", cfg_.camera_num, ts.tv_sec, ts.tv_nsec);
+      return true;
+    }
+    if (errno != EAGAIN && errno != EINTR) {
+      LOGE("RkIspUserspace cam%d: DQEVENT failed errno=%d", cfg_.camera_num, errno);
+      return false;
+    }
+    usleep(1000);
+  }
+}
+
+bool RkIspUserspaceController::start() {
+  if (!active_ || !aiq_ || !prepared_ || started_) return active_ && started_;
+
+  struct timespec ts = {};
+  clock_gettime(CLOCK_MONOTONIC, &ts);
+  LOG("RkIspUserspace cam%d: sysctl_start at %ld.%09ld", cfg_.camera_num, ts.tv_sec, ts.tv_nsec);
+
+  XCamReturn r = rk_aiq_uapi2_sysctl_start(aiq_);
   if (r != XCAM_RETURN_NO_ERROR) {
     LOGE("RkIspUserspace cam%d: start failed %d", cfg_.camera_num, (int)r);
     return false;
@@ -292,6 +385,11 @@ bool RkIspUserspaceController::prepare_and_start() {
   return true;
 }
 
+bool RkIspUserspaceController::prepare_and_start() {
+  if (!prepare()) return false;
+  return start();
+}
+
 void RkIspUserspaceController::shutdown() {
   if (aiq_) {
     if (started_) {
@@ -301,5 +399,7 @@ void RkIspUserspaceController::shutdown() {
     rk_aiq_uapi2_sysctl_deinit(aiq_);
     aiq_ = nullptr;
   }
+  close_params_fd();
   active_ = false;
+  prepared_ = false;
 }

@@ -122,7 +122,7 @@ void CameraState::camera_open(MultiCameraState *multi_cam_state_, int camera_num
   }
 }
 
-void CameraState::stream_start() {
+void CameraState::queue_all_buffers() {
   if (!enabled) return;
   for (int i = 0; i < FRAME_BUF_COUNT; ++i) {
     memset(&v4l_buf, 0, sizeof(v4l_buf));
@@ -133,12 +133,18 @@ void CameraState::stream_start() {
     v4l_buf.m.planes = planes;
     v4l_buf.index = i;
     if (ioctl(video_fd, VIDIOC_QBUF, &v4l_buf) < 0) {
-      LOGE("camera %d: VIDIOC_QBUF failed during stream start idx=%d errno=%d '%s' (mode=%s)",
-           camera_num, i, errno, strerror(errno), "mmap");
+      LOGE("camera %d: VIDIOC_QBUF failed during stream start idx=%d errno=%d '%s'",
+           camera_num, i, errno, strerror(errno));
       enabled = false;
       return;
     }
   }
+}
+
+void CameraState::stream_start() {
+  if (!enabled) return;
+  queue_all_buffers();
+  if (!enabled) return;
 
   if (ioctl(video_fd, VIDIOC_STREAMON, &fmt.type) < 0) {
     LOGE("camera %d: VIDIOC_STREAMON failed errno=%d '%s'", camera_num, errno, strerror(errno));
@@ -189,7 +195,7 @@ void cameras_init(VisionIpcServer *v, MultiCameraState *s, cl_device_id device_i
 
 void cameras_open(MultiCameraState *s) {
   Ka2CameraBackend::prepare_system(s);
-  Ka2CameraBackend::start_isp_all(s);
+  Ka2CameraBackend::prepare_isp_all(s);
 }
 
 void CameraState::camera_close() {
@@ -280,9 +286,7 @@ void cameras_run(MultiCameraState *s) {
   if (s->road_cam.enabled) threads.push_back(start_process_thread(s, &s->road_cam, process_road_camera));
   if (s->wide_road_cam.enabled) threads.push_back(start_process_thread(s, &s->wide_road_cam, process_road_camera));
 
-  s->wide_road_cam.stream_start();
-  s->road_cam.stream_start();
-  s->driver_cam.stream_start();
+  Ka2CameraBackend::synced_stream_and_start(s);
 
   uint64_t road_cam_ts[SYNC_CHECK_LEN];
   uint64_t wide_cam_ts[SYNC_CHECK_LEN];
