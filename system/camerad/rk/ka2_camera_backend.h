@@ -38,6 +38,8 @@ private:
   void set_camera_exposure(CameraState *cam, float grey_frac);
   void apply_fixed_exposure(CameraState *cam, int exp_t, int gidx, bool hcg);
   bool read_ctrl(const CameraState *cam, uint32_t id, int *out) const;
+  bool write_ctrl(const CameraState *cam, uint32_t id, int val) const;
+  void apply_sensor_exposure_hw(CameraState *cam, int exp_t, int gidx, bool dc_gain);
   std::string resolve_mainpath_dev(int camera_num) const;
 
   std::unique_ptr<RkIspUserspaceController> rk_isp_;

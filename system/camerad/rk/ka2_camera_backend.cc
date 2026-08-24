@@ -28,6 +28,40 @@ constexpr bool kEnableDriver = true;
 
 }  // namespace
 
+
+bool Ka2CameraBackend::write_ctrl(const CameraState *cam, uint32_t id, int val) const {
+  struct v4l2_control c = {};
+  c.id = id;
+  c.value = val;
+  return ioctl(cam->ctrl_fd, VIDIOC_S_CTRL, &c) >= 0;
+}
+
+void Ka2CameraBackend::apply_sensor_exposure_hw(CameraState *cam, int exp_t, int gidx, bool dc_gain) {
+  if (cam->ctrl_fd < 0 || !cam->ci) return;
+  auto exp_reg_array = cam->ci->getExposureRegisters(exp_t, gidx, dc_gain);
+  uint16_t real_gain = 0;
+  for (const auto &r : exp_reg_array) {
+    if (r.reg_addr == 0x3508) {
+      real_gain = (uint16_t)((real_gain & 0x00ff) | ((r.reg_data & 0xff) << 8));
+    } else if (r.reg_addr == 0x3509) {
+      real_gain = (uint16_t)((real_gain & 0xff00) | (r.reg_data & 0xff));
+    }
+  }
+  if (real_gain == 0) real_gain = 0x100;
+  const int v4l2_ag = std::max(16, (int)(real_gain >> 4));
+
+  if (!write_ctrl(cam, V4L2_CID_EXPOSURE, exp_t)) {
+    if (cam->frame_id_last % 120 == 0) {
+      LOGE("camera %d: V4L2 exposure=%d failed errno=%d", cam->camera_num, exp_t, errno);
+    }
+  }
+  if (!write_ctrl(cam, V4L2_CID_ANALOGUE_GAIN, v4l2_ag)) {
+    if (cam->frame_id_last % 120 == 0) {
+      LOGE("camera %d: V4L2 analogue_gain=%d failed errno=%d", cam->camera_num, v4l2_ag, errno);
+    }
+  }
+}
+
 bool Ka2CameraBackend::read_ctrl(const CameraState *cam, uint32_t id, int *out) const {
   struct v4l2_control c = {};
   c.id = id;
@@ -74,7 +108,7 @@ bool Ka2CameraBackend::open(CameraState *cam) {
   cam->ci = std::make_unique<OX03C10>();
   static const int kI2cBusByCam[3] = {1, 3, 6};
   i2c_bus_ = kI2cBusByCam[std::clamp(cam->camera_num, 0, 2)];
-  i2c_addr_ = 0x36;
+  i2c_addr_ = cam->ci->getSlaveAddress(cam->camera_num) >> 1;
   dc_gain_weight_ = cam->ci->dc_gain_min_weight;
   gain_idx_ = cam->ci->analog_gain_rec_idx;
   exposure_time_ = 5;
@@ -229,7 +263,7 @@ void Ka2CameraBackend::apply_fixed_exposure(CameraState *cam, int exp_t, int gid
                     return a.reg_addr == b.reg_addr && a.reg_data == b.reg_data;
                   });
   if (regs_changed) {
-    sensors_i2c(cam, exp_reg_array.data(), (int)exp_reg_array.size());
+    apply_sensor_exposure_hw(cam, exp_t, gidx, hcg);
     last_exp_regs_ = std::move(exp_reg_array);
   }
 }
@@ -316,7 +350,7 @@ void Ka2CameraBackend::set_camera_exposure(CameraState *cam, float grey_frac) {
                     return a.reg_addr == b.reg_addr && a.reg_data == b.reg_data;
                   });
   if (regs_changed) {
-    sensors_i2c(cam, exp_reg_array.data(), (int)exp_reg_array.size());
+    apply_sensor_exposure_hw(cam, exposure_time_, gain_idx_, dc_gain_enabled_);
     last_exp_regs_ = std::move(exp_reg_array);
   }
 
