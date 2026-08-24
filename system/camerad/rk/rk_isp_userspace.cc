@@ -25,7 +25,6 @@
 #include <uAPI2/rk_aiq_user_api2_adebayer.h>
 #include <uAPI2/rk_aiq_user_api2_alsc.h>
 #include <algos/accm/rk_aiq_types_accm_algo.h>
-#include "system/camerad/rk/rk_lsc_tables.h"
 #include "system/camerad/rk/rk_tone_tables.h"
 
 #include "common/swaglog.h"
@@ -189,6 +188,7 @@ void RkIspUserspaceController::apply_mwb(float r, float g, float b) {
   rk_aiq_uapi2_setWBMode(aiq_, OP_MANUAL);
 }
 
+
 bool RkIspUserspaceController::subscribe_params_events() {
   if (params_fd_ < 0) return false;
   struct v4l2_event_subscription sub = {};
@@ -310,17 +310,6 @@ static void apply_road_chroma_guard(const rk_aiq_sys_ctx_t *aiq) {
   rk_aiq_user_api2_adebayer_SetAttrib(aiq, db);
 }
 
-static void fill_lsc_mesh_tables(rk_aiq_lsc_table_t &tbl) {
-  memcpy(tbl.lsc_sect_size_x, rk_lsc::kSectSizeX, sizeof(rk_lsc::kSectSizeX));
-  memcpy(tbl.lsc_sect_size_y, rk_lsc::kSectSizeY, sizeof(rk_lsc::kSectSizeY));
-  for (int i = 0; i < LSC_DATA_TBL_SIZE; i++) {
-    const uint16_t g = rk_lsc::kOx03c10LscMesh[i];
-    tbl.r_data_tbl[i] = g;
-    tbl.gr_data_tbl[i] = g;
-    tbl.gb_data_tbl[i] = g;
-    tbl.b_data_tbl[i] = g;
-  }
-}
 
 static void apply_lsc_off(const rk_aiq_sys_ctx_t *aiq, int camera_num) {
   rk_aiq_lsc_attrib_t attr = {};
@@ -333,23 +322,6 @@ static void apply_lsc_off(const rk_aiq_sys_ctx_t *aiq, int camera_num) {
   LOGW("RkIspUserspace cam%d: LSC OFF byPass set=%d en=%d", camera_num, (int)rs, qi.lsc_en ? 1 : 0);
 }
 
-static void apply_comma_lsc(const rk_aiq_sys_ctx_t *aiq, int camera_num) {
-  rk_aiq_uapi2_sysctl_setModuleCtl(aiq, RK_MODULE_LSC, true);
-
-  rk_aiq_lsc_attrib_t attr = {};
-  rk_aiq_user_api2_alsc_GetAttrib(aiq, &attr);
-  attr.byPass = false;
-  attr.mode = RK_AIQ_LSC_MODE_MANUAL;
-  attr.sync.sync_mode = RK_AIQ_UAPI_MODE_SYNC;
-  fill_lsc_mesh_tables(attr.stManual);
-
-  const XCamReturn rs = rk_aiq_user_api2_alsc_SetAttrib(aiq, attr);
-  rk_aiq_lsc_querry_info_t qi = {};
-  rk_aiq_user_api2_alsc_QueryLscInfo(aiq, &qi);
-  LOGW("RkIspUserspace cam%d: LSC ON set=%d en=%d center=%u corner=%u",
-       camera_num, (int)rs, qi.lsc_en ? 1 : 0,
-       qi.gr_data_tbl[8 * 17 + 8], qi.gr_data_tbl[16 * 17 + 16]);
-}
 
 static void apply_comma_gamma(const rk_aiq_sys_ctx_t *aiq, int camera_num) {
   rk_aiq_gamma_v11_attr_t gam = {};
@@ -424,11 +396,9 @@ bool RkIspUserspaceController::start() {
   started_ = true;
 
   apply_daylight_wb_ccm(aiq_, cfg_.camera_num);
+  apply_lsc_off(aiq_, cfg_.camera_num);
   if (cfg_.camera_num == 1) {
-    apply_comma_lsc(aiq_, cfg_.camera_num);
     apply_road_chroma_guard(aiq_);
-  } else {
-    apply_lsc_off(aiq_, cfg_.camera_num);
   }
 
   return true;
