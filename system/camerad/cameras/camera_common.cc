@@ -17,6 +17,7 @@
 #include "cereal/messaging/messaging.h"
 #include "common/clutil.h"
 #include "common/swaglog.h"
+#include "common/timing.h"
 #include "system/camerad/cameras/camera_rk.h"
 #ifdef QCOM2
 #include "CL/cl_ext_qcom.h"
@@ -332,7 +333,11 @@ void *processing_thread(MultiCameraState *cameras, CameraState *cs, process_thre
     callback(cameras, cs, cnt);
 
     if (cs == &(cameras->road_cam) && cameras->pm && cnt % 100 == 3) {
-      enqueue_thumbnail(&(cs->buf));
+      constexpr uint64_t kThumbnailStabilizationNs = 500'000'000ULL;
+      const uint64_t now = nanos_since_boot();
+      if (cs->stream_start_ns > 0 && (now - cs->stream_start_ns) >= kThumbnailStabilizationNs) {
+        enqueue_thumbnail(&(cs->buf));
+      }
     }
     ++cnt;
   }

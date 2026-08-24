@@ -11,7 +11,9 @@
 #include <linux/i2c-dev.h>
 #include <sys/ioctl.h>
 
+#include "common/params.h"
 #include "common/swaglog.h"
+#include "common/timing.h"
 #include "system/camerad/cameras/camera_rk.h"
 #include "system/camerad/rk/rk_pwl_regs.h"
 #include "third_party/linux/include/v4l2-controls.h"
@@ -112,6 +114,7 @@ void Ka2CameraBackend::close(CameraState *cam) {
 }
 
 void Ka2CameraBackend::on_stream_start(CameraState *cam) {
+  cam->stream_start_ns = nanos_since_boot();
   apply_pwl_on(cam);
 }
 
@@ -204,9 +207,53 @@ void Ka2CameraBackend::set_exposure_rect(CameraState *cam) {
   };
 }
 
+void Ka2CameraBackend::apply_fixed_exposure(CameraState *cam, int exp_t, int gidx, bool hcg) {
+  if (!cam->enabled || !cam->ci) return;
+  gidx = std::clamp(gidx, cam->ci->analog_gain_min_idx, cam->ci->analog_gain_max_idx);
+  exp_t = std::clamp(exp_t, cam->ci->exposure_time_min, cam->ci->exposure_time_max);
+
+  new_exp_g_ = gidx;
+  new_exp_t_ = exp_t;
+  gain_idx_ = gidx;
+  exposure_time_ = exp_t;
+  dc_gain_enabled_ = hcg;
+  analog_gain_frac_ = cam->ci->sensor_analog_gains[gidx];
+
+  float gain = analog_gain_frac_ * get_gain_factor(cam);
+  cur_ev_[cam->buf.cur_frame_data.frame_id % 3] = exposure_time_ * gain;
+
+  auto exp_reg_array = cam->ci->getExposureRegisters(exposure_time_, gain_idx_, dc_gain_enabled_);
+  const bool regs_changed = last_exp_regs_.size() != exp_reg_array.size() ||
+      !std::equal(exp_reg_array.begin(), exp_reg_array.end(), last_exp_regs_.begin(),
+                  [](const i2c_random_wr_payload &a, const i2c_random_wr_payload &b) {
+                    return a.reg_addr == b.reg_addr && a.reg_data == b.reg_data;
+                  });
+  if (regs_changed) {
+    sensors_i2c(cam, exp_reg_array.data(), (int)exp_reg_array.size());
+    last_exp_regs_ = std::move(exp_reg_array);
+  }
+}
+
 void Ka2CameraBackend::set_camera_exposure(CameraState *cam, float grey_frac) {
   if (!cam->enabled || !cam->ci) return;
   std::lock_guard lk(exp_lock_);
+
+  if (cam->camera_num == 1) {
+    static Params params;
+    if (params.getBool("Ka2AeManual")) {
+      int exp_t = 5;
+      int gidx = (int)cam->ci->analog_gain_rec_idx;
+      bool hcg = false;
+      const std::string exp_s = params.get("Ka2AeExp");
+      const std::string gidx_s = params.get("Ka2AeGainIdx");
+      if (!exp_s.empty()) exp_t = std::stoi(exp_s);
+      if (!gidx_s.empty()) gidx = std::stoi(gidx_s);
+      hcg = params.getBool("Ka2AeHcg");
+      apply_fixed_exposure(cam, exp_t, gidx, hcg);
+      measured_grey_fraction_ = grey_frac;
+      return;
+    }
+  }
 
   static const float target_grey_minimums[3] = {0.1f, 0.1f, 0.125f};
   const float tg_min = target_grey_minimums[std::clamp(cam->camera_num, 0, 2)];
@@ -300,7 +347,7 @@ void Ka2CameraBackend::on_dequeue(CameraState *cam, FrameMetadata &md, int buf_i
   const uint8_t *y = reinterpret_cast<const uint8_t *>(cam->buf.camera_bufs[buf_idx].addr);
   const int w = cam->buf.rgb_width;
   const int h = cam->buf.rgb_height;
-  if (y && w > 0 && h > 0 && cam->ci && (md.frame_id & 1) == 0) {
+  if (y && w > 0 && h > 0 && cam->ci) {
     cam->buf.cur_yuv_buf = &cam->buf.camera_bufs[buf_idx];
     cam->buf.out_img_width = (uint32_t)w;
     cam->buf.out_img_height = (uint32_t)h;

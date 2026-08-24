@@ -51,6 +51,7 @@ public:
   uint32_t temp_poll_divider = 8;
 
   uint64_t cap_time = 0;
+  uint64_t stream_start_ns = 0;
 
   struct v4l2_format fmt = {};
   struct v4l2_requestbuffers req = {};
