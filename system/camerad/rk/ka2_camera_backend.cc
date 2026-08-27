@@ -16,7 +16,6 @@
 #include "common/timing.h"
 #include "system/camerad/cameras/camera_rk.h"
 #include "system/camerad/rk/rk_pwl_regs.h"
-#include "system/camerad/rk/rk_agent_debug.h"
 #include "third_party/linux/include/v4l2-controls.h"
 
 namespace {
@@ -69,14 +68,15 @@ bool Ka2CameraBackend::write_ctrl(const CameraState *cam, uint32_t id, int val) 
   return ioctl(cam->ctrl_fd, VIDIOC_S_CTRL, &c) >= 0;
 }
 
-void Ka2CameraBackend::apply_sensor_exposure_hw(CameraState *cam, int exp_t, int gidx, bool dc_gain) {
-  if (!cam->ci) return;
+bool Ka2CameraBackend::apply_sensor_exposure_hw(CameraState *cam, int exp_t, int gidx, bool dc_gain) {
+  if (!cam || !cam->ci) return false;
   auto exp_reg_array = cam->ci->getExposureRegisters(exp_t, gidx, dc_gain);
-  if (exp_reg_array.empty()) return;
-
-  // Comma-style I2C only. Do not touch V4L2 exposure/gain — the kernel driver
-  // contends on the same I2C bus (errno=110) and mirrors gain to all HDR paths.
-  sensors_i2c(cam, exp_reg_array.data(), (int)exp_reg_array.size());
+  if (exp_reg_array.empty()) return false;
+  exp_reg_array.insert(exp_reg_array.begin(), {
+    {0x380e, (uint32_t)(frame_length_vts_ >> 8)},
+    {0x380f, (uint32_t)(frame_length_vts_ & 0xff)},
+  });
+  return sensors_i2c(cam, exp_reg_array.data(), (int)exp_reg_array.size());
 }
 
 bool Ka2CameraBackend::read_ctrl(const CameraState *cam, uint32_t id, int *out) const {
@@ -115,6 +115,7 @@ bool Ka2CameraBackend::open(CameraState *cam) {
   cam->ctrl_fd = ::open(device, O_RDWR);
   if (cam->ctrl_fd < 0) return false;
 
+  // Configure orientation before rkaiq reads the kernel's Bayer format.
   apply_flips(cam);
 
   int temp_raw = 0;
@@ -124,10 +125,10 @@ bool Ka2CameraBackend::open(CameraState *cam) {
 
   cam->ci = std::make_unique<OX03C10>();
   static const int kI2cBusByCam[3] = {1, 3, 6};
-  static const int kI2cAddrByCam[3] = {0x36, 0x36, 0x36};
   i2c_bus_ = kI2cBusByCam[std::clamp(cam->camera_num, 0, 2)];
-  // RK3588 KA2: every ox03c10 sits at 0x36 on its own bus (comma/QCOM uses 0x6C/0x20).
-  i2c_addr_ = kI2cAddrByCam[std::clamp(cam->camera_num, 0, 2)];
+  // KA2 places every OX03C10 at 0x36 on its own I2C bus.
+  i2c_addr_ = 0x36;
+  apply_flips(cam);
   dc_gain_weight_ = cam->ci->dc_gain_min_weight;
   gain_idx_ = cam->ci->analog_gain_rec_idx;
   exposure_time_ = 5;
@@ -172,8 +173,28 @@ void Ka2CameraBackend::on_stream_start(CameraState *cam) {
 }
 
 float Ka2CameraBackend::get_gain_factor(const CameraState *cam) const {
-  if (!cam->ci) return 1.0f;
+  // LCG is unity.  Only HCG contributes the sensor's DCG ratio.
+  if (!cam->ci || !dc_gain_enabled_) return 1.0f;
   return (1.0f + dc_gain_weight_ * (cam->ci->dc_gain_factor - 1.0f) / std::max(1, cam->ci->dc_gain_max_weight));
+}
+
+bool Ka2CameraBackend::set_frame_length_vts(CameraState *cam, int exposure_lines) {
+  if (!cam || !cam->ci || i2c_bus_ < 0) return false;
+  const int vts = std::clamp(
+      std::max(ox03c10_limits::kMinVts, exposure_lines + ox03c10_limits::kHdr4Margin),
+      ox03c10_limits::kMinVts, ox03c10_limits::kMaxVts);
+  if (vts == frame_length_vts_) return true;
+
+  frame_length_vts_ = vts;
+  return true;
+}
+
+void Ka2CameraBackend::update_output_cadence(CameraState *cam) const {
+  // Keep KA2 VisionIPC publication at 20 Hz. Extended VTS determines how
+  // often the sensor delivers a new image; the publisher repeats an owned
+  // copy until that next image arrives. Keeping this active at nominal VTS
+  // also prevents a late ISP/V4L2 delivery from breaking the 20 Hz contract.
+  cam->buf.set_repeat_output(true);
 }
 
 void Ka2CameraBackend::update_exposure_score(CameraState *cam, float desired_ev, int exp_t, int exp_g_idx, float exp_gain) {
@@ -196,8 +217,8 @@ void Ka2CameraBackend::apply_pwl_on(CameraState *cam) {
   LOGD("camera %d: PWL-ON (%zu regs)", cam->camera_num, wr.size());
 }
 
-void Ka2CameraBackend::sensors_i2c(CameraState *cam, const i2c_random_wr_payload *dat, int len) {
-  if (i2c_bus_ < 0 || !dat || len <= 0) return;
+bool Ka2CameraBackend::sensors_i2c(CameraState *cam, const i2c_random_wr_payload *dat, int len) {
+  if (i2c_bus_ < 0 || !dat || len <= 0) return false;
   std::lock_guard lk(i2c_lock_);
   if (i2c_fd_.fd_ < 0) {
     char path[32];
@@ -207,17 +228,18 @@ void Ka2CameraBackend::sensors_i2c(CameraState *cam, const i2c_random_wr_payload
       if (cam->frame_id_last % 120 == 0) {
         LOGE("camera %d: open %s failed errno=%d", cam->camera_num, path, errno);
       }
-      return;
+      return false;
     }
     i2c_fd_.fd_ = fd;
   }
-
-  const bool ae_regs = len <= 12 && dat[0].reg_addr >= 0x3500 && dat[0].reg_addr < 0x3600;
+  const bool ae_regs = len <= 64 && std::any_of(dat, dat + len, [](const i2c_random_wr_payload &r) {
+    return (r.reg_addr >= 0x3500 && r.reg_addr < 0x3600) || r.reg_addr == 0x380e || r.reg_addr == 0x380f;
+  });
   if (ae_regs && !i2c_write_reg8(i2c_fd_.fd_, (uint16_t)i2c_addr_, kGrpHoldReg, 0x00)) {
     if (cam->frame_id_last % 120 == 0) {
-      LOGE("camera %d: i2c group-hold start failed errno=%d", cam->camera_num, errno);
+      LOGE("camera %d: i2c group hold start failed errno=%d", cam->camera_num, errno);
     }
-    return;
+    return false;
   }
 
   uint8_t bufs[kI2cChunk][3];
@@ -235,23 +257,27 @@ void Ka2CameraBackend::sensors_i2c(CameraState *cam, const i2c_random_wr_payload
       msgs[i].buf = bufs[i];
     }
     if (!i2c_write_msgs(i2c_fd_.fd_, msgs, chunk)) {
-      if (cam->frame_id_last % 120 == 0) {
-        LOGE("camera %d: i2c batch wr off=%d n=%d failed errno=%d", cam->camera_num, off, chunk, errno);
-      }
+      if (cam->frame_id_last % 120 == 0) LOGE("camera %d: i2c batch wr failed errno=%d", cam->camera_num, errno);
       ::close(i2c_fd_.fd_);
       i2c_fd_.fd_ = -1;
-      return;
+      return false;
     }
   }
-
   if (ae_regs) {
+    // The driver-camera module remains in delayed-launch mode after its
+    // production init sequence.  Quick launch (E0) is accepted by the wide
+    // and road modules, but is ignored by camera 2; A0 is the documented
+    // delayed launch command for that module.
+    const uint8_t launch = cam->camera_num == 2 ? 0xA0 : 0xE0;
     if (!i2c_write_reg8(i2c_fd_.fd_, (uint16_t)i2c_addr_, kGrpHoldReg, 0x10) ||
-        !i2c_write_reg8(i2c_fd_.fd_, (uint16_t)i2c_addr_, kGrpHoldReg, 0xE0)) {
+        !i2c_write_reg8(i2c_fd_.fd_, (uint16_t)i2c_addr_, kGrpHoldReg, launch)) {
       if (cam->frame_id_last % 120 == 0) {
-        LOGE("camera %d: i2c group-hold launch failed errno=%d", cam->camera_num, errno);
+        LOGE("camera %d: i2c group hold launch failed errno=%d", cam->camera_num, errno);
       }
+      return false;
     }
   }
+  return true;
 }
 
 void Ka2CameraBackend::set_exposure_rect(CameraState *cam) {
@@ -281,6 +307,18 @@ void Ka2CameraBackend::apply_fixed_exposure(CameraState *cam, int exp_t, int gid
   if (!cam->enabled || !cam->ci) return;
   gidx = std::clamp(gidx, cam->ci->analog_gain_min_idx, cam->ci->analog_gain_max_idx);
   exp_t = std::clamp(exp_t, cam->ci->exposure_time_min, cam->ci->exposure_time_max);
+  if (!set_frame_length_vts(cam, exp_t)) return;
+
+  auto exp_reg_array = cam->ci->getExposureRegisters(exp_t, gidx, hcg);
+  const bool regs_changed = last_exp_regs_.size() != exp_reg_array.size() ||
+      !std::equal(exp_reg_array.begin(), exp_reg_array.end(), last_exp_regs_.begin(),
+                  [](const i2c_random_wr_payload &a, const i2c_random_wr_payload &b) {
+                    return a.reg_addr == b.reg_addr && a.reg_data == b.reg_data;
+                  });
+  if (regs_changed && !apply_sensor_exposure_hw(cam, exp_t, gidx, hcg)) {
+    return;
+  }
+  update_output_cadence(cam);
 
   new_exp_g_ = gidx;
   new_exp_t_ = exp_t;
@@ -288,20 +326,10 @@ void Ka2CameraBackend::apply_fixed_exposure(CameraState *cam, int exp_t, int gid
   exposure_time_ = exp_t;
   dc_gain_enabled_ = hcg;
   analog_gain_frac_ = cam->ci->sensor_analog_gains[gidx];
+  if (regs_changed) last_exp_regs_ = std::move(exp_reg_array);
 
   float gain = analog_gain_frac_ * get_gain_factor(cam);
-  cur_ev_[cam->buf.cur_frame_data.frame_id % 3] = exposure_time_ * gain;
-
-  auto exp_reg_array = cam->ci->getExposureRegisters(exposure_time_, gain_idx_, dc_gain_enabled_);
-  const bool regs_changed = last_exp_regs_.size() != exp_reg_array.size() ||
-      !std::equal(exp_reg_array.begin(), exp_reg_array.end(), last_exp_regs_.begin(),
-                  [](const i2c_random_wr_payload &a, const i2c_random_wr_payload &b) {
-                    return a.reg_addr == b.reg_addr && a.reg_data == b.reg_data;
-                  });
-  if (regs_changed) {
-    apply_sensor_exposure_hw(cam, exp_t, gidx, hcg);
-    last_exp_regs_ = std::move(exp_reg_array);
-  }
+  cur_ev_[cam->frame_id_last % 3] = exposure_time_ * gain;
   if (rk_isp_) {
     rk_isp_->set_external_exposure(cam->frame_id_last + 1, exposure_time_, gain, dc_gain_enabled_);
   }
@@ -311,7 +339,7 @@ void Ka2CameraBackend::set_camera_exposure(CameraState *cam, float grey_frac) {
   if (!cam->enabled || !cam->ci) return;
   std::lock_guard lk(exp_lock_);
 
-  {
+  if (cam->camera_num == 1) {
     static Params params;
     if (params.getBool("Ka2AeManual")) {
       int exp_t = 5;
@@ -337,7 +365,7 @@ void Ka2CameraBackend::set_camera_exposure(CameraState *cam, float grey_frac) {
   const float k_grey = (dt / ts_grey) / (1.0f + dt / ts_grey);
   const float k_ev = (dt / ts_ev) / (1.0f + dt / ts_ev);
 
-  const float cur_ev_scaled = cur_ev_[(cam->buf.cur_frame_data.frame_id - 1) % 3] * cam->ci->ev_scale;
+  const float cur_ev_scaled = cur_ev_[(cam->frame_id_last - 1) % 3] * cam->ci->ev_scale;
   float new_target_grey = std::clamp(
       0.4f - 0.3f * log2f(1.0f + cam->ci->target_grey_factor * cur_ev_scaled) / log2f(6000.0f),
       tg_min, 0.4f);
@@ -363,14 +391,39 @@ void Ka2CameraBackend::set_camera_exposure(CameraState *cam, float grey_frac) {
   if (enable_dc_gain && dc_gain_weight_ < cam->ci->dc_gain_max_weight) dc_gain_weight_ += 1;
   if (!enable_dc_gain && dc_gain_weight_ > cam->ci->dc_gain_min_weight) dc_gain_weight_ -= 1;
 
-  int min_g = std::max(gain_idx_ - 1, cam->ci->analog_gain_min_idx);
-  int max_g = std::min(gain_idx_ + 1, cam->ci->analog_gain_max_idx);
-  for (int g = min_g; g <= max_g; g++) {
-    float gain = cam->ci->sensor_analog_gains[g] * get_gain_factor(cam);
-    int t = std::clamp((int)std::lround(desired_ev / gain), cam->ci->exposure_time_min, cam->ci->exposure_time_max);
-    if (g < cam->ci->analog_gain_rec_idx && t > 20 && g < gain_idx_) continue;
-    update_exposure_score(cam, desired_ev, t, g, gain);
+  // Exposure-first policy: stay at the current gain while the requested EV
+  // fits in the available exposure range. Increase gain only after the
+  // exposure ceiling is reached; reduce gain when exposure headroom returns.
+  int selected_gain = std::clamp(gain_idx_, cam->ci->analog_gain_min_idx, cam->ci->analog_gain_max_idx);
+  const float dc_gain = enable_dc_gain
+      ? (1.0f + dc_gain_weight_ * (cam->ci->dc_gain_factor - 1.0f) /
+         std::max(1, cam->ci->dc_gain_max_weight))
+      : 1.0f;
+  while (selected_gain < cam->ci->analog_gain_max_idx &&
+         desired_ev > cam->ci->sensor_analog_gains[selected_gain] * dc_gain * cam->ci->exposure_time_max) {
+    selected_gain++;
   }
+  while (selected_gain > cam->ci->analog_gain_min_idx &&
+         desired_ev <= cam->ci->sensor_analog_gains[selected_gain - 1] * dc_gain * cam->ci->exposure_time_max) {
+    selected_gain--;
+  }
+
+  const float selected_analog_gain = cam->ci->sensor_analog_gains[selected_gain] * dc_gain;
+  new_exp_g_ = selected_gain;
+  new_exp_t_ = std::clamp((int)std::lround(desired_ev / selected_analog_gain),
+                          cam->ci->exposure_time_min, cam->ci->exposure_time_max);
+  if (!set_frame_length_vts(cam, new_exp_t_)) return;
+
+  auto exp_reg_array = cam->ci->getExposureRegisters(new_exp_t_, new_exp_g_, enable_dc_gain);
+  const bool regs_changed = last_exp_regs_.size() != exp_reg_array.size() ||
+      !std::equal(exp_reg_array.begin(), exp_reg_array.end(), last_exp_regs_.begin(),
+                  [](const i2c_random_wr_payload &a, const i2c_random_wr_payload &b) {
+                    return a.reg_addr == b.reg_addr && a.reg_data == b.reg_data;
+                  });
+  if (regs_changed && !apply_sensor_exposure_hw(cam, new_exp_t_, new_exp_g_, enable_dc_gain)) {
+    return;
+  }
+  update_output_cadence(cam);
 
   measured_grey_fraction_ = grey_frac;
   target_grey_fraction_ = target_grey;
@@ -378,26 +431,16 @@ void Ka2CameraBackend::set_camera_exposure(CameraState *cam, float grey_frac) {
   gain_idx_ = new_exp_g_;
   exposure_time_ = new_exp_t_;
   dc_gain_enabled_ = enable_dc_gain;
+  if (regs_changed) last_exp_regs_ = std::move(exp_reg_array);
 
   float gain = analog_gain_frac_ * get_gain_factor(cam);
-  cur_ev_[cam->buf.cur_frame_data.frame_id % 3] = exposure_time_ * gain;
+  cur_ev_[cam->frame_id_last % 3] = exposure_time_ * gain;
 
-  auto exp_reg_array = cam->ci->getExposureRegisters(exposure_time_, new_exp_g_, dc_gain_enabled_);
-  const bool regs_changed = last_exp_regs_.size() != exp_reg_array.size() ||
-      !std::equal(exp_reg_array.begin(), exp_reg_array.end(), last_exp_regs_.begin(),
-                  [](const i2c_random_wr_payload &a, const i2c_random_wr_payload &b) {
-                    return a.reg_addr == b.reg_addr && a.reg_data == b.reg_data;
-                  });
-  if (regs_changed) {
-    apply_sensor_exposure_hw(cam, exposure_time_, gain_idx_, dc_gain_enabled_);
-    last_exp_regs_ = std::move(exp_reg_array);
-  }
   if (rk_isp_) {
-    // This write occurs after dequeuing frame N, so it describes frame N+1.
     rk_isp_->set_external_exposure(cam->frame_id_last + 1, exposure_time_, gain, dc_gain_enabled_);
   }
 
-  if (cam->buf.cur_frame_data.frame_id % 120 == 0) {
+  if (cam->frame_id_last % 120 == 0) {
     LOGD("camera %d AE: grey=%.4f target=%.3f exp=%d gidx=%d gain=%.3f dc=%d",
          cam->camera_num, grey_frac, target_grey, exposure_time_, gain_idx_, gain,
          (int)dc_gain_enabled_);
@@ -418,7 +461,6 @@ void Ka2CameraBackend::on_dequeue(CameraState *cam, FrameMetadata &md, int buf_i
     }
   }
 
-  cam->buf.cur_frame_data = md;
   cam->frame_id_last = md.frame_id;
 
   const uint8_t *y = reinterpret_cast<const uint8_t *>(cam->buf.camera_bufs[buf_idx].addr);
@@ -435,32 +477,6 @@ void Ka2CameraBackend::on_dequeue(CameraState *cam, FrameMetadata &md, int buf_i
     const int y_skip = (cam->camera_num == 2) ? 4 : 2;
     float grey = calculate_exposure_value(&cam->buf, ae_xywh_, 2, y_skip);
     set_camera_exposure(cam, grey);
-
-    if (cam->camera_num == 0 && (md.frame_id % 120 == 0 || md.frame_id == 1)) {
-      uint64_t sum = 0, sum_sq = 0, n = 0, below5 = 0, above200 = 0;
-      uint8_t ymax = 0;
-      for (int row = 0; row < h; row += 8) {
-        const uint8_t *row_y = y + row * w;
-        for (int col = 0; col < w; col += 8) {
-          const uint8_t v = row_y[col];
-          sum += v;
-          sum_sq += static_cast<uint64_t>(v) * v;
-          n++;
-          if (v < 5) below5++;
-          if (v > 200) above200++;
-          if (v > ymax) ymax = v;
-        }
-      }
-      const double mean = n ? static_cast<double>(sum) / n : 0.0;
-      const double rms = n ? std::sqrt(static_cast<double>(sum_sq) / n) : 0.0;
-      char buf[256];
-      snprintf(buf, sizeof(buf),
-               "{\"cam\":0,\"frame\":%u,\"y_mean\":%.2f,\"y_rms\":%.2f,\"y_max\":%u,"
-               "\"below5_pct\":%.1f,\"above200_pct\":%.1f,\"ae_grey\":%.4f}",
-               md.frame_id, mean, rms, ymax,
-               n ? 100.0 * below5 / n : 0.0, n ? 100.0 * above200 / n : 0.0, grey);
-      rk_agent_debug_log("H3", "ka2_camera_backend.cc:on_dequeue", "nv12 y stats", buf);
-    }
   }
   if (md.frame_id % 600 == 1) apply_pwl_on(cam);
 
@@ -472,15 +488,11 @@ void Ka2CameraBackend::on_dequeue(CameraState *cam, FrameMetadata &md, int buf_i
 }
 
 void Ka2CameraBackend::apply_flips(CameraState *cam) {
-  if (cam->ctrl_fd < 0) return;
-  cam->ctrl.id = V4L2_CID_HFLIP;
-  cam->ctrl.value = 0;
-  if (ioctl(cam->ctrl_fd, VIDIOC_S_CTRL, &cam->ctrl) < 0) {
+  if (!cam || cam->ctrl_fd < 0) return;
+  if (!write_ctrl(cam, V4L2_CID_HFLIP, 0)) {
     LOGE("camera %d: HFLIP=0 failed errno=%d '%s'", cam->camera_num, errno, strerror(errno));
   }
-  cam->ctrl.id = V4L2_CID_VFLIP;
-  cam->ctrl.value = 1;
-  if (ioctl(cam->ctrl_fd, VIDIOC_S_CTRL, &cam->ctrl) < 0) {
+  if (!write_ctrl(cam, V4L2_CID_VFLIP, 1)) {
     LOGE("camera %d: VFLIP=1 failed errno=%d '%s'", cam->camera_num, errno, strerror(errno));
   }
 }

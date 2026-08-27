@@ -5,6 +5,8 @@
 #include <mutex>
 #include <condition_variable>
 #include <thread>
+#include <chrono>
+#include <vector>
 #include <sys/mman.h>
 #include <fcntl.h>
 
@@ -49,6 +51,17 @@ private:
   int frame_buf_count;
   bool use_external_zerocopy = false;
   bool vipc_buffers_ready = false;
+  bool repeat_output_enabled = false;
+  bool repeat_snapshot_valid = false;
+  bool repeat_output_started = false;
+  std::vector<uint8_t> repeat_snapshot_nv12;
+  std::vector<uint8_t> repeat_publish_nv12;
+  FrameMetadata repeat_snapshot_metadata = {};
+  uint32_t repeat_next_frame_id = 0;
+  uint32_t last_output_frame_id = 0;
+  bool last_output_frame_id_valid = false;
+  std::chrono::steady_clock::time_point repeat_next_publish;
+  bool cur_frame_from_repeat_snapshot = false;
 
 public:
   VisionIpcServer *vipc_server;
@@ -70,6 +83,7 @@ public:
   bool acquire();
   void queue(size_t buf_idx);
   void configure_queue_depth(size_t depth);
+  void set_repeat_output(bool enabled);
 };
 
 void camerad_thread();

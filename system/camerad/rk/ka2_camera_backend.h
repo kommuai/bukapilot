@@ -33,13 +33,15 @@ private:
   float get_gain_factor(const CameraState *cam) const;
   void update_exposure_score(CameraState *cam, float desired_ev, int exp_t, int exp_g_idx, float exp_gain);
   void apply_pwl_on(CameraState *cam);
-  void sensors_i2c(CameraState *cam, const i2c_random_wr_payload *dat, int len);
+  bool sensors_i2c(CameraState *cam, const i2c_random_wr_payload *dat, int len);
   void set_exposure_rect(CameraState *cam);
   void set_camera_exposure(CameraState *cam, float grey_frac);
   void apply_fixed_exposure(CameraState *cam, int exp_t, int gidx, bool hcg);
+  bool set_frame_length_vts(CameraState *cam, int exposure_lines);
   bool read_ctrl(const CameraState *cam, uint32_t id, int *out) const;
   bool write_ctrl(const CameraState *cam, uint32_t id, int val) const;
-  void apply_sensor_exposure_hw(CameraState *cam, int exp_t, int gidx, bool dc_gain);
+  bool apply_sensor_exposure_hw(CameraState *cam, int exp_t, int gidx, bool dc_gain);
+  void update_output_cadence(CameraState *cam) const;
   std::string resolve_mainpath_dev(int camera_num) const;
 
   std::unique_ptr<RkIspUserspaceController> rk_isp_;
@@ -49,6 +51,7 @@ private:
   int i2c_bus_ = -1;
   int i2c_addr_ = 0x36;
   int exposure_time_ = 5;
+  int frame_length_vts_ = 0;
   bool dc_gain_enabled_ = false;
   int dc_gain_weight_ = 1;
   int gain_idx_ = 0;

@@ -15,6 +15,18 @@
 
 #define ANALOG_GAIN_MAX_CNT 55
 
+namespace ox03c10_limits {
+// The normal mode is 20 FPS at VTS=2229.  Extending VTS to 44580 produces
+// the requested 1 FPS lower bound at the same line timing.
+constexpr int kMinVts = 2229;
+constexpr int kMaxVts = 44580;
+constexpr int kActiveRows = 1200;
+constexpr int kHdr4Margin = 47;  // VS(34) + HDR4 guard(12) + strict-inequality step
+constexpr int kMaxExposure = kMaxVts - kHdr4Margin;
+constexpr int kMaxAnalogGainIdx = 26;  // 4.0x; index 27 is 4.25x
+constexpr int kSpdMinExposure = 683;
+}
+
 class SensorInfo {
 public:
   SensorInfo() = default;

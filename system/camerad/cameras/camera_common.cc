@@ -109,6 +109,57 @@ CameraBuf::~CameraBuf() {
 }
 
 bool CameraBuf::acquire() {
+  {
+    std::unique_lock lk(queue_mtx);
+    if (repeat_output_enabled) {
+      if (!queue_cv.wait_for(lk, std::chrono::milliseconds(100), [this] {
+            return !repeat_output_enabled || repeat_snapshot_valid;
+          })) {
+        return false;
+      }
+      if (repeat_output_enabled) {
+        const auto now = std::chrono::steady_clock::now();
+        if (!repeat_output_started) {
+          repeat_output_started = true;
+          repeat_next_publish = now;
+          repeat_next_frame_id = last_output_frame_id_valid
+              ? last_output_frame_id + 1 : repeat_snapshot_metadata.frame_id;
+        }
+        while (repeat_output_enabled && std::chrono::steady_clock::now() < repeat_next_publish) {
+          queue_cv.wait_until(lk, repeat_next_publish);
+        }
+        if (!repeat_output_enabled) {
+          // The sensor returned to nominal cadence while the processing
+          // thread was waiting for a repeat tick; consume real buffers below.
+          cur_frame_from_repeat_snapshot = false;
+        } else {
+
+          // The mapped V4L2 buffer is requeued immediately after dequeue. Copy
+          // from our owned snapshot so a repeated frame can never race the ISP.
+          repeat_publish_nv12 = repeat_snapshot_nv12;
+          cur_frame_data = repeat_snapshot_metadata;
+          cur_frame_data.frame_id = repeat_next_frame_id++;
+          cur_frame_data.request_id = cur_frame_data.frame_id;
+          last_output_frame_id = cur_frame_data.frame_id;
+          last_output_frame_id_valid = true;
+          const uint64_t publish_ns = nanos_since_boot();
+          cur_frame_data.timestamp_sof = publish_ns;
+          cur_frame_data.timestamp_eof = publish_ns;
+          cur_frame_from_repeat_snapshot = true;
+
+          constexpr auto kOutputPeriod = std::chrono::milliseconds(50);
+          repeat_next_publish += kOutputPeriod;
+          if (repeat_next_publish <= std::chrono::steady_clock::now()) {
+            repeat_next_publish = std::chrono::steady_clock::now() + kOutputPeriod;
+          }
+          lk.unlock();
+          sendFrameToVipc();
+          return true;
+        }
+      }
+    }
+  }
+
   int idx;
   {
     std::unique_lock lk(queue_mtx);
@@ -120,17 +171,29 @@ bool CameraBuf::acquire() {
   }
   cur_buf_idx = idx;
   cur_frame_data = camera_bufs_metadata[idx];
+  if (last_output_frame_id_valid && cur_frame_data.frame_id <= last_output_frame_id) {
+    cur_frame_data.frame_id = last_output_frame_id + 1;
+    cur_frame_data.request_id = cur_frame_data.frame_id;
+  }
+  last_output_frame_id = cur_frame_data.frame_id;
+  last_output_frame_id_valid = true;
+  cur_frame_from_repeat_snapshot = false;
   sendFrameToVipc();
   return true;
 }
 
 void CameraBuf::sendFrameToVipc() {
-  assert(cur_buf_idx >=0 && cur_buf_idx < frame_buf_count);
-
-  cur_camera_buf = &camera_bufs[cur_buf_idx];
-  if (use_external_zerocopy) {
-    cur_yuv_buf = cur_camera_buf;
+  if (cur_frame_from_repeat_snapshot) {
+    cur_camera_buf = nullptr;
+    cur_yuv_buf = vipc_server->get_buffer(stream_type);
+    memcpy(cur_yuv_buf->addr, repeat_publish_nv12.data(), nv12_frame_size);
   } else {
+    assert(cur_buf_idx >=0 && cur_buf_idx < frame_buf_count);
+    cur_camera_buf = &camera_bufs[cur_buf_idx];
+  }
+  if (!cur_frame_from_repeat_snapshot && use_external_zerocopy) {
+    cur_yuv_buf = cur_camera_buf;
+  } else if (!cur_frame_from_repeat_snapshot) {
     cur_yuv_buf = vipc_server->get_buffer(stream_type);
     memcpy(cur_yuv_buf->addr, cur_camera_buf->addr, nv12_frame_size);
   }
@@ -149,6 +212,15 @@ void CameraBuf::sendFrameToVipc() {
 void CameraBuf::queue(size_t buf_idx) {
   {
     std::lock_guard lk(queue_mtx);
+    if (repeat_output_enabled) {
+      // Snapshot before CameraState requeues this buffer to the V4L2 driver.
+      repeat_snapshot_nv12.resize(nv12_frame_size);
+      memcpy(repeat_snapshot_nv12.data(), camera_bufs[buf_idx].addr, nv12_frame_size);
+      repeat_snapshot_metadata = camera_bufs_metadata[buf_idx];
+      repeat_snapshot_valid = true;
+      queue_cv.notify_one();
+      return;
+    }
     if (frame_idx_queue.size() >= max_queue_depth) {
       frame_idx_queue.pop_front();
       dropped_queue_frames++;
@@ -157,6 +229,21 @@ void CameraBuf::queue(size_t buf_idx) {
     max_observed_queue_depth = std::max(max_observed_queue_depth, frame_idx_queue.size());
   }
   queue_cv.notify_one();
+}
+
+void CameraBuf::set_repeat_output(bool enabled) {
+  std::lock_guard lk(queue_mtx);
+  if (repeat_output_enabled == enabled) return;
+
+  repeat_output_enabled = enabled;
+  repeat_output_started = false;
+  repeat_snapshot_valid = false;
+  frame_idx_queue.clear();
+  if (!enabled) {
+    repeat_snapshot_nv12.clear();
+    repeat_publish_nv12.clear();
+  }
+  queue_cv.notify_all();
 }
 
 void CameraBuf::configure_queue_depth(size_t depth) {

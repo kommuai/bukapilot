@@ -52,10 +52,10 @@ OX03C10::OX03C10() {
   dc_gain_on_grey = 0.9;
   dc_gain_off_grey = 1.0;
   exposure_time_min = 2;  // comma default (was 1 for rkisp outdoor)
-  exposure_time_max = 2016;
+  exposure_time_max = ox03c10_limits::kMaxExposure;
   analog_gain_min_idx = 0x0;
   analog_gain_rec_idx = 0x0;  // 1x
-  analog_gain_max_idx = 0x36;
+  analog_gain_max_idx = ox03c10_limits::kMaxAnalogGainIdx;
   analog_gain_cost_delta = -1;
   analog_gain_cost_low = 0.4;
   analog_gain_cost_high = 6.4;
@@ -111,7 +111,9 @@ std::vector<i2c_random_wr_payload> OX03C10::getExposureRegisters(int exposure_ti
  // t_HCG&t_LCG + t_VS on LPD, t_SPD on SPD
   uint32_t hcg_time = exposure_time;
   uint32_t lcg_time = hcg_time;
-  uint32_t spd_time = std::min(std::max((uint32_t)exposure_time, (exposure_time_max + VS_TIME_MAX_OX03C10) / 3), exposure_time_max + VS_TIME_MAX_OX03C10);
+  uint32_t spd_time = std::min(std::max((uint32_t)exposure_time,
+                                        (uint32_t)ox03c10_limits::kSpdMinExposure),
+                               (uint32_t)exposure_time + VS_TIME_MAX_OX03C10);
   uint32_t vs_time = std::min(std::max((uint32_t)exposure_time / 40, VS_TIME_MIN_OX03C10), VS_TIME_MAX_OX03C10);
 
   uint32_t real_gain = ox03c10_analog_gains_reg[new_exp_g];
