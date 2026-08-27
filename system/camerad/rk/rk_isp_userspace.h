@@ -27,6 +27,8 @@ public:
   bool start();                // sysctl_start (barrier-gated multi-cam)
   bool prepare_and_start();    // single-cam fallback
   void apply_mwb(float r, float g, float b);
+  bool set_external_exposure(uint32_t frame_id, int integration_lines, float analog_gain,
+                             bool high_conversion_gain);
   void shutdown();
 
   bool active() const { return active_; }
