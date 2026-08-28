@@ -205,10 +205,6 @@ bool RkIspUserspaceController::set_external_exposure(uint32_t frame_id, int inte
   info.normal_gain = analog_gain;
   info.normal_exp_reg = static_cast<uint32_t>(integration_lines);
   info.normal_gain_reg = static_cast<uint32_t>(std::lround(analog_gain * 256.0f));
-  info.hdr_exp_l = info.hdr_exp_m = info.hdr_exp_s = info.normal_exp;
-  info.hdr_gain_l = info.hdr_gain_m = info.hdr_gain_s = info.normal_gain;
-  info.hdr_exp_l_reg = info.hdr_exp_m_reg = info.hdr_exp_s_reg = info.normal_exp_reg;
-  info.hdr_gain_l_reg = info.hdr_gain_m_reg = info.hdr_gain_s_reg = info.normal_gain_reg;
 
   const XCamReturn rc = rk_aiq_uapi2_sysctl_setExternalExposureInfo(aiq_, frame_id, &info);
   if (rc != XCAM_RETURN_NO_ERROR && frame_id % 120 == 0) {

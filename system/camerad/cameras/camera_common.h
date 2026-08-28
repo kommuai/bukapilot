@@ -55,13 +55,12 @@ private:
   bool repeat_snapshot_valid = false;
   bool repeat_output_started = false;
   std::vector<uint8_t> repeat_snapshot_nv12;
-  std::vector<uint8_t> repeat_publish_nv12;
   FrameMetadata repeat_snapshot_metadata = {};
   uint32_t repeat_next_frame_id = 0;
   uint32_t last_output_frame_id = 0;
   bool last_output_frame_id_valid = false;
   std::chrono::steady_clock::time_point repeat_next_publish;
-  bool cur_frame_from_repeat_snapshot = false;
+  bool cur_yuv_buf_ready = false;
 
 public:
   VisionIpcServer *vipc_server;

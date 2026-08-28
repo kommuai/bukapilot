@@ -8,8 +8,8 @@
 // Linearization: Spectra IFE linearization_lut + linearization_pts from ox03c10.cc,
 // inverse of OX03C10 PWL12 (same knots as Spectra IFE linearization → rkisp SDG).
 //
-// LSC: comma enables vignetting only on narrow road (hw.h). Mesh in rk_lsc_tables.h
-// (Spectra 13×17 vignetting_lut → Rockchip 17×17); applied via userspace ALSC on cam 1.
+// LSC is owned by the embedded rkaiq calibration. No standalone mesh is
+// linked by camerad, so there is no second userspace LSC owner to drift.
 
 #include <cstdint>
 

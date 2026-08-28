@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cassert>
+#include <algorithm>
 #include <cstdint>
 #include <map>
 #include <utility>
@@ -16,14 +17,14 @@
 #define ANALOG_GAIN_MAX_CNT 55
 
 namespace ox03c10_limits {
-// The normal mode is 20 FPS at VTS=2229. Extending VTS to 11145 produces
-// the requested 4 FPS lower bound at the same line timing.
+// The normal mode is 20 FPS at VTS=2229. Keep the maximum VTS at this value
+// so the userspace policy never reduces the published frame rate below 20 FPS.
 constexpr int kMinVts = 2229;
-constexpr int kMaxVts = 11145;
+constexpr int kMaxVts = 2229;
 constexpr int kActiveRows = 1200;
 constexpr int kHdr4Margin = 47;  // VS(34) + HDR4 guard(12) + strict-inequality step
 constexpr int kMaxExposure = kMaxVts - kHdr4Margin;
-constexpr int kMaxAnalogGainIdx = 26;  // 4.0x; index 27 is 4.25x
+constexpr int kMaxAnalogGainIdx = 53;  // 15.0x; index 54 is 15.5x
 constexpr int kSpdMinExposure = 683;
 }
 
@@ -31,6 +32,13 @@ class SensorInfo {
 public:
   SensorInfo() = default;
   virtual std::vector<i2c_random_wr_payload> getExposureRegisters(int exposure_time, int new_exp_g, bool dc_gain_enabled) const { return {}; }
+  virtual int getExposureRegisters(int exposure_time, int new_exp_g, bool dc_gain_enabled,
+                                  i2c_random_wr_payload *out, int capacity) const {
+    const auto regs = getExposureRegisters(exposure_time, new_exp_g, dc_gain_enabled);
+    if (!out || capacity < 0 || static_cast<size_t>(capacity) < regs.size()) return -1;
+    std::copy(regs.begin(), regs.end(), out);
+    return static_cast<int>(regs.size());
+  }
   virtual float getExposureScore(float desired_ev, int exp_t, int exp_g_idx, float exp_gain, int gain_idx) const {return 0; }
   virtual int getSlaveAddress(int port) const { assert(0); }
 
@@ -103,6 +111,8 @@ class OX03C10 : public SensorInfo {
 public:
   OX03C10();
   std::vector<i2c_random_wr_payload> getExposureRegisters(int exposure_time, int new_exp_g, bool dc_gain_enabled) const override;
+  int getExposureRegisters(int exposure_time, int new_exp_g, bool dc_gain_enabled,
+                           i2c_random_wr_payload *out, int capacity) const override;
   float getExposureScore(float desired_ev, int exp_t, int exp_g_idx, float exp_gain, int gain_idx) const override;
   int getSlaveAddress(int port) const override;
 };

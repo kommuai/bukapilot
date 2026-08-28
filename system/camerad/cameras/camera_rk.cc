@@ -266,19 +266,6 @@ static void process_road_camera(MultiCameraState *s, CameraState *c, uint32_t cn
   s->pm->send(c == &s->road_cam ? "roadCameraState" : "wideRoadCameraState", msg);
 }
 
-#define THRESHOLD 10000000
-bool check_timestamp_sync(uint64_t *t1, int len1, uint64_t *t2, int len2) {
-  int i = 0, j = 0;
-  while (i < len1 && j < len2) {
-    uint64_t diff = t1[i] > t2[j] ? t1[i] - t2[j] : t2[j] - t1[i];
-    if (diff <= THRESHOLD) return true;
-    if (t1[i] < t2[j]) i++; else j++;
-  }
-  return false;
-}
-
-#define SYNC_CHECK_LEN 5
-#define SYNC_CHECK_COUNT 40
 void cameras_run(MultiCameraState *s) {
   LOG("-- Starting threads");
   std::vector<std::thread> threads;
@@ -288,27 +275,24 @@ void cameras_run(MultiCameraState *s) {
 
   Ka2CameraBackend::synced_stream_and_start(s);
 
-  uint64_t road_cam_ts[SYNC_CHECK_LEN];
-  uint64_t wide_cam_ts[SYNC_CHECK_LEN];
-  int count = 0;
-
   LOG("-- Dequeueing Video events");
   while (!do_exit) {
-    std::vector<pollfd> fds;
+    pollfd fds[3] = {};
     CameraState *cams[3] = {&s->driver_cam, &s->road_cam, &s->wide_road_cam};
     int video_idx[3];
+    int nfds = 0;
     for (int i = 0; i < 3; i++) {
       video_idx[i] = -1;
       if (!cams[i]->enabled) continue;
-      video_idx[i] = (int)fds.size();
-      fds.push_back({.fd = cams[i]->video_fd, .events = POLLPRI | POLLIN, .revents = 0});
+      video_idx[i] = nfds;
+      fds[nfds++] = {.fd = cams[i]->video_fd, .events = POLLPRI | POLLIN, .revents = 0};
     }
 
-    if (fds.empty()) {
+    if (nfds == 0) {
       usleep(10000);
       continue;
     }
-    int ret = poll(fds.data(), fds.size(), 1000);
+    int ret = poll(fds, nfds, 1000);
     if (ret < 0) {
       if (errno == EINTR || errno == EAGAIN) continue;
       LOGE("poll failed (%d - %d)", ret, errno);
@@ -318,16 +302,6 @@ void cameras_run(MultiCameraState *s) {
     for (int i = 0; i < 3; i++) {
       if (video_idx[i] >= 0 && (fds[video_idx[i]].revents & (POLLPRI | POLLIN))) {
         cams[i]->dequeue_buf();
-        if (cams[i] == &s->road_cam) {
-          count++;
-          if (count <= (SYNC_CHECK_COUNT + SYNC_CHECK_LEN - 1) && count >= SYNC_CHECK_COUNT) {
-            road_cam_ts[count % SYNC_CHECK_COUNT] = s->road_cam.cap_time;
-          }
-        } else if (cams[i] == &s->wide_road_cam) {
-          if (count <= (SYNC_CHECK_COUNT + SYNC_CHECK_LEN - 1) && count >= SYNC_CHECK_COUNT) {
-            wide_cam_ts[count % SYNC_CHECK_COUNT] = s->wide_road_cam.cap_time;
-          }
-        }
       }
     }
   }

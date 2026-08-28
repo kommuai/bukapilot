@@ -108,6 +108,16 @@ OX03C10::OX03C10() {
 }
 
 std::vector<i2c_random_wr_payload> OX03C10::getExposureRegisters(int exposure_time, int new_exp_g, bool dc_gain_enabled) const {
+  i2c_random_wr_payload regs[10];
+  const int count = getExposureRegisters(exposure_time, new_exp_g, dc_gain_enabled, regs, 10);
+  if (count < 0) return {};
+  return std::vector<i2c_random_wr_payload>(regs, regs + count);
+}
+
+int OX03C10::getExposureRegisters(int exposure_time, int new_exp_g, bool dc_gain_enabled,
+                                  i2c_random_wr_payload *out, int capacity) const {
+  if (!out || capacity < 9 || new_exp_g < analog_gain_min_idx || new_exp_g > analog_gain_max_idx) return -1;
+  (void)dc_gain_enabled;
  // t_HCG&t_LCG + t_VS on LPD, t_SPD on SPD
   uint32_t hcg_time = exposure_time;
   uint32_t lcg_time = hcg_time;
@@ -118,14 +128,12 @@ std::vector<i2c_random_wr_payload> OX03C10::getExposureRegisters(int exposure_ti
 
   uint32_t real_gain = ox03c10_analog_gains_reg[new_exp_g];
 
-  return {
-    {0x3501, hcg_time>>8}, {0x3502, hcg_time&0xFF},
-    {0x3581, lcg_time>>8}, {0x3582, lcg_time&0xFF},
-    {0x3541, spd_time>>8}, {0x3542, spd_time&0xFF},
-    {0x35c2, vs_time&0xFF},
-
-    {0x3508, real_gain>>8}, {0x3509, real_gain&0xFF},
-  };
+  out[0] = {0x3501, hcg_time >> 8}; out[1] = {0x3502, hcg_time & 0xFF};
+  out[2] = {0x3581, lcg_time >> 8}; out[3] = {0x3582, lcg_time & 0xFF};
+  out[4] = {0x3541, spd_time >> 8}; out[5] = {0x3542, spd_time & 0xFF};
+  out[6] = {0x35c2, vs_time & 0xFF};
+  out[7] = {0x3508, real_gain >> 8}; out[8] = {0x3509, real_gain & 0xFF};
+  return 9;
 }
 
 int OX03C10::getSlaveAddress(int port) const {

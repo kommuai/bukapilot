@@ -131,12 +131,10 @@ bool CameraBuf::acquire() {
         if (!repeat_output_enabled) {
           // The sensor returned to nominal cadence while the processing
           // thread was waiting for a repeat tick; consume real buffers below.
-          cur_frame_from_repeat_snapshot = false;
         } else {
-
-          // The mapped V4L2 buffer is requeued immediately after dequeue. Copy
-          // from our owned snapshot so a repeated frame can never race the ISP.
-          repeat_publish_nv12 = repeat_snapshot_nv12;
+          // The mapped V4L2 buffer was requeued immediately after dequeue.
+          // Keep the snapshot lock through this copy so the producer cannot
+          // overwrite it before VisionIPC owns the destination buffer.
           cur_frame_data = repeat_snapshot_metadata;
           cur_frame_data.frame_id = repeat_next_frame_id++;
           cur_frame_data.request_id = cur_frame_data.frame_id;
@@ -145,7 +143,10 @@ bool CameraBuf::acquire() {
           const uint64_t publish_ns = nanos_since_boot();
           cur_frame_data.timestamp_sof = publish_ns;
           cur_frame_data.timestamp_eof = publish_ns;
-          cur_frame_from_repeat_snapshot = true;
+          cur_camera_buf = nullptr;
+          cur_yuv_buf = vipc_server->get_buffer(stream_type);
+          memcpy(cur_yuv_buf->addr, repeat_snapshot_nv12.data(), nv12_frame_size);
+          cur_yuv_buf_ready = true;
 
           constexpr auto kOutputPeriod = std::chrono::milliseconds(50);
           repeat_next_publish += kOutputPeriod;
@@ -177,25 +178,21 @@ bool CameraBuf::acquire() {
   }
   last_output_frame_id = cur_frame_data.frame_id;
   last_output_frame_id_valid = true;
-  cur_frame_from_repeat_snapshot = false;
+  cur_yuv_buf_ready = false;
   sendFrameToVipc();
   return true;
 }
 
 void CameraBuf::sendFrameToVipc() {
-  if (cur_frame_from_repeat_snapshot) {
-    cur_camera_buf = nullptr;
-    cur_yuv_buf = vipc_server->get_buffer(stream_type);
-    memcpy(cur_yuv_buf->addr, repeat_publish_nv12.data(), nv12_frame_size);
-  } else {
+  if (!cur_yuv_buf_ready) {
     assert(cur_buf_idx >=0 && cur_buf_idx < frame_buf_count);
     cur_camera_buf = &camera_bufs[cur_buf_idx];
-  }
-  if (!cur_frame_from_repeat_snapshot && use_external_zerocopy) {
-    cur_yuv_buf = cur_camera_buf;
-  } else if (!cur_frame_from_repeat_snapshot) {
-    cur_yuv_buf = vipc_server->get_buffer(stream_type);
-    memcpy(cur_yuv_buf->addr, cur_camera_buf->addr, nv12_frame_size);
+    if (use_external_zerocopy) {
+      cur_yuv_buf = cur_camera_buf;
+    } else {
+      cur_yuv_buf = vipc_server->get_buffer(stream_type);
+      memcpy(cur_yuv_buf->addr, cur_camera_buf->addr, nv12_frame_size);
+    }
   }
 
   VisionIpcBufExtra extra = {
@@ -207,6 +204,7 @@ void CameraBuf::sendFrameToVipc() {
 
   cur_yuv_buf->set_frame_id(cur_frame_data.frame_id);
   vipc_server->send(cur_yuv_buf, &extra, false);
+  cur_yuv_buf_ready = false;
 }
 
 void CameraBuf::queue(size_t buf_idx) {
@@ -214,7 +212,6 @@ void CameraBuf::queue(size_t buf_idx) {
     std::lock_guard lk(queue_mtx);
     if (repeat_output_enabled) {
       // Snapshot before CameraState requeues this buffer to the V4L2 driver.
-      repeat_snapshot_nv12.resize(nv12_frame_size);
       memcpy(repeat_snapshot_nv12.data(), camera_bufs[buf_idx].addr, nv12_frame_size);
       repeat_snapshot_metadata = camera_bufs_metadata[buf_idx];
       repeat_snapshot_valid = true;
@@ -239,9 +236,8 @@ void CameraBuf::set_repeat_output(bool enabled) {
   repeat_output_started = false;
   repeat_snapshot_valid = false;
   frame_idx_queue.clear();
-  if (!enabled) {
-    repeat_snapshot_nv12.clear();
-    repeat_publish_nv12.clear();
+  if (enabled && repeat_snapshot_nv12.size() != static_cast<size_t>(nv12_frame_size)) {
+    repeat_snapshot_nv12.resize(nv12_frame_size);
   }
   queue_cv.notify_all();
 }
