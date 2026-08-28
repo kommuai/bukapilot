@@ -108,9 +108,9 @@ bool CameraBuf::acquire() {
           queue_cv.wait_until(lk, repeat_next_publish);
         }
         if (repeat_output_enabled) {
-          // The mapped V4L2 buffer was requeued immediately after dequeue.
-          // Keep the snapshot lock through this copy so the producer cannot
-          // overwrite it before VisionIPC owns the destination buffer.
+          // queue() copied the V4L2 frame into this VisionIPC buffer before
+          // the driver buffer was requeued. Repeated outputs reuse it until
+          // the next captured frame replaces the snapshot.
           cur_frame_data = repeat_snapshot_metadata;
           cur_frame_data.frame_id = repeat_next_frame_id++;
           cur_frame_data.request_id = cur_frame_data.frame_id;
@@ -120,8 +120,7 @@ bool CameraBuf::acquire() {
           cur_frame_data.timestamp_sof = publish_ns;
           cur_frame_data.timestamp_eof = publish_ns;
           cur_camera_buf = nullptr;
-          cur_yuv_buf = vipc_server->get_buffer(stream_type);
-          memcpy(cur_yuv_buf->addr, repeat_snapshot_nv12.data(), nv12_frame_size);
+          cur_yuv_buf = repeat_snapshot_yuv_buf;
           cur_yuv_buf_ready = true;
 
           constexpr auto kOutputPeriod = std::chrono::milliseconds(50);
@@ -187,8 +186,11 @@ void CameraBuf::queue(size_t buf_idx) {
   {
     std::lock_guard lk(queue_mtx);
     if (repeat_output_enabled) {
-      // Snapshot before CameraState requeues this buffer to the V4L2 driver.
-      memcpy(repeat_snapshot_nv12.data(), camera_bufs[buf_idx].addr, nv12_frame_size);
+      // Copy before CameraState requeues the mapped V4L2 buffer. Keeping the
+      // VisionIPC buffer as the repeat source avoids a second full-frame copy
+      // for every 20 Hz output.
+      repeat_snapshot_yuv_buf = vipc_server->get_buffer(stream_type);
+      memcpy(repeat_snapshot_yuv_buf->addr, camera_bufs[buf_idx].addr, nv12_frame_size);
       repeat_snapshot_metadata = camera_bufs_metadata[buf_idx];
       repeat_snapshot_valid = true;
       queue_cv.notify_one();
@@ -207,10 +209,8 @@ void CameraBuf::set_repeat_output(bool enabled) {
   repeat_output_enabled = enabled;
   repeat_output_started = false;
   repeat_snapshot_valid = false;
+  repeat_snapshot_yuv_buf = nullptr;
   frame_idx_queue.clear();
-  if (enabled && repeat_snapshot_nv12.size() != static_cast<size_t>(nv12_frame_size)) {
-    repeat_snapshot_nv12.resize(nv12_frame_size);
-  }
   queue_cv.notify_all();
 }
 
