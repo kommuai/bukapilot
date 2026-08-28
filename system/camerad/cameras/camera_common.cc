@@ -1,10 +1,8 @@
 #include "system/camerad/cameras/camera_common.h"
 
 #include <cassert>
-#include <algorithm>
 #include <chrono>
 #include <cstring>
-#include <cstdlib>
 #include <string>
 #include <vector>
 #include <queue>
@@ -24,8 +22,6 @@
 #endif
 
 ExitHandler do_exit;
-
-static const int env_queue_depth = getenv("CAMERAD_QUEUE_DEPTH") ? std::max(1, atoi(getenv("CAMERAD_QUEUE_DEPTH"))) : 2;
 
 struct ThumbnailJob {
   uint32_t frame_id = 0;
@@ -49,10 +45,7 @@ static bool resize_nv12_with_rga(const uint8_t *src_nv12, int src_w, int src_h, 
   return ret >= 0;
 }
 
-void CameraBuf::init(cl_device_id device_id, cl_context context, CameraState *s, VisionIpcServer * v, int frame_cnt, VisionStreamType type) {
-  (void)device_id;
-  (void)context;
-  (void)s;
+void CameraBuf::init(VisionIpcServer *v, int frame_cnt, VisionStreamType type) {
   vipc_server = v;
   stream_type = type;
   frame_buf_count = frame_cnt;
@@ -66,14 +59,6 @@ void CameraBuf::init(cl_device_id device_id, cl_context context, CameraState *s,
   nv12_frame_size = (rgb_width * rgb_height * 3)/2;
   camera_bufs = std::make_unique<VisionBuf[]>(frame_buf_count);
   camera_bufs_metadata = std::make_unique<FrameMetadata[]>(frame_buf_count);
-  configure_queue_depth((size_t)env_queue_depth);
-
-  int nv12_width = rgb_width;
-  int nv12_height = rgb_height;
-  size_t nv12_size = nv12_frame_size;
-  size_t nv12_uv_offset = nv12_width * nv12_height;
-  (void)nv12_size;
-  (void)nv12_uv_offset;
   vipc_buffers_ready = false;
   use_external_zerocopy = false;
 }
@@ -96,16 +81,10 @@ void CameraBuf::setupVipcBuffers(bool use_external) {
       ext_buffers.push_back(&camera_bufs[i]);
     }
     vipc_server->register_external_buffers(stream_type, ext_buffers);
-    LOGD("registered %d external v4l2 dmabuf buffers for stream %d", frame_buf_count, stream_type);
   } else {
     vipc_server->create_buffers_with_sizes(stream_type, YUV_BUFFER_COUNT, rgb_width, rgb_height, nv12_size, nv12_width, nv12_uv_offset);
-    LOGD("created %d YUV vipc buffers with size %dx%d", YUV_BUFFER_COUNT, nv12_width, nv12_height);
   }
   vipc_buffers_ready = true;
-}
-
-CameraBuf::~CameraBuf() {
-  // RK path: buffers are mmap'd and freed by camera_close
 }
 
 bool CameraBuf::acquire() {
@@ -128,10 +107,7 @@ bool CameraBuf::acquire() {
         while (repeat_output_enabled && std::chrono::steady_clock::now() < repeat_next_publish) {
           queue_cv.wait_until(lk, repeat_next_publish);
         }
-        if (!repeat_output_enabled) {
-          // The sensor returned to nominal cadence while the processing
-          // thread was waiting for a repeat tick; consume real buffers below.
-        } else {
+        if (repeat_output_enabled) {
           // The mapped V4L2 buffer was requeued immediately after dequeue.
           // Keep the snapshot lock through this copy so the producer cannot
           // overwrite it before VisionIPC owns the destination buffer.
@@ -218,12 +194,8 @@ void CameraBuf::queue(size_t buf_idx) {
       queue_cv.notify_one();
       return;
     }
-    if (frame_idx_queue.size() >= max_queue_depth) {
-      frame_idx_queue.pop_front();
-      dropped_queue_frames++;
-    }
+    if (frame_idx_queue.size() >= kQueueDepth) frame_idx_queue.pop_front();
     frame_idx_queue.push_back((int)buf_idx);
-    max_observed_queue_depth = std::max(max_observed_queue_depth, frame_idx_queue.size());
   }
   queue_cv.notify_one();
 }
@@ -242,14 +214,9 @@ void CameraBuf::set_repeat_output(bool enabled) {
   queue_cv.notify_all();
 }
 
-void CameraBuf::configure_queue_depth(size_t depth) {
-  std::lock_guard lk(queue_mtx);
-  max_queue_depth = std::max<size_t>(1, depth);
-}
-
 // common functions
 
-void fill_frame_data(cereal::FrameData::Builder &framed, const FrameMetadata &frame_data, CameraState *c) {
+void fill_frame_data(cereal::FrameData::Builder &framed, const FrameMetadata &frame_data) {
   framed.setFrameId(frame_data.frame_id);
   framed.setRequestId(frame_data.request_id);
   framed.setTimestampEof(frame_data.timestamp_eof);
@@ -262,20 +229,8 @@ void fill_frame_data(cereal::FrameData::Builder &framed, const FrameMetadata &fr
   framed.setProcessingTime(frame_data.processing_time);
   framed.setSensor(cereal::FrameData::ImageSensor::OX03C10);
 
-  std::vector<float> temps = {frame_data.sensor_temp_c};
-  kj::ArrayPtr<const float> temp_array(temps.data(), temps.size());
-  framed.setTemperaturesC(temp_array);
-}
-
-kj::Array<uint8_t> get_raw_frame_image(const CameraBuf *b) {
-  const uint8_t *dat = (const uint8_t *)b->cur_camera_buf->addr;
-
-  kj::Array<uint8_t> frame_image = kj::heapArray<uint8_t>(b->cur_camera_buf->len);
-  uint8_t *resized_dat = frame_image.begin();
-
-  memcpy(resized_dat, dat, b->cur_camera_buf->len);
-
-  return kj::mv(frame_image);
+  const float temperature = frame_data.sensor_temp_c;
+  framed.setTemperaturesC(kj::arrayPtr(&temperature, 1));
 }
 
 float calculate_exposure_value(const CameraBuf *b, Rect ae_xywh, int x_skip, int y_skip) {
@@ -543,7 +498,7 @@ void camerad_thread() {
     VisionIpcServer vipc_server("camerad", device_id, context);
 
     cameras_open(&cameras);
-    cameras_init(&vipc_server, &cameras, device_id, context);
+    cameras_init(&vipc_server, &cameras);
     start_thumbnail_worker(cameras.pm);
 
     vipc_server.start_listener();

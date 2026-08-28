@@ -44,7 +44,6 @@ class ICM42670_Gyro(Sensor):
     self.verify_chip_id(ICM42670_WHO_AM_I, [ICM42670_CHIP_ID])
     self.source = log.SensorEventData.SensorSource.icm42670
     self.bias_counts = (0.0, 0.0, 0.0)
-    self.bias_calibrated = False
 
     self.write(ICM42670_REG_PWR_MGMT0, ICM42670_PWR_MGMT0_NORMAL)
     self.wait()
@@ -86,11 +85,8 @@ class ICM42670_Gyro(Sensor):
 
     if stationary:
       self.bias_counts = means
-      self.bias_calibrated = True
-      cloudlog.info(f"ICM42670 gyro bias calibrated: mean_rad={mean_rad} std_rad={std_rad}")
     else:
       self.bias_counts = (0.0, 0.0, 0.0)
-      self.bias_calibrated = False
       cloudlog.warning(f"ICM42670 gyro bias calibration skipped: mean_rad={mean_rad} std_rad={std_rad}")
 
   def get_event(self, ts: int | None = None) -> log.SensorEventData:

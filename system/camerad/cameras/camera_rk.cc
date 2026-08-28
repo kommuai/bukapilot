@@ -1,6 +1,8 @@
 #include "system/camerad/cameras/camera_rk.h"
 
 #include <poll.h>
+#include <linux/videodev2.h>
+#include <sys/mman.h>
 #include <sys/ioctl.h>
 
 #include <cassert>
@@ -8,21 +10,13 @@
 #include <cstring>
 #include <fcntl.h>
 #include <unistd.h>
-#include <string>
 #include <vector>
 
-#include "media/cam_defs.h"
-#include "media/cam_isp.h"
-#include "media/cam_isp_ife.h"
-#include "media/cam_req_mgr.h"
-#include "media/cam_sensor_cmn_header.h"
-#include "media/cam_sync.h"
 #include "common/swaglog.h"
-#include "common/timing.h"
 
 extern ExitHandler do_exit;
 
-void CameraState::camera_map_bufs(MultiCameraState *s) {
+void CameraState::camera_map_bufs() {
   int exported_count = 0;
   for (int i = 0; i < FRAME_BUF_COUNT; ++i) {
     memset(&v4l_buf, 0, sizeof(v4l_buf));
@@ -70,17 +64,13 @@ void CameraState::camera_map_bufs(MultiCameraState *s) {
       }
       buf.camera_bufs[i].frame_id_in_buf = true;
     }
-  } else {
-    LOGD("camera %d: rk zerocopy enabled with %d exported buffers", camera_num, exported_count);
   }
 }
 
-void CameraState::camera_init(MultiCameraState *s, VisionIpcServer * v, cl_device_id device_id, cl_context ctx, VisionStreamType yuv_type) {
+void CameraState::camera_init(VisionIpcServer *v, VisionStreamType yuv_type) {
   if (!enabled) return;
   rk_zerocopy_requested = false;
   rk_zerocopy_active = false;
-
-  LOGD("camera init %d", camera_num);
 
   fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
   fmt.fmt.pix.width = 1920;
@@ -103,13 +93,12 @@ void CameraState::camera_init(MultiCameraState *s, VisionIpcServer * v, cl_devic
   req.memory = V4L2_MEMORY_MMAP;
   assert(ioctl(video_fd, VIDIOC_REQBUFS, &req) >= 0);
 
-  buf.init(device_id, ctx, this, v, FRAME_BUF_COUNT, yuv_type);
-  camera_map_bufs(s);
+  buf.init(v, FRAME_BUF_COUNT, yuv_type);
+  camera_map_bufs();
   buf.setupVipcBuffers(rk_zerocopy_active);
 }
 
-void CameraState::camera_open(MultiCameraState *multi_cam_state_, int camera_num_, bool enabled_) {
-  multi_cam_state = multi_cam_state_;
+void CameraState::camera_open(int camera_num_, bool enabled_) {
   camera_num = camera_num_;
   enabled = enabled_;
   if (!enabled) return;
@@ -141,19 +130,6 @@ void CameraState::queue_all_buffers() {
   }
 }
 
-void CameraState::stream_start() {
-  if (!enabled) return;
-  queue_all_buffers();
-  if (!enabled) return;
-
-  if (ioctl(video_fd, VIDIOC_STREAMON, &fmt.type) < 0) {
-    LOGE("camera %d: VIDIOC_STREAMON failed errno=%d '%s'", camera_num, errno, strerror(errno));
-    enabled = false;
-    return;
-  }
-  if (ka2) ka2->on_stream_start(this);
-}
-
 void CameraState::dequeue_buf() {
   if (!enabled) return;
 
@@ -173,9 +149,9 @@ void CameraState::dequeue_buf() {
   FrameMetadata &md = buf.camera_bufs_metadata[idx];
   md.frame_id = v4l_buf.sequence;
   md.request_id = v4l_buf.sequence;
-  cap_time = static_cast<uint64_t>(v4l_buf.timestamp.tv_sec * 1000000000 + v4l_buf.timestamp.tv_usec * 1000);
-  md.timestamp_sof = cap_time;
-  md.timestamp_eof = cap_time;
+  const uint64_t capture_time = static_cast<uint64_t>(v4l_buf.timestamp.tv_sec * 1000000000 + v4l_buf.timestamp.tv_usec * 1000);
+  md.timestamp_sof = capture_time;
+  md.timestamp_eof = capture_time;
 
   if (ka2) ka2->on_dequeue(this, md, idx);
 
@@ -186,10 +162,10 @@ void CameraState::dequeue_buf() {
   }
 }
 
-void cameras_init(VisionIpcServer *v, MultiCameraState *s, cl_device_id device_id, cl_context ctx) {
-  s->driver_cam.camera_init(s, v, device_id, ctx, VISION_STREAM_DRIVER);
-  s->road_cam.camera_init(s, v, device_id, ctx, VISION_STREAM_ROAD);
-  s->wide_road_cam.camera_init(s, v, device_id, ctx, VISION_STREAM_WIDE_ROAD);
+void cameras_init(VisionIpcServer *v, MultiCameraState *s) {
+  s->driver_cam.camera_init(v, VISION_STREAM_DRIVER);
+  s->road_cam.camera_init(v, VISION_STREAM_ROAD);
+  s->wide_road_cam.camera_init(v, VISION_STREAM_WIDE_ROAD);
   s->pm = new PubMaster({"roadCameraState", "driverCameraState", "wideRoadCameraState", "thumbnail"});
 }
 
@@ -199,8 +175,6 @@ void cameras_open(MultiCameraState *s) {
 }
 
 void CameraState::camera_close() {
-  LOG("-- Stop devices %d", camera_num);
-
   if (video_fd.fd_ >= 0) {
     int type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
     if (ioctl(video_fd, VIDIOC_STREAMOFF, &type) < 0) {
@@ -235,12 +209,6 @@ void CameraState::camera_close() {
     close(video_fd.fd_);
     video_fd.fd_ = -1;
   }
-  if (csiphy_fd.fd_ >= 0) {
-    close(csiphy_fd.fd_);
-    csiphy_fd.fd_ = -1;
-  }
-
-  LOGD("destroyed session %d", camera_num);
 }
 
 void cameras_close(MultiCameraState *s) {
@@ -253,7 +221,7 @@ void cameras_close(MultiCameraState *s) {
 static void process_driver_camera(MultiCameraState *s, CameraState *c, uint32_t cnt) {
   MessageBuilder msg;
   auto framed = msg.initEvent().initDriverCameraState();
-  fill_frame_data(framed, c->buf.cur_frame_data, c);
+  fill_frame_data(framed, c->buf.cur_frame_data);
   s->pm->send("driverCameraState", msg);
 }
 
@@ -261,13 +229,11 @@ static void process_road_camera(MultiCameraState *s, CameraState *c, uint32_t cn
   const CameraBuf *b = &c->buf;
   MessageBuilder msg;
   auto framed = c == &s->road_cam ? msg.initEvent().initRoadCameraState() : msg.initEvent().initWideRoadCameraState();
-  fill_frame_data(framed, b->cur_frame_data, c);
-  LOGT(c->buf.cur_frame_data.frame_id, "%s: Image set", c == &s->road_cam ? "RoadCamera" : "WideRoadCamera");
+  fill_frame_data(framed, b->cur_frame_data);
   s->pm->send(c == &s->road_cam ? "roadCameraState" : "wideRoadCameraState", msg);
 }
 
 void cameras_run(MultiCameraState *s) {
-  LOG("-- Starting threads");
   std::vector<std::thread> threads;
   if (s->driver_cam.enabled) threads.push_back(start_process_thread(s, &s->driver_cam, process_driver_camera));
   if (s->road_cam.enabled) threads.push_back(start_process_thread(s, &s->road_cam, process_road_camera));
@@ -275,7 +241,6 @@ void cameras_run(MultiCameraState *s) {
 
   Ka2CameraBackend::synced_stream_and_start(s);
 
-  LOG("-- Dequeueing Video events");
   while (!do_exit) {
     pollfd fds[3] = {};
     CameraState *cams[3] = {&s->driver_cam, &s->road_cam, &s->wide_road_cam};
@@ -306,7 +271,6 @@ void cameras_run(MultiCameraState *s) {
     }
   }
 
-  LOG("************** STOPPING **************");
   for (auto &t : threads) t.join();
   stop_thumbnail_worker();
   cameras_close(s);

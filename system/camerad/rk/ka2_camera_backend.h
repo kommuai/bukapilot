@@ -21,7 +21,6 @@ public:
   void on_stream_start(CameraState *cam);
   void on_dequeue(CameraState *cam, FrameMetadata &md, int buf_idx);
   void apply_flips(CameraState *cam);
-  void log_init_summary(const CameraState *cam) const;
 
   RkIspUserspaceController *isp() { return rk_isp_.get(); }
   const RkIspUserspaceController *isp() const { return rk_isp_.get(); }

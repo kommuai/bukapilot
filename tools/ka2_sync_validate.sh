@@ -6,8 +6,6 @@ CYCLES="${CYCLES:-5}"
 SAMPLES="${SAMPLES:-30}"
 SETTLE_S="${SETTLE_S:-15}"
 MEASURE="$OPDIR/tools/ka2_sync_measure"
-SCONS="$OPDIR/opendbc_repo/.venv/bin/scons"
-CAMERAD="$OPDIR/system/camerad/camerad"
 
 if [[ ! -x "$MEASURE" ]]; then
   clang++ -std=c++17 -O2 -I"$OPDIR" -I"$OPDIR/msgq" -I"$OPDIR/msgq_repo" \
@@ -31,7 +29,6 @@ for cycle in $(seq 1 "$CYCLES"); do
     ((fail++)) || true
     continue
   fi
-  grep -E "STREAM_START|sysctl_start" "$LOG" | tail -12 || true
   set +e
   out=$("$MEASURE" "$SAMPLES" 2>&1)
   rc=$?

@@ -10,7 +10,6 @@
 #include <string>
 #include <sys/ioctl.h>
 #include <sys/stat.h>
-#include <time.h>
 #include <unistd.h>
 
 #include <linux/videodev2.h>
@@ -151,7 +150,6 @@ bool RkIspUserspaceController::ensure_runtime_calib() {
 }
 
 void RkIspUserspaceController::stop_rkaiq() {
-  LOGD("RkIspUserspace: stopping rkaiq_3A daemon");
   std::system("sudo systemctl stop rkaiq_3A.service 2>/dev/null; "
               "sudo killall -9 rkaiq_3A_server 2>/dev/null; "
               "sudo killall -9 /usr/kommu/rkaiq_3A_server 2>/dev/null; "
@@ -164,33 +162,6 @@ void RkIspUserspaceController::stop_rkaiq() {
     LOGE("RkIspUserspace: rkaiq_3A_server still alive after stop");
   }
   ensure_runtime_calib();
-}
-
-void RkIspUserspaceController::start_rkaiq() {
-  LOGD("RkIspUserspace: starting rkaiq_3A");
-  if (std::system("sudo systemctl start rkaiq_3A.service") != 0) {
-    std::system("sudo /usr/kommu/rkaiq_3A_server >/dev/null 2>&1 &");
-  }
-  usleep(2000000);
-}
-
-void RkIspUserspaceController::apply_mwb(float r, float g, float b) {
-  if (!aiq_) return;
-  wb_last_r_ = r;
-  wb_last_g_ = g;
-  wb_last_b_ = b;
-  rk_aiq_uapiV2_wbV21_attrib_t awb = {};
-  awb.sync.sync_mode = RK_AIQ_UAPI_MODE_SYNC;
-  awb.byPass = false;
-  awb.mode = RK_AIQ_WB_MODE_MANUAL;
-  awb.stManual.sync.sync_mode = RK_AIQ_UAPI_MODE_SYNC;
-  awb.stManual.mode = RK_AIQ_MWB_MODE_WBGAIN;
-  awb.stManual.para.gain = {r, g, g, b};
-  rk_aiq_user_api2_awbV21_SetAllAttrib(aiq_, awb);
-  float pre[4] = {r, g, g, b};
-  rk_aiq_user_api2_awb_setAwbPreWbgain(aiq_, pre);
-  rk_aiq_uapi2_setMWBGain(aiq_, &awb.stManual.para.gain);
-  rk_aiq_uapi2_setWBMode(aiq_, OP_MANUAL);
 }
 
 bool RkIspUserspaceController::set_external_exposure(uint32_t frame_id, int integration_lines,
@@ -341,10 +312,9 @@ static void apply_lsc_off(const rk_aiq_sys_ctx_t *aiq, int camera_num) {
   rk_aiq_user_api2_alsc_GetAttrib(aiq, &attr);
   attr.byPass = true;
   attr.sync.sync_mode = RK_AIQ_UAPI_MODE_SYNC;
-  const XCamReturn rs = rk_aiq_user_api2_alsc_SetAttrib(aiq, attr);
-  rk_aiq_lsc_querry_info_t qi = {};
-  rk_aiq_user_api2_alsc_QueryLscInfo(aiq, &qi);
-  LOGW("RkIspUserspace cam%d: LSC OFF byPass set=%d en=%d", camera_num, (int)rs, qi.lsc_en ? 1 : 0);
+  if (rk_aiq_user_api2_alsc_SetAttrib(aiq, attr) != XCAM_RETURN_NO_ERROR) {
+    LOGW("RkIspUserspace cam%d: LSC bypass failed", camera_num);
+  }
 }
 
 
@@ -393,30 +363,8 @@ bool RkIspUserspaceController::prepare() {
   return true;
 }
 
-bool RkIspUserspaceController::wait_isp_stream_start() {
-  if (!active_ || params_fd_ < 0) return false;
-  struct v4l2_event event = {};
-  for (;;) {
-    if (ioctl(params_fd_, VIDIOC_DQEVENT, &event) == 0 && event.type == CIFISP_V4L2_EVENT_STREAM_START) {
-      struct timespec ts = {};
-      clock_gettime(CLOCK_MONOTONIC, &ts);
-      LOG("RkIspUserspace cam%d: ISP STREAM_START at %ld.%09ld", cfg_.camera_num, ts.tv_sec, ts.tv_nsec);
-      return true;
-    }
-    if (errno != EAGAIN && errno != EINTR) {
-      LOGE("RkIspUserspace cam%d: DQEVENT failed errno=%d", cfg_.camera_num, errno);
-      return false;
-    }
-    usleep(1000);
-  }
-}
-
 bool RkIspUserspaceController::start() {
   if (!active_ || !aiq_ || !prepared_ || started_) return active_ && started_;
-
-  struct timespec ts = {};
-  clock_gettime(CLOCK_MONOTONIC, &ts);
-  LOG("RkIspUserspace cam%d: sysctl_start at %ld.%09ld", cfg_.camera_num, ts.tv_sec, ts.tv_nsec);
 
   XCamReturn r = rk_aiq_uapi2_sysctl_start(aiq_);
   if (r != XCAM_RETURN_NO_ERROR) {
@@ -432,11 +380,6 @@ bool RkIspUserspaceController::start() {
   }
 
   return true;
-}
-
-bool RkIspUserspaceController::prepare_and_start() {
-  if (!prepare()) return false;
-  return start();
 }
 
 void RkIspUserspaceController::shutdown() {

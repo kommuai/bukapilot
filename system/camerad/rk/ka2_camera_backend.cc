@@ -27,6 +27,7 @@ constexpr bool kEnableDriver = true;
 constexpr uint16_t kGrpHoldReg = 0x3208;
 constexpr int kI2cChunk = 8;
 constexpr int kI2cRetries = 5;
+constexpr uint32_t kTemperaturePollPeriod = 8;
 
 #define V4L2_CID_X3C_SENSOR_TEMPERATURE (V4L2_CID_USER_BASE + 0x100)
 
@@ -142,7 +143,6 @@ bool Ka2CameraBackend::open(CameraState *cam) {
   rk_isp_ = std::make_unique<RkIspUserspaceController>();
   RkIspCamConfig cfg;
   cfg.camera_num = cam->camera_num;
-  cfg.sensor_ctrl_fd = cam->ctrl_fd;
   cfg.mainpath_dev = resolve_mainpath_dev(cam->camera_num);
   if (!rk_isp_->init(cfg)) {
     LOGE("camera %d: RkIspUserspace CamHw init failed", cam->camera_num);
@@ -195,7 +195,6 @@ void Ka2CameraBackend::apply_pwl_on(CameraState *cam) {
     wr.push_back({rk_pwl::kOx03c10PwlOn[i].addr, rk_pwl::kOx03c10PwlOn[i].data});
   }
   sensors_i2c(cam, wr.data(), (int)wr.size());
-  LOGD("camera %d: PWL-ON (%zu regs)", cam->camera_num, wr.size());
 }
 
 bool Ka2CameraBackend::sensors_i2c(CameraState *cam, const i2c_random_wr_payload *dat, int len) {
@@ -386,7 +385,7 @@ void Ka2CameraBackend::set_camera_exposure(CameraState *cam, float grey_frac) {
 
   // Match comma's bounded gain ramp: only evaluate one gain step on either
   // side of the current index per physical frame. The sensor's hard maximum
-  // remains kMaxAnalogGainIdx (4.0x analog gain).
+  // remains kMaxAnalogGainIdx (15.0x analog gain).
   int selected_gain = std::clamp(gain_idx_, cam->ci->analog_gain_min_idx, cam->ci->analog_gain_max_idx);
   const float dc_gain = enable_dc_gain
       ? (1.0f + dc_gain_weight_ * (cam->ci->dc_gain_factor - 1.0f) /
@@ -417,13 +416,6 @@ void Ka2CameraBackend::set_camera_exposure(CameraState *cam, float grey_frac) {
 
   measured_grey_fraction_ = grey_frac;
   target_grey_fraction_ = target_grey;
-  const float gain = analog_gain_frac_ * get_gain_factor(cam);
-
-  if (cam->frame_id_last % 120 == 0) {
-    LOGD("camera %d AE: grey=%.4f target=%.3f exp=%d gidx=%d gain=%.3f dc=%d",
-         cam->camera_num, grey_frac, target_grey, exposure_time_, gain_idx_, gain,
-         (int)dc_gain_enabled_);
-  }
 }
 
 void Ka2CameraBackend::on_dequeue(CameraState *cam, FrameMetadata &md, int buf_idx) {
@@ -432,7 +424,7 @@ void Ka2CameraBackend::on_dequeue(CameraState *cam, FrameMetadata &md, int buf_i
   md.high_conversion_gain = dc_gain_enabled_;
   md.sensor_temp_c = last_sensor_temp_c_;
 
-  if (md.frame_id % cam->temp_poll_divider == 0) {
+  if (md.frame_id % kTemperaturePollPeriod == 0) {
     int temp_raw = 0;
     if (read_ctrl(cam, V4L2_CID_X3C_SENSOR_TEMPERATURE, &temp_raw)) {
       last_sensor_temp_c_ = temp_raw / 100.0f;
@@ -476,29 +468,13 @@ void Ka2CameraBackend::apply_flips(CameraState *cam) {
   }
 }
 
-void Ka2CameraBackend::log_init_summary(const CameraState *cam) const {
-  if (!cam->enabled) return;
-  int hflip = -1, vflip = -1;
-  if (cam->ctrl_fd >= 0) {
-    struct v4l2_control c = {};
-    c.id = V4L2_CID_HFLIP;
-    if (ioctl(cam->ctrl_fd, VIDIOC_G_CTRL, &c) == 0) hflip = c.value;
-    c.id = V4L2_CID_VFLIP;
-    if (ioctl(cam->ctrl_fd, VIDIOC_G_CTRL, &c) == 0) vflip = c.value;
-  }
-  const char *vd = (rk_isp_ && !rk_isp_->mainpath_dev().empty()) ? rk_isp_->mainpath_dev().c_str() : "?";
-  const char *isp = (rk_isp_ && rk_isp_->isp_started()) ? "camhw" : (rk_isp_ && rk_isp_->active() ? "init" : "off");
-  LOG("camera %d: ready vd=%s isp=%s i2c=%d flips=%d/%d temp=%.0fC",
-      cam->camera_num, vd, isp, i2c_bus_, hflip, vflip, last_sensor_temp_c_);
-}
-
 void Ka2CameraBackend::prepare_system(MultiCameraState *s) {
   RkIspUserspaceController::stop_rkaiq();
   const int n = (kEnableWideRoad ? 1 : 0) + (kEnableRoad ? 1 : 0) + (kEnableDriver ? 1 : 0);
   RkIspUserspaceController::set_multi_cam_count(n);
-  s->wide_road_cam.camera_open(s, 0, kEnableWideRoad);
-  s->road_cam.camera_open(s, 1, kEnableRoad);
-  s->driver_cam.camera_open(s, 2, kEnableDriver);
+  s->wide_road_cam.camera_open(0, kEnableWideRoad);
+  s->road_cam.camera_open(1, kEnableRoad);
+  s->driver_cam.camera_open(2, kEnableDriver);
 }
 
 void Ka2CameraBackend::prepare_isp_all(MultiCameraState *s) {
@@ -514,7 +490,6 @@ void Ka2CameraBackend::prepare_isp_all(MultiCameraState *s) {
 void Ka2CameraBackend::synced_stream_and_start(MultiCameraState *s) {
   CameraState *cams[3] = {&s->wide_road_cam, &s->road_cam, &s->driver_cam};
 
-  LOG("KA2 sync: sysctl_start all ISP contexts");
   for (int i = 0; i < 3; i++) {
     if (!cams[i]->enabled || !cams[i]->ka2 || !cams[i]->ka2->isp() || !cams[i]->ka2->isp()->active()) continue;
     if (!cams[i]->ka2->isp()->start()) {
@@ -533,7 +508,6 @@ void Ka2CameraBackend::synced_stream_and_start(MultiCameraState *s) {
     if (cams[i]->ka2) {
       cams[i]->ka2->on_stream_start(cams[i]);
       cams[i]->ka2->apply_flips(cams[i]);
-      cams[i]->ka2->log_init_summary(cams[i]);
     }
   }
 }
