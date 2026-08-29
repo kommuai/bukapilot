@@ -165,9 +165,9 @@ void Ka2CameraBackend::close(CameraState *cam) {
 
 void Ka2CameraBackend::on_stream_start(CameraState *cam) {
   cam->stream_start_ns = nanos_since_boot();
-  // The publisher owns the 20 Hz cadence. The sensor may run slower while
-  // extended exposure is active, so enable the repeat snapshot once here.
-  cam->buf.set_repeat_output(true);
+  // The production VTS/exposure limits hold the sensor at 20 Hz, so publish
+  // only completed V4L2 frames and preserve their capture metadata.
+  cam->buf.set_repeat_output(false);
   apply_pwl_on(cam);
 }
 
@@ -182,9 +182,10 @@ bool Ka2CameraBackend::set_frame_length_vts(CameraState *cam, int exposure_lines
   const int vts = std::clamp(
       std::max(ox03c10_limits::kMinVts, exposure_lines + ox03c10_limits::kHdr4Margin),
       ox03c10_limits::kMinVts, ox03c10_limits::kMaxVts);
-  if (vts == frame_length_vts_) return true;
+  const int vblank = vts - ox03c10_limits::kActiveRows;
+  if (vblank == frame_length_vts_) return true;
 
-  frame_length_vts_ = vts;
+  frame_length_vts_ = vblank;
   return true;
 }
 
