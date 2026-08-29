@@ -22,7 +22,6 @@
 #include <uAPI2/rk_aiq_user_api2_awb.h>
 #include <uAPI2/rk_aiq_user_api2_acp.h>
 #include <uAPI2/rk_aiq_user_api2_adebayer.h>
-#include <uAPI2/rk_aiq_user_api2_alsc.h>
 #include <algos/accm/rk_aiq_types_accm_algo.h>
 #include "system/camerad/rk/rk_tone_tables.h"
 
@@ -307,17 +306,6 @@ static void apply_road_chroma_guard(const rk_aiq_sys_ctx_t *aiq) {
 }
 
 
-static void apply_lsc_off(const rk_aiq_sys_ctx_t *aiq, int camera_num) {
-  rk_aiq_lsc_attrib_t attr = {};
-  rk_aiq_user_api2_alsc_GetAttrib(aiq, &attr);
-  attr.byPass = true;
-  attr.sync.sync_mode = RK_AIQ_UAPI_MODE_SYNC;
-  if (rk_aiq_user_api2_alsc_SetAttrib(aiq, attr) != XCAM_RETURN_NO_ERROR) {
-    LOGW("RkIspUserspace cam%d: LSC bypass failed", camera_num);
-  }
-}
-
-
 static void apply_comma_gamma(const rk_aiq_sys_ctx_t *aiq, int camera_num) {
   rk_aiq_gamma_v11_attr_t gam = {};
   gam.sync.done = false;
@@ -374,7 +362,6 @@ bool RkIspUserspaceController::start() {
   started_ = true;
 
   apply_daylight_wb_ccm(aiq_, cfg_.camera_num);
-  apply_lsc_off(aiq_, cfg_.camera_num);
   if (cfg_.camera_num == 1) {
     apply_road_chroma_guard(aiq_);
   }
