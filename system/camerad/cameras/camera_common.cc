@@ -52,9 +52,6 @@ void CameraBuf::init(VisionIpcServer *v, int frame_cnt, VisionStreamType type) {
 
   rgb_width = 1920;
   rgb_height = 1200;
-  out_img_width = (uint32_t)rgb_width;
-  out_img_height = (uint32_t)rgb_height;
-
   // NV12 frame
   nv12_frame_size = (rgb_width * rgb_height * 3)/2;
   camera_bufs = std::make_unique<VisionBuf[]>(frame_buf_count);
@@ -88,54 +85,6 @@ void CameraBuf::setupVipcBuffers(bool use_external) {
 }
 
 bool CameraBuf::acquire() {
-  {
-    std::unique_lock lk(queue_mtx);
-    if (repeat_output_enabled) {
-      if (!queue_cv.wait_for(lk, std::chrono::milliseconds(100), [this] {
-            return !repeat_output_enabled || repeat_snapshot_valid;
-          })) {
-        return false;
-      }
-      if (repeat_output_enabled) {
-        const auto now = std::chrono::steady_clock::now();
-        if (!repeat_output_started) {
-          repeat_output_started = true;
-          repeat_next_publish = now;
-          repeat_next_frame_id = last_output_frame_id_valid
-              ? last_output_frame_id + 1 : repeat_snapshot_metadata.frame_id;
-        }
-        while (repeat_output_enabled && std::chrono::steady_clock::now() < repeat_next_publish) {
-          queue_cv.wait_until(lk, repeat_next_publish);
-        }
-        if (repeat_output_enabled) {
-          // queue() copied the V4L2 frame into this VisionIPC buffer before
-          // the driver buffer was requeued. Repeated outputs reuse it until
-          // the next captured frame replaces the snapshot.
-          cur_frame_data = repeat_snapshot_metadata;
-          cur_frame_data.frame_id = repeat_next_frame_id++;
-          cur_frame_data.request_id = cur_frame_data.frame_id;
-          last_output_frame_id = cur_frame_data.frame_id;
-          last_output_frame_id_valid = true;
-          const uint64_t publish_ns = nanos_since_boot();
-          cur_frame_data.timestamp_sof = publish_ns;
-          cur_frame_data.timestamp_eof = publish_ns;
-          cur_camera_buf = nullptr;
-          cur_yuv_buf = repeat_snapshot_yuv_buf;
-          cur_yuv_buf_ready = true;
-
-          constexpr auto kOutputPeriod = std::chrono::milliseconds(50);
-          repeat_next_publish += kOutputPeriod;
-          if (repeat_next_publish <= std::chrono::steady_clock::now()) {
-            repeat_next_publish = std::chrono::steady_clock::now() + kOutputPeriod;
-          }
-          lk.unlock();
-          sendFrameToVipc();
-          return true;
-        }
-      }
-    }
-  }
-
   int idx;
   {
     std::unique_lock lk(queue_mtx);
@@ -147,12 +96,6 @@ bool CameraBuf::acquire() {
   }
   cur_buf_idx = idx;
   cur_frame_data = camera_bufs_metadata[idx];
-  if (last_output_frame_id_valid && cur_frame_data.frame_id <= last_output_frame_id) {
-    cur_frame_data.frame_id = last_output_frame_id + 1;
-    cur_frame_data.request_id = cur_frame_data.frame_id;
-  }
-  last_output_frame_id = cur_frame_data.frame_id;
-  last_output_frame_id_valid = true;
   cur_yuv_buf_ready = false;
   sendFrameToVipc();
   return true;
@@ -185,33 +128,10 @@ void CameraBuf::sendFrameToVipc() {
 void CameraBuf::queue(size_t buf_idx) {
   {
     std::lock_guard lk(queue_mtx);
-    if (repeat_output_enabled) {
-      // Copy before CameraState requeues the mapped V4L2 buffer. Keeping the
-      // VisionIPC buffer as the repeat source avoids a second full-frame copy
-      // for every 20 Hz output.
-      repeat_snapshot_yuv_buf = vipc_server->get_buffer(stream_type);
-      memcpy(repeat_snapshot_yuv_buf->addr, camera_bufs[buf_idx].addr, nv12_frame_size);
-      repeat_snapshot_metadata = camera_bufs_metadata[buf_idx];
-      repeat_snapshot_valid = true;
-      queue_cv.notify_one();
-      return;
-    }
     if (frame_idx_queue.size() >= kQueueDepth) frame_idx_queue.pop_front();
     frame_idx_queue.push_back((int)buf_idx);
   }
   queue_cv.notify_one();
-}
-
-void CameraBuf::set_repeat_output(bool enabled) {
-  std::lock_guard lk(queue_mtx);
-  if (repeat_output_enabled == enabled) return;
-
-  repeat_output_enabled = enabled;
-  repeat_output_started = false;
-  repeat_snapshot_valid = false;
-  repeat_snapshot_yuv_buf = nullptr;
-  frame_idx_queue.clear();
-  queue_cv.notify_all();
 }
 
 // common functions
@@ -233,19 +153,24 @@ void fill_frame_data(cereal::FrameData::Builder &framed, const FrameMetadata &fr
   framed.setTemperaturesC(kj::arrayPtr(&temperature, 1));
 }
 
-float calculate_exposure_value(const CameraBuf *b, Rect ae_xywh, int x_skip, int y_skip) {
+float calculate_exposure_value(const uint8_t *pixels, int stride, Rect ae_xywh, int x_skip, int y_skip) {
+  if (!pixels || stride <= 0 || ae_xywh.w <= 0 || ae_xywh.h <= 0 || x_skip <= 0 || y_skip <= 0) {
+    return 0.0f;
+  }
+
   int lum_med;
   uint32_t lum_binning[256] = {0};
-  const uint8_t *pix_ptr = b->cur_yuv_buf->y;
 
   unsigned int lum_total = 0;
   for (int y = ae_xywh.y; y < ae_xywh.y + ae_xywh.h; y += y_skip) {
     for (int x = ae_xywh.x; x < ae_xywh.x + ae_xywh.w; x += x_skip) {
-      uint8_t lum = pix_ptr[(y * b->out_img_width) + x];
+      uint8_t lum = pixels[(y * stride) + x];
       lum_binning[lum]++;
       lum_total += 1;
     }
   }
+
+  if (lum_total == 0) return 0.0f;
 
   // Find mean lumimance value
   unsigned int lum_cur = 0;
@@ -371,11 +296,7 @@ void *processing_thread(MultiCameraState *cameras, CameraState *cs, process_thre
     callback(cameras, cs, cnt);
 
     if (cs == &(cameras->road_cam) && cameras->pm && cnt % 100 == 3) {
-      constexpr uint64_t kThumbnailStabilizationNs = 500'000'000ULL;
-      const uint64_t now = nanos_since_boot();
-      if (cs->stream_start_ns > 0 && (now - cs->stream_start_ns) >= kThumbnailStabilizationNs) {
-        enqueue_thumbnail(&(cs->buf));
-      }
+      enqueue_thumbnail(&(cs->buf));
     }
     ++cnt;
   }

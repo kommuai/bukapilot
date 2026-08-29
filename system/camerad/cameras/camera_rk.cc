@@ -155,7 +155,11 @@ void CameraState::dequeue_buf() {
 
   if (ka2) ka2->on_dequeue(this, md, idx);
 
-  buf.queue(idx);
+  if (startup_discard_frames > 0) {
+    --startup_discard_frames;
+  } else {
+    buf.queue(idx);
+  }
 
   if (ioctl(video_fd, VIDIOC_QBUF, &v4l_buf) < 0) {
     LOGE("camera %d: VIDIOC_QBUF failed post-dequeue errno=%d '%s'", camera_num, errno, strerror(errno));

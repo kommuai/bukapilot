@@ -35,7 +35,6 @@ private:
   bool sensors_i2c(CameraState *cam, const i2c_random_wr_payload *dat, int len);
   void set_exposure_rect(CameraState *cam);
   void set_camera_exposure(CameraState *cam, float grey_frac);
-  void apply_fixed_exposure(CameraState *cam, int exp_t, int gidx, bool hcg);
   bool commit_exposure(CameraState *cam, int exp_t, int gidx, bool hcg);
   bool set_frame_length_vts(CameraState *cam, int exposure_lines);
   bool read_ctrl(const CameraState *cam, uint32_t id, int *out) const;

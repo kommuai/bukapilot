@@ -257,9 +257,8 @@ static void apply_daylight_wb_ccm(const rk_aiq_sys_ctx_t *aiq, int camera_num) {
   awb.stManual.sync.sync_mode = RK_AIQ_UAPI_MODE_SYNC;
   awb.stManual.mode = RK_AIQ_MWB_MODE_WBGAIN;
   awb.stManual.para.gain = {wr, wg, wg, wb};
-  if (rk_aiq_user_api2_awbV21_SetAllAttrib(aiq, awb) != XCAM_RETURN_NO_ERROR) {
-    LOGW("RkIspUserspace cam%d: awbV21_SetAllAttrib failed", camera_num);
-  }
+  // Set manual WB through the dedicated APIs below. Submitting this partial
+  // all-attributes struct also submits an empty auto gain-adjust table.
   rk_aiq_uapiV2_wb_opMode_t op = {};
   op.mode = RK_AIQ_WB_MODE_MANUAL;
   rk_aiq_user_api2_awb_SetWpModeAttrib(aiq, op);

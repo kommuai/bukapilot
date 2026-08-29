@@ -11,9 +11,7 @@
 #include <linux/i2c-dev.h>
 #include <sys/ioctl.h>
 
-#include "common/params.h"
 #include "common/swaglog.h"
-#include "common/timing.h"
 #include "system/camerad/cameras/camera_rk.h"
 #include "system/camerad/rk/rk_pwl_regs.h"
 #include "third_party/linux/include/v4l2-controls.h"
@@ -164,10 +162,6 @@ void Ka2CameraBackend::close(CameraState *cam) {
 }
 
 void Ka2CameraBackend::on_stream_start(CameraState *cam) {
-  cam->stream_start_ns = nanos_since_boot();
-  // The production VTS/exposure limits hold the sensor at 20 Hz, so publish
-  // only completed V4L2 frames and preserve their capture metadata.
-  cam->buf.set_repeat_output(false);
   apply_pwl_on(cam);
 }
 
@@ -217,11 +211,22 @@ bool Ka2CameraBackend::sensors_i2c(CameraState *cam, const i2c_random_wr_payload
     return (r.reg_addr >= 0x3500 && r.reg_addr < 0x3600) || r.reg_addr == 0x380e || r.reg_addr == 0x380f;
   });
   if (ae_regs && !i2c_write_reg8(i2c_fd_.fd_, (uint16_t)i2c_addr_, kGrpHoldReg, 0x00)) {
+    const int err = errno;
     if (cam->frame_id_last % 120 == 0) {
-      LOGE("camera %d: i2c group hold start failed errno=%d", cam->camera_num, errno);
+      LOGE("camera %d: i2c group hold start failed errno=%d", cam->camera_num, err);
     }
+    ::close(i2c_fd_.fd_);
+    i2c_fd_.fd_ = -1;
+    errno = err;
     return false;
   }
+
+  // Wide and driver require delayed launch; road accepts quick launch.
+  const uint8_t group_launch = cam->camera_num == 1 ? 0xE0 : 0xA0;
+  const auto release_group_hold = [&] {
+    return i2c_write_reg8(i2c_fd_.fd_, (uint16_t)i2c_addr_, kGrpHoldReg, 0x10) &&
+           i2c_write_reg8(i2c_fd_.fd_, (uint16_t)i2c_addr_, kGrpHoldReg, group_launch);
+  };
 
   uint8_t bufs[kI2cChunk][3];
   struct i2c_msg msgs[kI2cChunk];
@@ -238,23 +243,24 @@ bool Ka2CameraBackend::sensors_i2c(CameraState *cam, const i2c_random_wr_payload
       msgs[i].buf = bufs[i];
     }
     if (!i2c_write_msgs(i2c_fd_.fd_, msgs, chunk)) {
-      if (cam->frame_id_last % 120 == 0) LOGE("camera %d: i2c batch wr failed errno=%d", cam->camera_num, errno);
+      const int err = errno;
+      if (cam->frame_id_last % 120 == 0) LOGE("camera %d: i2c batch wr failed errno=%d", cam->camera_num, err);
+      if (ae_regs) (void)release_group_hold();
       ::close(i2c_fd_.fd_);
       i2c_fd_.fd_ = -1;
+      errno = err;
       return false;
     }
   }
   if (ae_regs) {
-    // The driver-camera module remains in delayed-launch mode after its
-    // production init sequence.  Quick launch (E0) is accepted by the wide
-    // and road modules, but is ignored by camera 2; A0 is the documented
-    // delayed launch command for that module.
-    const uint8_t launch = cam->camera_num == 2 ? 0xA0 : 0xE0;
-    if (!i2c_write_reg8(i2c_fd_.fd_, (uint16_t)i2c_addr_, kGrpHoldReg, 0x10) ||
-        !i2c_write_reg8(i2c_fd_.fd_, (uint16_t)i2c_addr_, kGrpHoldReg, launch)) {
+    if (!release_group_hold()) {
+      const int err = errno;
       if (cam->frame_id_last % 120 == 0) {
-        LOGE("camera %d: i2c group hold launch failed errno=%d", cam->camera_num, errno);
+        LOGE("camera %d: i2c group hold launch failed errno=%d", cam->camera_num, err);
       }
+      ::close(i2c_fd_.fd_);
+      i2c_fd_.fd_ = -1;
+      errno = err;
       return false;
     }
   }
@@ -282,13 +288,6 @@ void Ka2CameraBackend::set_exposure_rect(CameraState *cam) {
     std::min((int)(fl_pix_ / fl_ref * xywh_ref.w), W / 2 + (int)(fl_pix_ / fl_ref * xywh_ref.w / 2)),
     std::min((int)(fl_pix_ / fl_ref * xywh_ref.h), H / 2 + (int)(fl_pix_ / fl_ref * (h_ref / 2 - xywh_ref.y))),
   };
-}
-
-void Ka2CameraBackend::apply_fixed_exposure(CameraState *cam, int exp_t, int gidx, bool hcg) {
-  if (!cam->enabled || !cam->ci) return;
-  gidx = std::clamp(gidx, cam->ci->analog_gain_min_idx, cam->ci->analog_gain_max_idx);
-  exp_t = std::clamp(exp_t, cam->ci->exposure_time_min, cam->ci->exposure_time_max);
-  (void)commit_exposure(cam, exp_t, gidx, hcg);
 }
 
 bool Ka2CameraBackend::commit_exposure(CameraState *cam, int exp_t, int gidx, bool hcg) {
@@ -330,23 +329,6 @@ bool Ka2CameraBackend::commit_exposure(CameraState *cam, int exp_t, int gidx, bo
 void Ka2CameraBackend::set_camera_exposure(CameraState *cam, float grey_frac) {
   if (!cam->enabled || !cam->ci) return;
   std::lock_guard lk(exp_lock_);
-
-  if (cam->camera_num == 1) {
-    static Params params;
-    if (params.getBool("Ka2AeManual")) {
-      int exp_t = 5;
-      int gidx = (int)cam->ci->analog_gain_rec_idx;
-      bool hcg = false;
-      const std::string exp_s = params.get("Ka2AeExp");
-      const std::string gidx_s = params.get("Ka2AeGainIdx");
-      if (!exp_s.empty()) exp_t = std::stoi(exp_s);
-      if (!gidx_s.empty()) gidx = std::stoi(gidx_s);
-      hcg = params.getBool("Ka2AeHcg");
-      apply_fixed_exposure(cam, exp_t, gidx, hcg);
-      measured_grey_fraction_ = grey_frac;
-      return;
-    }
-  }
 
   static const float target_grey_minimums[3] = {0.1f, 0.1f, 0.125f};
   const float tg_min = target_grey_minimums[std::clamp(cam->camera_num, 0, 2)];
@@ -439,15 +421,12 @@ void Ka2CameraBackend::on_dequeue(CameraState *cam, FrameMetadata &md, int buf_i
   const int w = cam->buf.rgb_width;
   const int h = cam->buf.rgb_height;
   if (y && w > 0 && h > 0 && cam->ci) {
-    cam->buf.cur_yuv_buf = &cam->buf.camera_bufs[buf_idx];
-    cam->buf.out_img_width = (uint32_t)w;
-    cam->buf.out_img_height = (uint32_t)h;
     if (!ae_roi_ready_ || ae_xywh_.w < 1000) {
       set_exposure_rect(cam);
       ae_roi_ready_ = true;
     }
     const int y_skip = (cam->camera_num == 2) ? 4 : 2;
-    float grey = calculate_exposure_value(&cam->buf, ae_xywh_, 2, y_skip);
+    float grey = calculate_exposure_value(y, cam->buf.camera_bufs[buf_idx].stride, ae_xywh_, 2, y_skip);
     set_camera_exposure(cam, grey);
   }
   if (md.frame_id % 600 == 1) apply_pwl_on(cam);

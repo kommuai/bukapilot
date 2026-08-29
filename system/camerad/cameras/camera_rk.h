@@ -24,7 +24,7 @@ public:
   int camera_num = 0;
   bool rk_zerocopy_requested = false;
   bool rk_zerocopy_active = false;
-  uint64_t stream_start_ns = 0;
+  uint8_t startup_discard_frames = 3;
 
   struct v4l2_format fmt = {};
   struct v4l2_requestbuffers req = {};

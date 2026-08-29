@@ -5,7 +5,6 @@
 #include <mutex>
 #include <condition_variable>
 #include <thread>
-#include <chrono>
 #include <vector>
 #include <cstdint>
 #include <fcntl.h>
@@ -46,31 +45,21 @@ private:
   std::condition_variable queue_cv;
   std::deque<int> frame_idx_queue;
   static constexpr size_t kQueueDepth = 2;
-  int frame_buf_count;
+  int frame_buf_count = 0;
   bool use_external_zerocopy = false;
   bool vipc_buffers_ready = false;
-  bool repeat_output_enabled = false;
-  bool repeat_snapshot_valid = false;
-  bool repeat_output_started = false;
-  VisionBuf *repeat_snapshot_yuv_buf = nullptr;
-  FrameMetadata repeat_snapshot_metadata = {};
-  uint32_t repeat_next_frame_id = 0;
-  uint32_t last_output_frame_id = 0;
-  bool last_output_frame_id_valid = false;
-  std::chrono::steady_clock::time_point repeat_next_publish;
   bool cur_yuv_buf_ready = false;
 
 public:
-  VisionIpcServer *vipc_server;
+  VisionIpcServer *vipc_server = nullptr;
   VisionStreamType stream_type;
-  int cur_buf_idx;
-  FrameMetadata cur_frame_data;
-  VisionBuf *cur_yuv_buf;
-  VisionBuf *cur_camera_buf;
+  int cur_buf_idx = -1;
+  FrameMetadata cur_frame_data = {};
+  VisionBuf *cur_yuv_buf = nullptr;
+  VisionBuf *cur_camera_buf = nullptr;
   std::unique_ptr<VisionBuf[]> camera_bufs;
   std::unique_ptr<FrameMetadata[]> camera_bufs_metadata;
-  int rgb_width, rgb_height, nv12_frame_size;
-  uint32_t out_img_width, out_img_height;  // for calculate_exposure_value / compatibility
+  int rgb_width = 0, rgb_height = 0, nv12_frame_size = 0;
 
   CameraBuf() = default;
   ~CameraBuf() = default;
@@ -79,11 +68,10 @@ public:
   void sendFrameToVipc();
   bool acquire();
   void queue(size_t buf_idx);
-  void set_repeat_output(bool enabled);
 };
 
 void camerad_thread();
-float calculate_exposure_value(const CameraBuf *b, Rect ae_xywh, int x_skip, int y_skip);
+float calculate_exposure_value(const uint8_t *pixels, int stride, Rect ae_xywh, int x_skip, int y_skip);
 int open_v4l_by_name_and_index(const char name[], int index = 0, int flags = O_RDWR | O_NONBLOCK);
 
 // RK process thread helpers
