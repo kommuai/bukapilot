@@ -157,12 +157,25 @@ void CameraState::dequeue_buf() {
 
   if (startup_discard_frames > 0) {
     --startup_discard_frames;
+    requeue_buf(idx);
   } else {
-    buf.queue(idx);
+    const int dropped_idx = buf.queue(idx);
+    if (dropped_idx >= 0) requeue_buf(dropped_idx);
   }
+}
 
-  if (ioctl(video_fd, VIDIOC_QBUF, &v4l_buf) < 0) {
-    LOGE("camera %d: VIDIOC_QBUF failed post-dequeue errno=%d '%s'", camera_num, errno, strerror(errno));
+void CameraState::requeue_buf(int idx) {
+  if (!enabled || idx < 0 || idx >= FRAME_BUF_COUNT) return;
+
+  struct v4l2_buffer buffer = {};
+  struct v4l2_plane plane = {};
+  buffer.type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
+  buffer.memory = V4L2_MEMORY_MMAP;
+  buffer.length = 1;
+  buffer.m.planes = &plane;
+  buffer.index = idx;
+  if (ioctl(video_fd, VIDIOC_QBUF, &buffer) < 0) {
+    LOGE("camera %d: VIDIOC_QBUF failed idx=%d errno=%d '%s'", camera_num, idx, errno, strerror(errno));
   }
 }
 

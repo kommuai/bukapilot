@@ -44,7 +44,8 @@ private:
   mutable std::mutex queue_mtx;
   std::condition_variable queue_cv;
   std::deque<int> frame_idx_queue;
-  static constexpr size_t kQueueDepth = 2;
+  // Three queued buffers plus one worker-owned buffer cover all V4L2 slots.
+  static constexpr size_t kQueueDepth = 3;
   int frame_buf_count = 0;
   bool use_external_zerocopy = false;
   bool vipc_buffers_ready = false;
@@ -67,7 +68,8 @@ public:
   void setupVipcBuffers(bool use_external);
   void sendFrameToVipc();
   bool acquire();
-  void queue(size_t buf_idx);
+  // Returns the previously queued V4L2 index when the queue overflows.
+  int queue(size_t buf_idx);
 };
 
 void camerad_thread();

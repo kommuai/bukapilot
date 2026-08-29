@@ -125,13 +125,18 @@ void CameraBuf::sendFrameToVipc() {
   cur_yuv_buf_ready = false;
 }
 
-void CameraBuf::queue(size_t buf_idx) {
+int CameraBuf::queue(size_t buf_idx) {
+  int dropped_idx = -1;
   {
     std::lock_guard lk(queue_mtx);
-    if (frame_idx_queue.size() >= kQueueDepth) frame_idx_queue.pop_front();
+    if (frame_idx_queue.size() >= kQueueDepth) {
+      dropped_idx = frame_idx_queue.front();
+      frame_idx_queue.pop_front();
+    }
     frame_idx_queue.push_back((int)buf_idx);
   }
   queue_cv.notify_one();
+  return dropped_idx;
 }
 
 // common functions
@@ -293,11 +298,17 @@ void *processing_thread(MultiCameraState *cameras, CameraState *cs, process_thre
   while (!do_exit) {
     if (!cs->buf.acquire()) continue;
 
+    // Keep the dequeued V4L2 buffer owned by this worker until the VisionIPC
+    // copy has completed. Requeueing earlier lets the driver overwrite the
+    // source while sendFrameToVipc() is still reading it.
+    const int buf_idx = cs->buf.cur_buf_idx;
+
     callback(cameras, cs, cnt);
 
     if (cs == &(cameras->road_cam) && cameras->pm && cnt % 100 == 3) {
       enqueue_thumbnail(&(cs->buf));
     }
+    cs->requeue_buf(buf_idx);
     ++cnt;
   }
   return NULL;

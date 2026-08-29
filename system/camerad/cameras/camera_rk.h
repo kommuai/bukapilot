@@ -34,6 +34,7 @@ public:
   void camera_map_bufs();
   void camera_init(VisionIpcServer *v, VisionStreamType yuv_type);
   void dequeue_buf();
+  void requeue_buf(int idx);
   void queue_all_buffers();
   void camera_close();
 
