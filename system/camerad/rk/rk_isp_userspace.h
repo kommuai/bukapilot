@@ -23,7 +23,7 @@ public:
   bool prepare();              // sysctl_prepare (all cams before stream on)
   bool start();                // sysctl_start (barrier-gated multi-cam)
   bool set_external_exposure(uint32_t frame_id, int integration_lines, float analog_gain,
-                             bool high_conversion_gain);
+                             uint32_t sensor_gain_code, bool high_conversion_gain);
   void shutdown();
 
   bool active() const { return active_; }

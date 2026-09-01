@@ -123,7 +123,7 @@ int OX03C10::getExposureRegisters(int exposure_time, int new_exp_g, bool dc_gain
   uint32_t lcg_time = hcg_time;
   uint32_t spd_time = std::min(std::max((uint32_t)exposure_time,
                                         (uint32_t)ox03c10_limits::kSpdMinExposure),
-                               (uint32_t)exposure_time + VS_TIME_MAX_OX03C10);
+                               (uint32_t)ox03c10_limits::kSpdMaxExposure);
   uint32_t vs_time = std::min(std::max((uint32_t)exposure_time / 40, VS_TIME_MIN_OX03C10), VS_TIME_MAX_OX03C10);
 
   uint32_t real_gain = ox03c10_analog_gains_reg[new_exp_g];

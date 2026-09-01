@@ -173,13 +173,11 @@ float Ka2CameraBackend::get_gain_factor(const CameraState *cam) const {
 
 bool Ka2CameraBackend::set_frame_length_vts(CameraState *cam, int exposure_lines) {
   if (!cam || !cam->ci || i2c_bus_ < 0) return false;
-  const int vts = std::clamp(
-      std::max(ox03c10_limits::kMinVts, exposure_lines + ox03c10_limits::kHdr4Margin),
-      ox03c10_limits::kMinVts, ox03c10_limits::kMaxVts);
-  const int vblank = vts - ox03c10_limits::kActiveRows;
-  if (vblank == frame_length_vts_) return true;
+  if (exposure_lines < cam->ci->exposure_time_min ||
+      exposure_lines > ox03c10_limits::kMaxExposure) return false;
+  if (frame_length_vts_ == ox03c10_limits::kFrameVts) return true;
 
-  frame_length_vts_ = vblank;
+  frame_length_vts_ = ox03c10_limits::kFrameVts;
   return true;
 }
 
@@ -189,7 +187,9 @@ void Ka2CameraBackend::apply_pwl_on(CameraState *cam) {
   for (size_t i = 0; i < rk_pwl::kOx03c10PwlOnLen; i++) {
     wr.push_back({rk_pwl::kOx03c10PwlOn[i].addr, rk_pwl::kOx03c10PwlOn[i].data});
   }
-  sensors_i2c(cam, wr.data(), (int)wr.size());
+  if (!sensors_i2c(cam, wr.data(), (int)wr.size())) {
+    LOGE("camera %d: static OX03C10 configuration write failed", cam->camera_num);
+  }
 }
 
 bool Ka2CameraBackend::sensors_i2c(CameraState *cam, const i2c_random_wr_payload *dat, int len) {
@@ -320,9 +320,19 @@ bool Ka2CameraBackend::commit_exposure(CameraState *cam, int exp_t, int gidx, bo
     last_exp_reg_count_ = exposure_reg_count_;
   }
 
+  uint32_t sensor_gain_code = 0;
+  for (size_t i = 2; i + 1 < exposure_reg_count_; ++i) {
+    if (exposure_regs_[i].reg_addr == 0x3508 && exposure_regs_[i + 1].reg_addr == 0x3509) {
+      sensor_gain_code = (exposure_regs_[i].reg_data << 8) | exposure_regs_[i + 1].reg_data;
+      break;
+    }
+  }
+
   const float gain = analog_gain_frac_ * get_gain_factor(cam);
   cur_ev_[cam->frame_id_last % 3] = exposure_time_ * gain;
-  if (rk_isp_) rk_isp_->set_external_exposure(cam->frame_id_last + 1, exposure_time_, gain, hcg);
+  if (rk_isp_ && sensor_gain_code) {
+    rk_isp_->set_external_exposure(cam->frame_id_last + 1, exposure_time_, gain, sensor_gain_code, hcg);
+  }
   return true;
 }
 

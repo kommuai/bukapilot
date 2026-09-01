@@ -27,11 +27,6 @@
 
 #include "common/swaglog.h"
 
-// Present in the device librkaiq.so but omitted from its public headers.
-extern "C" XCamReturn rk_aiq_uapi2_sysctl_setExternalExposureInfo(const rk_aiq_sys_ctx_t *ctx,
-                                                                  uint32_t frame_id,
-                                                                  rk_aiq_frame_info_t *info);
-
 namespace {
 
 constexpr const char *kCalibRuntimeDir = "/tmp/camerad_calib";
@@ -42,11 +37,6 @@ const char *kCalibNames[] = {
   "ox03c10_D2V11K_9420.json",
   "ox03c10_D2V12K_9421.json",
 };
-
-// ColorChecker Neutral-5 tuned @ exp=40 gidx=0 (was R=1.55 B=1.88 → blue cast B/G~1.12).
-static constexpr float kKa2WbR = 1.90f;
-static constexpr float kKa2WbG = 1.00f;
-static constexpr float kKa2WbB = 1.68f;
 
 std::string resolve_v4l_dev_by_name_index(const char *name, int index) {
   for (int i = 0; i < 64; i++) {
@@ -165,18 +155,12 @@ void RkIspUserspaceController::stop_rkaiq() {
 
 bool RkIspUserspaceController::set_external_exposure(uint32_t frame_id, int integration_lines,
                                                       float analog_gain,
+                                                      uint32_t sensor_gain_code,
                                                       bool high_conversion_gain) {
-  if (!active_ || !aiq_ || integration_lines <= 0 || analog_gain <= 0.0f) return false;
-  (void)high_conversion_gain;  // rk_aiq_frame_info_t has no HCG field.
-
-  rk_aiq_frame_info_t info = {};
-  info.frame_id = frame_id;
-  info.normal_exp = static_cast<float>(integration_lines);
-  info.normal_gain = analog_gain;
-  info.normal_exp_reg = static_cast<uint32_t>(integration_lines);
-  info.normal_gain_reg = static_cast<uint32_t>(std::lround(analog_gain * 256.0f));
-
-  const XCamReturn rc = rk_aiq_uapi2_sysctl_setExternalExposureInfo(aiq_, frame_id, &info);
+  if (!active_ || !aiq_ || integration_lines <= 0 || analog_gain <= 0.0f || sensor_gain_code == 0) return false;
+  const XCamReturn rc = rk_aiq_uapi2_sysctl_setExternalExposureInfoV2(
+      aiq_, frame_id, analog_gain, sensor_gain_code, static_cast<uint32_t>(integration_lines),
+      high_conversion_gain ? 1 : 0);
   if (rc != XCAM_RETURN_NO_ERROR && frame_id % 120 == 0) {
     LOGW("RkIspUserspace cam%d: external exposure metadata failed (%d)", cfg_.camera_num, (int)rc);
   }
@@ -245,31 +229,36 @@ bool RkIspUserspaceController::init(const RkIspCamConfig &cfg) {
   return true;
 }
 
-static void apply_daylight_wb_ccm(const rk_aiq_sys_ctx_t *aiq, int camera_num) {
-  const float wr = kKa2WbR, wg = kKa2WbG, wb = kKa2WbB;
-
-  rk_aiq_uapi2_sysctl_setModuleCtl(aiq, RK_MODULE_AWB_GAIN, true);
+static void disable_isp_awb(const rk_aiq_sys_ctx_t *aiq, int camera_num) {
+  if (rk_aiq_uapi2_sysctl_setModuleCtl(aiq, RK_MODULE_AWB_GAIN, false) != XCAM_RETURN_NO_ERROR) {
+    LOGW("RkIspUserspace cam%d: failed to disable RK_MODULE_AWB_GAIN", camera_num);
+  }
+  if (rk_aiq_uapi2_sysctl_setModuleCtl(aiq, RK_MODULE_AWB, false) != XCAM_RETURN_NO_ERROR) {
+    LOGW("RkIspUserspace cam%d: failed to disable RK_MODULE_AWB", camera_num);
+  }
 
   rk_aiq_uapiV2_wbV21_attrib_t awb = {};
   awb.sync.sync_mode = RK_AIQ_UAPI_MODE_SYNC;
-  awb.byPass = false;
+  awb.byPass = true;
   awb.mode = RK_AIQ_WB_MODE_MANUAL;
   awb.stManual.sync.sync_mode = RK_AIQ_UAPI_MODE_SYNC;
   awb.stManual.mode = RK_AIQ_MWB_MODE_WBGAIN;
-  awb.stManual.para.gain = {wr, wg, wg, wb};
-  // Set manual WB through the dedicated APIs below. Submitting this partial
-  // all-attributes struct also submits an empty auto gain-adjust table.
-  rk_aiq_uapiV2_wb_opMode_t op = {};
-  op.mode = RK_AIQ_WB_MODE_MANUAL;
-  rk_aiq_user_api2_awb_SetWpModeAttrib(aiq, op);
-  rk_aiq_wb_mwb_attrib_t mwb = awb.stManual;
-  rk_aiq_user_api2_awb_SetMwbAttrib(aiq, mwb);
-  rk_aiq_wb_gain_t g = mwb.para.gain;
-  rk_aiq_uapi2_setMWBGain(aiq, &g);
-  rk_aiq_uapi2_setWBMode(aiq, OP_MANUAL);
-  float pre[4] = {wr, wg, wg, wb};
-  rk_aiq_user_api2_awb_setAwbPreWbgain(aiq, pre);
+  awb.stManual.para.gain = {1.0f, 1.0f, 1.0f, 1.0f};
+  if (rk_aiq_user_api2_awbV21_SetAllAttrib(aiq, awb) != XCAM_RETURN_NO_ERROR) {
+    LOGW("RkIspUserspace cam%d: awbV21 bypass failed", camera_num);
+  }
 
+  bool awb_gain_enabled = true;
+  if (rk_aiq_uapi2_sysctl_getModuleCtl(aiq, RK_MODULE_AWB_GAIN, &awb_gain_enabled) != XCAM_RETURN_NO_ERROR || awb_gain_enabled) {
+    LOGW("RkIspUserspace cam%d: RKISP AWB gain remains enabled", camera_num);
+  }
+  bool awb_stats_enabled = true;
+  if (rk_aiq_uapi2_sysctl_getModuleCtl(aiq, RK_MODULE_AWB, &awb_stats_enabled) != XCAM_RETURN_NO_ERROR || awb_stats_enabled) {
+    LOGW("RkIspUserspace cam%d: RKISP AWB stats remain enabled", camera_num);
+  }
+}
+
+static void apply_ccm(const rk_aiq_sys_ctx_t *aiq, int camera_num) {
   auto s12 = [](uint32_t v) -> float {
     int x = static_cast<int>(v & 0xfff);
     if (x >= 0x800) x -= 0x1000;
@@ -360,7 +349,8 @@ bool RkIspUserspaceController::start() {
   }
   started_ = true;
 
-  apply_daylight_wb_ccm(aiq_, cfg_.camera_num);
+  disable_isp_awb(aiq_, cfg_.camera_num);
+  apply_ccm(aiq_, cfg_.camera_num);
   if (cfg_.camera_num == 1) {
     apply_road_chroma_guard(aiq_);
   }
