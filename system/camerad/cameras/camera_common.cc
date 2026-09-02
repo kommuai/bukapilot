@@ -1,8 +1,10 @@
 #include "system/camerad/cameras/camera_common.h"
 
+#include <algorithm>
 #include <cassert>
 #include <chrono>
 #include <cstring>
+#include <time.h>
 #include <string>
 #include <vector>
 #include <queue>
@@ -22,6 +24,12 @@
 #endif
 
 ExitHandler do_exit;
+
+uint64_t monotonic_time_ns() {
+  struct timespec ts = {};
+  clock_gettime(CLOCK_MONOTONIC_RAW, &ts);
+  return static_cast<uint64_t>(ts.tv_sec) * 1000000000ULL + static_cast<uint64_t>(ts.tv_nsec);
+}
 
 struct ThumbnailJob {
   uint32_t frame_id = 0;
@@ -132,8 +140,10 @@ int CameraBuf::queue(size_t buf_idx) {
     if (frame_idx_queue.size() >= kQueueDepth) {
       dropped_idx = frame_idx_queue.front();
       frame_idx_queue.pop_front();
+      ++dropped_frames_;
     }
     frame_idx_queue.push_back((int)buf_idx);
+    queue_peak_ = std::max(queue_peak_, frame_idx_queue.size());
   }
   queue_cv.notify_one();
   return dropped_idx;
@@ -303,11 +313,15 @@ void *processing_thread(MultiCameraState *cameras, CameraState *cs, process_thre
     // source while sendFrameToVipc() is still reading it.
     const int buf_idx = cs->buf.cur_buf_idx;
 
+    if (cs->ka2) {
+      cs->ka2->enqueue_ae(cs, buf_idx, cs->buf.cur_frame_data);
+    }
     callback(cameras, cs, cnt);
 
     if (cs == &(cameras->road_cam) && cameras->pm && cnt % 100 == 3) {
       enqueue_thumbnail(&(cs->buf));
     }
+    if (cs->ka2) cs->ka2->wait_for_ae(buf_idx);
     cs->requeue_buf(buf_idx);
     ++cnt;
   }
@@ -453,4 +467,29 @@ int open_v4l_by_name_and_index(const char name[], int index, int flags) {
       index--;
     }
   }
+}
+
+size_t CameraBuf::queue_size() const {
+  std::lock_guard lk(queue_mtx);
+  return frame_idx_queue.size();
+}
+
+size_t CameraBuf::queue_peak() const {
+  std::lock_guard lk(queue_mtx);
+  return queue_peak_;
+}
+
+uint64_t CameraBuf::dropped_frames() const {
+  std::lock_guard lk(queue_mtx);
+  return dropped_frames_;
+}
+
+void CameraBuf::record_dequeue_latency(uint64_t latency_ns) {
+  std::lock_guard lk(queue_mtx);
+  max_dequeue_latency_ns_ = std::max(max_dequeue_latency_ns_, latency_ns);
+}
+
+uint64_t CameraBuf::max_dequeue_latency() const {
+  std::lock_guard lk(queue_mtx);
+  return max_dequeue_latency_ns_;
 }

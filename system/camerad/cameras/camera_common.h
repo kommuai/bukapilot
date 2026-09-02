@@ -34,6 +34,10 @@ typedef struct FrameMetadata {
   float sensor_temp_c;
 
   float processing_time;
+
+  // Monotonic timestamp captured immediately after DQBUF. This is internal
+  // camerad timing data and is not published in cereal.
+  uint64_t dequeue_monotonic_ns = 0;
 } FrameMetadata;
 
 struct MultiCameraState;
@@ -50,6 +54,9 @@ private:
   bool use_external_zerocopy = false;
   bool vipc_buffers_ready = false;
   bool cur_yuv_buf_ready = false;
+  size_t queue_peak_ = 0;
+  uint64_t dropped_frames_ = 0;
+  uint64_t max_dequeue_latency_ns_ = 0;
 
 public:
   VisionIpcServer *vipc_server = nullptr;
@@ -70,9 +77,15 @@ public:
   bool acquire();
   // Returns the previously queued V4L2 index when the queue overflows.
   int queue(size_t buf_idx);
+  size_t queue_size() const;
+  size_t queue_peak() const;
+  uint64_t dropped_frames() const;
+  void record_dequeue_latency(uint64_t latency_ns);
+  uint64_t max_dequeue_latency() const;
 };
 
 void camerad_thread();
+uint64_t monotonic_time_ns();
 float calculate_exposure_value(const uint8_t *pixels, int stride, Rect ae_xywh, int x_skip, int y_skip);
 int open_v4l_by_name_and_index(const char name[], int index = 0, int flags = O_RDWR | O_NONBLOCK);
 
