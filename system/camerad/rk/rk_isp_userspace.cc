@@ -4,7 +4,6 @@
 #include <cmath>
 #include <cerrno>
 #include <cstdio>
-#include <cstdlib>
 #include <cstring>
 #include <fcntl.h>
 #include <string>
@@ -26,14 +25,21 @@
 
 namespace {
 
-constexpr const char *kCalibRuntimeDir = "/tmp/camerad_calib";
 constexpr const char *kCalibEmbedDir = "/data/openpilot/system/camerad/rk/calib_embed";
+constexpr size_t kMaxCalibJsonSize = 512 * 1024;
 
-const char *kCalibNames[] = {
+const char *kCalibJsonNames[] = {
   "ox03c10_D2V10K_9419.json",
   "ox03c10_D2V11K_9420.json",
   "ox03c10_D2V12K_9421.json",
 };
+constexpr size_t kCalibCount = sizeof(kCalibJsonNames) / sizeof(kCalibJsonNames[0]);
+
+bool valid_calib_json_file(const std::string &path) {
+  struct stat st {};
+  return stat(path.c_str(), &st) == 0 && S_ISREG(st.st_mode) && st.st_size > 0 &&
+         static_cast<uint64_t>(st.st_size) <= kMaxCalibJsonSize;
+}
 
 std::string resolve_v4l_dev_by_name_index(const char *name, int index) {
   for (int i = 0; i < 64; i++) {
@@ -62,51 +68,6 @@ struct RkCamSync {
 
 RkCamSync g_sync;
 
-bool link_or_copy_calib(const std::string &src, const std::string &dst) {
-  struct stat ss {};
-  if (stat(src.c_str(), &ss) != 0) return false;
-
-  struct stat ds {};
-  if (lstat(dst.c_str(), &ds) == 0) {
-    if (S_ISLNK(ds.st_mode)) {
-      char target[512];
-      const ssize_t n = readlink(dst.c_str(), target, sizeof(target) - 1);
-      if (n > 0) {
-        target[n] = '\0';
-        if (src == target) return true;
-      }
-    } else if (S_ISREG(ds.st_mode) && ds.st_size == ss.st_size && ds.st_mtime >= ss.st_mtime) {
-      return true;
-    }
-    unlink(dst.c_str());
-  }
-
-  if (symlink(src.c_str(), dst.c_str()) == 0) return true;
-
-  FILE *in = fopen(src.c_str(), "rb");
-  if (!in) return false;
-  FILE *out = fopen(dst.c_str(), "wb");
-  if (!out) {
-    fclose(in);
-    return false;
-  }
-  char buf[65536];
-  size_t nread = 0;
-  while ((nread = fread(buf, 1, sizeof(buf), in)) > 0) {
-    if (fwrite(buf, 1, nread, out) != nread) {
-      fclose(in);
-      fclose(out);
-      unlink(dst.c_str());
-      return false;
-    }
-  }
-  const bool ok = !ferror(in) && fflush(out) == 0;
-  fclose(in);
-  fclose(out);
-  if (!ok) unlink(dst.c_str());
-  return ok;
-}
-
 }  // namespace
 
 static void apply_ccm(const rk_aiq_sys_ctx_t *aiq, int camera_num);
@@ -118,38 +79,43 @@ void RkIspUserspaceController::set_multi_cam_count(int n) {
   g_sync.expected = multi_cam_n_;
 }
 
-bool RkIspUserspaceController::ensure_runtime_calib() {
-  mkdir(kCalibRuntimeDir, 0755);
-  int ok = 0;
-  for (const char *name : kCalibNames) {
-    const std::string src = std::string(kCalibEmbedDir) + "/" + name;
-    const std::string dst = std::string(kCalibRuntimeDir) + "/" + name;
-    if (!link_or_copy_calib(src, dst)) {
-      LOGE("RkIspUserspace: calib install failed %s -> %s", src.c_str(), dst.c_str());
-      continue;
-    }
-    ok++;
-  }
-  if (ok < 3) {
-    LOGE("RkIspUserspace: need 3 calib json under %s (from %s); got %d", kCalibRuntimeDir, kCalibEmbedDir, ok);
-    return false;
+bool RkIspUserspaceController::calibration_available() {
+  for (size_t i = 0; i < kCalibCount; ++i) {
+    const std::string path = std::string(kCalibEmbedDir) + "/" + kCalibJsonNames[i];
+    if (!valid_calib_json_file(path)) return false;
   }
   return true;
 }
 
-void RkIspUserspaceController::stop_rkaiq() {
-  std::system("sudo systemctl stop rkaiq_3A.service 2>/dev/null; "
-              "sudo killall -9 rkaiq_3A_server 2>/dev/null; "
-              "sudo killall -9 /usr/kommu/rkaiq_3A_server 2>/dev/null; "
-              "sudo chmod 1777 /tmp 2>/dev/null; "
-              "sudo rm -f /tmp/aiq*.lock /tmp/UNIX.domain* 2>/dev/null; "
-              "touch /tmp/aiq0.lock /tmp/aiq1.lock /tmp/aiq2.lock 2>/dev/null; "
-              "chmod 666 /tmp/aiq0.lock /tmp/aiq1.lock /tmp/aiq2.lock 2>/dev/null; "
-              "sleep 1");
-  if (std::system("pidof rkaiq_3A_server >/dev/null") == 0) {
-    LOGE("RkIspUserspace: rkaiq_3A_server still alive after stop");
+bool RkIspUserspaceController::load_calib_json(const char *sensor_entity) {
+  if (cfg_.camera_num < 0 || cfg_.camera_num >= static_cast<int>(kCalibCount)) {
+    LOGE("RkIspUserspace cam%d: invalid calibration index", cfg_.camera_num);
+    return false;
   }
-  ensure_runtime_calib();
+
+  const char *name = kCalibJsonNames[cfg_.camera_num];
+  const std::string path = std::string(kCalibEmbedDir) + "/" + name;
+  if (!valid_calib_json_file(path)) {
+    LOGE("RkIspUserspace cam%d: invalid calibration JSON %s", cfg_.camera_num, path.c_str());
+    return false;
+  }
+
+  const XCamReturn rc = rk_aiq_uapi2_sysctl_preInit(
+      sensor_entity, RK_AIQ_WORKING_MODE_NORMAL, name);
+  if (rc != XCAM_RETURN_NO_ERROR) {
+    LOGE("RkIspUserspace cam%d: calibration JSON registration failed (%d)",
+         cfg_.camera_num, static_cast<int>(rc));
+    return false;
+  }
+  calib_sensor_entity_ = sensor_entity;
+  return true;
+}
+
+void RkIspUserspaceController::clear_calib_json() {
+  if (!calib_sensor_entity_.empty()) {
+    rk_aiq_uapi2_sysctl_preInit(calib_sensor_entity_.c_str(), RK_AIQ_WORKING_MODE_NORMAL, nullptr);
+    calib_sensor_entity_.clear();
+  }
 }
 
 bool RkIspUserspaceController::set_external_exposure(uint32_t frame_id, int integration_lines,
@@ -191,17 +157,18 @@ bool RkIspUserspaceController::init(const RkIspCamConfig &cfg) {
     LOGE("RkIspUserspace cam%d: mainpath_dev required", cfg_.camera_num);
     return false;
   }
-  if (!ensure_runtime_calib()) {
-    return false;
-  }
   const char *sns = rk_aiq_uapi2_sysctl_getBindedSnsEntNmByVd(cfg_.mainpath_dev.c_str());
   if (!sns || !sns[0]) {
     LOGE("RkIspUserspace cam%d: no sns for %s", cfg_.camera_num, cfg_.mainpath_dev.c_str());
     return false;
   }
-  aiq_ = rk_aiq_uapi2_sysctl_init(sns, kCalibRuntimeDir, nullptr, nullptr);
+  if (!load_calib_json(sns)) {
+    return false;
+  }
+  aiq_ = rk_aiq_uapi2_sysctl_init(sns, kCalibEmbedDir, nullptr, nullptr);
   if (!aiq_) {
-    LOGE("RkIspUserspace cam%d: sysctl_init failed (dir=%s)", cfg_.camera_num, kCalibRuntimeDir);
+    LOGE("RkIspUserspace cam%d: sysctl_init failed with calibration JSON", cfg_.camera_num);
+    clear_calib_json();
     return false;
   }
   rk_aiq_uapi2_sysctl_setListenStrmStatus(aiq_, false);
@@ -214,15 +181,17 @@ bool RkIspUserspaceController::init(const RkIspCamConfig &cfg) {
   const std::string params_dev = resolve_v4l_dev_by_name_index("rkisp-input-params", cfg_.camera_num);
   if (params_dev.empty()) {
     LOGE("RkIspUserspace cam%d: rkisp-input-params not found", cfg_.camera_num);
+    shutdown();
     return false;
   }
   params_fd_ = open(params_dev.c_str(), O_RDWR | O_CLOEXEC);
   if (params_fd_ < 0) {
     LOGE("RkIspUserspace cam%d: open %s failed errno=%d", cfg_.camera_num, params_dev.c_str(), errno);
+    shutdown();
     return false;
   }
   if (!subscribe_params_events()) {
-    close_params_fd();
+    shutdown();
     return false;
   }
 
@@ -337,12 +306,8 @@ bool RkIspUserspaceController::prepare() {
     return false;
   }
 
-  rk_aiq_uapi2_setExpMode(aiq_, OP_MANUAL);
-  // Keep rkaiq available for ISP statistics and parameter generation, but do
-  // not let its SensorHw path compete with the direct-I2C exposure owner.
-  if (rk_aiq_uapi2_setAeLock(aiq_, true) != XCAM_RETURN_NO_ERROR) {
-    LOGW("RkIspUserspace cam%d: AE lock failed; direct-I2C ownership is unsafe", cfg_.camera_num);
-  }
+  // RKAIQ AE is disabled in the calibration. camerad is the sole AE owner and
+  // writes the sensor exposure/gain directly over I2C.
   if (!disable_isp_nr_and_blc(aiq_, cfg_.camera_num)) {
     LOGE("RkIspUserspace cam%d: refusing to continue with RKAIQ NR/BLC state unverified", cfg_.camera_num);
     return false;
@@ -378,6 +343,7 @@ void RkIspUserspaceController::shutdown() {
     aiq_ = nullptr;
   }
   close_params_fd();
+  clear_calib_json();
   active_ = false;
   prepared_ = false;
 }

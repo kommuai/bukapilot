@@ -23,7 +23,6 @@
 
 ExitHandler do_exit;
 
-
 struct ThumbnailJob {
   uint32_t frame_id = 0;
   uint64_t timestamp_eof = 0;
@@ -126,18 +125,13 @@ void CameraBuf::sendFrameToVipc() {
   cur_yuv_buf_ready = false;
 }
 
-int CameraBuf::queue(size_t buf_idx) {
-  int dropped_idx = -1;
+void CameraBuf::queue(size_t buf_idx) {
   {
     std::lock_guard lk(queue_mtx);
-    if (frame_idx_queue.size() >= kQueueDepth) {
-      dropped_idx = frame_idx_queue.front();
-      frame_idx_queue.pop_front();
-    }
+    if (frame_idx_queue.size() >= kQueueDepth) frame_idx_queue.pop_front();
     frame_idx_queue.push_back((int)buf_idx);
   }
   queue_cv.notify_one();
-  return dropped_idx;
 }
 
 // common functions
@@ -299,21 +293,11 @@ void *processing_thread(MultiCameraState *cameras, CameraState *cs, process_thre
   while (!do_exit) {
     if (!cs->buf.acquire()) continue;
 
-    // Keep the dequeued V4L2 buffer owned by this worker until the VisionIPC
-    // copy has completed. Requeueing earlier lets the driver overwrite the
-    // source while sendFrameToVipc() is still reading it.
-    const int buf_idx = cs->buf.cur_buf_idx;
-
-    if (cs->ka2) {
-      cs->ka2->enqueue_ae(cs, buf_idx, cs->buf.cur_frame_data);
-    }
     callback(cameras, cs, cnt);
 
     if (cs == &(cameras->road_cam) && cameras->pm && cnt % 100 == 3) {
       enqueue_thumbnail(&(cs->buf));
     }
-    if (cs->ka2) cs->ka2->wait_for_ae(buf_idx);
-    cs->requeue_buf(buf_idx);
     ++cnt;
   }
   return NULL;
@@ -434,7 +418,14 @@ void camerad_thread() {
     MultiCameraState cameras = {};
     VisionIpcServer vipc_server("camerad", device_id, context);
 
-    cameras_open(&cameras);
+    if (!cameras_open(&cameras)) {
+      LOGE("camerad: camera startup failed; exiting");
+      // VisionIpcServer joins its listener unconditionally in the destructor.
+      // Start it here so the fail-closed path tears down cleanly as well.
+      vipc_server.start_listener();
+      cameras_close(&cameras);
+      return;
+    }
     cameras_init(&vipc_server, &cameras);
     start_thumbnail_worker(cameras.pm);
 

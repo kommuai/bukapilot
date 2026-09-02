@@ -29,11 +29,12 @@ public:
   bool active() const { return active_; }
   bool isp_started() const { return started_; }
 
-  static void stop_rkaiq();
   static void set_multi_cam_count(int n);
-  static bool ensure_runtime_calib();
+  static bool calibration_available();
 
 private:
+  bool load_calib_json(const char *sensor_entity);
+  void clear_calib_json();
   bool subscribe_params_events();
   void close_params_fd();
 
@@ -43,5 +44,6 @@ private:
   bool active_ = false;
   bool prepared_ = false;
   bool started_ = false;
+  std::string calib_sensor_entity_;
   static int multi_cam_n_;
 };

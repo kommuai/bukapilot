@@ -1,13 +1,9 @@
 #pragma once
 
 #include <array>
-#include <atomic>
-#include <condition_variable>
-#include <deque>
 #include <memory>
 #include <mutex>
 #include <string>
-#include <thread>
 #include <vector>
 
 #include "common/util.h"
@@ -23,33 +19,22 @@ public:
   bool open(CameraState *cam);
   void close(CameraState *cam);
   void on_stream_start(CameraState *cam);
-  void on_dequeue(CameraState *cam, FrameMetadata &md);
-  void enqueue_ae(CameraState *cam, int buf_idx, const FrameMetadata &md);
-  void wait_for_ae(int buf_idx);
+  void on_dequeue(CameraState *cam, FrameMetadata &md, int buf_idx);
   void apply_flips(CameraState *cam);
 
   RkIspUserspaceController *isp() { return rk_isp_.get(); }
   const RkIspUserspaceController *isp() const { return rk_isp_.get(); }
 
-  static void prepare_system(MultiCameraState *s);
+  static bool prepare_system(MultiCameraState *s);
   static void prepare_isp_all(MultiCameraState *s);
   static void synced_stream_and_start(MultiCameraState *s);
 
 private:
-  struct AeJob {
-    CameraState *cam = nullptr;
-    int buf_idx = -1;
-    FrameMetadata md = {};
-  };
-
-  void start_ae_worker();
-  void stop_ae_worker();
-  void ae_worker_loop();
-  void process_ae_job(const AeJob &job);
   float get_gain_factor(const CameraState *cam) const;
   void apply_pwl_on(CameraState *cam);
   bool sensors_i2c(CameraState *cam, const i2c_random_wr_payload *dat, int len);
   void set_exposure_rect(CameraState *cam);
+  bool seed_external_exposure(CameraState *cam);
   void set_camera_exposure(CameraState *cam, float grey_frac);
   bool commit_exposure(CameraState *cam, int exp_t, int gidx, bool hcg);
   bool set_frame_length_vts(CameraState *cam, int exposure_lines);
@@ -58,17 +43,6 @@ private:
   std::string resolve_mainpath_dev(int camera_num) const;
 
   std::unique_ptr<RkIspUserspaceController> rk_isp_;
-  std::mutex ae_mtx_;
-  std::condition_variable ae_cv_;
-  std::condition_variable ae_done_cv_;
-  std::deque<AeJob> ae_jobs_;
-  std::thread ae_thread_;
-  std::array<bool, 4> ae_pending_ = {};
-  bool ae_running_ = false;
-  static constexpr size_t kAeQueueDepth = 2;
-
-  uint32_t ae_frame_id_ = 0;
-
   std::mutex exp_lock_;
   std::mutex i2c_lock_;
   unique_fd i2c_fd_;
@@ -94,13 +68,4 @@ private:
   size_t exposure_reg_count_ = 0;
   size_t last_exp_reg_count_ = 0;
   float last_sensor_temp_c_ = -999.0f;
-
-  // The capture thread reads these snapshots without taking the exposure
-  // mutex. The AE worker updates them after a successful sensor/ISP update.
-  std::atomic<int> published_exposure_time_{5};
-  std::atomic<float> published_gain_{1.0f};
-  std::atomic<bool> published_hcg_{false};
-  std::atomic<float> published_sensor_temp_c_{-999.0f};
-  std::atomic<float> published_measured_grey_{0.0f};
-  std::atomic<float> published_target_grey_{0.125f};
 };

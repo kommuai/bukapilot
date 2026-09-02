@@ -56,7 +56,6 @@ void CameraState::camera_map_bufs() {
   }
 
   rk_zerocopy_active = rk_zerocopy_requested && (exported_count == FRAME_BUF_COUNT);
-  LOG("camera %d: RK zero-copy requested=%d active=%d exported=%d/%d", camera_num, rk_zerocopy_requested, rk_zerocopy_active, exported_count, FRAME_BUF_COUNT);
   if (!rk_zerocopy_active) {
     for (int i = 0; i < FRAME_BUF_COUNT; ++i) {
       if (buf.camera_bufs[i].fd >= 0) {
@@ -70,6 +69,7 @@ void CameraState::camera_map_bufs() {
 
 void CameraState::camera_init(VisionIpcServer *v, VisionStreamType yuv_type) {
   if (!enabled) return;
+  rk_zerocopy_requested = false;
   rk_zerocopy_active = false;
 
   fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
@@ -153,30 +153,16 @@ void CameraState::dequeue_buf() {
   md.timestamp_sof = capture_time;
   md.timestamp_eof = capture_time;
 
-  if (ka2) ka2->on_dequeue(this, md);
+  if (ka2) ka2->on_dequeue(this, md, idx);
 
   if (startup_discard_frames > 0) {
     --startup_discard_frames;
-    requeue_buf(idx);
   } else {
-    const int dropped_idx = buf.queue(idx);
-    if (dropped_idx >= 0) requeue_buf(dropped_idx);
+    buf.queue(idx);
   }
-}
 
-
-void CameraState::requeue_buf(int idx) {
-  if (!enabled || idx < 0 || idx >= FRAME_BUF_COUNT) return;
-
-  struct v4l2_buffer buffer = {};
-  struct v4l2_plane plane = {};
-  buffer.type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
-  buffer.memory = V4L2_MEMORY_MMAP;
-  buffer.length = 1;
-  buffer.m.planes = &plane;
-  buffer.index = idx;
-  if (ioctl(video_fd, VIDIOC_QBUF, &buffer) < 0) {
-    LOGE("camera %d: VIDIOC_QBUF failed idx=%d errno=%d '%s'", camera_num, idx, errno, strerror(errno));
+  if (ioctl(video_fd, VIDIOC_QBUF, &v4l_buf) < 0) {
+    LOGE("camera %d: VIDIOC_QBUF failed post-dequeue errno=%d '%s'", camera_num, errno, strerror(errno));
   }
 }
 
@@ -187,9 +173,10 @@ void cameras_init(VisionIpcServer *v, MultiCameraState *s) {
   s->pm = new PubMaster({"roadCameraState", "driverCameraState", "wideRoadCameraState", "thumbnail"});
 }
 
-void cameras_open(MultiCameraState *s) {
-  Ka2CameraBackend::prepare_system(s);
+bool cameras_open(MultiCameraState *s) {
+  if (!Ka2CameraBackend::prepare_system(s)) return false;
   Ka2CameraBackend::prepare_isp_all(s);
+  return true;
 }
 
 void CameraState::camera_close() {

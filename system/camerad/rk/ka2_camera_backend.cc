@@ -56,6 +56,7 @@ bool i2c_write_reg8(int fd, uint16_t addr, uint16_t reg, uint8_t val) {
   msg.buf = buf;
   return i2c_write_msgs(fd, &msg, 1);
 }
+
 }  // namespace
 
 
@@ -133,12 +134,6 @@ bool Ka2CameraBackend::open(CameraState *cam) {
     cur_ev_[0] = cur_ev_[1] = cur_ev_[2] = g0;
   }
   set_exposure_rect(cam);
-  published_exposure_time_.store(exposure_time_);
-  published_gain_.store(analog_gain_frac_);
-  published_hcg_.store(dc_gain_enabled_);
-  published_sensor_temp_c_.store(last_sensor_temp_c_);
-  published_measured_grey_.store(measured_grey_fraction_);
-  published_target_grey_.store(target_grey_fraction_);
 
   cam->video_fd = open_v4l_by_name_and_index("rkisp_mainpath", cam->camera_num);
   if (cam->video_fd < 0) return false;
@@ -151,12 +146,18 @@ bool Ka2CameraBackend::open(CameraState *cam) {
     LOGE("camera %d: RkIspUserspace CamHw init failed", cam->camera_num);
     rk_isp_->shutdown();
     rk_isp_.reset();
+    return false;
+  }
+  if (!seed_external_exposure(cam)) {
+    LOGE("camera %d: failed to seed initial external exposure", cam->camera_num);
+    rk_isp_->shutdown();
+    rk_isp_.reset();
+    return false;
   }
   return true;
 }
 
 void Ka2CameraBackend::close(CameraState *cam) {
-  stop_ae_worker();
   if (rk_isp_) {
     rk_isp_->shutdown();
     rk_isp_.reset();
@@ -168,7 +169,6 @@ void Ka2CameraBackend::close(CameraState *cam) {
 }
 
 void Ka2CameraBackend::on_stream_start(CameraState *cam) {
-  start_ae_worker();
   apply_pwl_on(cam);
 }
 
@@ -180,11 +180,13 @@ float Ka2CameraBackend::get_gain_factor(const CameraState *cam) const {
 
 bool Ka2CameraBackend::set_frame_length_vts(CameraState *cam, int exposure_lines) {
   if (!cam || !cam->ci || i2c_bus_ < 0) return false;
-  if (exposure_lines < cam->ci->exposure_time_min ||
-      exposure_lines > ox03c10_limits::kMaxExposure) return false;
-  if (frame_length_vts_ == ox03c10_limits::kFrameVts) return true;
+  const int vts = std::clamp(
+      std::max(ox03c10_limits::kMinVts, exposure_lines + ox03c10_limits::kHdr4Margin),
+      ox03c10_limits::kMinVts, ox03c10_limits::kMaxVts);
+  if (vts == frame_length_vts_) return true;
 
-  frame_length_vts_ = ox03c10_limits::kFrameVts;
+  // 0x380e/0x380f are the sensor's total frame length (VTS), not VBLANK.
+  frame_length_vts_ = vts;
   return true;
 }
 
@@ -194,9 +196,7 @@ void Ka2CameraBackend::apply_pwl_on(CameraState *cam) {
   for (size_t i = 0; i < rk_pwl::kOx03c10PwlOnLen; i++) {
     wr.push_back({rk_pwl::kOx03c10PwlOn[i].addr, rk_pwl::kOx03c10PwlOn[i].data});
   }
-  if (!sensors_i2c(cam, wr.data(), (int)wr.size())) {
-    LOGE("camera %d: static OX03C10 configuration write failed", cam->camera_num);
-  }
+  sensors_i2c(cam, wr.data(), (int)wr.size());
 }
 
 bool Ka2CameraBackend::sensors_i2c(CameraState *cam, const i2c_random_wr_payload *dat, int len) {
@@ -207,7 +207,7 @@ bool Ka2CameraBackend::sensors_i2c(CameraState *cam, const i2c_random_wr_payload
     snprintf(path, sizeof(path), "/dev/i2c-%d", i2c_bus_);
     int fd = ::open(path, O_RDWR | O_CLOEXEC);
     if (fd < 0) {
-      if (ae_frame_id_ % 120 == 0) {
+      if (cam->frame_id_last % 120 == 0) {
         LOGE("camera %d: open %s failed errno=%d", cam->camera_num, path, errno);
       }
       return false;
@@ -219,7 +219,7 @@ bool Ka2CameraBackend::sensors_i2c(CameraState *cam, const i2c_random_wr_payload
   });
   if (ae_regs && !i2c_write_reg8(i2c_fd_.fd_, (uint16_t)i2c_addr_, kGrpHoldReg, 0x00)) {
     const int err = errno;
-    if (ae_frame_id_ % 120 == 0) {
+    if (cam->frame_id_last % 120 == 0) {
       LOGE("camera %d: i2c group hold start failed errno=%d", cam->camera_num, err);
     }
     ::close(i2c_fd_.fd_);
@@ -251,7 +251,7 @@ bool Ka2CameraBackend::sensors_i2c(CameraState *cam, const i2c_random_wr_payload
     }
     if (!i2c_write_msgs(i2c_fd_.fd_, msgs, chunk)) {
       const int err = errno;
-      if (ae_frame_id_ % 120 == 0) LOGE("camera %d: i2c batch wr failed errno=%d", cam->camera_num, err);
+      if (cam->frame_id_last % 120 == 0) LOGE("camera %d: i2c batch wr failed errno=%d", cam->camera_num, err);
       if (ae_regs) (void)release_group_hold();
       ::close(i2c_fd_.fd_);
       i2c_fd_.fd_ = -1;
@@ -262,7 +262,7 @@ bool Ka2CameraBackend::sensors_i2c(CameraState *cam, const i2c_random_wr_payload
   if (ae_regs) {
     if (!release_group_hold()) {
       const int err = errno;
-      if (ae_frame_id_ % 120 == 0) {
+      if (cam->frame_id_last % 120 == 0) {
         LOGE("camera %d: i2c group hold launch failed errno=%d", cam->camera_num, err);
       }
       ::close(i2c_fd_.fd_);
@@ -297,6 +297,33 @@ void Ka2CameraBackend::set_exposure_rect(CameraState *cam) {
   };
 }
 
+bool Ka2CameraBackend::seed_external_exposure(CameraState *cam) {
+  if (!cam || !cam->ci || !rk_isp_) return false;
+
+  std::array<i2c_random_wr_payload, 10> regs{};
+  const int count = cam->ci->getExposureRegisters(
+      exposure_time_, gain_idx_, dc_gain_enabled_, regs.data(), regs.size());
+  if (count <= 0) return false;
+
+  uint32_t sensor_gain_code = 0;
+  bool gain_code_high = false;
+  bool gain_code_low = false;
+  for (int i = 0; i < count; ++i) {
+    if (regs[i].reg_addr == 0x3508) {
+      sensor_gain_code = regs[i].reg_data << 8;
+      gain_code_high = true;
+    } else if (regs[i].reg_addr == 0x3509) {
+      sensor_gain_code |= regs[i].reg_data;
+      gain_code_low = true;
+    }
+  }
+  if (!gain_code_high || !gain_code_low) return false;
+
+  return rk_isp_->set_external_exposure(
+      0, exposure_time_, analog_gain_frac_ * get_gain_factor(cam),
+      sensor_gain_code, dc_gain_enabled_);
+}
+
 bool Ka2CameraBackend::commit_exposure(CameraState *cam, int exp_t, int gidx, bool hcg) {
   if (!cam || !cam->ci || !set_frame_length_vts(cam, exp_t)) return false;
 
@@ -308,6 +335,19 @@ bool Ka2CameraBackend::commit_exposure(CameraState *cam, int exp_t, int gidx, bo
       exp_t, gidx, hcg, exposure_regs_.data() + 2, (int)exposure_regs_.size() - 2);
   if (sensor_count <= 0) return false;
   exposure_reg_count_ = (size_t)sensor_count + 2;
+
+  uint32_t sensor_gain_code = 0;
+  bool gain_code_high = false;
+  bool gain_code_low = false;
+  for (size_t i = 2; i < exposure_reg_count_; ++i) {
+    if (exposure_regs_[i].reg_addr == 0x3508) {
+      sensor_gain_code = exposure_regs_[i].reg_data << 8;
+      gain_code_high = true;
+    } else if (exposure_regs_[i].reg_addr == 0x3509) {
+      sensor_gain_code |= exposure_regs_[i].reg_data;
+      gain_code_low = true;
+    }
+  }
 
   const bool changed = exposure_reg_count_ != last_exp_reg_count_ ||
       !std::equal(exposure_regs_.begin(), exposure_regs_.begin() + exposure_reg_count_, last_exp_regs_.begin(),
@@ -327,22 +367,11 @@ bool Ka2CameraBackend::commit_exposure(CameraState *cam, int exp_t, int gidx, bo
     last_exp_reg_count_ = exposure_reg_count_;
   }
 
-  uint32_t sensor_gain_code = 0;
-  published_exposure_time_.store(exposure_time_, std::memory_order_relaxed);
-  published_gain_.store(analog_gain_frac_ * get_gain_factor(cam), std::memory_order_relaxed);
-  published_hcg_.store(dc_gain_enabled_, std::memory_order_relaxed);
-
-  for (size_t i = 2; i + 1 < exposure_reg_count_; ++i) {
-    if (exposure_regs_[i].reg_addr == 0x3508 && exposure_regs_[i + 1].reg_addr == 0x3509) {
-      sensor_gain_code = (exposure_regs_[i].reg_data << 8) | exposure_regs_[i + 1].reg_data;
-      break;
-    }
-  }
-
   const float gain = analog_gain_frac_ * get_gain_factor(cam);
-  cur_ev_[ae_frame_id_ % 3] = exposure_time_ * gain;
-  if (rk_isp_ && sensor_gain_code) {
-    rk_isp_->set_external_exposure(ae_frame_id_ + 1, exposure_time_, gain, sensor_gain_code, hcg);
+  cur_ev_[cam->frame_id_last % 3] = exposure_time_ * gain;
+  if (rk_isp_ && gain_code_high && gain_code_low) {
+    rk_isp_->set_external_exposure(cam->frame_id_last + 1, exposure_time_, gain,
+                                   sensor_gain_code, hcg);
   }
   return true;
 }
@@ -360,7 +389,7 @@ void Ka2CameraBackend::set_camera_exposure(CameraState *cam, float grey_frac) {
   const float k_grey = (dt / ts_grey) / (1.0f + dt / ts_grey);
   const float k_ev = (dt / ts_ev) / (1.0f + dt / ts_ev);
 
-  const uint32_t previous_frame = ae_frame_id_ == 0 ? 0 : ae_frame_id_ - 1;
+  const uint32_t previous_frame = cam->frame_id_last == 0 ? 0 : cam->frame_id_last - 1;
   const float cur_ev_scaled = cur_ev_[previous_frame % 3] * cam->ci->ev_scale;
   float new_target_grey = std::clamp(
       0.4f - 0.3f * log2f(1.0f + cam->ci->target_grey_factor * cur_ev_scaled) / log2f(6000.0f),
@@ -416,128 +445,29 @@ void Ka2CameraBackend::set_camera_exposure(CameraState *cam, float grey_frac) {
     }
   }
 
-  const int exposure_delta = std::abs(new_exp_t_ - exposure_time_);
-  const bool significant_change =
-      last_exp_reg_count_ == 0 || new_exp_g_ != gain_idx_ || enable_dc_gain != dc_gain_enabled_ ||
-      exposure_delta > std::max(2, (int)std::lround(exposure_time_ * 0.02f));
-  if (!significant_change) {
-    measured_grey_fraction_ = grey_frac;
-    target_grey_fraction_ = target_grey;
-    published_measured_grey_.store(measured_grey_fraction_, std::memory_order_relaxed);
-    published_target_grey_.store(target_grey_fraction_, std::memory_order_relaxed);
-    return;
-  }
-
   if (!commit_exposure(cam, new_exp_t_, new_exp_g_, enable_dc_gain)) return;
-
 
   measured_grey_fraction_ = grey_frac;
   target_grey_fraction_ = target_grey;
-  published_measured_grey_.store(measured_grey_fraction_, std::memory_order_relaxed);
-  published_target_grey_.store(target_grey_fraction_, std::memory_order_relaxed);
 }
 
-void Ka2CameraBackend::on_dequeue(CameraState *cam, FrameMetadata &md) {
-  md.integ_lines = published_exposure_time_.load(std::memory_order_relaxed);
-  md.gain = published_gain_.load(std::memory_order_relaxed);
-  md.high_conversion_gain = published_hcg_.load(std::memory_order_relaxed);
-  md.sensor_temp_c = published_sensor_temp_c_.load(std::memory_order_relaxed);
+void Ka2CameraBackend::on_dequeue(CameraState *cam, FrameMetadata &md, int buf_idx) {
+  md.integ_lines = exposure_time_;
+  md.gain = analog_gain_frac_ * get_gain_factor(cam);
+  md.high_conversion_gain = dc_gain_enabled_;
+  md.sensor_temp_c = last_sensor_temp_c_;
 
-  cam->frame_id_last = md.frame_id;
-
-  md.measured_grey_fraction = published_measured_grey_.load(std::memory_order_relaxed);
-  md.target_grey_fraction = published_target_grey_.load(std::memory_order_relaxed);
-}
-
-void Ka2CameraBackend::start_ae_worker() {
-  std::lock_guard lk(ae_mtx_);
-  if (ae_running_) return;
-  ae_running_ = true;
-  ae_thread_ = std::thread(&Ka2CameraBackend::ae_worker_loop, this);
-}
-
-void Ka2CameraBackend::stop_ae_worker() {
-  {
-    std::lock_guard lk(ae_mtx_);
-    if (!ae_running_ && !ae_thread_.joinable()) return;
-    ae_running_ = false;
-  }
-  ae_cv_.notify_one();
-  ae_done_cv_.notify_all();
-  if (ae_thread_.joinable()) ae_thread_.join();
-
-  std::lock_guard lk(ae_mtx_);
-  ae_jobs_.clear();
-  ae_pending_.fill(false);
-  ae_done_cv_.notify_all();
-}
-
-void Ka2CameraBackend::enqueue_ae(CameraState *cam, int buf_idx, const FrameMetadata &md) {
-  if (!cam || buf_idx < 0 || buf_idx >= 4) return;
-
-  {
-    std::lock_guard lk(ae_mtx_);
-    if (!ae_running_ || ae_pending_[buf_idx]) return;
-
-    // Keep only a short backlog. A dropped AE job never owns a buffer that
-    // the processing thread has not already been asked to release.
-    if (ae_jobs_.size() >= kAeQueueDepth) {
-      const int dropped_idx = ae_jobs_.front().buf_idx;
-      ae_jobs_.pop_front();
-      ae_pending_[dropped_idx] = false;
-      ae_done_cv_.notify_all();
-    }
-
-    ae_pending_[buf_idx] = true;
-    ae_jobs_.push_back({cam, buf_idx, md});
-  }
-  ae_cv_.notify_one();
-}
-
-void Ka2CameraBackend::wait_for_ae(int buf_idx) {
-  if (buf_idx < 0 || buf_idx >= 4) return;
-  std::unique_lock lk(ae_mtx_);
-  ae_done_cv_.wait(lk, [this, buf_idx] {
-    return !ae_running_ || !ae_pending_[buf_idx];
-  });
-}
-
-void Ka2CameraBackend::ae_worker_loop() {
-  util::set_thread_name("CameraAE");
-  while (true) {
-    AeJob job;
-    {
-      std::unique_lock lk(ae_mtx_);
-      ae_cv_.wait(lk, [this] { return !ae_running_ || !ae_jobs_.empty(); });
-      if (!ae_running_ && ae_jobs_.empty()) break;
-      job = ae_jobs_.front();
-      ae_jobs_.pop_front();
-    }
-
-    process_ae_job(job);
-
-    {
-      std::lock_guard lk(ae_mtx_);
-      ae_pending_[job.buf_idx] = false;
-    }
-    ae_done_cv_.notify_all();
-
-  }
-}
-
-void Ka2CameraBackend::process_ae_job(const AeJob &job) {
-  CameraState *cam = job.cam;
-  const FrameMetadata &md = job.md;
-  ae_frame_id_ = md.frame_id;
   if (md.frame_id % kTemperaturePollPeriod == 0) {
     int temp_raw = 0;
     if (read_ctrl(cam, V4L2_CID_X3C_SENSOR_TEMPERATURE, &temp_raw)) {
       last_sensor_temp_c_ = temp_raw / 100.0f;
-      published_sensor_temp_c_.store(last_sensor_temp_c_, std::memory_order_relaxed);
+      md.sensor_temp_c = last_sensor_temp_c_;
     }
   }
 
-  const uint8_t *y = reinterpret_cast<const uint8_t *>(cam->buf.camera_bufs[job.buf_idx].addr);
+  cam->frame_id_last = md.frame_id;
+
+  const uint8_t *y = reinterpret_cast<const uint8_t *>(cam->buf.camera_bufs[buf_idx].addr);
   const int w = cam->buf.rgb_width;
   const int h = cam->buf.rgb_height;
   if (y && w > 0 && h > 0 && cam->ci) {
@@ -545,14 +475,17 @@ void Ka2CameraBackend::process_ae_job(const AeJob &job) {
       set_exposure_rect(cam);
       ae_roi_ready_ = true;
     }
-
     const int y_skip = (cam->camera_num == 2) ? 4 : 2;
-    const float grey = calculate_exposure_value(
-        y, cam->buf.camera_bufs[job.buf_idx].stride, ae_xywh_, 2, y_skip);
+    float grey = calculate_exposure_value(y, cam->buf.camera_bufs[buf_idx].stride, ae_xywh_, 2, y_skip);
     set_camera_exposure(cam, grey);
   }
-
   if (md.frame_id % 600 == 1) apply_pwl_on(cam);
+
+  md.integ_lines = exposure_time_;
+  md.gain = analog_gain_frac_ * get_gain_factor(cam);
+  md.high_conversion_gain = dc_gain_enabled_;
+  md.measured_grey_fraction = measured_grey_fraction_;
+  md.target_grey_fraction = target_grey_fraction_;
 }
 
 void Ka2CameraBackend::apply_flips(CameraState *cam) {
@@ -565,13 +498,19 @@ void Ka2CameraBackend::apply_flips(CameraState *cam) {
   }
 }
 
-void Ka2CameraBackend::prepare_system(MultiCameraState *s) {
-  RkIspUserspaceController::stop_rkaiq();
+bool Ka2CameraBackend::prepare_system(MultiCameraState *s) {
+  if (!RkIspUserspaceController::calibration_available()) {
+    LOGE("KA2: calibration JSON bundle is incomplete; refusing camera startup");
+    return false;
+  }
   const int n = (kEnableWideRoad ? 1 : 0) + (kEnableRoad ? 1 : 0) + (kEnableDriver ? 1 : 0);
   RkIspUserspaceController::set_multi_cam_count(n);
   s->wide_road_cam.camera_open(0, kEnableWideRoad);
   s->road_cam.camera_open(1, kEnableRoad);
   s->driver_cam.camera_open(2, kEnableDriver);
+  return (!kEnableWideRoad || s->wide_road_cam.enabled) &&
+         (!kEnableRoad || s->road_cam.enabled) &&
+         (!kEnableDriver || s->driver_cam.enabled);
 }
 
 void Ka2CameraBackend::prepare_isp_all(MultiCameraState *s) {

@@ -20,11 +20,14 @@ cd /data/openpilot && PYTHONPATH=/data/openpilot \
 
 Compares NV12 vs NV21 RGB decode JPEGs and dumps flip / mediabus meta for Bayer-phase checks.
 
-## Spectra-style calib (no /etc/iqfiles)
+## Spectra-style calibration (no /etc/iqfiles)
 
-CamHw loads JSON from `/tmp/camerad_calib/` only. Files are copied at start from
-`system/camerad/rk/calib_embed/` (camerad-owned). Vendor `/etc/iqfiles/ox03c10*`
-must stay absent for the no-cheat check.
+Production CamHw registers the compiled ISP30 calibration blobs from
+`system/camerad/rk/calib_embed/*.bin` directly with librkaiq. Startup fails if
+the selected blob is missing or invalid; it does not silently fall back to JSON.
+The matching JSON files remain in `calib_embed/` as human-readable reference and
+rollback fixtures. Vendor `/etc/iqfiles/ox03c10*` must stay absent for the
+no-cheat check.
 
 ## Reference
 
@@ -42,4 +45,3 @@ Comma Spectra sequence (ox03c10):
 On RK3588 CamHw, `adegamma` uapi does not affect pixels (A/B verified). We apply the
 **mathematically equivalent** composed LUT `kOx03c10GammaCommaV11` = gamma(linearize(x))
 via `agamma_v11`, plus calib/uapi degamma for future HW. Tables in `rk_tone_tables.h`.
-
