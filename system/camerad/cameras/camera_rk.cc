@@ -153,7 +153,6 @@ void CameraState::dequeue_buf() {
   md.timestamp_sof = capture_time;
   md.timestamp_eof = capture_time;
 
-  md.dequeue_monotonic_ns = monotonic_time_ns();
   if (ka2) ka2->on_dequeue(this, md);
 
   if (startup_discard_frames > 0) {
@@ -162,14 +161,6 @@ void CameraState::dequeue_buf() {
   } else {
     const int dropped_idx = buf.queue(idx);
     if (dropped_idx >= 0) requeue_buf(dropped_idx);
-  }
-  buf.record_dequeue_latency(monotonic_time_ns() - md.dequeue_monotonic_ns);
-  if (md.frame_id % 120 == 0) {
-    LOG("camera %d capture: queue=%zu/%d peak=%zu dropped=%llu dq_to_enqueue_us=%llu max_us=%llu",
-        camera_num, buf.queue_size(), 3, buf.queue_peak(),
-        (unsigned long long)buf.dropped_frames(),
-        (unsigned long long)((monotonic_time_ns() - md.dequeue_monotonic_ns) / 1000),
-        (unsigned long long)(buf.max_dequeue_latency() / 1000));
   }
 }
 

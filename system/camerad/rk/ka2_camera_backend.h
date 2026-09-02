@@ -46,7 +46,6 @@ private:
   void stop_ae_worker();
   void ae_worker_loop();
   void process_ae_job(const AeJob &job);
-  void log_ae_metrics(CameraState *cam, uint32_t frame_id);
   float get_gain_factor(const CameraState *cam) const;
   void apply_pwl_on(CameraState *cam);
   bool sensors_i2c(CameraState *cam, const i2c_random_wr_payload *dat, int len);
@@ -68,17 +67,6 @@ private:
   bool ae_running_ = false;
   static constexpr size_t kAeQueueDepth = 2;
 
-  std::atomic<uint64_t> ae_dropped_jobs_{0};
-  std::atomic<uint64_t> ae_exposure_skips_{0};
-  std::atomic<uint64_t> ae_luma_last_ns_{0};
-  std::atomic<uint64_t> ae_luma_max_ns_{0};
-  std::atomic<uint64_t> ae_i2c_last_ns_{0};
-  std::atomic<uint64_t> ae_i2c_max_ns_{0};
-  std::atomic<uint64_t> ae_isp_last_ns_{0};
-  std::atomic<uint64_t> ae_isp_max_ns_{0};
-  std::atomic<uint64_t> ae_dequeue_to_ae_last_ns_{0};
-  std::atomic<uint64_t> ae_dequeue_to_ae_max_ns_{0};
-  uint32_t ae_completed_jobs_ = 0;
   uint32_t ae_frame_id_ = 0;
 
   std::mutex exp_lock_;

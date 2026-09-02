@@ -17,11 +17,8 @@
 #include <uAPI2/rk_aiq_user_api2_sysctl.h>
 #include <uAPI2/rk_aiq_user_api2_imgproc.h>
 #include <uAPI2/rk_aiq_user_api2_agamma.h>
-#include <uAPI2/rk_aiq_user_api2_ablc.h>
 #include <uAPI2/rk_aiq_user_api2_accm.h>
 #include <uAPI2/rk_aiq_user_api2_awb.h>
-#include <uAPI2/rk_aiq_user_api2_acp.h>
-#include <uAPI2/rk_aiq_user_api2_adebayer.h>
 #include <algos/accm/rk_aiq_types_accm_algo.h>
 #include "system/camerad/rk/rk_tone_tables.h"
 
@@ -111,6 +108,8 @@ bool link_or_copy_calib(const std::string &src, const std::string &dst) {
 }
 
 }  // namespace
+
+static void apply_ccm(const rk_aiq_sys_ctx_t *aiq, int camera_num);
 
 int RkIspUserspaceController::multi_cam_n_ = 1;
 
@@ -209,6 +208,8 @@ bool RkIspUserspaceController::init(const RkIspCamConfig &cfg) {
   if (multi_cam_n_ > 1) {
     rk_aiq_uapi2_sysctl_setMulCamConc(aiq_, true);
   }
+  // Seed CCM before sysctl_prepare generates the initial ISP parameters.
+  apply_ccm(aiq_, cfg.camera_num);
 
   const std::string params_dev = resolve_v4l_dev_by_name_index("rkisp-input-params", cfg_.camera_num);
   if (params_dev.empty()) {
@@ -258,15 +259,54 @@ static void disable_isp_awb(const rk_aiq_sys_ctx_t *aiq, int camera_num) {
   }
 }
 
+static bool disable_isp_nr_and_blc(const rk_aiq_sys_ctx_t *aiq, int camera_num) {
+  static constexpr rk_aiq_module_id_t kDisabledModules[] = {
+    RK_MODULE_NR,
+    RK_MODULE_TNR,
+    RK_MODULE_RAWNR,
+    RK_MODULE_BLS,
+  };
+  static constexpr const char *kModuleNames[] = {"NR", "TNR", "RAWNR", "BLS"};
+
+  bool ok = true;
+  bool module_off[sizeof(kDisabledModules) / sizeof(kDisabledModules[0])] = {};
+  for (size_t i = 0; i < sizeof(kDisabledModules) / sizeof(kDisabledModules[0]); i++) {
+    if (rk_aiq_uapi2_sysctl_setModuleCtl(aiq, kDisabledModules[i], false) != XCAM_RETURN_NO_ERROR) {
+      LOGE("RkIspUserspace cam%d: failed to disable RK_MODULE_%s", camera_num, kModuleNames[i]);
+      ok = false;
+    }
+  }
+
+  bool module_enabled = true;
+  for (size_t i = 0; i < sizeof(kDisabledModules) / sizeof(kDisabledModules[0]); i++) {
+    module_enabled = true;
+    const int rc = rk_aiq_uapi2_sysctl_getModuleCtl(aiq, kDisabledModules[i], &module_enabled);
+    if (rc != XCAM_RETURN_NO_ERROR || module_enabled) {
+      LOGE("RkIspUserspace cam%d: RK_MODULE_%s readback is %s (rc=%d)",
+           camera_num, kModuleNames[i], module_enabled ? "enabled" : "unavailable", (int)rc);
+      ok = false;
+    } else {
+      module_off[i] = true;
+    }
+  }
+
+  LOG("RkIspUserspace cam%d: RKAIQ shutdown NR=%s TNR=%s RAWNR=%s BLS=%s",
+       camera_num,
+       module_off[0] ? "off" : "check-failed", module_off[1] ? "off" : "check-failed",
+       module_off[2] ? "off" : "check-failed", module_off[3] ? "off" : "check-failed");
+  return ok;
+}
+
 static void apply_ccm(const rk_aiq_sys_ctx_t *aiq, int camera_num) {
+  rk_aiq_ccm_attrib_t ccm = {};
+  ccm.sync.sync_mode = RK_AIQ_UAPI_MODE_SYNC;
+  ccm.byPass = false;
+  ccm.mode = RK_AIQ_CCM_MODE_MANUAL;
   auto s12 = [](uint32_t v) -> float {
     int x = static_cast<int>(v & 0xfff);
     if (x >= 0x800) x -= 0x1000;
     return static_cast<float>(x) / 128.0f;
   };
-  rk_aiq_ccm_attrib_t ccm = {};
-  ccm.byPass = false;
-  ccm.mode = RK_AIQ_CCM_MODE_MANUAL;
   for (int i = 0; i < 9; i++) ccm.stManual.Matrix.ccMatrix[i] = s12(rk_tone::kOx03c10CcmQ[i]);
   for (int i = 0; i < 17; i++) ccm.stManual.YAlp.y_alpha_curve[i] = 1024.f;
   ccm.stManual.YAlp.low_bound_pos_bit = 8.f;
@@ -274,25 +314,6 @@ static void apply_ccm(const rk_aiq_sys_ctx_t *aiq, int camera_num) {
     LOGW("RkIspUserspace cam%d: CCM SetAttrib failed", camera_num);
   }
 }
-
-static void apply_road_chroma_guard(const rk_aiq_sys_ctx_t *aiq) {
-  acp_attrib_t acp = {};
-  acp.sync.sync_mode = RK_AIQ_UAPI_MODE_SYNC;
-  rk_aiq_user_api2_acp_GetAttrib(aiq, &acp);
-  acp.brightness = 128;
-  acp.contrast = 128;
-  acp.saturation = 128;
-  acp.hue = 128;
-  rk_aiq_user_api2_acp_SetAttrib(aiq, &acp);
-
-  adebayer_attrib_t db = {};
-  db.sync.sync_mode = RK_AIQ_UAPI_MODE_SYNC;
-  rk_aiq_user_api2_adebayer_GetAttrib(aiq, &db);
-  db.mode = RK_AIQ_DEBAYER_MODE_MANUAL;
-  db.stManual.cnr_strength = 0;
-  rk_aiq_user_api2_adebayer_SetAttrib(aiq, db);
-}
-
 
 static void apply_comma_gamma(const rk_aiq_sys_ctx_t *aiq, int camera_num) {
   rk_aiq_gamma_v11_attr_t gam = {};
@@ -322,16 +343,9 @@ bool RkIspUserspaceController::prepare() {
   if (rk_aiq_uapi2_setAeLock(aiq_, true) != XCAM_RETURN_NO_ERROR) {
     LOGW("RkIspUserspace cam%d: AE lock failed; direct-I2C ownership is unsafe", cfg_.camera_num);
   }
-  rk_aiq_blc_attrib_t blc = {};
-  blc.eMode = ABLC_OP_MODE_MANUAL;
-  blc.stBlc0Manual.enable = true;
-  blc.stBlc0Manual.blc_r = 0;
-  blc.stBlc0Manual.blc_gr = 0;
-  blc.stBlc0Manual.blc_gb = 0;
-  blc.stBlc0Manual.blc_b = 0;
-  blc.stBlc1Manual.enable = false;
-  if (rk_aiq_user_api2_ablc_SetAttrib(aiq_, &blc) != XCAM_RETURN_NO_ERROR) {
-    LOGW("RkIspUserspace cam%d: ablc_SetAttrib failed", cfg_.camera_num);
+  if (!disable_isp_nr_and_blc(aiq_, cfg_.camera_num)) {
+    LOGE("RkIspUserspace cam%d: refusing to continue with RKAIQ NR/BLC state unverified", cfg_.camera_num);
+    return false;
   }
 
   apply_comma_gamma(aiq_, cfg_.camera_num);
@@ -350,10 +364,6 @@ bool RkIspUserspaceController::start() {
   started_ = true;
 
   disable_isp_awb(aiq_, cfg_.camera_num);
-  apply_ccm(aiq_, cfg_.camera_num);
-  if (cfg_.camera_num == 1) {
-    apply_road_chroma_guard(aiq_);
-  }
 
   return true;
 }
