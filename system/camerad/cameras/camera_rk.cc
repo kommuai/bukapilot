@@ -56,6 +56,7 @@ void CameraState::camera_map_bufs() {
   }
 
   rk_zerocopy_active = rk_zerocopy_requested && (exported_count == FRAME_BUF_COUNT);
+  LOG("camera %d: RK zero-copy requested=%d active=%d exported=%d/%d", camera_num, rk_zerocopy_requested, rk_zerocopy_active, exported_count, FRAME_BUF_COUNT);
   if (!rk_zerocopy_active) {
     for (int i = 0; i < FRAME_BUF_COUNT; ++i) {
       if (buf.camera_bufs[i].fd >= 0) {
@@ -69,7 +70,6 @@ void CameraState::camera_map_bufs() {
 
 void CameraState::camera_init(VisionIpcServer *v, VisionStreamType yuv_type) {
   if (!enabled) return;
-  rk_zerocopy_requested = false;
   rk_zerocopy_active = false;
 
   fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;

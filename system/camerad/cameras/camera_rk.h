@@ -22,7 +22,7 @@ public:
   unique_fd video_fd;
 
   int camera_num = 0;
-  bool rk_zerocopy_requested = false;
+  bool rk_zerocopy_requested = true;
   bool rk_zerocopy_active = false;
   uint8_t startup_discard_frames = 3;
 
