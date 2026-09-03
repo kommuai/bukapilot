@@ -40,7 +40,10 @@ def validate_storage(hw_helper, sd_status=_SD_UNSET) -> tuple[bool, str | None]:
       return False, "realdata_unavailable"
     root = REALDATA_ROOT
     if not os.path.isdir(root):
-      return False, "realdata_unavailable"
+      try:
+        os.makedirs(root, exist_ok=True)
+      except OSError:
+        return False, "realdata_unavailable"
     os.listdir(root)
     return True, None
   except OSError:
