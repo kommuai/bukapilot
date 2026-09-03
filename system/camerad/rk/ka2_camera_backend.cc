@@ -57,6 +57,13 @@ bool i2c_write_reg8(int fd, uint16_t addr, uint16_t reg, uint8_t val) {
   return i2c_write_msgs(fd, &msg, 1);
 }
 
+void update_max(std::atomic<uint64_t> &metric, uint64_t value) {
+  uint64_t previous = metric.load(std::memory_order_relaxed);
+  while (previous < value &&
+         !metric.compare_exchange_weak(previous, value, std::memory_order_relaxed)) {
+  }
+}
+
 }  // namespace
 
 
@@ -158,6 +165,7 @@ bool Ka2CameraBackend::open(CameraState *cam) {
 }
 
 void Ka2CameraBackend::close(CameraState *cam) {
+  stop_ae_worker();
   if (rk_isp_) {
     rk_isp_->shutdown();
     rk_isp_.reset();
@@ -169,6 +177,7 @@ void Ka2CameraBackend::close(CameraState *cam) {
 }
 
 void Ka2CameraBackend::on_stream_start(CameraState *cam) {
+  start_ae_worker();
   apply_pwl_on(cam);
 }
 
@@ -201,6 +210,7 @@ void Ka2CameraBackend::apply_pwl_on(CameraState *cam) {
 
 bool Ka2CameraBackend::sensors_i2c(CameraState *cam, const i2c_random_wr_payload *dat, int len) {
   if (i2c_bus_ < 0 || !dat || len <= 0) return false;
+  const uint64_t i2c_start_ns = monotonic_time_ns();
   std::lock_guard lk(i2c_lock_);
   if (i2c_fd_.fd_ < 0) {
     char path[32];
@@ -271,6 +281,9 @@ bool Ka2CameraBackend::sensors_i2c(CameraState *cam, const i2c_random_wr_payload
       return false;
     }
   }
+  const uint64_t i2c_duration_ns = monotonic_time_ns() - i2c_start_ns;
+  ae_i2c_last_ns_.store(i2c_duration_ns, std::memory_order_relaxed);
+  update_max(ae_i2c_max_ns_, i2c_duration_ns);
   return true;
 }
 
@@ -362,6 +375,9 @@ bool Ka2CameraBackend::commit_exposure(CameraState *cam, int exp_t, int gidx, bo
   exposure_time_ = exp_t;
   dc_gain_enabled_ = hcg;
   analog_gain_frac_ = cam->ci->sensor_analog_gains[gidx];
+  published_exposure_time_.store(exposure_time_, std::memory_order_relaxed);
+  published_gain_.store(analog_gain_frac_ * get_gain_factor(cam), std::memory_order_relaxed);
+  published_hcg_.store(dc_gain_enabled_, std::memory_order_relaxed);
   if (changed) {
     std::copy_n(exposure_regs_.begin(), exposure_reg_count_, last_exp_regs_.begin());
     last_exp_reg_count_ = exposure_reg_count_;
@@ -370,8 +386,12 @@ bool Ka2CameraBackend::commit_exposure(CameraState *cam, int exp_t, int gidx, bo
   const float gain = analog_gain_frac_ * get_gain_factor(cam);
   cur_ev_[cam->frame_id_last % 3] = exposure_time_ * gain;
   if (rk_isp_ && gain_code_high && gain_code_low) {
+    const uint64_t isp_start_ns = monotonic_time_ns();
     rk_isp_->set_external_exposure(cam->frame_id_last + 1, exposure_time_, gain,
                                    sensor_gain_code, hcg);
+    const uint64_t isp_duration_ns = monotonic_time_ns() - isp_start_ns;
+    ae_isp_last_ns_.store(isp_duration_ns, std::memory_order_relaxed);
+    update_max(ae_isp_max_ns_, isp_duration_ns);
   }
   return true;
 }
@@ -445,29 +465,139 @@ void Ka2CameraBackend::set_camera_exposure(CameraState *cam, float grey_frac) {
     }
   }
 
+  const int exposure_delta = std::abs(new_exp_t_ - exposure_time_);
+  const bool significant_change =
+      last_exp_reg_count_ == 0 || new_exp_g_ != gain_idx_ || enable_dc_gain != dc_gain_enabled_ ||
+      exposure_delta > std::max(2, (int)std::lround(exposure_time_ * 0.02f));
+  if (!significant_change) {
+    measured_grey_fraction_ = grey_frac;
+    target_grey_fraction_ = target_grey;
+    published_measured_grey_.store(measured_grey_fraction_, std::memory_order_relaxed);
+    published_target_grey_.store(target_grey_fraction_, std::memory_order_relaxed);
+    ae_exposure_skips_.fetch_add(1, std::memory_order_relaxed);
+    return;
+  }
+
   if (!commit_exposure(cam, new_exp_t_, new_exp_g_, enable_dc_gain)) return;
 
   measured_grey_fraction_ = grey_frac;
   target_grey_fraction_ = target_grey;
+  published_measured_grey_.store(measured_grey_fraction_, std::memory_order_relaxed);
+  published_target_grey_.store(target_grey_fraction_, std::memory_order_relaxed);
 }
 
-void Ka2CameraBackend::on_dequeue(CameraState *cam, FrameMetadata &md, int buf_idx) {
-  md.integ_lines = exposure_time_;
-  md.gain = analog_gain_frac_ * get_gain_factor(cam);
-  md.high_conversion_gain = dc_gain_enabled_;
-  md.sensor_temp_c = last_sensor_temp_c_;
+void Ka2CameraBackend::on_dequeue(CameraState *cam, FrameMetadata &md) {
+  md.integ_lines = published_exposure_time_.load(std::memory_order_relaxed);
+  md.gain = published_gain_.load(std::memory_order_relaxed);
+  md.high_conversion_gain = published_hcg_.load(std::memory_order_relaxed);
+  md.sensor_temp_c = published_sensor_temp_c_.load(std::memory_order_relaxed);
+
+  cam->frame_id_last = md.frame_id;
+  md.measured_grey_fraction = published_measured_grey_.load(std::memory_order_relaxed);
+  md.target_grey_fraction = published_target_grey_.load(std::memory_order_relaxed);
+}
+
+void Ka2CameraBackend::start_ae_worker() {
+  std::lock_guard lk(ae_mtx_);
+  if (ae_running_) return;
+  ae_running_ = true;
+  ae_thread_ = std::thread(&Ka2CameraBackend::ae_worker_loop, this);
+}
+
+void Ka2CameraBackend::stop_ae_worker() {
+  {
+    std::lock_guard lk(ae_mtx_);
+    if (!ae_running_ && !ae_thread_.joinable()) return;
+    ae_running_ = false;
+  }
+  ae_cv_.notify_one();
+  ae_done_cv_.notify_all();
+  if (ae_thread_.joinable()) ae_thread_.join();
+
+  std::lock_guard lk(ae_mtx_);
+  ae_jobs_.clear();
+  ae_pending_.fill(false);
+  ae_done_cv_.notify_all();
+}
+
+void Ka2CameraBackend::enqueue_ae(CameraState *cam, int buf_idx, const FrameMetadata &md) {
+  if (!cam || buf_idx < 0 || buf_idx >= 4) return;
+
+  {
+    std::lock_guard lk(ae_mtx_);
+    if (!ae_running_ || ae_pending_[buf_idx]) return;
+
+    // Keep the AE backlog bounded. Dropping an AE job does not release its
+    // V4L2 buffer; the processing thread still owns and releases that buffer.
+    if (ae_jobs_.size() >= kAeQueueDepth) {
+      const int dropped_idx = ae_jobs_.front().buf_idx;
+      ae_jobs_.pop_front();
+      ae_pending_[dropped_idx] = false;
+      ae_dropped_jobs_.fetch_add(1, std::memory_order_relaxed);
+      ae_done_cv_.notify_all();
+    }
+
+    ae_pending_[buf_idx] = true;
+    ae_jobs_.push_back({cam, buf_idx, md});
+  }
+  ae_cv_.notify_one();
+}
+
+void Ka2CameraBackend::wait_for_ae(int buf_idx) {
+  if (buf_idx < 0 || buf_idx >= 4) return;
+  std::unique_lock lk(ae_mtx_);
+  ae_done_cv_.wait(lk, [this, buf_idx] {
+    return !ae_running_ || !ae_pending_[buf_idx];
+  });
+}
+
+void Ka2CameraBackend::ae_worker_loop() {
+  util::set_thread_name("CameraAE");
+  while (true) {
+    AeJob job;
+    {
+      std::unique_lock lk(ae_mtx_);
+      ae_cv_.wait(lk, [this] { return !ae_running_ || !ae_jobs_.empty(); });
+      if (!ae_running_ && ae_jobs_.empty()) break;
+      job = ae_jobs_.front();
+      ae_jobs_.pop_front();
+    }
+
+    process_ae_job(job);
+
+    {
+      std::lock_guard lk(ae_mtx_);
+      ae_pending_[job.buf_idx] = false;
+      ++ae_completed_jobs_;
+    }
+    ae_done_cv_.notify_all();
+
+    if (ae_completed_jobs_ % 120 == 0) {
+      log_ae_metrics(job.cam, job.md.frame_id);
+    }
+  }
+}
+
+void Ka2CameraBackend::process_ae_job(const AeJob &job) {
+  CameraState *cam = job.cam;
+  const FrameMetadata &md = job.md;
+  ae_frame_id_ = md.frame_id;
+  ae_i2c_last_ns_.store(0, std::memory_order_relaxed);
+  ae_isp_last_ns_.store(0, std::memory_order_relaxed);
+
+  const uint64_t dequeue_to_ae_ns = monotonic_time_ns() - md.dequeue_monotonic_ns;
+  ae_dequeue_to_ae_last_ns_.store(dequeue_to_ae_ns, std::memory_order_relaxed);
+  update_max(ae_dequeue_to_ae_max_ns_, dequeue_to_ae_ns);
 
   if (md.frame_id % kTemperaturePollPeriod == 0) {
     int temp_raw = 0;
     if (read_ctrl(cam, V4L2_CID_X3C_SENSOR_TEMPERATURE, &temp_raw)) {
       last_sensor_temp_c_ = temp_raw / 100.0f;
-      md.sensor_temp_c = last_sensor_temp_c_;
+      published_sensor_temp_c_.store(last_sensor_temp_c_, std::memory_order_relaxed);
     }
   }
 
-  cam->frame_id_last = md.frame_id;
-
-  const uint8_t *y = reinterpret_cast<const uint8_t *>(cam->buf.camera_bufs[buf_idx].addr);
+  const uint8_t *y = reinterpret_cast<const uint8_t *>(cam->buf.camera_bufs[job.buf_idx].addr);
   const int w = cam->buf.rgb_width;
   const int h = cam->buf.rgb_height;
   if (y && w > 0 && h > 0 && cam->ci) {
@@ -475,17 +605,43 @@ void Ka2CameraBackend::on_dequeue(CameraState *cam, FrameMetadata &md, int buf_i
       set_exposure_rect(cam);
       ae_roi_ready_ = true;
     }
+
     const int y_skip = (cam->camera_num == 2) ? 4 : 2;
-    float grey = calculate_exposure_value(y, cam->buf.camera_bufs[buf_idx].stride, ae_xywh_, 2, y_skip);
+    const uint64_t luma_start_ns = monotonic_time_ns();
+    const float grey = calculate_exposure_value(
+        y, cam->buf.camera_bufs[job.buf_idx].stride, ae_xywh_, 2, y_skip);
+    const uint64_t luma_duration_ns = monotonic_time_ns() - luma_start_ns;
+    ae_luma_last_ns_.store(luma_duration_ns, std::memory_order_relaxed);
+    update_max(ae_luma_max_ns_, luma_duration_ns);
     set_camera_exposure(cam, grey);
   }
-  if (md.frame_id % 600 == 1) apply_pwl_on(cam);
 
-  md.integ_lines = exposure_time_;
-  md.gain = analog_gain_frac_ * get_gain_factor(cam);
-  md.high_conversion_gain = dc_gain_enabled_;
-  md.measured_grey_fraction = measured_grey_fraction_;
-  md.target_grey_fraction = target_grey_fraction_;
+  if (md.frame_id % 600 == 1) apply_pwl_on(cam);
+}
+
+void Ka2CameraBackend::log_ae_metrics(CameraState *cam, uint32_t frame_id) {
+  size_t ae_queue_size = 0;
+  {
+    std::lock_guard lk(ae_mtx_);
+    ae_queue_size = ae_jobs_.size();
+  }
+  LOG("camera %d AE: frame=%u queue=%zu/%zu capture_queue=%zu/3 capture_peak=%zu "
+      "capture_dropped=%llu ae_dropped=%llu exposure_skips=%llu "
+      "luma_us=%llu max=%llu i2c_us=%llu max=%llu isp_us=%llu max=%llu "
+      "dequeue_to_ae_us=%llu max=%llu",
+      cam->camera_num, frame_id, ae_queue_size, kAeQueueDepth,
+      cam->buf.queue_size(), cam->buf.queue_peak(),
+      (unsigned long long)cam->buf.dropped_frames(),
+      (unsigned long long)ae_dropped_jobs_.load(std::memory_order_relaxed),
+      (unsigned long long)ae_exposure_skips_.load(std::memory_order_relaxed),
+      (unsigned long long)(ae_luma_last_ns_.load(std::memory_order_relaxed) / 1000),
+      (unsigned long long)(ae_luma_max_ns_.load(std::memory_order_relaxed) / 1000),
+      (unsigned long long)(ae_i2c_last_ns_.load(std::memory_order_relaxed) / 1000),
+      (unsigned long long)(ae_i2c_max_ns_.load(std::memory_order_relaxed) / 1000),
+      (unsigned long long)(ae_isp_last_ns_.load(std::memory_order_relaxed) / 1000),
+      (unsigned long long)(ae_isp_max_ns_.load(std::memory_order_relaxed) / 1000),
+      (unsigned long long)(ae_dequeue_to_ae_last_ns_.load(std::memory_order_relaxed) / 1000),
+      (unsigned long long)(ae_dequeue_to_ae_max_ns_.load(std::memory_order_relaxed) / 1000));
 }
 
 void Ka2CameraBackend::apply_flips(CameraState *cam) {
