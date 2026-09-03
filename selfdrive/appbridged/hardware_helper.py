@@ -72,6 +72,8 @@ class HardwareHelper:
 
   def get_sd_status(self) -> str | None:
     with self._lock:
+      if self._ka2.is_sd_formatting():
+        return "Formatting SD card"
       return self._cached_sd_status
 
   def format_sd(self) -> None:
