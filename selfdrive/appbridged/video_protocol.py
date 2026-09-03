@@ -76,6 +76,7 @@ class VideoProtocolHandler:
     self._list_req_pending = False
     self._clear_mp4_after_scan = False
     self._scan_gen = 0
+    self._rescan_requested = False
     self._tick_storage_ok = True
     self._tick_storage_at = 0.0
     self._post_transfer_until = 0.0
@@ -196,6 +197,8 @@ class VideoProtocolHandler:
       if self._thumb_work_active_unlocked() and not respond_list:
         return
       if self._scan_in_progress:
+        if respond_list:
+          self._rescan_requested = True
         return
       self._scan_in_progress = True
       gen = self._scan_gen
@@ -210,7 +213,8 @@ class VideoProtocolHandler:
         with self._lock:
           thumb_busy = self._thumb_work_active_unlocked()
           cached = list(self._cached_drives)
-        if thumb_busy:
+          list_req_pending = self._list_req_pending
+        if thumb_busy and not list_req_pending:
           drives = cached
         else:
           prune_orphan_thumb_cache()
@@ -227,11 +231,21 @@ class VideoProtocolHandler:
       self._list_req_pending = False
       clear_mp4 = self._clear_mp4_after_scan and self._scan_idle_unlocked()
       self._clear_mp4_after_scan = False
+      rescan = self._rescan_requested
+      self._rescan_requested = False
+      if rescan:
+        self._list_req_pending = respond_list
+        self._scan_in_progress = True
+        next_gen = self._scan_gen + 1
+        self._scan_gen = next_gen
     if clear_mp4:
       try:
         clear_mp4_cache()
       except Exception as e:
         cloudlog.error(f"clear_mp4_cache error: {e}")
+    if rescan:
+      threading.Thread(target=self._drive_scan_worker, args=(next_gen,), daemon=True).start()
+      return
     if respond_list:
       self._send(self._build_list_response(drives, video_dl_valid))
 
@@ -388,6 +402,7 @@ class VideoProtocolHandler:
     self._pending_download = None
     self._hotspot_ready_sent_for = None
     self._hotspot_ready_last_at = 0.0
+    self._post_transfer_until = 0.0
 
   def _cancel_download(self, transfer_id: int | None = None, *, drive_id: str | None = None, segment: int | None = None, camera: str | None = None) -> bool:
     cancelled = False
@@ -568,12 +583,9 @@ class VideoProtocolHandler:
   def _handle_list_req(self, msg: dict):
     ok, _ = validate_storage(self.hw_helper)
     if not ok or not self._ensure_cache_dirs():
-      return self._send({"msgType": MSG["LIST_RESP"], "videoDlValid": False, "drives": []})
-    with self._lock:
-      cached = list(self._cached_drives)
-    if cached:
-      self._send(self._build_list_response(cached, ok))
-    self._browse_clean(respond_list=not cached)
+      return self._send(self._build_list_response([], False))
+    # Always scan before replying so callers receive current storage state.
+    self._browse_clean(respond_list=True)
 
   def _handle_drive_open(self, msg: dict):
     ok, _ = validate_storage(self.hw_helper)
@@ -608,9 +620,6 @@ class VideoProtocolHandler:
     ok, reason = validate_storage(self.hw_helper)
     if not ok:
       self._send_error(reason or "sd_invalid")
-      return
-    if self._is_busy():
-      self._send_error("busy")
       return
     if camera not in ("road", "wide"):
       self._send_error("camera_not_found")
@@ -887,7 +896,11 @@ class VideoProtocolHandler:
       self._send_error("segment_not_found")
       return
     camera = str(msg.get("camera") or "")
+    if self._is_busy():
+      cloudlog.info("video download superseding in-flight transfer")
+      self._abort_active_unlocked()
     self._start_download(drive_id, segment, camera)
+    self._try_send_hotspot_ready(time.monotonic())
 
   def _handle_cancel(self, msg: dict):
     transfer_id = self._optional_int(msg, "transferId")
