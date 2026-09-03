@@ -8,7 +8,6 @@
 #include <fcntl.h>
 #include <string>
 #include <sys/ioctl.h>
-#include <sys/stat.h>
 #include <unistd.h>
 
 #include <linux/videodev2.h>
@@ -19,27 +18,12 @@
 #include <uAPI2/rk_aiq_user_api2_accm.h>
 #include <uAPI2/rk_aiq_user_api2_awb.h>
 #include <algos/accm/rk_aiq_types_accm_algo.h>
+#include "system/camerad/rk/ka2_isp_calibration.h"
 #include "system/camerad/rk/rk_tone_tables.h"
 
 #include "common/swaglog.h"
 
 namespace {
-
-constexpr const char *kCalibEmbedDir = "/data/openpilot/system/camerad/rk/calib_embed";
-constexpr size_t kMaxCalibJsonSize = 512 * 1024;
-
-const char *kCalibJsonNames[] = {
-  "ox03c10_D2V10K_9419.json",
-  "ox03c10_D2V11K_9420.json",
-  "ox03c10_D2V12K_9421.json",
-};
-constexpr size_t kCalibCount = sizeof(kCalibJsonNames) / sizeof(kCalibJsonNames[0]);
-
-bool valid_calib_json_file(const std::string &path) {
-  struct stat st {};
-  return stat(path.c_str(), &st) == 0 && S_ISREG(st.st_mode) && st.st_size > 0 &&
-         static_cast<uint64_t>(st.st_size) <= kMaxCalibJsonSize;
-}
 
 std::string resolve_v4l_dev_by_name_index(const char *name, int index) {
   for (int i = 0; i < 64; i++) {
@@ -80,30 +64,21 @@ void RkIspUserspaceController::set_multi_cam_count(int n) {
 }
 
 bool RkIspUserspaceController::calibration_available() {
-  for (size_t i = 0; i < kCalibCount; ++i) {
-    const std::string path = std::string(kCalibEmbedDir) + "/" + kCalibJsonNames[i];
-    if (!valid_calib_json_file(path)) return false;
-  }
+  // Profiles are compiled into this binary; register_calibration validates the
+  // selected profile at the actual camera boundary.
   return true;
 }
 
-bool RkIspUserspaceController::load_calib_json(const char *sensor_entity) {
-  if (cfg_.camera_num < 0 || cfg_.camera_num >= static_cast<int>(kCalibCount)) {
+bool RkIspUserspaceController::register_calibration(const char *sensor_entity) {
+  const rk_aiq_ka2_calib_view_t *profile = ka2_calibration::profile(cfg_.camera_num);
+  if (!profile) {
     LOGE("RkIspUserspace cam%d: invalid calibration index", cfg_.camera_num);
     return false;
   }
 
-  const char *name = kCalibJsonNames[cfg_.camera_num];
-  const std::string path = std::string(kCalibEmbedDir) + "/" + name;
-  if (!valid_calib_json_file(path)) {
-    LOGE("RkIspUserspace cam%d: invalid calibration JSON %s", cfg_.camera_num, path.c_str());
-    return false;
-  }
-
-  const XCamReturn rc = rk_aiq_uapi2_sysctl_preInit(
-      sensor_entity, RK_AIQ_WORKING_MODE_NORMAL, name);
+  const XCamReturn rc = rk_aiq_uapi2_sysctl_preInit_ka2_calib(sensor_entity, profile);
   if (rc != XCAM_RETURN_NO_ERROR) {
-    LOGE("RkIspUserspace cam%d: calibration JSON registration failed (%d)",
+    LOGE("RkIspUserspace cam%d: typed calibration registration failed (%d)",
          cfg_.camera_num, static_cast<int>(rc));
     return false;
   }
@@ -111,7 +86,7 @@ bool RkIspUserspaceController::load_calib_json(const char *sensor_entity) {
   return true;
 }
 
-void RkIspUserspaceController::clear_calib_json() {
+void RkIspUserspaceController::clear_calibration_registration() {
   if (!calib_sensor_entity_.empty()) {
     rk_aiq_uapi2_sysctl_preInit(calib_sensor_entity_.c_str(), RK_AIQ_WORKING_MODE_NORMAL, nullptr);
     calib_sensor_entity_.clear();
@@ -162,13 +137,13 @@ bool RkIspUserspaceController::init(const RkIspCamConfig &cfg) {
     LOGE("RkIspUserspace cam%d: no sns for %s", cfg_.camera_num, cfg_.mainpath_dev.c_str());
     return false;
   }
-  if (!load_calib_json(sns)) {
+  if (!register_calibration(sns)) {
     return false;
   }
-  aiq_ = rk_aiq_uapi2_sysctl_init(sns, kCalibEmbedDir, nullptr, nullptr);
+  aiq_ = rk_aiq_uapi2_sysctl_init(sns, nullptr, nullptr, nullptr);
   if (!aiq_) {
-    LOGE("RkIspUserspace cam%d: sysctl_init failed with calibration JSON", cfg_.camera_num);
-    clear_calib_json();
+    LOGE("RkIspUserspace cam%d: sysctl_init failed with typed calibration", cfg_.camera_num);
+    clear_calibration_registration();
     return false;
   }
   rk_aiq_uapi2_sysctl_setListenStrmStatus(aiq_, false);
@@ -343,7 +318,7 @@ void RkIspUserspaceController::shutdown() {
     aiq_ = nullptr;
   }
   close_params_fd();
-  clear_calib_json();
+  clear_calibration_registration();
   active_ = false;
   prepared_ = false;
 }

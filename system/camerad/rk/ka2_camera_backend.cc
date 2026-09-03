@@ -500,7 +500,7 @@ void Ka2CameraBackend::apply_flips(CameraState *cam) {
 
 bool Ka2CameraBackend::prepare_system(MultiCameraState *s) {
   if (!RkIspUserspaceController::calibration_available()) {
-    LOGE("KA2: calibration JSON bundle is incomplete; refusing camera startup");
+    LOGE("KA2: typed calibration profiles are unavailable; refusing camera startup");
     return false;
   }
   const int n = (kEnableWideRoad ? 1 : 0) + (kEnableRoad ? 1 : 0) + (kEnableDriver ? 1 : 0);

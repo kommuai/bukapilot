@@ -33,8 +33,8 @@ public:
   static bool calibration_available();
 
 private:
-  bool load_calib_json(const char *sensor_entity);
-  void clear_calib_json();
+  bool register_calibration(const char *sensor_entity);
+  void clear_calibration_registration();
   bool subscribe_params_events();
   void close_params_fd();
 
