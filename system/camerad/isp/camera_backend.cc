@@ -18,10 +18,6 @@
 
 namespace {
 
-constexpr bool kEnableWideRoad = true;
-constexpr bool kEnableRoad = true;
-constexpr bool kEnableDriver = true;
-
 constexpr uint16_t kGrpHoldReg = 0x3208;
 constexpr int kI2cChunk = 8;
 constexpr int kI2cRetries = 5;
@@ -659,14 +655,11 @@ bool Ka2CameraBackend::prepare_system(MultiCameraState *s) {
     LOGE("KA2: typed calibration profiles are unavailable; refusing camera startup");
     return false;
   }
-  const int n = (kEnableWideRoad ? 1 : 0) + (kEnableRoad ? 1 : 0) + (kEnableDriver ? 1 : 0);
-  RkIspUserspaceController::set_multi_cam_count(n);
-  s->wide_road_cam.camera_open(0, kEnableWideRoad);
-  s->road_cam.camera_open(1, kEnableRoad);
-  s->driver_cam.camera_open(2, kEnableDriver);
-  return (!kEnableWideRoad || s->wide_road_cam.enabled) &&
-         (!kEnableRoad || s->road_cam.enabled) &&
-         (!kEnableDriver || s->driver_cam.enabled);
+  RkIspUserspaceController::set_multi_cam_count(3);
+  s->wide_road_cam.camera_open(0);
+  s->road_cam.camera_open(1);
+  s->driver_cam.camera_open(2);
+  return s->wide_road_cam.enabled && s->road_cam.enabled && s->driver_cam.enabled;
 }
 
 void Ka2CameraBackend::prepare_isp_all(MultiCameraState *s) {

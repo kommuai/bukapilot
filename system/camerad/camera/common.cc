@@ -17,7 +17,6 @@
 #include "cereal/messaging/messaging.h"
 #include "common/clutil.h"
 #include "common/swaglog.h"
-#include "common/timing.h"
 #include "system/camerad/camera/rk.h"
 
 ExitHandler do_exit;
@@ -61,12 +60,10 @@ void CameraBuf::init(VisionIpcServer *v, int frame_cnt, VisionStreamType type) {
   nv12_frame_size = (rgb_width * rgb_height * 3)/2;
   camera_bufs = std::make_unique<VisionBuf[]>(frame_buf_count);
   camera_bufs_metadata = std::make_unique<FrameMetadata[]>(frame_buf_count);
-  vipc_buffers_ready = false;
   use_external_zerocopy = false;
 }
 
 void CameraBuf::setupVipcBuffers(bool use_external) {
-  if (vipc_buffers_ready) return;
   use_external_zerocopy = use_external;
 
   int nv12_width = rgb_width;
@@ -86,7 +83,6 @@ void CameraBuf::setupVipcBuffers(bool use_external) {
   } else {
     vipc_server->create_buffers_with_sizes(stream_type, YUV_BUFFER_COUNT, rgb_width, rgb_height, nv12_size, nv12_width, nv12_uv_offset);
   }
-  vipc_buffers_ready = true;
 }
 
 bool CameraBuf::acquire() {
@@ -101,21 +97,18 @@ bool CameraBuf::acquire() {
   }
   cur_buf_idx = idx;
   cur_frame_data = camera_bufs_metadata[idx];
-  cur_yuv_buf_ready = false;
   sendFrameToVipc();
   return true;
 }
 
 void CameraBuf::sendFrameToVipc() {
-  if (!cur_yuv_buf_ready) {
-    assert(cur_buf_idx >=0 && cur_buf_idx < frame_buf_count);
-    cur_camera_buf = &camera_bufs[cur_buf_idx];
-    if (use_external_zerocopy) {
-      cur_yuv_buf = cur_camera_buf;
-    } else {
-      cur_yuv_buf = vipc_server->get_buffer(stream_type);
-      memcpy(cur_yuv_buf->addr, cur_camera_buf->addr, nv12_frame_size);
-    }
+  assert(cur_buf_idx >= 0 && cur_buf_idx < frame_buf_count);
+  VisionBuf *camera_buf = &camera_bufs[cur_buf_idx];
+  if (use_external_zerocopy) {
+    cur_yuv_buf = camera_buf;
+  } else {
+    cur_yuv_buf = vipc_server->get_buffer(stream_type);
+    memcpy(cur_yuv_buf->addr, camera_buf->addr, nv12_frame_size);
   }
 
   VisionIpcBufExtra extra = {
@@ -127,7 +120,6 @@ void CameraBuf::sendFrameToVipc() {
 
   cur_yuv_buf->set_frame_id(cur_frame_data.frame_id);
   vipc_server->send(cur_yuv_buf, &extra, false);
-  cur_yuv_buf_ready = false;
 }
 
 int CameraBuf::queue(size_t buf_idx) {
@@ -313,7 +305,7 @@ void *processing_thread(MultiCameraState *cameras, CameraState *cs, process_thre
       cs->ka2->enqueue_ae(cs, buf_idx, cs->buf.cur_frame_data);
     }
 
-    callback(cameras, cs, cnt);
+    callback(cameras, cs);
 
     if (cs == &(cameras->road_cam) && cameras->pm && cnt % 100 == 3) {
       enqueue_thumbnail(&(cs->buf));

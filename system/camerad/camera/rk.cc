@@ -38,26 +38,24 @@ void CameraState::camera_map_bufs() {
     assert(buf.camera_bufs[i].addr != MAP_FAILED);
     buf.camera_bufs[i].init_yuv(buf.rgb_width, buf.rgb_height, buf.rgb_width, (size_t)buf.rgb_width * buf.rgb_height);
 
-    if (rk_zerocopy_requested) {
-      struct v4l2_exportbuffer exp = {};
-      exp.type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
-      exp.index = i;
-      exp.plane = 0;
-      exp.flags = O_CLOEXEC | O_RDWR;
-      if (ioctl(video_fd, VIDIOC_EXPBUF, &exp) == 0) {
-        buf.camera_bufs[i].fd = exp.fd;
-        buf.camera_bufs[i].frame_id_in_buf = false;
-        exported_count++;
-      } else {
-        LOGW("camera %d: VIDIOC_EXPBUF failed idx=%d errno=%d '%s', disabling rk zerocopy",
-             camera_num, i, errno, strerror(errno));
-      }
+    struct v4l2_exportbuffer exp = {};
+    exp.type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
+    exp.index = i;
+    exp.plane = 0;
+    exp.flags = O_CLOEXEC | O_RDWR;
+    if (ioctl(video_fd, VIDIOC_EXPBUF, &exp) == 0) {
+      buf.camera_bufs[i].fd = exp.fd;
+      buf.camera_bufs[i].frame_id_in_buf = false;
+      exported_count++;
+    } else {
+      LOGW("camera %d: VIDIOC_EXPBUF failed idx=%d errno=%d '%s', using copy path",
+           camera_num, i, errno, strerror(errno));
     }
   }
 
-  rk_zerocopy_active = rk_zerocopy_requested && (exported_count == FRAME_BUF_COUNT);
-  LOG("camera %d: RK zero-copy requested=%d active=%d exported=%d/%d",
-      camera_num, rk_zerocopy_requested, rk_zerocopy_active, exported_count, FRAME_BUF_COUNT);
+  rk_zerocopy_active = exported_count == FRAME_BUF_COUNT;
+  LOG("camera %d: RK zero-copy active=%d exported=%d/%d",
+      camera_num, rk_zerocopy_active, exported_count, FRAME_BUF_COUNT);
   if (!rk_zerocopy_active) {
     for (int i = 0; i < FRAME_BUF_COUNT; ++i) {
       if (buf.camera_bufs[i].fd >= 0) {
@@ -99,10 +97,9 @@ void CameraState::camera_init(VisionIpcServer *v, VisionStreamType yuv_type) {
   buf.setupVipcBuffers(rk_zerocopy_active);
 }
 
-void CameraState::camera_open(int camera_num_, bool enabled_) {
+void CameraState::camera_open(int camera_num_) {
   camera_num = camera_num_;
-  enabled = enabled_;
-  if (!enabled) return;
+  enabled = true;
 
   ka2 = std::make_unique<Ka2CameraBackend>();
   if (!ka2->open(this)) {
@@ -251,14 +248,14 @@ void cameras_close(MultiCameraState *s) {
   delete s->pm;
 }
 
-static void process_driver_camera(MultiCameraState *s, CameraState *c, uint32_t cnt) {
+static void process_driver_camera(MultiCameraState *s, CameraState *c) {
   MessageBuilder msg;
   auto framed = msg.initEvent().initDriverCameraState();
   fill_frame_data(framed, c->buf.cur_frame_data);
   s->pm->send("driverCameraState", msg);
 }
 
-static void process_road_camera(MultiCameraState *s, CameraState *c, uint32_t cnt) {
+static void process_road_camera(MultiCameraState *s, CameraState *c) {
   const CameraBuf *b = &c->buf;
   MessageBuilder msg;
   auto framed = c == &s->road_cam ? msg.initEvent().initRoadCameraState() : msg.initEvent().initWideRoadCameraState();

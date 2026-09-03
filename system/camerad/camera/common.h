@@ -14,7 +14,6 @@
 #include "common/util.h"
 
 
-const int VIPC_BUFFER_COUNT = 18;
 const int YUV_BUFFER_COUNT = 4;
 
 typedef struct FrameMetadata {
@@ -52,8 +51,6 @@ private:
   static constexpr size_t kQueueDepth = 3;
   int frame_buf_count = 0;
   bool use_external_zerocopy = false;
-  bool vipc_buffers_ready = false;
-  bool cur_yuv_buf_ready = false;
   size_t queue_peak_ = 0;
   uint64_t dropped_frames_ = 0;
   uint64_t max_dequeue_latency_ns_ = 0;
@@ -64,7 +61,6 @@ public:
   int cur_buf_idx = -1;
   FrameMetadata cur_frame_data = {};
   VisionBuf *cur_yuv_buf = nullptr;
-  VisionBuf *cur_camera_buf = nullptr;
   std::unique_ptr<VisionBuf[]> camera_bufs;
   std::unique_ptr<FrameMetadata[]> camera_bufs_metadata;
   int rgb_width = 0, rgb_height = 0, nv12_frame_size = 0;
@@ -90,7 +86,7 @@ float calculate_exposure_value(const uint8_t *pixels, int stride, Rect ae_xywh, 
 int open_v4l_by_name_and_index(const char name[], int index = 0, int flags = O_RDWR | O_NONBLOCK);
 
 // RK process thread helpers
-typedef void (*process_thread_cb)(MultiCameraState *cameras, CameraState *cs, uint32_t cnt);
+typedef void (*process_thread_cb)(MultiCameraState *cameras, CameraState *cs);
 void *processing_thread(MultiCameraState *cameras, CameraState *cs, process_thread_cb callback);
 std::thread start_process_thread(MultiCameraState *cameras, CameraState *cs, process_thread_cb callback);
 void fill_frame_data(cereal::FrameData::Builder &framed, const FrameMetadata &frame_data);

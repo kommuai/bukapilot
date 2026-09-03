@@ -23,7 +23,6 @@ public:
   unique_fd video_fd;
 
   int camera_num = 0;
-  bool rk_zerocopy_requested = true;
   bool rk_zerocopy_active = false;
   // Do not publish the partially-started sensor sequences. The three RK
   // streams are enabled sequentially, so the first few frame IDs are not
@@ -36,7 +35,7 @@ public:
   struct v4l2_requestbuffers req = {};
   struct v4l2_buffer v4l_buf = {};
   struct v4l2_plane planes[1] = {};
-  void camera_open(int camera_num, bool enabled);
+  void camera_open(int camera_num);
   void camera_map_bufs();
   void camera_init(VisionIpcServer *v, VisionStreamType yuv_type);
   void dequeue_buf();
@@ -47,7 +46,6 @@ public:
   CameraBuf buf;
   int frame_id_last = 0;
 
-private:
 };
 
 typedef struct MultiCameraState {

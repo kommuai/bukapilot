@@ -66,21 +66,23 @@ class TestCamerad:
       assert set(np.diff(logs[c]['frameId'])) == {1, }, f"{c} has frame skips"
 
   def test_frame_sync(self, logs):
-    n = range(len(logs['roadCameraState']['t'][:-10]))
+    frame_count = min(len(logs[cam]['frameId']) for cam in CAMERAS)
+    n = range(max(0, frame_count - 10))
 
     frame_ids = {i: [logs[cam]['frameId'][i] for cam in CAMERAS] for i in n}
     assert all(len(set(v)) == 1 for v in frame_ids.values()), "frame IDs not aligned"
 
     # KA2 sensors are independently started and have a fixed hardware phase
     # offset. Test phase stability, not impossible zero-offset synchronization.
-    ref_times = logs['roadCameraState']['timestampSof']
+    sync_count = min(len(logs[cam]['timestampSof']) for cam in CAMERAS)
+    ref_times = logs['roadCameraState']['timestampSof'][:sync_count]
     offsets = {
-      cam: np.median(logs[cam]['timestampSof'][:len(ref_times)] - ref_times)
+      cam: np.median(logs[cam]['timestampSof'][:sync_count] - ref_times)
       for cam in CAMERAS
     }
     frame_times = {
       i: [logs[cam]['timestampSof'][i] - offsets[cam] for cam in CAMERAS]
-      for i in n
+      for i in range(max(0, sync_count - 10))
     }
     diffs = {i: (max(ts) - min(ts))/1e6 for i, ts in frame_times.items()}
 
