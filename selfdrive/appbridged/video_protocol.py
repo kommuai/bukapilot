@@ -388,6 +388,7 @@ class VideoProtocolHandler:
     self._pending_download = None
     self._hotspot_ready_sent_for = None
     self._hotspot_ready_last_at = 0.0
+    self._post_transfer_until = 0.0
 
   def _cancel_download(self, transfer_id: int | None = None, *, drive_id: str | None = None, segment: int | None = None, camera: str | None = None) -> bool:
     cancelled = False
@@ -608,9 +609,6 @@ class VideoProtocolHandler:
     ok, reason = validate_storage(self.hw_helper)
     if not ok:
       self._send_error(reason or "sd_invalid")
-      return
-    if self._is_busy():
-      self._send_error("busy")
       return
     if camera not in ("road", "wide"):
       self._send_error("camera_not_found")
@@ -887,7 +885,11 @@ class VideoProtocolHandler:
       self._send_error("segment_not_found")
       return
     camera = str(msg.get("camera") or "")
+    if self._is_busy():
+      cloudlog.info("video download superseding in-flight transfer")
+      self._abort_active_unlocked()
     self._start_download(drive_id, segment, camera)
+    self._try_send_hotspot_ready(time.monotonic())
 
   def _handle_cancel(self, msg: dict):
     transfer_id = self._optional_int(msg, "transferId")

@@ -26,7 +26,7 @@ from openpilot.selfdrive.appbridged.video_scanner import validate_storage
 from openpilot.selfdrive.appbridged.video_hotspot import disable_hotspot, enable_hotspot
 
 # BLE Constants
-MESSAGE_HZ = 16 # Expected message rate, must match app visualisation value
+MESSAGE_HZ = 16  # Visualisation BLE loop rate
 params = Params()
 DONGLE_ID = params.get("DongleId") or ""
 
@@ -243,18 +243,31 @@ class AppBridge:
     threading.Thread(target=get_wlan_info, daemon=True).start()
 
   def send_visualisation_message(self, is_metric):
-    (data := extract_model_data((sm := self.sm)['modelV2'].to_dict()))
+    # Offroad / no model: still send a light frame so tabs stay alive.
+    sm = self.sm
+    try:
+      data = extract_model_data(sm["modelV2"].to_dict())
+    except Exception:
+      data = {}
     data["m"] = is_metric
-    data['d'] = DONGLE_ID
-    update_dict_from_sm(data, sm['selfdriveState'], ["enabled", "state", "experimentalMode",
-                                                     "alertText1", "alertText2", "alertStatus",
-                                                     "alertSize", "personality"])
-    rd = sm['radarState'].to_dict()
-    data["o"] = extract_lead(rd, "leadOne")
-    data["t"] = extract_lead(rd, "leadTwo")
-    update_dict_from_sm(data, sm['driverMonitoringState'], ["isActiveMode"])
-    data["h"] = sm['liveCalibration'].to_dict().get("height", [None])[0]
-    update_dict_from_sm(data, sm['carState'], ["vEgoCluster", "vCruiseCluster"])
+    data["d"] = DONGLE_ID
+    try:
+      update_dict_from_sm(data, sm["selfdriveState"], ["enabled", "state", "experimentalMode",
+                                                       "alertText1", "alertText2", "alertStatus",
+                                                       "alertSize", "personality"])
+      rd = sm["radarState"].to_dict()
+      data["o"] = extract_lead(rd, "leadOne")
+      data["t"] = extract_lead(rd, "leadTwo")
+      update_dict_from_sm(data, sm["driverMonitoringState"], ["isActiveMode"])
+      data["h"] = sm["liveCalibration"].to_dict().get("height", [None])[0]
+      update_dict_from_sm(data, sm["carState"], ["vEgoCluster", "vCruiseCluster"])
+    except Exception:
+      pass
+    try:
+      sd = self.hw_helper.get_sd_status()
+      data['videoDlValid'] = validate_storage(self.hw_helper, sd)[0]
+    except Exception:
+      data['videoDlValid'] = False
     data = quantize(data)
     try:
       self.ble.chunk_and_send(CHANNEL_VISUALISATION, msgpack.packb(data))
@@ -465,7 +478,7 @@ class AppBridge:
         if self.send_channel == CHANNEL_VISUALISATION:
           self.send_visualisation_message(is_metric)
 
-        # 2 Hz video keepalive — satisfies app Watchcat without racing videoListReq.
+        # 2 Hz video keepalive — avoids racing videoListReq.
         if (self.send_channel == CHANNEL_VIDEO
             and cur_time - self.last_video_heartbeat_time >= VIDEO_KEEPALIVE_PERIOD_SEC
             and not self.video_handler.should_pause_video_keepalive()):

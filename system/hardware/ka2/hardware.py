@@ -105,6 +105,11 @@ class Ka2(HardwareBase):
             mp = subprocess.run(["findmnt", "-n", "-o", "TARGET", f"{SD_CARD_DEVICE}p1"], capture_output=True, text=True).stdout.strip()
             if r.returncode == 0 and mp:
               subprocess.run(["sudo", "chown", f"{os.getuid()}:{os.getgid()}", mp], check=False)
+              try:
+                from openpilot.system.hardware.hw import Paths
+                os.makedirs(Paths.log_root(), exist_ok=True)
+              except OSError as e:
+                cloudlog.warning(f"realdata mkdir after format: {e}")
             cloudlog.info("SD card formatted and mounted successfully." if r.returncode == 0 else f"Mount failed: {r.stderr.strip()}")
           except Exception as e:
             cloudlog.warning(f"SD format error: {e}")

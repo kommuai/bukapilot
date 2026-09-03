@@ -25,7 +25,7 @@ THUMB_FFMPEG_TIMEOUT_SEC = 10.0
 # ka2 bench (8 fcamera.hevc, 5 cores): 0=401ms 1=378 2=375 4=373 6=378 8=387; one job at a time.
 # Single-frame thumbs: SW decode + 4 threads (~430ms) beats remux+hevc_rkmpp (~490ms); keep SW here.
 THUMB_FFMPEG_THREADS = 4
-# App BLEService Watchcat RESET_TIMEOUT is 2000 ms; video page messageHz is 2.
+# Video keepalive cadence for Footages BLE channel.
 VIDEO_KEEPALIVE_PERIOD_SEC = 0.5
 
 # Raw HEVC segments from loggerd need explicit decoder + showall (see tools/lib/framereader.py).
