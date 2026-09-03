@@ -1,4 +1,4 @@
-#include "system/camerad/cameras/camera_common.h"
+#include "system/camerad/camera/common.h"
 
 #include <chrono>
 #include <vector>

@@ -4,7 +4,7 @@
 
 #include <uAPI2/rk_aiq_user_api2_ka2_calib.h>
 
-#include "system/camerad/rk/rk_road_lsc_tables.h"
+#include "system/camerad/isp/road_lsc_tables.h"
 
 namespace ka2_calibration {
 
@@ -84,10 +84,10 @@ struct Profiles {
     value[1].lsc_gains_len = sizeof(kLscGains) / sizeof(kLscGains[0]);
     value[1].lsc_vig = kLscVig;
     value[1].lsc_vig_len = sizeof(kLscVig) / sizeof(kLscVig[0]);
-    value[1].lsc_red = rk_road_lsc::kCommaRoadGainQ10;
-    value[1].lsc_green_r = rk_road_lsc::kCommaRoadGainQ10;
-    value[1].lsc_green_b = rk_road_lsc::kCommaRoadGainQ10;
-    value[1].lsc_blue = rk_road_lsc::kCommaRoadGainQ10;
+    value[1].lsc_red = rk_road_lsc::kRoadGainQ10;
+    value[1].lsc_green_r = rk_road_lsc::kRoadGainQ10;
+    value[1].lsc_green_b = rk_road_lsc::kRoadGainQ10;
+    value[1].lsc_blue = rk_road_lsc::kRoadGainQ10;
     value[1].lsc_mesh_len = rk_road_lsc::kTableSize;
   }
 };

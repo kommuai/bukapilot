@@ -2,9 +2,9 @@
 
 #include <memory>
 
-#include "system/camerad/cameras/camera_common.h"
-#include "system/camerad/sensors/sensor.h"
-#include "system/camerad/rk/ka2_camera_backend.h"
+#include "system/camerad/camera/common.h"
+#include "system/camerad/sensor/sensor.h"
+#include "system/camerad/isp/camera_backend.h"
 
 bool cameras_open(MultiCameraState *s);
 void cameras_close(MultiCameraState *s);
@@ -25,7 +25,12 @@ public:
   int camera_num = 0;
   bool rk_zerocopy_requested = true;
   bool rk_zerocopy_active = false;
-  uint8_t startup_discard_frames = 3;
+  // Do not publish the partially-started sensor sequences. The three RK
+  // streams are enabled sequentially, so the first few frame IDs are not
+  // aligned even though the steady-state streams are locked to 20 FPS.
+  uint8_t startup_discard_frames = 20;
+  uint32_t first_published_sequence = 0;
+  bool frame_id_initialized = false;
 
   struct v4l2_format fmt = {};
   struct v4l2_requestbuffers req = {};

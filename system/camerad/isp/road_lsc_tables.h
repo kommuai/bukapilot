@@ -2,10 +2,10 @@
 
 #include <cstdint>
 
-// Road-only lens shading table derived from comma/openpilot 70e1574:
-// system/camerad/sensors/ox03c10.cc, vignetting_lut (13 x 17 entries).
+// Road-only lens shading table derived from reference/openpilot 70e1574:
+// system/camerad/sensor/ox03c10.cc, vignetting_lut (13 x 17 entries).
 //
-// comma packs the same Q10 gain into two 13-bit fields and writes that table
+// reference packs the same Q10 gain into two 13-bit fields and writes that table
 // to both GR/R and GB/B banks. RKISP3 uses four 17 x 17 channel tables, so the
 // source is linearly resampled only along Y. Every output channel receives
 // the same gain; this correction is deliberately independent of WB and CCM.
@@ -24,7 +24,7 @@ constexpr uint16_t kSectorSizeY[kSectorCount] = {
   75, 75, 75, 75, 75, 75, 75, 75,
 };
 
-constexpr uint16_t kCommaRoadGainQ10[kTableSize] = {
+constexpr uint16_t kRoadGainQ10[kTableSize] = {
   1877, 1657, 1504, 1382, 1290, 1228, 1197, 1196, 1226, 1286, 1376, 1497, 1649, 1864, 2185, 2641, 3266,
   1783, 1584, 1431, 1309, 1217, 1155, 1124, 1123, 1153, 1213, 1303, 1424, 1576, 1771, 2068, 2496, 3090,
   1714, 1526, 1374, 1252, 1160, 1100, 1076, 1075, 1098, 1156, 1246, 1367, 1518, 1704, 1980, 2386, 2954,

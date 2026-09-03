@@ -8,7 +8,6 @@ from openpilot.system.camerad.snapshot import get_snapshots
 TEST_TIME = 45
 REPEAT = 5
 
-@pytest.mark.tici
 class TestCamerad:
   @classmethod
   def setup_class(cls):

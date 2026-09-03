@@ -1,4 +1,4 @@
-#include "system/camerad/rk/ka2_camera_backend.h"
+#include "system/camerad/isp/camera_backend.h"
 
 #include <algorithm>
 #include <cmath>
@@ -12,8 +12,8 @@
 #include <sys/ioctl.h>
 
 #include "common/swaglog.h"
-#include "system/camerad/cameras/camera_rk.h"
-#include "system/camerad/rk/rk_pwl_regs.h"
+#include "system/camerad/camera/rk.h"
+#include "system/camerad/isp/pwl_regs.h"
 #include "third_party/linux/include/v4l2-controls.h"
 
 namespace {
@@ -436,7 +436,7 @@ void Ka2CameraBackend::set_camera_exposure(CameraState *cam, float grey_frac) {
   if (enable_dc_gain && dc_gain_weight_ < cam->ci->dc_gain_max_weight) dc_gain_weight_ += 1;
   if (!enable_dc_gain && dc_gain_weight_ > cam->ci->dc_gain_min_weight) dc_gain_weight_ -= 1;
 
-  // Match comma's bounded gain ramp: only evaluate one gain step on either
+  // Match reference's bounded gain ramp: only evaluate one gain step on either
   // side of the current index per physical frame. The sensor's hard maximum
   // remains kMaxAnalogGainIdx (15.0x analog gain).
   int selected_gain = std::clamp(gain_idx_, cam->ci->analog_gain_min_idx, cam->ci->analog_gain_max_idx);
@@ -451,7 +451,7 @@ void Ka2CameraBackend::set_camera_exposure(CameraState *cam, float grey_frac) {
     const int candidate_exposure = std::clamp(
         (int)std::lround(desired_ev / candidate_total_gain),
         cam->ci->exposure_time_min, cam->ci->exposure_time_max);
-    // Preserve comma's preference for the recommended gain in bright scenes.
+    // Preserve reference's preference for the recommended gain in bright scenes.
     if (candidate_gain < cam->ci->analog_gain_rec_idx && candidate_exposure > 20 &&
         candidate_gain < selected_gain) {
       continue;
@@ -690,8 +690,11 @@ void Ka2CameraBackend::synced_stream_and_start(MultiCameraState *s) {
   }
 
   for (int i = 0; i < 3; i++) {
+    if (cams[i]->enabled) cams[i]->queue_all_buffers();
+  }
+
+  for (int i = 0; i < 3; i++) {
     if (!cams[i]->enabled) continue;
-    cams[i]->queue_all_buffers();
     if (ioctl(cams[i]->video_fd, VIDIOC_STREAMON, &cams[i]->fmt.type) < 0) {
       LOGE("camera %d: VIDIOC_STREAMON failed errno=%d '%s'", cams[i]->camera_num, errno, strerror(errno));
       cams[i]->enabled = false;

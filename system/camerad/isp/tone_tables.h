@@ -1,12 +1,12 @@
 #pragma once
 
-// Tone tables from commaai/openpilot master @ 555f48c5d287 (ox03c10 / IFE).
+// Tone tables from referenceai/openpilot master @ 555f48c5d287 (ox03c10 / IFE).
 //
 // Gamma: exact analytic curve from sensors/ox03c10.cc, evaluated on Rockchip
 // agamma v11 X-grid, scaled to 12-bit (0..4095). Verified bit-identical to formula.
 //
-// Linearization: Spectra IFE linearization_lut + linearization_pts from ox03c10.cc,
-// inverse of OX03C10 PWL12 (same knots as Spectra IFE linearization → rkisp SDG).
+// Linearization: RKISP IFE linearization_lut + linearization_pts from ox03c10.cc,
+// inverse of OX03C10 PWL12 (same knots as RKISP IFE linearization → rkisp SDG).
 //
 // LSC is owned by the embedded rkaiq calibration. No standalone mesh is
 // linked by camerad, so there is no second userspace LSC owner to drift.
@@ -40,7 +40,7 @@ inline constexpr int kDegammaX[kDegammaKnots] = {
  2304, 2560, 2816, 3072, 3328, 3584, 3840, 4096,
 };
 
-// Spectra IFE linearization inverse (ox03c10 PWL12), resampled to SDG 12-bit knots.
+// RKISP IFE linearization inverse (ox03c10 PWL12), resampled to SDG 12-bit knots.
 inline constexpr int kOx03c10DegammaY[kDegammaKnots] = {
      0, 16, 32, 64, 128, 192, 257, 514, 1028, 2053,
      4095, 4095, 4095, 4095, 4095, 4095, 4095
@@ -58,7 +58,7 @@ inline constexpr uint32_t kOx03c10CcmQ[9] = {
   0x00000fc2, 0x00000ff6, 0x000000c9,
 };
 
-inline constexpr uint16_t kOx03c10GammaCommaV11[kGammaKnots] = {
+inline constexpr uint16_t kOx03c10GammaV11[kGammaKnots] = {
      0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
      0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
      0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,

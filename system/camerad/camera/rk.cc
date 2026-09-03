@@ -1,4 +1,4 @@
-#include "system/camerad/cameras/camera_rk.h"
+#include "system/camerad/camera/rk.h"
 
 #include <poll.h>
 #include <linux/videodev2.h>
@@ -148,19 +148,23 @@ void CameraState::dequeue_buf() {
 
   int idx = v4l_buf.index;
   FrameMetadata &md = buf.camera_bufs_metadata[idx];
-  md.frame_id = v4l_buf.sequence;
-  md.request_id = v4l_buf.sequence;
   const uint64_t capture_time = static_cast<uint64_t>(v4l_buf.timestamp.tv_sec * 1000000000 + v4l_buf.timestamp.tv_usec * 1000);
   md.timestamp_sof = capture_time;
-  md.timestamp_eof = capture_time;
+  md.timestamp_eof = capture_time + (ci ? ci->readout_time_ns : 0);
 
   md.dequeue_monotonic_ns = monotonic_time_ns();
-  if (ka2) ka2->on_dequeue(this, md);
 
   if (startup_discard_frames > 0) {
     --startup_discard_frames;
     requeue_buf(idx);
   } else {
+    if (!frame_id_initialized) {
+      first_published_sequence = v4l_buf.sequence;
+      frame_id_initialized = true;
+    }
+    md.frame_id = v4l_buf.sequence - first_published_sequence + 1;
+    md.request_id = md.frame_id;
+    if (ka2) ka2->on_dequeue(this, md);
     const int dropped_idx = buf.queue(idx);
     if (dropped_idx >= 0) requeue_buf(dropped_idx);
   }

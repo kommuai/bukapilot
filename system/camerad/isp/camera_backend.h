@@ -11,9 +11,9 @@
 #include <vector>
 
 #include "common/util.h"
-#include "system/camerad/cameras/camera_common.h"
-#include "system/camerad/rk/rk_isp_userspace.h"
-#include "system/camerad/sensors/sensor.h"
+#include "system/camerad/camera/common.h"
+#include "system/camerad/isp/userspace.h"
+#include "system/camerad/sensor/sensor.h"
 
 struct MultiCameraState;
 class CameraState;

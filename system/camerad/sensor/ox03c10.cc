@@ -1,7 +1,6 @@
 #include <cmath>
 
-#include "system/camerad/sensors/sensor.h"
-#include "third_party/linux/include/msm_camsensor_sdk.h"
+#include "system/camerad/sensor/sensor.h"
 
 namespace {
 
@@ -41,7 +40,7 @@ OX03C10::OX03C10() {
   probe_expected_data = 0x5803;
   bits_per_pixel = 12;
   mipi_format = CAM_FORMAT_MIPI_RAW_12;
-  frame_data_type = CSI_RAW12;
+  frame_data_type = kCsi2Raw12;
   mclk_frequency = 24000000; // Hz
 
   readout_time_ns = 14697000;
@@ -51,7 +50,7 @@ OX03C10::OX03C10() {
   dc_gain_max_weight = 1;
   dc_gain_on_grey = 0.9;
   dc_gain_off_grey = 1.0;
-  exposure_time_min = 2;  // comma default (was 1 for rkisp outdoor)
+  exposure_time_min = 2;  // reference default (was 1 for rkisp outdoor)
   exposure_time_max = ox03c10_limits::kMaxExposure;
   analog_gain_min_idx = 0x0;
   analog_gain_rec_idx = 0x0;  // 1x

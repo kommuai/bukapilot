@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Verify KA2's manual road LSC table against comma's source reference."""
+"""Verify KA2's manual road LSC table against reference's source reference."""
 
 import argparse
 import json
@@ -16,20 +16,20 @@ def values_between(text, start_pattern):
 
 def main():
   parser = argparse.ArgumentParser()
-  parser.add_argument("comma_sensor_source", type=Path)
+  parser.add_argument("reference_sensor_source", type=Path)
   parser.add_argument("--ka2-table", type=Path,
-                      default=Path("system/camerad/rk/rk_road_lsc_tables.h"))
+                      default=Path("system/camerad/isp/road_lsc_tables.h"))
   parser.add_argument("--ka2-calibration", type=Path,
-                      default=Path("system/camerad/rk/calib_embed/ox03c10_D2V11K_9420.json"))
+                      default=Path("system/camerad/isp/calib_embed/ox03c10_D2V11K_9420.json"))
   args = parser.parse_args()
 
-  comma_words = values_between(args.comma_sensor_source.read_text(), r"vignetting_lut")
-  if len(comma_words) != 13 * 17:
-    raise ValueError(f"expected 221 comma LSC words, got {len(comma_words)}")
-  low = [word & 0x1fff for word in comma_words]
-  high = [(word >> 13) & 0x1fff for word in comma_words]
+  reference_words = values_between(args.reference_sensor_source.read_text(), r"vignetting_lut")
+  if len(reference_words) != 13 * 17:
+    raise ValueError(f"expected 221 reference LSC words, got {len(reference_words)}")
+  low = [word & 0x1fff for word in reference_words]
+  high = [(word >> 13) & 0x1fff for word in reference_words]
   if low != high:
-    raise ValueError("comma vignetting_lut does not contain matching 13-bit gain fields")
+    raise ValueError("reference vignetting_lut does not contain matching 13-bit gain fields")
 
   expected = []
   for y in range(17):
@@ -41,9 +41,9 @@ def main():
       expected.append(round(low[y0 * 17 + x] * (1 - fraction) + low[y1 * 17 + x] * fraction))
 
   table = args.ka2_table.read_text()
-  actual = values_between(table, r"kCommaRoadGainQ10")
+  actual = values_between(table, r"kRoadGainQ10")
   if actual != expected:
-    raise ValueError("KA2 road mesh differs from the comma-derived 13-bit reference")
+    raise ValueError("KA2 road mesh differs from the reference-derived 13-bit reference")
   if len(actual) != 17 * 17 or not all(1024 <= value <= 8191 for value in actual):
     raise ValueError("KA2 road mesh is outside the RKISP3 17x17 13-bit Q10 domain")
 
@@ -65,7 +65,7 @@ def main():
       if table_config[channel]["uCoeff"] != actual:
         raise ValueError(f"KA2 static {channel} mesh differs from the manual road mesh")
 
-  print(f"PASS comma 13x17 -> KA2 17x17: range={min(actual)}..{max(actual)} "
+  print(f"PASS reference 13x17 -> KA2 17x17: range={min(actual)}..{max(actual)} "
         f"center={actual[8 * 17 + 8]} sectors={sum(sectors_x)}x{sum(sectors_y)} "
         f"static_meshes={len(road_lsc['tbl']['tableAll']) * 4}")
 

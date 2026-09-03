@@ -1,4 +1,4 @@
-#include "system/camerad/cameras/camera_common.h"
+#include "system/camerad/camera/common.h"
 
 #include <algorithm>
 #include <cassert>
@@ -18,10 +18,7 @@
 #include "common/clutil.h"
 #include "common/swaglog.h"
 #include "common/timing.h"
-#include "system/camerad/cameras/camera_rk.h"
-#ifdef QCOM2
-#include "CL/cl_ext_qcom.h"
-#endif
+#include "system/camerad/camera/rk.h"
 
 ExitHandler do_exit;
 

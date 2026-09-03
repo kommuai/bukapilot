@@ -7,7 +7,7 @@
 #include <cstring>
 
 #include "common/util.h"
-#include "system/camerad/cameras/camera_common.h"
+#include "system/camerad/camera/common.h"
 
 #define W 240
 #define H 160

@@ -1,4 +1,4 @@
-#include "system/camerad/rk/rk_isp_userspace.h"
+#include "system/camerad/isp/userspace.h"
 
 #include <algorithm>
 #include <cmath>
@@ -18,8 +18,8 @@
 #include <uAPI2/rk_aiq_user_api2_accm.h>
 #include <uAPI2/rk_aiq_user_api2_awb.h>
 #include <algos/accm/rk_aiq_types_accm_algo.h>
-#include "system/camerad/rk/ka2_isp_calibration.h"
-#include "system/camerad/rk/rk_tone_tables.h"
+#include "system/camerad/isp/calibration.h"
+#include "system/camerad/isp/tone_tables.h"
 
 #include "common/swaglog.h"
 
@@ -259,7 +259,7 @@ static void apply_ccm(const rk_aiq_sys_ctx_t *aiq, int camera_num) {
   }
 }
 
-static void apply_comma_gamma(const rk_aiq_sys_ctx_t *aiq, int camera_num) {
+static void apply_gamma(const rk_aiq_sys_ctx_t *aiq, int camera_num) {
   rk_aiq_gamma_v11_attr_t gam = {};
   gam.sync.done = false;
   gam.mode = RK_AIQ_GAMMA_MODE_MANUAL;
@@ -288,7 +288,7 @@ bool RkIspUserspaceController::prepare() {
     return false;
   }
 
-  apply_comma_gamma(aiq_, cfg_.camera_num);
+  apply_gamma(aiq_, cfg_.camera_num);
   prepared_ = true;
   return true;
 }
