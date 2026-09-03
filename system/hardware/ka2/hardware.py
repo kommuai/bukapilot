@@ -63,6 +63,7 @@ class Ka2(HardwareBase):
     self._modem_cache_ts: float = 0
     self._last_cellular_summary: str = "Unknown"
     self._last_usage_sample: tuple[float, int, int] | None = None
+    self._sd_formatting = False
 
   def _sd_inserted(self) -> bool:
     try:
@@ -74,6 +75,9 @@ class Ka2(HardwareBase):
   def sd_status(self) -> str | None:
     nf = "SD card not formatted"
     try:
+      with self._lock:
+        if self._sd_formatting:
+          return "Formatting SD card"
       if not self._sd_inserted():
         return "SD card not inserted"
       if subprocess.run(["pgrep", "-x", "mkfs.ext4"], check=False).returncode == 0:
@@ -89,28 +93,50 @@ class Ka2(HardwareBase):
     except Exception:
       return nf
 
-  def format_sd(self) -> None:
+  def is_sd_formatting(self) -> bool:
+    with self._lock:
+      return self._sd_formatting
+
+  def format_sd(self) -> bool:
     from openpilot.common.swaglog import cloudlog
     try:
-      if (st := self.sd_status()) is None or ("not inserted" not in (st_l := st.lower()) and "formatting" not in st_l):
-        def worker():
-          try:
-            # Run unmount and wipe together so the device is cleared right after unmount, avoiding remount and busy errors
-            subprocess.run(f"sudo umount {SD_CARD_DEVICE}p*; sudo wipefs -a {SD_CARD_DEVICE}", shell=True, check=True)
-            subprocess.run(["sudo", "sfdisk", SD_CARD_DEVICE], input="label: dos\n,;\n", text=True, check=True)
-            subprocess.run(["sudo", "partprobe", SD_CARD_DEVICE], check=True)
-            subprocess.run(["sudo", "udevadm", "trigger"], check=True)
-            subprocess.run(f"echo y | sudo mkfs.ext4 {SD_CARD_DEVICE}p1", shell=True, check=True)
-            r = subprocess.run(["sudo", "mount", "-a"], capture_output=True, text=True)
-            mp = subprocess.run(["findmnt", "-n", "-o", "TARGET", f"{SD_CARD_DEVICE}p1"], capture_output=True, text=True).stdout.strip()
-            if r.returncode == 0 and mp:
-              subprocess.run(["sudo", "chown", f"{os.getuid()}:{os.getgid()}", mp], check=False)
-            cloudlog.info("SD card formatted and mounted successfully." if r.returncode == 0 else f"Mount failed: {r.stderr.strip()}")
-          except Exception as e:
-            cloudlog.warning(f"SD format error: {e}")
-        threading.Thread(target=worker, daemon=True).start()
+      with self._lock:
+        if self._sd_formatting:
+          return False
+        st = self.sd_status()
+        if st is not None and ("not inserted" in st.lower() or "formatting" in st.lower()):
+          return False
+        self._sd_formatting = True
+
+      def worker():
+        try:
+          # Keep video scanning/remounting blocked until the new filesystem is ready.
+          subprocess.run(f"sudo umount {SD_CARD_DEVICE}p*; sudo wipefs -a {SD_CARD_DEVICE}", shell=True, check=True)
+          subprocess.run(["sudo", "sfdisk", SD_CARD_DEVICE], input="label: dos\n,;\n", text=True, check=True)
+          subprocess.run(["sudo", "partprobe", SD_CARD_DEVICE], check=True)
+          subprocess.run(["sudo", "udevadm", "trigger"], check=True)
+          subprocess.run(f"echo y | sudo mkfs.ext4 {SD_CARD_DEVICE}p1", shell=True, check=True)
+          r = subprocess.run(["sudo", "mount", "-a"], capture_output=True, text=True)
+          mp = subprocess.run(["findmnt", "-n", "-o", "TARGET", f"{SD_CARD_DEVICE}p1"], capture_output=True, text=True).stdout.strip()
+          if r.returncode == 0 and mp:
+            subprocess.run(["sudo", "chown", f"{os.getuid()}:{os.getgid()}", mp], check=False)
+            try:
+              from openpilot.system.hardware.hw import Paths
+              os.makedirs(Paths.log_root(), exist_ok=True)
+            except OSError as e:
+              cloudlog.warning(f"realdata mkdir after format: {e}")
+          cloudlog.info("SD card formatted and mounted successfully." if r.returncode == 0 else f"Mount failed: {r.stderr.strip()}")
+        except Exception as e:
+          cloudlog.warning(f"SD format error: {e}")
+        finally:
+          with self._lock:
+            self._sd_formatting = False
+
+      threading.Thread(target=worker, daemon=True).start()
+      return True
     except Exception as e:
       cloudlog.warning(f"SD format error: {e}")
+    return False
 
   def _run_nmcli(self, args, timeout=5) -> str:
     try:
