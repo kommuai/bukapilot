@@ -135,9 +135,7 @@ class Soundd:
     data_out[:frames, 0] = self.get_sound_data(frames)
 
   def update_alert(self, new_alert, quiet_mode=False, alert_type_name=None):
-    if quiet_mode and alert_type_name and "laneChangeBlocked" in alert_type_name:
-      return
-    if quiet_mode and new_alert != AudibleAlert.refuse:
+    if quiet_mode:
       allowed = new_alert in {
         AudibleAlert.none,
         AudibleAlert.promptRepeat,
@@ -145,8 +143,11 @@ class Soundd:
         AudibleAlert.prompt,
         AudibleAlert.warningSoft,
         AudibleAlert.warningImmediate,
-      }
-      if not allowed:
+      } or (
+        new_alert == AudibleAlert.refuse and alert_type_name and  # mute generic refuse, allow refuse with per-event custom sound
+        os.path.isfile(os.path.join(BASEDIR, "selfdrive/assets/sounds/events", f"{alert_type_name.split('/')[0]}.wav"))
+      )
+      if not allowed or (alert_type_name and "laneChangeBlocked" in alert_type_name):
         return
     current_alert_played_once = (
       self.current_alert == AudibleAlert.none or
