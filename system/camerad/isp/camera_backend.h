@@ -2,6 +2,7 @@
 
 #include <array>
 #include <atomic>
+#include <cstdint>
 #include <condition_variable>
 #include <deque>
 #include <memory>
@@ -74,6 +75,7 @@ private:
 
   std::atomic<uint64_t> ae_dropped_jobs_{0};
   std::atomic<uint64_t> ae_exposure_skips_{0};
+  std::atomic<uint64_t> ae_reversal_skips_{0};
   std::atomic<uint64_t> ae_luma_last_ns_{0};
   std::atomic<uint64_t> ae_luma_max_ns_{0};
   std::atomic<uint64_t> ae_i2c_last_ns_{0};
@@ -107,6 +109,12 @@ private:
   float best_ev_score_ = 1e6f;
   int new_exp_g_ = 0;
   int new_exp_t_ = 0;
+  int8_t last_exposure_direction_ = 0;
+  int8_t last_gain_direction_ = 0;
+  int8_t pending_exposure_direction_ = 0;
+  int8_t pending_gain_direction_ = 0;
+  uint8_t pending_reversal_frames_ = 0;
+  uint8_t reversal_hold_frames_ = 0;
   float measured_grey_fraction_ = 0.f;
   float target_grey_fraction_ = 0.125f;
   float fl_pix_ = 0.f;

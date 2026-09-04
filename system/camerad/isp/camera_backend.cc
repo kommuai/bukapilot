@@ -22,6 +22,12 @@ constexpr uint16_t kGrpHoldReg = 0x3208;
 constexpr int kI2cChunk = 8;
 constexpr int kI2cRetries = 5;
 constexpr uint32_t kTemperaturePollPeriod = 8;
+constexpr uint8_t kAeReversalConfirmFrames = 4;
+constexpr uint8_t kAeReversalHoldFrames = 10;
+
+int8_t ae_direction(int value) {
+  return value > 0 ? 1 : value < 0 ? -1 : 0;
+}
 
 #define V4L2_CID_X3C_SENSOR_TEMPERATURE (V4L2_CID_USER_BASE + 0x100)
 
@@ -132,6 +138,12 @@ bool Ka2CameraBackend::open(CameraState *cam) {
   gain_idx_ = cam->ci->analog_gain_rec_idx;
   exposure_time_ = 5;
   dc_gain_enabled_ = false;
+  last_exposure_direction_ = 0;
+  last_gain_direction_ = 0;
+  pending_exposure_direction_ = 0;
+  pending_gain_direction_ = 0;
+  pending_reversal_frames_ = 0;
+  reversal_hold_frames_ = 0;
   analog_gain_frac_ = cam->ci->sensor_analog_gains[gain_idx_];
   {
     float g0 = get_gain_factor(cam) * analog_gain_frac_ * exposure_time_;
@@ -146,6 +158,10 @@ bool Ka2CameraBackend::open(CameraState *cam) {
   RkIspCamConfig cfg;
   cfg.camera_num = cam->camera_num;
   cfg.mainpath_dev = resolve_mainpath_dev(cam->camera_num);
+  cfg.ae_window.h_offs = static_cast<uint16_t>(std::clamp(ae_xywh_.x, 0, 65535));
+  cfg.ae_window.v_offs = static_cast<uint16_t>(std::clamp(ae_xywh_.y, 0, 65535));
+  cfg.ae_window.h_size = static_cast<uint16_t>(std::clamp(ae_xywh_.w, 1, 65535));
+  cfg.ae_window.v_size = static_cast<uint16_t>(std::clamp(ae_xywh_.h, 1, 65535));
   cfg.ae_owner = this;
   cfg.ae_run = [](void *owner, const rk_aiq_customAe_stats_t *stats,
                   rk_aiq_customeAe_results_t *result) {
@@ -460,16 +476,89 @@ void Ka2CameraBackend::set_camera_exposure(CameraState *cam, float grey_frac) {
   const bool significant_change =
       last_exp_reg_count_ == 0 || new_exp_g_ != gain_idx_ || enable_dc_gain != dc_gain_enabled_ ||
       exposure_delta > std::max(2, (int)std::lround(exposure_time_ * 0.02f));
+
+  // Histogram quantization can make the optimizer cross the same boundary in
+  // opposite directions on adjacent frames. Confirm reversals and hold them
+  // briefly; this is constant-memory state and adds no image-processing work.
+  const int8_t exposure_direction = ae_direction(new_exp_t_ - exposure_time_);
+  const int8_t gain_direction = ae_direction(new_exp_g_ - gain_idx_);
+  const bool exposure_reversal = exposure_direction != 0 &&
+                                 last_exposure_direction_ != 0 &&
+                                 exposure_direction != last_exposure_direction_;
+  const bool gain_reversal = gain_direction != 0 &&
+                             last_gain_direction_ != 0 &&
+                             gain_direction != last_gain_direction_;
+  const bool reversing = exposure_reversal || gain_reversal;
+  const float current_ev = cur_ev_scaled / cam->ci->ev_scale;
+  const bool severe_grey_error = grey_frac < target_grey * 0.5f ||
+                                 grey_frac > target_grey * 1.5f;
+  const bool at_low_exposure_limit =
+      exposure_time_ <= cam->ci->exposure_time_min + 2 && desired_ev < current_ev;
+  const bool at_high_exposure_limit =
+      exposure_time_ >= cam->ci->exposure_time_max - 2 && desired_ev > current_ev;
+  const bool reversal_emergency = severe_grey_error || at_low_exposure_limit ||
+                                  at_high_exposure_limit;
+
+  bool allow_change = significant_change;
+  bool reversal_accepted = false;
   if (!significant_change) {
+    pending_exposure_direction_ = 0;
+    pending_gain_direction_ = 0;
+    pending_reversal_frames_ = 0;
+    if (reversal_hold_frames_ > 0) --reversal_hold_frames_;
+  } else if (!reversing) {
+    pending_exposure_direction_ = 0;
+    pending_gain_direction_ = 0;
+    pending_reversal_frames_ = 0;
+    if (reversal_hold_frames_ > 0) --reversal_hold_frames_;
+  } else if (reversal_emergency) {
+    pending_exposure_direction_ = 0;
+    pending_gain_direction_ = 0;
+    pending_reversal_frames_ = 0;
+    reversal_accepted = true;
+  } else if (reversal_hold_frames_ > 0) {
+    --reversal_hold_frames_;
+    pending_exposure_direction_ = 0;
+    pending_gain_direction_ = 0;
+    pending_reversal_frames_ = 0;
+    allow_change = false;
+  } else {
+    if (pending_exposure_direction_ != exposure_direction ||
+        pending_gain_direction_ != gain_direction) {
+      pending_exposure_direction_ = exposure_direction;
+      pending_gain_direction_ = gain_direction;
+      pending_reversal_frames_ = 0;
+    }
+    if (pending_reversal_frames_ < kAeReversalConfirmFrames) {
+      ++pending_reversal_frames_;
+    }
+    if (pending_reversal_frames_ < kAeReversalConfirmFrames) {
+      allow_change = false;
+    } else {
+      reversal_accepted = true;
+    }
+  }
+
+  if (!allow_change) {
     measured_grey_fraction_ = grey_frac;
     target_grey_fraction_ = target_grey;
     published_measured_grey_.store(measured_grey_fraction_, std::memory_order_relaxed);
     published_target_grey_.store(target_grey_fraction_, std::memory_order_relaxed);
     ae_exposure_skips_.fetch_add(1, std::memory_order_relaxed);
+    if (reversing) ae_reversal_skips_.fetch_add(1, std::memory_order_relaxed);
     return;
   }
 
   if (!commit_exposure(cam, new_exp_t_, new_exp_g_, enable_dc_gain)) return;
+
+  if (exposure_direction != 0) last_exposure_direction_ = exposure_direction;
+  if (gain_direction != 0) last_gain_direction_ = gain_direction;
+  if (reversal_accepted) {
+    pending_exposure_direction_ = 0;
+    pending_gain_direction_ = 0;
+    pending_reversal_frames_ = 0;
+    reversal_hold_frames_ = kAeReversalHoldFrames;
+  }
 
   measured_grey_fraction_ = grey_frac;
   target_grey_fraction_ = target_grey;
@@ -495,16 +584,17 @@ int32_t Ka2CameraBackend::run_rkaiq_ae(const rk_aiq_customAe_stats_t *stats,
   result->is_longfrm_mode = false;
 
   // The translator has already converted the ISP30 histogram to 256 bins in
-  // the same 8-bit luma domain used by the legacy policy. Aggregate the three
-  // big AE windows instead of reading or scanning a full NV12 frame.
+  // the same 8-bit luma domain used by the legacy policy. This camera is
+  // prepared in normal (non-HDR) mode, so only rawae_stat[0] is valid. The
+  // other entries are HDR short/medium/long paths and must not be combined
+  // with the normal-path histogram.
   std::array<uint64_t, 256> histogram = {};
   uint64_t total = 0;
   if (stats) {
-    for (const auto &channel : stats->rawae_stat) {
-      for (size_t i = 0; i < histogram.size(); i++) {
-        histogram[i] += channel.rawhist_big.bins[i];
-        total += channel.rawhist_big.bins[i];
-      }
+    const auto &channel = stats->rawae_stat[0];
+    for (size_t i = 0; i < histogram.size(); i++) {
+      histogram[i] = channel.rawhist_big.bins[i];
+      total += histogram[i];
     }
   }
   if (total == 0) {
@@ -521,7 +611,7 @@ int32_t Ka2CameraBackend::run_rkaiq_ae(const rk_aiq_customAe_stats_t *stats,
 
   // Use half the measured road NV12/raw transfer scale as the shared camera
   // benchmark. Keep the value in the AE grey domain before consumption.
-  constexpr float kRkaiqGreyScale = 4.0f;
+  constexpr float kRkaiqGreyScale = 18.0f;
   const float raw_grey = (static_cast<float>(median_bin) + 0.5f) / 256.0f;
   const float scaled_grey = std::clamp(raw_grey * kRkaiqGreyScale, 0.0f, 1.0f);
   rkaiq_pending_grey_.store(scaled_grey, std::memory_order_relaxed);
@@ -712,7 +802,7 @@ void Ka2CameraBackend::log_ae_metrics(CameraState *cam, uint32_t frame_id) {
     ae_queue_size = ae_jobs_.size();
   }
   LOG("camera %d AE: frame=%u queue=%zu/%zu capture_queue=%zu/3 capture_peak=%zu "
-      "capture_dropped=%llu ae_dropped=%llu exposure_skips=%llu "
+      "capture_dropped=%llu ae_dropped=%llu exposure_skips=%llu reversal_skips=%llu "
       "luma_us=%llu max=%llu i2c_us=%llu max=%llu isp_us=%llu max=%llu "
       "rkaiq_us=%llu max=%llu reads=%llu failures=%llu "
       "dequeue_to_ae_us=%llu max=%llu",
@@ -721,6 +811,7 @@ void Ka2CameraBackend::log_ae_metrics(CameraState *cam, uint32_t frame_id) {
       (unsigned long long)cam->buf.dropped_frames(),
       (unsigned long long)ae_dropped_jobs_.load(std::memory_order_relaxed),
       (unsigned long long)ae_exposure_skips_.load(std::memory_order_relaxed),
+      (unsigned long long)ae_reversal_skips_.load(std::memory_order_relaxed),
       (unsigned long long)(ae_luma_last_ns_.load(std::memory_order_relaxed) / 1000),
       (unsigned long long)(ae_luma_max_ns_.load(std::memory_order_relaxed) / 1000),
       (unsigned long long)(ae_i2c_last_ns_.load(std::memory_order_relaxed) / 1000),
