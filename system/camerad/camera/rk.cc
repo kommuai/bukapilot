@@ -205,6 +205,14 @@ bool cameras_open(MultiCameraState *s) {
 }
 
 void CameraState::camera_close() {
+  // Stop the AE worker before releasing the V4L2 buffers it may be reading.
+  // The worker owns the dequeue-to-requeue interval, so unmapping first can
+  // turn a normal shutdown into a use-after-unmap crash.
+  if (ka2) {
+    ka2->close(this);
+    ka2.reset();
+  }
+
   if (video_fd.fd_ >= 0) {
     int type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
     if (ioctl(video_fd, VIDIOC_STREAMOFF, &type) < 0) {
@@ -224,11 +232,6 @@ void CameraState::camera_close() {
         buf.camera_bufs[i].mmap_len = 0;
       }
     }
-  }
-
-  if (ka2) {
-    ka2->close(this);
-    ka2.reset();
   }
 
   if (ctrl_fd.fd_ >= 0) {

@@ -46,6 +46,8 @@ private:
   void stop_ae_worker();
   void ae_worker_loop();
   void process_ae_job(const AeJob &job);
+  int32_t run_rkaiq_ae(const rk_aiq_customAe_stats_t *stats,
+                       rk_aiq_customeAe_results_t *result);
   void log_ae_metrics(CameraState *cam, uint32_t frame_id);
   float get_gain_factor(const CameraState *cam) const;
   void apply_pwl_on(CameraState *cam);
@@ -60,6 +62,7 @@ private:
   std::string resolve_mainpath_dev(int camera_num) const;
 
   std::unique_ptr<RkIspUserspaceController> rk_isp_;
+  CameraState *camera_ = nullptr;
   std::mutex ae_mtx_;
   std::condition_variable ae_cv_;
   std::condition_variable ae_done_cv_;
@@ -77,10 +80,17 @@ private:
   std::atomic<uint64_t> ae_i2c_max_ns_{0};
   std::atomic<uint64_t> ae_isp_last_ns_{0};
   std::atomic<uint64_t> ae_isp_max_ns_{0};
+  std::atomic<uint64_t> ae_rkaiq_last_ns_{0};
+  std::atomic<uint64_t> ae_rkaiq_max_ns_{0};
+  std::atomic<uint64_t> ae_rkaiq_reads_{0};
+  std::atomic<uint64_t> ae_rkaiq_failures_{0};
   std::atomic<uint64_t> ae_dequeue_to_ae_last_ns_{0};
   std::atomic<uint64_t> ae_dequeue_to_ae_max_ns_{0};
+  std::atomic<uint32_t> rkaiq_ae_callback_seq_{0};
+  std::atomic<float> rkaiq_pending_grey_{0.0f};
   uint32_t ae_completed_jobs_ = 0;
   uint32_t ae_frame_id_ = 0;
+  uint32_t rkaiq_ae_consumed_seq_ = 0;
 
   std::mutex exp_lock_;
   std::mutex i2c_lock_;

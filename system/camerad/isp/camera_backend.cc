@@ -101,6 +101,7 @@ std::string Ka2CameraBackend::resolve_mainpath_dev(int camera_num) const {
 }
 
 bool Ka2CameraBackend::open(CameraState *cam) {
+  camera_ = cam;
   char device[32];
   snprintf(device, sizeof(device), "/dev/v4l-subdev%d", cam->camera_num * 5 + 2);
   cam->ctrl_fd = ::open(device, O_RDWR);
@@ -145,6 +146,11 @@ bool Ka2CameraBackend::open(CameraState *cam) {
   RkIspCamConfig cfg;
   cfg.camera_num = cam->camera_num;
   cfg.mainpath_dev = resolve_mainpath_dev(cam->camera_num);
+  cfg.ae_owner = this;
+  cfg.ae_run = [](void *owner, const rk_aiq_customAe_stats_t *stats,
+                  rk_aiq_customeAe_results_t *result) {
+    return static_cast<Ka2CameraBackend *>(owner)->run_rkaiq_ae(stats, result);
+  };
   if (!rk_isp_->init(cfg)) {
     LOGE("camera %d: RkIspUserspace CamHw init failed", cam->camera_num);
     rk_isp_->shutdown();
@@ -170,11 +176,13 @@ void Ka2CameraBackend::close(CameraState *cam) {
     ::close(i2c_fd_.fd_);
     i2c_fd_.fd_ = -1;
   }
+  camera_ = nullptr;
 }
 
 void Ka2CameraBackend::on_stream_start(CameraState *cam) {
+  // One bounded writer serves both modes and provides a fallback until the
+  // first RKAIQ histogram arrives.
   start_ae_worker();
-  apply_pwl_on(cam);
 }
 
 float Ka2CameraBackend::get_gain_factor(const CameraState *cam) const {
@@ -309,28 +317,13 @@ void Ka2CameraBackend::set_exposure_rect(CameraState *cam) {
 bool Ka2CameraBackend::seed_external_exposure(CameraState *cam) {
   if (!cam || !cam->ci || !rk_isp_) return false;
 
-  std::array<i2c_random_wr_payload, 10> regs{};
-  const int count = cam->ci->getExposureRegisters(
-      exposure_time_, gain_idx_, dc_gain_enabled_, regs.data(), regs.size());
-  if (count <= 0) return false;
-
-  uint32_t sensor_gain_code = 0;
-  bool gain_code_high = false;
-  bool gain_code_low = false;
-  for (int i = 0; i < count; ++i) {
-    if (regs[i].reg_addr == 0x3508) {
-      sensor_gain_code = regs[i].reg_data << 8;
-      gain_code_high = true;
-    } else if (regs[i].reg_addr == 0x3509) {
-      sensor_gain_code |= regs[i].reg_data;
-      gain_code_low = true;
-    }
-  }
-  if (!gain_code_high || !gain_code_low) return false;
-
-  return rk_isp_->set_external_exposure(
-      0, exposure_time_, analog_gain_frac_ * get_gain_factor(cam),
-      sensor_gain_code, dc_gain_enabled_);
+  // Do not rely on the kernel's cached controls after a restart.  In HDR4,
+  // VTS is a sensor-internal timing register and can remain at an old value
+  // even when the V4L2 VBLANK control reports its nominal value.  Commit the
+  // complete 20 FPS packet first; commit_exposure also publishes the matching
+  // metadata to RKAIQ.
+  last_exp_reg_count_ = 0;
+  return commit_exposure(cam, exposure_time_, gain_idx_, dc_gain_enabled_);
 }
 
 bool Ka2CameraBackend::commit_exposure(CameraState *cam, int exp_t, int gidx, bool hcg) {
@@ -363,7 +356,9 @@ bool Ka2CameraBackend::commit_exposure(CameraState *cam, int exp_t, int gidx, bo
                   [](const i2c_random_wr_payload &a, const i2c_random_wr_payload &b) {
                     return a.reg_addr == b.reg_addr && a.reg_data == b.reg_data;
                   });
-  if (changed && !sensors_i2c(cam, exposure_regs_.data(), (int)exposure_reg_count_)) return false;
+  if (changed && !sensors_i2c(cam, exposure_regs_.data(), (int)exposure_reg_count_)) {
+    return false;
+  }
 
   new_exp_g_ = gidx;
   new_exp_t_ = exp_t;
@@ -482,6 +477,58 @@ void Ka2CameraBackend::set_camera_exposure(CameraState *cam, float grey_frac) {
   published_target_grey_.store(target_grey_fraction_, std::memory_order_relaxed);
 }
 
+int32_t Ka2CameraBackend::run_rkaiq_ae(const rk_aiq_customAe_stats_t *stats,
+                                       rk_aiq_customeAe_results_t *result) {
+  if (!result || !camera_ || !camera_->enabled || !camera_->ci) return 0;
+
+  // Camerad owns the sensor packet. A valid empty result keeps SensorHw in
+  // explicit-I2C mode without invoking the unsupported kernel register ioctl.
+  result->exp_i2c_params = {};
+  result->exp_i2c_params.bValid = true;
+  result->frame_length_lines = ox03c10_limits::kActiveRows;
+  if (stats) {
+    result->linear_exp = stats->linear_exp;
+    for (size_t i = 0; i < std::size(result->hdr_exp); i++) {
+      result->hdr_exp[i] = stats->hdr_exp[i];
+    }
+  }
+  result->is_longfrm_mode = false;
+
+  // The translator has already converted the ISP30 histogram to 256 bins in
+  // the same 8-bit luma domain used by the legacy policy. Aggregate the three
+  // big AE windows instead of reading or scanning a full NV12 frame.
+  std::array<uint64_t, 256> histogram = {};
+  uint64_t total = 0;
+  if (stats) {
+    for (const auto &channel : stats->rawae_stat) {
+      for (size_t i = 0; i < histogram.size(); i++) {
+        histogram[i] += channel.rawhist_big.bins[i];
+        total += channel.rawhist_big.bins[i];
+      }
+    }
+  }
+  if (total == 0) {
+    return 0;
+  }
+
+  const uint64_t midpoint = (total + 1) / 2;
+  uint64_t cumulative = 0;
+  size_t median_bin = 0;
+  for (; median_bin < histogram.size(); median_bin++) {
+    cumulative += histogram[median_bin];
+    if (cumulative >= midpoint) break;
+  }
+
+  // Use half the measured road NV12/raw transfer scale as the shared camera
+  // benchmark. Keep the value in the AE grey domain before consumption.
+  constexpr float kRkaiqGreyScale = 4.0f;
+  const float raw_grey = (static_cast<float>(median_bin) + 0.5f) / 256.0f;
+  const float scaled_grey = std::clamp(raw_grey * kRkaiqGreyScale, 0.0f, 1.0f);
+  rkaiq_pending_grey_.store(scaled_grey, std::memory_order_relaxed);
+  rkaiq_ae_callback_seq_.fetch_add(1, std::memory_order_release);
+  return 0;
+}
+
 void Ka2CameraBackend::on_dequeue(CameraState *cam, FrameMetadata &md) {
   md.integ_lines = published_exposure_time_.load(std::memory_order_relaxed);
   md.gain = published_gain_.load(std::memory_order_relaxed);
@@ -581,6 +628,17 @@ void Ka2CameraBackend::process_ae_job(const AeJob &job) {
   ae_i2c_last_ns_.store(0, std::memory_order_relaxed);
   ae_isp_last_ns_.store(0, std::memory_order_relaxed);
 
+  // Consume only the newest histogram decision. This keeps the physical
+  // sensor writer bounded at the capture cadence and avoids stale updates.
+  const uint32_t rkaiq_seq = rkaiq_ae_callback_seq_.load(std::memory_order_acquire);
+  if (rk_isp_ && rk_isp_->custom_ae_active() && rkaiq_seq != 0) {
+    if (rkaiq_seq != rkaiq_ae_consumed_seq_) {
+      rkaiq_ae_consumed_seq_ = rkaiq_seq;
+      set_camera_exposure(cam, rkaiq_pending_grey_.load(std::memory_order_relaxed));
+    }
+    return;
+  }
+
   const uint64_t dequeue_to_ae_ns = monotonic_time_ns() - md.dequeue_monotonic_ns;
   ae_dequeue_to_ae_last_ns_.store(dequeue_to_ae_ns, std::memory_order_relaxed);
   update_max(ae_dequeue_to_ae_max_ns_, dequeue_to_ae_ns);
@@ -602,6 +660,18 @@ void Ka2CameraBackend::process_ae_job(const AeJob &job) {
       ae_roi_ready_ = true;
     }
 
+    RkIspAeShadowStats rkaiq_stats = {};
+    const uint64_t rkaiq_start_ns = monotonic_time_ns();
+    const bool rkaiq_stats_valid = rk_isp_ && rk_isp_->get_ae_shadow_stats(&rkaiq_stats);
+    const uint64_t rkaiq_duration_ns = monotonic_time_ns() - rkaiq_start_ns;
+    ae_rkaiq_last_ns_.store(rkaiq_duration_ns, std::memory_order_relaxed);
+    update_max(ae_rkaiq_max_ns_, rkaiq_duration_ns);
+    if (rkaiq_stats_valid) {
+      ae_rkaiq_reads_.fetch_add(1, std::memory_order_relaxed);
+    } else {
+      ae_rkaiq_failures_.fetch_add(1, std::memory_order_relaxed);
+    }
+
     const int y_skip = (cam->camera_num == 2) ? 4 : 2;
     const uint64_t luma_start_ns = monotonic_time_ns();
     const float grey = calculate_exposure_value(
@@ -610,6 +680,26 @@ void Ka2CameraBackend::process_ae_job(const AeJob &job) {
     ae_luma_last_ns_.store(luma_duration_ns, std::memory_order_relaxed);
     update_max(ae_luma_max_ns_, luma_duration_ns);
     set_camera_exposure(cam, grey);
+
+    // Keep this log sparse enough for driving, while retaining frame-aligned
+    // samples across changing lighting. The CPU result still controls AE.
+    if (rkaiq_stats_valid && md.frame_id % 10 == 0) {
+      const int64_t frame_delta = static_cast<int64_t>(rkaiq_stats.frame_id) - static_cast<int64_t>(md.frame_id);
+      LOG("camera %d RKAIQ_AE_SHADOW frame=%u stats_frame=%u delta=%lld read_us=%llu "
+          "cpu_grey=%.6f hist_med=%u,%u,%u,%u hist_total=%llu,%llu,%llu,%llu "
+          "raw_mean=%u,%u,%u,%u integ=%u gain=%.4f hcg=%d",
+          cam->camera_num, md.frame_id, rkaiq_stats.frame_id, (long long)frame_delta,
+          (unsigned long long)(rkaiq_duration_ns / 1000), grey,
+          rkaiq_stats.histogram_median[0], rkaiq_stats.histogram_median[1],
+          rkaiq_stats.histogram_median[2], rkaiq_stats.histogram_median[3],
+          (unsigned long long)rkaiq_stats.histogram_total[0],
+          (unsigned long long)rkaiq_stats.histogram_total[1],
+          (unsigned long long)rkaiq_stats.histogram_total[2],
+          (unsigned long long)rkaiq_stats.histogram_total[3],
+          rkaiq_stats.raw_mean[0], rkaiq_stats.raw_mean[1],
+          rkaiq_stats.raw_mean[2], rkaiq_stats.raw_mean[3],
+          md.integ_lines, md.gain, md.high_conversion_gain ? 1 : 0);
+    }
   }
 
   if (md.frame_id % 600 == 1) apply_pwl_on(cam);
@@ -624,6 +714,7 @@ void Ka2CameraBackend::log_ae_metrics(CameraState *cam, uint32_t frame_id) {
   LOG("camera %d AE: frame=%u queue=%zu/%zu capture_queue=%zu/3 capture_peak=%zu "
       "capture_dropped=%llu ae_dropped=%llu exposure_skips=%llu "
       "luma_us=%llu max=%llu i2c_us=%llu max=%llu isp_us=%llu max=%llu "
+      "rkaiq_us=%llu max=%llu reads=%llu failures=%llu "
       "dequeue_to_ae_us=%llu max=%llu",
       cam->camera_num, frame_id, ae_queue_size, kAeQueueDepth,
       cam->buf.queue_size(), cam->buf.queue_peak(),
@@ -636,6 +727,10 @@ void Ka2CameraBackend::log_ae_metrics(CameraState *cam, uint32_t frame_id) {
       (unsigned long long)(ae_i2c_max_ns_.load(std::memory_order_relaxed) / 1000),
       (unsigned long long)(ae_isp_last_ns_.load(std::memory_order_relaxed) / 1000),
       (unsigned long long)(ae_isp_max_ns_.load(std::memory_order_relaxed) / 1000),
+      (unsigned long long)(ae_rkaiq_last_ns_.load(std::memory_order_relaxed) / 1000),
+      (unsigned long long)(ae_rkaiq_max_ns_.load(std::memory_order_relaxed) / 1000),
+      (unsigned long long)ae_rkaiq_reads_.load(std::memory_order_relaxed),
+      (unsigned long long)ae_rkaiq_failures_.load(std::memory_order_relaxed),
       (unsigned long long)(ae_dequeue_to_ae_last_ns_.load(std::memory_order_relaxed) / 1000),
       (unsigned long long)(ae_dequeue_to_ae_max_ns_.load(std::memory_order_relaxed) / 1000));
 }
@@ -668,6 +763,14 @@ void Ka2CameraBackend::prepare_isp_all(MultiCameraState *s) {
     if (!cams[i]->enabled || !cams[i]->ka2 || !cams[i]->ka2->isp() || !cams[i]->ka2->isp()->active()) continue;
     if (!cams[i]->ka2->isp()->prepare()) {
       LOGE("camera %d: CamHw prepare failed", cams[i]->camera_num);
+      continue;
+    }
+    // RKAIQ prepare applies one stock-AE initialization result before the
+    // custom handler is enabled. Reassert the physical HDR4 VTS afterward,
+    // while the sensor is still in standby, so that result cannot reduce the
+    // sensor's 20 FPS timing.
+    if (!cams[i]->ka2->seed_external_exposure(cams[i])) {
+      LOGE("camera %d: failed to reassert initial external exposure", cams[i]->camera_num);
     }
   }
 }
@@ -688,6 +791,10 @@ void Ka2CameraBackend::synced_stream_and_start(MultiCameraState *s) {
 
   for (int i = 0; i < 3; i++) {
     if (!cams[i]->enabled) continue;
+    // Program PWL while the sensor is powered but still in standby.  Doing a
+    // long register burst after STREAMON can block the capture thread and
+    // prevent the first frame from reaching VisionIPC.
+    if (cams[i]->ka2) cams[i]->ka2->apply_pwl_on(cams[i]);
     if (ioctl(cams[i]->video_fd, VIDIOC_STREAMON, &cams[i]->fmt.type) < 0) {
       LOGE("camera %d: VIDIOC_STREAMON failed errno=%d '%s'", cams[i]->camera_num, errno, strerror(errno));
       cams[i]->enabled = false;

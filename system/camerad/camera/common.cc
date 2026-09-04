@@ -1,13 +1,13 @@
 #include "system/camerad/camera/common.h"
 
 #include <algorithm>
+#include <array>
 #include <cassert>
 #include <chrono>
 #include <cstring>
 #include <time.h>
 #include <string>
 #include <vector>
-#include <queue>
 
 #include <jpeglib.h>
 #include "third_party/libyuv/include/libyuv.h"
@@ -28,15 +28,22 @@ uint64_t monotonic_time_ns() {
 }
 
 struct ThumbnailJob {
+  static constexpr int kWidth = 480;
+  static constexpr int kHeight = 240;
+
   uint32_t frame_id = 0;
   uint64_t timestamp_eof = 0;
   int width = 0;
   int height = 0;
   int stride = 0;
   std::vector<uint8_t> nv12;
+  std::vector<uint8_t> resized_nv12;
+  std::vector<uint8_t> y_plane;
+  std::vector<uint8_t> u_plane;
+  std::vector<uint8_t> v_plane;
 };
 
-static void publish_thumbnail(PubMaster *pm, const ThumbnailJob &job);
+static void publish_thumbnail(PubMaster *pm, ThumbnailJob &job);
 
 static bool resize_nv12_with_rga(const uint8_t *src_nv12, int src_w, int src_h, int src_stride,
                                  uint8_t *dst_nv12, int dst_w, int dst_h, int dst_stride) {
@@ -191,10 +198,16 @@ float calculate_exposure_value(const uint8_t *pixels, int stride, Rect ae_xywh, 
 
 class ThumbnailWorker {
 public:
+  static constexpr size_t kQueueDepth = 2;
+  static constexpr size_t kSlotCount = kQueueDepth + 1;
+
   void start(PubMaster *pm_) {
     std::lock_guard lk(mtx);
     pm = pm_;
     if (running) return;
+    slot_state.fill(SlotState::Free);
+    ready_head = 0;
+    ready_count = 0;
     running = true;
     worker = std::thread(&ThumbnailWorker::run, this);
   }
@@ -216,7 +229,25 @@ public:
     const VisionBuf *vb = buf->cur_yuv_buf;
     if (!vb->y || !vb->uv) return;
 
-    ThumbnailJob job;
+    int slot = -1;
+    {
+      std::lock_guard lk(mtx);
+      if (!running || pm == nullptr) return;
+      if (ready_count == kQueueDepth) {
+        const int dropped_slot = pop_ready();
+        slot_state[dropped_slot] = SlotState::Free;
+      }
+      for (size_t i = 0; i < kSlotCount; ++i) {
+        if (slot_state[i] == SlotState::Free) {
+          slot = (int)i;
+          slot_state[i] = SlotState::Filling;
+          break;
+        }
+      }
+      if (slot < 0) return;
+    }
+
+    ThumbnailJob &job = jobs[slot];
     job.frame_id = buf->cur_frame_data.frame_id;
     job.timestamp_eof = buf->cur_frame_data.timestamp_eof;
     job.width = (int)vb->width;
@@ -224,45 +255,68 @@ public:
     job.stride = (int)vb->stride;
     // Keep stride-aware backing so SIMD path can safely read padded rows.
     const size_t nv12_bytes = (size_t)job.stride * job.height * 3 / 2;
-    job.nv12.resize(nv12_bytes);
+    if (job.nv12.size() != nv12_bytes) job.nv12.resize(nv12_bytes);
     memcpy(job.nv12.data(), vb->addr, job.nv12.size());
 
     {
       std::lock_guard lk(mtx);
-      if (!running || pm == nullptr) return;
-      if (jobs.size() >= 2) {
-        jobs.pop();
+      if (!running || pm == nullptr) {
+        slot_state[slot] = SlotState::Free;
+        return;
       }
-      jobs.push(std::move(job));
+      slot_state[slot] = SlotState::Ready;
+      push_ready(slot);
     }
     cv.notify_one();
   }
 
 private:
+  enum class SlotState { Free, Filling, Ready, Processing };
+
+  void push_ready(int slot) {
+    ready_queue[(ready_head + ready_count) % kQueueDepth] = slot;
+    ++ready_count;
+  }
+
+  int pop_ready() {
+    const int slot = ready_queue[ready_head];
+    ready_head = (ready_head + 1) % kQueueDepth;
+    --ready_count;
+    return slot;
+  }
+
   void run() {
     util::set_thread_name("CamThumbnail");
     while (true) {
-      ThumbnailJob job;
+      int slot = -1;
       PubMaster *local_pm = nullptr;
       {
         std::unique_lock lk(mtx);
-        cv.wait(lk, [this] { return !running || !jobs.empty(); });
-        if (!running && jobs.empty()) {
+        cv.wait(lk, [this] { return !running || ready_count != 0; });
+        if (!running && ready_count == 0) {
           return;
         }
-        job = std::move(jobs.front());
-        jobs.pop();
+        slot = pop_ready();
+        slot_state[slot] = SlotState::Processing;
         local_pm = pm;
       }
       if (local_pm != nullptr) {
-        publish_thumbnail(local_pm, job);
+        publish_thumbnail(local_pm, jobs[slot]);
+      }
+      {
+        std::lock_guard lk(mtx);
+        slot_state[slot] = SlotState::Free;
       }
     }
   }
 
   std::mutex mtx;
   std::condition_variable cv;
-  std::queue<ThumbnailJob> jobs;
+  std::array<ThumbnailJob, kSlotCount> jobs;
+  std::array<SlotState, kSlotCount> slot_state = {};
+  std::array<int, kQueueDepth> ready_queue = {};
+  size_t ready_head = 0;
+  size_t ready_count = 0;
   std::thread worker;
   PubMaster *pm = nullptr;
   bool running = false;
@@ -322,15 +376,17 @@ std::thread start_process_thread(MultiCameraState *cameras, CameraState *cs, pro
 }
 
 // Publish road camera thumbnail for app preview (same format as loggerd's JpegEncoder)
-static void publish_thumbnail(PubMaster *pm, const ThumbnailJob &job) {
+static void publish_thumbnail(PubMaster *pm, ThumbnailJob &job) {
   if (!pm || job.nv12.empty()) return;
-  const int tw = 480, th = 240;  // thumbnail size (width/4, height/4 for 1920x1200)
+  constexpr int tw = ThumbnailJob::kWidth;
+  constexpr int th = ThumbnailJob::kHeight;
   const int w = job.width, h = job.height, stride = job.stride;
   if (w < tw || h < th) return;
 
   // RGA-only path: resize NV12 to thumbnail, then convert thumbnail NV12 -> I420.
-  std::vector<uint8_t> src_thumb_nv12((size_t)tw * th * 3 / 2);
-  if (!resize_nv12_with_rga(job.nv12.data(), w, h, stride, src_thumb_nv12.data(), tw, th, tw)) {
+  const size_t thumb_nv12_size = (size_t)tw * th * 3 / 2;
+  if (job.resized_nv12.size() != thumb_nv12_size) job.resized_nv12.resize(thumb_nv12_size);
+  if (!resize_nv12_with_rga(job.nv12.data(), w, h, stride, job.resized_nv12.data(), tw, th, tw)) {
     static bool rga_warned = false;
     if (!rga_warned) {
       rga_warned = true;
@@ -341,14 +397,16 @@ static void publish_thumbnail(PubMaster *pm, const ThumbnailJob &job) {
 
   const size_t y_size = (size_t)tw * ((th + 15) & ~15);
   const size_t uv_size = y_size / 4;
-  std::vector<uint8_t> y_plane(y_size), u_plane(uv_size), v_plane(uv_size);
-  const uint8_t *ty = src_thumb_nv12.data();
+  if (job.y_plane.size() != y_size) job.y_plane.resize(y_size);
+  if (job.u_plane.size() != uv_size) job.u_plane.resize(uv_size);
+  if (job.v_plane.size() != uv_size) job.v_plane.resize(uv_size);
+  const uint8_t *ty = job.resized_nv12.data();
   const uint8_t *tuv = ty + (size_t)tw * th;
   int cvt_small = libyuv::NV12ToI420(ty, tw,
                                      tuv, tw,
-                                     y_plane.data(), tw,
-                                     u_plane.data(), tw / 2,
-                                     v_plane.data(), tw / 2,
+                                     job.y_plane.data(), tw,
+                                     job.u_plane.data(), tw / 2,
+                                     job.v_plane.data(), tw / 2,
                                      tw, th);
   if (cvt_small != 0) return;
 
@@ -380,11 +438,11 @@ static void publish_thumbnail(PubMaster *pm, const ThumbnailJob &job) {
     JSAMPARRAY planes[3] = {y_rows, u_rows, v_rows};
     for (int line = 0; line < th; line += 16) {
       for (int i = 0; i < 16; i++) {
-        y_rows[i] = y_plane.data() + (line + i) * tw;
+        y_rows[i] = job.y_plane.data() + (line + i) * tw;
         if (i % 2 == 0) {
           int off = (tw / 2) * ((line + i) / 2);
-          u_rows[i / 2] = u_plane.data() + off;
-          v_rows[i / 2] = v_plane.data() + off;
+          u_rows[i / 2] = job.u_plane.data() + off;
+          v_rows[i / 2] = job.v_plane.data() + off;
         }
       }
       jpeg_write_raw_data(&cinfo, planes, 16);

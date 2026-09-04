@@ -26,7 +26,7 @@ constexpr float kCcmScales[] = {1.0f, 0.8f, 0.8f, 0.9f, 1.0f, 1.0f, 1.0f, 1.0f, 
 // Values are DisableAlgoType_t ordinals from sys_static_cfg_head.h.
 constexpr uint32_t kDisabledAlgos[] = {
   2, 4, 5, 6, 7, 9, 13, 15, 16, 18, 19, 20, 21, 22, 23, 24,
-  26, 27, 28, 29, 30, 31, 32, 33, 34, 14, 10, 0, 1, 25,
+  26, 27, 28, 29, 30, 31, 32, 33, 34, 14, 10, 1, 25,
 };
 
 constexpr float kLscGains[] = {1.0f, 2.0f, 4.0f, 8.0f};
