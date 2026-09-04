@@ -15,6 +15,7 @@
 
 #include <linux/videodev2.h>
 #include <common/rkisp3-config.h>
+#include <uAPI2/rk_aiq_user_api2_ae.h>
 #include <uAPI2/rk_aiq_user_api2_sysctl.h>
 #include <uAPI2/rk_aiq_user_api2_imgproc.h>
 #include <uAPI2/rk_aiq_user_api2_agamma.h>
@@ -450,6 +451,25 @@ bool RkIspUserspaceController::prepare() {
   if (r != XCAM_RETURN_NO_ERROR) {
     LOGE("RkIspUserspace cam%d: prepare failed %d", cfg_.camera_num, (int)r);
     return false;
+  }
+
+  Uapi_ExpWin_t exp_window = {};
+  exp_window.sync.sync_mode = RK_AIQ_UAPI_MODE_SYNC;
+  exp_window.Params.h_offs = cfg_.ae_window.h_offs;
+  exp_window.Params.v_offs = cfg_.ae_window.v_offs;
+  exp_window.Params.h_size = cfg_.ae_window.h_size;
+  exp_window.Params.v_size = cfg_.ae_window.v_size;
+  if (exp_window.Params.h_size == 0 || exp_window.Params.v_size == 0) {
+    LOGE("RkIspUserspace cam%d: invalid AE window", cfg_.camera_num);
+    return false;
+  }
+  const XCamReturn ae_window_rc = rk_aiq_user_api2_ae_setExpWinAttr(aiq_, exp_window);
+  if (ae_window_rc != XCAM_RETURN_NO_ERROR) {
+    LOGW("RkIspUserspace cam%d: AE window setup failed (%d)", cfg_.camera_num, (int)ae_window_rc);
+  } else {
+    LOG("RkIspUserspace cam%d: AE window %u,%u %ux%u", cfg_.camera_num,
+        exp_window.Params.h_offs, exp_window.Params.v_offs,
+        exp_window.Params.h_size, exp_window.Params.v_size);
   }
 
   if (custom_ae_registered_) {

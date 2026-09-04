@@ -16,11 +16,19 @@ struct rk_aiq_sys_ctx_s;
 using RkIspAeRunCallback = int32_t (*)(void *, const rk_aiq_customAe_stats_t *,
                                        rk_aiq_customeAe_results_t *);
 
+struct RkIspAeWindow {
+  uint16_t h_offs = 0;
+  uint16_t v_offs = 0;
+  uint16_t h_size = 0;
+  uint16_t v_size = 0;
+};
+
 struct RkIspCamConfig {
   int camera_num = 0;
   std::string mainpath_dev;  // e.g. /dev/video42
   void *ae_owner = nullptr;
   RkIspAeRunCallback ae_run = nullptr;
+  RkIspAeWindow ae_window;
 };
 
 // Compact snapshot of the ISP AE statistics used by the existing AE shadow
