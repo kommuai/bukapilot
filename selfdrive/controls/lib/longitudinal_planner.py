@@ -82,6 +82,9 @@ class LongitudinalPlanner:
     self.a_desired_trajectory = np.zeros(CONTROL_N)
     self.j_desired_trajectory = np.zeros(CONTROL_N)
     self.solverExecutionTime = 0.0
+    self._last_speed_final_log_key: tuple | None = None
+    self._nav_speed_active = False
+    self._last_accel_final_log_key: tuple | None = None
 
   @staticmethod
   def parse_model(model_msg):
@@ -122,6 +125,23 @@ class LongitudinalPlanner:
       )
       nav_applied = v_cruise_after_nav + 0.05 < v_cruise_before_nav
       v_cruise = v_cruise_after_nav
+    speed_key = (
+      round(v_cruise, 2),
+      round(v_cruise_before_nav, 2),
+      int(nav_applied),
+      int(sm['selfdriveState'].enabled),
+    )
+    if speed_key != self._last_speed_final_log_key and (
+      nav_applied or (self._last_speed_final_log_key is not None and self._last_speed_final_log_key[2] == 1)
+    ):
+      source = "nav" if nav_applied else "none"
+      cloudlog.warning(
+        f"speed_final_mps={v_cruise:.2f} source={source} "
+        f"cruise_before_nav_mps={v_cruise_before_nav:.2f} "
+        f"engaged={int(sm['selfdriveState'].enabled)} v_ego={v_ego:.2f}"
+      )
+      self._last_speed_final_log_key = speed_key
+    self._nav_speed_active = bool(nav_applied and sm['selfdriveState'].enabled)
     v_cruise_initialized = sm['carState'].vCruise != V_CRUISE_UNSET
 
     long_control_off = sm['controlsState'].longControlState == LongCtrlState.off
@@ -222,6 +242,18 @@ class LongitudinalPlanner:
     for idx in range(2):
       accel_clip[idx] = np.clip(accel_clip[idx], self.prev_accel_clip[idx] - 0.05, self.prev_accel_clip[idx] + 0.05)
     self.output_a_target = np.clip(output_a_target, accel_clip[0], accel_clip[1])
+    if self._nav_speed_active:
+      accel_key = (round(float(self.output_a_target), 2), round(float(v_cruise), 2), int(sm['selfdriveState'].enabled))
+      if accel_key != self._last_accel_final_log_key:
+        cloudlog.warning(
+          f"accel_final={float(self.output_a_target):.2f} source=nav "
+          f"v_cruise_mps={float(v_cruise):.2f} v_ego={float(v_ego):.2f} "
+          f"engaged={int(sm['selfdriveState'].enabled)}"
+        )
+        self._last_accel_final_log_key = accel_key
+    elif self._last_accel_final_log_key is not None:
+      cloudlog.warning("accel_final cleared nav_speed_inactive")
+      self._last_accel_final_log_key = None
     self.prev_accel_clip = accel_clip
 
   def publish(self, sm, pm):

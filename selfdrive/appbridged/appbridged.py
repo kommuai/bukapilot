@@ -468,12 +468,19 @@ class AppBridge:
           set_destination(params, settings.get('destination'))
           new_key = _nav_dest_key_from_params(params)
           if new_key != prev_key:
+            cloudlog.warning(
+              f"appbridged navSetDestination changed {prev_key} -> {new_key} name={dest_name}"
+            )
             params.remove('NavDestinationWaypoints')
             params.remove('NavRouteData')
             params.put_bool('NavHasRoute', False)
             params.put_bool('NavRerouteNeeded', bool(new_key))
           else:
+            cloudlog.warning(
+              f"appbridged navSetDestination same_key {new_key} name={dest_name} route_kept=1"
+            )
         case 'navClearDestination':
+          cloudlog.warning('appbridged navClearDestination manual')
           set_destination(params, None)
           params.remove('NavRouteData')
           params.put_bool('NavHasRoute', False)
@@ -483,14 +490,17 @@ class AppBridge:
         case 'navPushRoute':
           if (route := settings.get('route')) is not None:
             if not params.get('NavDestination'):
+              cloudlog.warning('appbridged: ignored navPushRoute without destination pin')
               params.put_bool('NavRerouteNeeded', True)
               return
             route_str = route if isinstance(route, str) else json.dumps(route)
             if not route_str or len(route_str) < 32:
+              cloudlog.warning('appbridged: ignored navPushRoute (empty or too small)')
               return
             expected = _nav_dest_key_from_params(params)
             pushed = settings.get('destKey')
             if pushed and expected and pushed != expected:
+              cloudlog.warning(f'appbridged: ignored navPushRoute stale dest expected={expected} pushed={pushed}')
               params.put_bool('NavRerouteNeeded', True)
               return
             geom_n = steps_n = 0
@@ -504,6 +514,10 @@ class AppBridge:
             params.put('NavRouteData', route_str)
             params.put_bool('NavHasRoute', True)
             params.put_bool('NavRerouteNeeded', False)
+            cloudlog.warning(
+              f"appbridged navPushRoute ok dest={expected or pushed} bytes={len(route_str)} "
+              f"points={geom_n} steps={steps_n}"
+            )
         case 'disableHotspot':
           disable_hotspot()
     except Exception as e:

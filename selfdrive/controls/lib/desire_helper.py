@@ -2,6 +2,7 @@ from cereal import log
 from openpilot.common.constants import CV
 from openpilot.common.realtime import DT_MDL
 from openpilot.common.params import Params
+from openpilot.common.swaglog import cloudlog
 from openpilot.selfdrive.nav.nav_desire import navigation_desire, navigation_suppresses_alc
 from numpy import clip
 from enum import Enum, auto
@@ -35,6 +36,10 @@ DESIRES = {
   },
 }
 
+def _desire_name(desire: log.Desire) -> str:
+  return desire if isinstance(desire, str) else str(desire).split(".")[-1]
+
+
 
 class Dir(Enum):
   LEFT = auto()
@@ -52,6 +57,7 @@ class DesireHelper:
     self.last_alc_cancel = 0
     self.is_alc_enabled = Params().get_bool("IsAlcEnabled")
     self.blinker_below_lane_change_speed = False
+    self._last_final_desire_log_key: tuple | None = None
 
   @staticmethod
   def get_lane_change_direction(CS):
@@ -178,6 +184,7 @@ class DesireHelper:
           self.lane_change_timer = 0.0
 
     # ALC keep pulse only — do not suppress nav keep desires.
+    keep_pulse_suppressed = False
     if self.lane_change_state in (LaneChangeState.off, LaneChangeState.laneChangeStarting):
       self.keep_pulse_timer = 0.0
     elif self.lane_change_state == LaneChangeState.preLaneChange:
@@ -185,5 +192,35 @@ class DesireHelper:
       if self.keep_pulse_timer > 1.0:
         self.keep_pulse_timer = 0.0
       elif self.desire == base_desire and self.desire in (log.Desire.keepLeft, log.Desire.keepRight):
+        keep_pulse_suppressed = True
         self.desire = log.Desire.none
 
+    final_name = _desire_name(self.desire)
+    offered_name = _desire_name(nav_offered)
+    base_name = _desire_name(base_desire)
+    nav_took_over = offered_name != "none" and final_name == offered_name
+    if nav_took_over:
+      source = "nav"
+    elif offered_name != "none":
+      source = "nav_blocked_safety"
+    elif final_name == base_name and base_name != "none":
+      source = "alc"
+    elif keep_pulse_suppressed and offered_name != "none":
+      source = "nav_blocked_keep_pulse"
+    else:
+      source = "none"
+    log_key = (
+      final_name, offered_name, base_name, source,
+      int(nav_took_over), int(one_blinker), self.lane_change_state,
+      int(keep_pulse_suppressed),
+    )
+    if log_key != self._last_final_desire_log_key and (
+      final_name != "none" or offered_name != "none" or source.startswith("nav_blocked")
+    ):
+      cloudlog.warning(
+        f"desire_final={final_name} source={source} nav_offered={offered_name} "
+        f"base={base_name} alc_state={self.lane_change_state} "
+        f"nav_took_over={int(nav_took_over)} blinker={int(one_blinker)} "
+        f"lateral={int(lateral_active)} keep_pulse_suppressed={int(keep_pulse_suppressed)}"
+      )
+      self._last_final_desire_log_key = log_key

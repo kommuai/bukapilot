@@ -2,6 +2,9 @@ from __future__ import annotations
 import json, math
 from openpilot.common.constants import CV
 from openpilot.common.params import Params
+from openpilot.common.swaglog import cloudlog
+
+_last_logged_nav_ceiling: float | None = None
 
 NAV_TURN_COMFORT_DECEL = 1.25
 NAV_TURN_DISTANCE_BUFFER = 8.0
@@ -28,6 +31,23 @@ def _target_for_distance(target_speed: float, maneuver_distance: float) -> float
   remaining = max(maneuver_distance - NAV_TURN_DISTANCE_BUFFER, 0.0)
   return math.sqrt(target_speed * target_speed + 2.0 * NAV_TURN_COMFORT_DECEL * remaining)
 
+
+
+def _log_nav_ceiling(v_cruise: float, ceiling: float, state: dict) -> float:
+  global _last_logged_nav_ceiling
+  if abs(ceiling - v_cruise) < 0.05:
+    if _last_logged_nav_ceiling is not None:
+      cloudlog.warning("nav_longitudinal cleared cruise_restored")
+      _last_logged_nav_ceiling = None
+    return ceiling
+  if _last_logged_nav_ceiling is None or abs(_last_logged_nav_ceiling - ceiling) > 0.25:
+    cloudlog.warning(
+      f"nav_longitudinal ceiling_mps={ceiling:.2f} cruise_mps={v_cruise:.2f} "
+      f"type={state.get('maneuverType')} mod={state.get('maneuverModifier')} "
+      f"dist_m={float(state.get('maneuverDistance') or 0):.0f}"
+    )
+    _last_logged_nav_ceiling = ceiling
+  return ceiling
 
 
 def nav_turn_speed_ceiling(v_cruise: float, min_steer_speed: float = 0.0) -> float:

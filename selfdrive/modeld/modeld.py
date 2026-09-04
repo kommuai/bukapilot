@@ -526,6 +526,35 @@ class ModelStateRKNN:
 
 
 
+NAV_STEER_DESIRES = (
+  log.Desire.keepLeft,
+  log.Desire.keepRight,
+  log.Desire.turnLeft,
+  log.Desire.turnRight,
+)
+_last_steer_nav_log_key = None
+
+
+def _desire_name(desire) -> str:
+  return desire if isinstance(desire, str) else str(desire).split(".")[-1]
+
+
+def _log_nav_steer_effect(desire, lat_active: bool, engaged: bool, curvature: float, v_ego: float) -> None:
+  global _last_steer_nav_log_key
+  name = _desire_name(desire)
+  if desire not in NAV_STEER_DESIRES:
+    if _last_steer_nav_log_key is not None and _last_steer_nav_log_key[0] != "none":
+      cloudlog.warning(f"steer_nav cleared was={_last_steer_nav_log_key[0]}")
+      _last_steer_nav_log_key = None
+    return
+  key = (name, int(lat_active), int(engaged), round(curvature, 5))
+  if key == _last_steer_nav_log_key:
+    return
+  cloudlog.warning(
+    f"steer_nav desire={name} curvature={curvature:.5f} "
+    f"lat_active={int(lat_active)} engaged={int(engaged)} v_ego={v_ego:.2f}"
+  )
+  _last_steer_nav_log_key = key
 
 def main(demo=False):
   cloudlog.warning("modeld init")
@@ -706,6 +735,13 @@ def main(demo=False):
       posenet_send = messaging.new_message('cameraOdometry')
 
       action = get_action_from_model(model_output, prev_action, lat_delay + DT_MDL, long_delay + DT_MDL, v_ego)
+      _log_nav_steer_effect(
+        desire,
+        bool(sm['carControl'].latActive),
+        bool(sm.valid['selfdriveState'] and sm['selfdriveState'].enabled),
+        float(action.desiredCurvature),
+        float(v_ego),
+      )
       prev_action = action
       fill_model_msg(drivingdata_send, modelv2_send, model_output, action,
                      publish_state, meta_main.frame_id, meta_extra.frame_id, frame_id,

@@ -7,6 +7,7 @@ from time import monotonic
 import cereal.messaging as messaging
 from openpilot.common.params import Params
 from openpilot.common.realtime import Ratekeeper
+from openpilot.common.swaglog import cloudlog
 from openpilot.selfdrive.nav.destination_store import (
   NAV_INSTRUCTION_STATE_KEY, NAV_ROUTE_DATA_KEY, parse_destination_json,
 )
@@ -47,7 +48,9 @@ class Navigationd:
     self._last_dest_key = ""
     self._route_dest_key = ""
     self._skip_arrival_until = 0.0
+    self._last_status_log_at = 0.0
     self._last_reroute_needed: bool | None = None
+    self._control_suppress_logged = False
 
   def _dest_key(self, dest: dict | None) -> str:
     if not dest:
@@ -82,6 +85,10 @@ class Navigationd:
       else:
         self.params.remove("NavDestinationWaypoints")
     if had_route or remove_destination or reason:
+      cloudlog.warning(
+        f"navigationd route_clear reason={reason or 'none'} remove_dest={int(remove_destination)} "
+        f"dest_key={self._last_dest_key}"
+      )
 
   def _load_pushed_route(self) -> None:
     raw = self.params.get(NAV_ROUTE_DATA_KEY) or ""
@@ -95,12 +102,16 @@ class Navigationd:
     try:
       data = json.loads(raw)
     except (TypeError, ValueError, json.JSONDecodeError) as e:
+      cloudlog.warning(f"navigationd route_load json_error={type(e).__name__} bytes={len(raw)}")
       return
     if not isinstance(data, dict):
+      cloudlog.warning("navigationd route_load invalid_payload type=non_dict")
       return
     if (route := NavigationRoute.from_mapbox_route(data)) is None:
+      cloudlog.warning(f"navigationd route_load parse_failed bytes={len(raw)}")
       return
     if self._last_dest_key and self._route_dest_key and self._last_dest_key != self._route_dest_key:
+      cloudlog.warning("navigationd ignored stale route for prior destination")
       self.params.remove(NAV_ROUTE_DATA_KEY)
       return
     self._route = route
@@ -118,6 +129,11 @@ class Navigationd:
     self.params.put_bool("NavRerouteNeeded", False)
     self.params.remove("NavDestinationWaypoints")
     self._last_reroute_needed = False
+    self._control_suppress_logged = False
+    cloudlog.warning(
+      f"navigationd route_load ok dest={self._last_dest_key} bytes={len(raw)} "
+      f"points={len(route.geometry)} steps={len(route.steps)} gen={self._route_generation}"
+    )
 
   def _update_location(self) -> tuple[bool, float]:
     """Keep last good fix across GPS outages (e.g. indoor car parks). Reject huge jumps after a gap."""
@@ -139,6 +155,7 @@ class Navigationd:
       except (TypeError, ValueError):
         jump_m = 0.0
       if isfinite(jump_m) and jump_m > 250.0:
+        cloudlog.warning(f"navigationd ignoring GPS jump after outage ({jump_m:.0f} m)")
         return False, max(0.0, v_ego)
     self._last_position = cand
     bearing = float(getattr(gps, "bearingDeg", getattr(gps, "bearing", 0.0)) or 0.0)
@@ -203,6 +220,7 @@ class Navigationd:
     if not considering:
       self._abandon_started_at = None
     if self._timer_expired(self._abandon_started_at, ABANDON_HOLD_SECONDS, now):
+      cloudlog.warning("navigationd abandon destination (moved away mid-drive)")
       self._clear_route(remove_destination=True, reason="abandon")
 
   def _maybe_flags(self, progress: RouteProgress | None, route_state: dict | None) -> None:
@@ -214,13 +232,23 @@ class Navigationd:
       need_reroute = bool(need)
       if need_reroute != self._last_reroute_needed:
         self._last_reroute_needed = need_reroute
+        cloudlog.warning(
+          f"navigationd reroute_needed={int(need_reroute)} dest={self._last_dest_key} "
+          f"off_route={int(bool(route_state.get('offRoute')))} "
+          f"misaligned={int(bool(route_state.get('misaligned')))} "
+          f"remaining_m={float(progress.distance_remaining):.0f}"
+        )
       self.params.put_bool("NavRerouteNeeded", need_reroute)
       if need_reroute and self._timer_expired(self._off_route_started_at, UNSURE_SUPPRESS_SECONDS, now):
+        if not self._control_suppressed and not self._control_suppress_logged:
+          self._control_suppress_logged = True
+          cloudlog.warning(f"navigationd control_suppressed dest={self._last_dest_key}")
         self._control_suppressed = True
     if self._timer_expired(self._arrival_started_at, ARRIVAL_CLEAR_SECONDS, now):
       if now < float(self._skip_arrival_until):
         self._arrival_started_at = None
       else:
+        cloudlog.warning(f"navigationd arrival dest={self._last_dest_key}")
         self._clear_route(remove_destination=True, reason="arrival")
 
   def _publish_instruction(self, progress: RouteProgress | None, location_valid: bool) -> None:
@@ -245,6 +273,7 @@ class Navigationd:
   def _publish_state(self, progress: RouteProgress | None, location_valid: bool) -> None:
     if self._route is None or progress is None or not location_valid or self._control_suppressed:
       if self._last_nav_state is not None:
+        cloudlog.warning("navigationd instruction_state cleared suppressed_or_no_route")
         self.params.remove(NAV_INSTRUCTION_STATE_KEY)
         self._last_nav_state = None
       return
@@ -293,6 +322,12 @@ class Navigationd:
     if state != self._last_nav_state:
       self.params.put(NAV_INSTRUCTION_STATE_KEY, json.dumps(state))
       self._last_nav_state = state
+      cloudlog.warning(
+        f"navigationd instruction_state type={state.get('maneuverType')} "
+        f"mod={state.get('maneuverModifier')} dist_m={float(state.get('maneuverDistance') or 0):.0f} "
+        f"lanes={int(state.get('laneCount') or 0)} active={state.get('activeLaneDirection')} "
+        f"next={state.get('nextManeuverType')}/{state.get('nextManeuverModifier')}"
+      )
 
   def _publish_route_if_needed(self) -> None:
     if self._route_generation == self._published_route_generation: return
@@ -304,11 +339,13 @@ class Navigationd:
     self._published_route_generation = self._route_generation
 
   def run(self) -> None:
+    cloudlog.warning("navigationd init")
     while True:
       location_valid, v_ego = self._update_location()
       now_mono = monotonic()
       if location_valid and not self._gps_was_valid:
         # Brief grace after GPS returns so multipath does not instantly off-route/abandon.
+        cloudlog.warning("navigationd gps_regained grace_sec=4")
         self._gps_regain_grace_until = now_mono + 4.0
         self._off_route_started_at = self._bearing_misaligned_started_at = None
         self._abandon_started_at = None
@@ -320,12 +357,18 @@ class Navigationd:
       if dest_key != self._last_dest_key:
         if self._last_dest_key and dest_key:
           # Phone skipped or advanced stop — drop stale geometry until fresh route arrives.
+          cloudlog.warning(
+            f"navigationd dest_changed {self._last_dest_key} -> {dest_key} "
+            f"clearing_stale_route"
+          )
           self._clear_route(remove_destination=False, reason="dest_changed")
           self.params.put_bool("NavRerouteNeeded", True)
           self._skip_arrival_until = max(float(self._skip_arrival_until), now_mono + SKIP_ARRIVAL_GRACE_SECONDS)
         elif dest_key and not self._last_dest_key:
           dest_name = str((dest or {}).get('name') or (dest or {}).get('place_name') or '')[:48]
+          cloudlog.warning(f"navigationd dest_set key={dest_key} name={dest_name}")
         elif self._last_dest_key and not dest_key:
+          cloudlog.warning(f"navigationd dest_cleared was={self._last_dest_key}")
         self._last_dest_key = dest_key
       if dest is None and self._route is not None:
         self._clear_route(reason="dest_missing")
@@ -347,6 +390,12 @@ class Navigationd:
         )
         rem = float(progress.distance_remaining) if progress is not None else -1.0
         step = int(progress.current_step_index) if progress is not None else -1
+        cloudlog.warning(
+          f"navigationd status dest={self._last_dest_key} remaining_m={rem:.0f} step={step} "
+          f"reroute={int(self.params.get_bool('NavRerouteNeeded'))} "
+          f"engaged={int(engaged)} gps={int(location_valid)} "
+          f"suppressed={int(self._control_suppressed)}"
+        )
       self._publish_instruction(progress, location_valid)
       self._publish_state(progress, location_valid)
       self._publish_route_if_needed()
