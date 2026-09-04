@@ -2,6 +2,7 @@ from cereal import log
 from openpilot.common.constants import CV
 from openpilot.common.realtime import DT_MDL
 from openpilot.common.params import Params
+from openpilot.selfdrive.nav.nav_desire import navigation_desire, navigation_suppresses_alc
 from numpy import clip
 from enum import Enum, auto
 import time
@@ -88,7 +89,9 @@ class DesireHelper:
     blinker_dir_changed = ((leftBlinker and self.prev_blinker == Dir.RIGHT) or
                            (rightBlinker and self.prev_blinker == Dir.LEFT))
 
-    ready_for_lane_change = lateral_active and self.is_alc_enabled and self.lane_change_timer <= LANE_CHANGE_TIME_MAX and not carstate.lkaDisabled
+    nav_allowed = lateral_active and Params().get_bool("NavDesiresAllowed")
+    nav_suppresses_alc = nav_allowed and navigation_suppresses_alc(carstate, lateral_active)
+    ready_for_lane_change = lateral_active and self.is_alc_enabled and self.lane_change_timer <= LANE_CHANGE_TIME_MAX and not carstate.lkaDisabled and not nav_suppresses_alc
 
     if one_blinker and self.prev_blinker is None:
       self.blinker_below_lane_change_speed = below_lane_change_speed # Check if blinker was on below lane change speed
@@ -161,14 +164,26 @@ class DesireHelper:
       self.lane_change_timer += DT_MDL
 
     self.prev_blinker = None if not one_blinker else (Dir.LEFT if leftBlinker else Dir.RIGHT)
-    self.desire = DESIRES[self.lane_change_direction][self.lane_change_state]
+    base_desire = DESIRES[self.lane_change_direction][self.lane_change_state]
+    self.desire = base_desire
+    nav_offered = log.Desire.none
+    if nav_allowed:
+      nav_offered = navigation_desire(carstate, lateral_active)
+      if nav_offered != log.Desire.none:
+        # Nav wins over ALC when both apply (latActive required; ALC may stay enabled).
+        self.desire = nav_offered
+        if self.lane_change_state != LaneChangeState.off:
+          self.lane_change_state = LaneChangeState.off
+          self.lane_change_direction = LaneChangeDirection.none
+          self.lane_change_timer = 0.0
 
-    # Send keep pulse once per second during LaneChangeStart.preLaneChange
+    # ALC keep pulse only — do not suppress nav keep desires.
     if self.lane_change_state in (LaneChangeState.off, LaneChangeState.laneChangeStarting):
       self.keep_pulse_timer = 0.0
     elif self.lane_change_state == LaneChangeState.preLaneChange:
       self.keep_pulse_timer += DT_MDL
       if self.keep_pulse_timer > 1.0:
         self.keep_pulse_timer = 0.0
-      elif self.desire in (log.Desire.keepLeft, log.Desire.keepRight):
+      elif self.desire == base_desire and self.desire in (log.Desire.keepLeft, log.Desire.keepRight):
         self.desire = log.Desire.none
+

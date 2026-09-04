@@ -525,6 +525,8 @@ class ModelStateRKNN:
     return combined_outputs_dict
 
 
+
+
 def main(demo=False):
   cloudlog.warning("modeld init")
   if demo and KA2:
@@ -576,7 +578,7 @@ def main(demo=False):
 
   # messaging
   pm = PubMaster(["modelV2", "drivingModelData", "cameraOdometry"])
-  sm = SubMaster(["deviceState", "carState", "roadCameraState", "liveCalibration", "driverMonitoringState", "carControl", "liveDelay"])
+  sm = SubMaster(["deviceState", "carState", "roadCameraState", "liveCalibration", "driverMonitoringState", "carControl", "liveDelay", "selfdriveState"])
 
   publish_state = PublishState()
   params = Params()

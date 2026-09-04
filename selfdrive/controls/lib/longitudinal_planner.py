@@ -15,6 +15,7 @@ from openpilot.selfdrive.controls.lib.longitudinal_mpc_lib.long_mpc import T_IDX
 from openpilot.selfdrive.controls.lib.drive_helpers import CONTROL_N, get_accel_from_plan
 from openpilot.selfdrive.car.cruise import V_CRUISE_MAX, V_CRUISE_UNSET
 from openpilot.common.swaglog import cloudlog
+from openpilot.selfdrive.nav.nav_longitudinal import nav_turn_speed_ceiling
 
 LON_MPC_STEP = 0.2  # first step is 0.2s
 A_CRUISE_MAX_VALS = [1.6, 1.2, 0.8, 0.6]
@@ -112,7 +113,15 @@ class LongitudinalPlanner:
 
     v_ego = sm['carState'].vEgo
     v_cruise_kph = min(sm['carState'].vCruise, V_CRUISE_MAX)
-    v_cruise = v_cruise_kph * CV.KPH_TO_MS
+    v_cruise_before_nav = v_cruise_kph * CV.KPH_TO_MS
+    v_cruise = v_cruise_before_nav
+    nav_applied = False
+    if self.CP.openpilotLongitudinalControl:
+      v_cruise_after_nav = nav_turn_speed_ceiling(
+        v_cruise_before_nav, float(getattr(self.CP, "minSteerSpeed", 0.0) or 0.0)
+      )
+      nav_applied = v_cruise_after_nav + 0.05 < v_cruise_before_nav
+      v_cruise = v_cruise_after_nav
     v_cruise_initialized = sm['carState'].vCruise != V_CRUISE_UNSET
 
     long_control_off = sm['controlsState'].longControlState == LongCtrlState.off
