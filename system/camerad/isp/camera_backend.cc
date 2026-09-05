@@ -66,6 +66,42 @@ void update_max(std::atomic<uint64_t> &metric, uint64_t value) {
   }
 }
 
+struct GreyCalibrationPoint {
+  float raw;
+  float processed;
+};
+
+// These tables translate BIG RAWAE luma into the processed-NV12 luma domain
+// used by the existing AE target. The low-light point is deliberately below
+// the measured quantized output so a near-floor sample cannot drive AE dark.
+constexpr std::array<GreyCalibrationPoint, 3> kWideGreyCalibration = {{
+    {0.0078125f, 0.1000000f},
+    {0.04296875f, 0.375f},
+    {0.1484375f, 0.71484375f},
+}};
+
+constexpr std::array<GreyCalibrationPoint, 5> kRoadGreyCalibration = {{
+    {0.00390625f, 0.1328125f},
+    {0.01953125f, 0.359375f},
+    {0.02734375f, 0.3984375f},
+    {0.08984375f, 0.73046875f},
+    {0.1796875f, 0.8828125f},
+}};
+
+template <size_t N>
+float calibrated_grey(float raw, const std::array<GreyCalibrationPoint, N> &table) {
+  if (raw <= table.front().raw) return table.front().processed;
+  for (size_t i = 1; i < N; i++) {
+    if (raw <= table[i].raw) {
+      const GreyCalibrationPoint &lower = table[i - 1];
+      const GreyCalibrationPoint &upper = table[i];
+      const float fraction = (raw - lower.raw) / (upper.raw - lower.raw);
+      return lower.processed + fraction * (upper.processed - lower.processed);
+    }
+  }
+  return table.back().processed;
+}
+
 }  // namespace
 
 
@@ -583,38 +619,33 @@ int32_t Ka2CameraBackend::run_rkaiq_ae(const rk_aiq_customAe_stats_t *stats,
   }
   result->is_longfrm_mode = false;
 
-  // The translator has already converted the ISP30 histogram to 256 bins in
-  // the same 8-bit luma domain used by the legacy policy. This camera is
-  // prepared in normal (non-HDR) mode, so only rawae_stat[0] is valid. The
-  // other entries are HDR short/medium/long paths and must not be combined
-  // with the normal-path histogram.
-  std::array<uint64_t, 256> histogram = {};
-  uint64_t total = 0;
-  if (stats) {
-    const auto &channel = stats->rawae_stat[0];
-    for (size_t i = 0; i < histogram.size(); i++) {
-      histogram[i] = channel.rawhist_big.bins[i];
-      total += histogram[i];
-    }
+  // Use the median of BLC-corrected BIG RAWAE luma cells. The histogram
+  // selected by the current ISP30 swap is not a reliable scene metric, while
+  // these cells track the sensor exposure in the 8-bit luma domain.
+  if (!stats) return 0;
+  const auto &channel = stats->rawae_stat[0].rawae_big;
+  bool has_signal = false;
+  for (const uint16_t value : channel.channely_xy) {
+    has_signal |= value != 0;
   }
-  if (total == 0) {
+  if (!has_signal) {
+    // A zero BIG RAWAE window is an underexposure signal, not a value to
+    // hold. Publishing zero lets bounded AE recover from the quantization
+    // floor instead of retaining a stale bright measurement.
+    rkaiq_pending_grey_.store(0.0f, std::memory_order_relaxed);
+    rkaiq_ae_callback_seq_.fetch_add(1, std::memory_order_release);
     return 0;
   }
 
-  const uint64_t midpoint = (total + 1) / 2;
-  uint64_t cumulative = 0;
-  size_t median_bin = 0;
-  for (; median_bin < histogram.size(); median_bin++) {
-    cumulative += histogram[median_bin];
-    if (cumulative >= midpoint) break;
-  }
-
-  // Use half the measured road NV12/raw transfer scale as the shared camera
-  // benchmark. Keep the value in the AE grey domain before consumption.
-  constexpr float kRkaiqGreyScale = 18.0f;
-  const float raw_grey = (static_cast<float>(median_bin) + 0.5f) / 256.0f;
-  const float scaled_grey = std::clamp(raw_grey * kRkaiqGreyScale, 0.0f, 1.0f);
-  rkaiq_pending_grey_.store(scaled_grey, std::memory_order_relaxed);
+  constexpr size_t kRawAeCellCount = sizeof(channel.channely_xy) / sizeof(channel.channely_xy[0]);
+  std::array<uint16_t, kRawAeCellCount> luma = {};
+  std::copy(std::begin(channel.channely_xy), std::end(channel.channely_xy), luma.begin());
+  std::nth_element(luma.begin(), luma.begin() + luma.size() / 2, luma.end());
+  const float raw_grey = static_cast<float>(luma[luma.size() / 2]) / 256.0f;
+  const float grey = camera_->camera_num == 1
+      ? calibrated_grey(raw_grey, kRoadGreyCalibration)
+      : calibrated_grey(raw_grey, kWideGreyCalibration);
+  rkaiq_pending_grey_.store(grey, std::memory_order_relaxed);
   rkaiq_ae_callback_seq_.fetch_add(1, std::memory_order_release);
   return 0;
 }
