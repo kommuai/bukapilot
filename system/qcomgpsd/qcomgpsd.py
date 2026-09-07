@@ -216,6 +216,22 @@ def wait_for_modem(cmd="AT+QGPS?"):
     time.sleep(0.1)
 
 
+# Road tests showed 60s recovered GPS, while 55s and some 90s runs repeatedly reset in a no-fix state.
+GPS_SOFT_RESET_S = 60
+
+
+def soft_reset_quectel_gps(reason: str):
+  cloudlog.warning(f"qcomgpsd soft-reset: {reason}")
+  try:
+    if gps_enabled():
+      at_cmd("AT+QGPSEND")
+    time.sleep(0.5)
+    at_cmd("AT+QGPS=1")
+    cloudlog.warning("qcomgpsd soft-reset: QGPS restarted")
+  except Exception:
+    cloudlog.exception("qcomgpsd soft-reset failed")
+
+
 def main() -> NoReturn:
   unpack_gps_meas, size_gps_meas = dict_unpacker(gps_measurement_report, True)
   unpack_gps_meas_sv, size_gps_meas_sv = dict_unpacker(gps_measurement_report_sv, True)
@@ -264,14 +280,36 @@ def main() -> NoReturn:
 
   pm = messaging.PubMaster(['qcomGnss', 'gpsLocation'])
 
+  boot_mono = time.monotonic()
+  last_fix_mono = boot_mono
+  last_reset_mono = 0.0
+  had_fix = False
+  reset_streak = 0
+
+  def maybe_soft_reset(now_mono):
+    nonlocal last_reset_mono, reset_streak
+    if (no_fix_s := now_mono - last_fix_mono) < GPS_SOFT_RESET_S:
+      return
+    if now_mono - boot_mono < GPS_SOFT_RESET_S or now_mono - last_reset_mono < GPS_SOFT_RESET_S:
+      return
+    last_reset_mono = now_mono
+    soft_reset_quectel_gps(
+      f"{'lost_fix' if had_fix else 'never_fix'} no_hasFix={no_fix_s:.0f}s period={GPS_SOFT_RESET_S:.0f}s")
+    reset_streak += 1
+
   while 1:
     if os.path.exists(ASSIST_DATA_FILE) and want_assistance:
       setup_quectel(diag)
       want_assistance = False
 
-    opcode, payload = diag.recv()
+    opcode, payload = diag.recv(timeout=1.0)
+    now_mono = time.monotonic()
+    if opcode is None:
+      maybe_soft_reset(now_mono)
+      continue
     if opcode != DIAG_LOG_F:
       cloudlog.error(f"Unhandled opcode: {opcode}")
+      maybe_soft_reset(now_mono)
       continue
 
     (pending_msgs, log_outer_length), inner_log_packet = unpack_from('<BH', payload), payload[calcsize('<BH'):]
@@ -283,6 +321,7 @@ def main() -> NoReturn:
     assert log_inner_length == len(inner_log_packet)
 
     if log_type not in LOG_TYPES:
+      maybe_soft_reset(now_mono)
       continue
 
     if DEBUG:
@@ -334,6 +373,7 @@ def main() -> NoReturn:
     elif log_type == LOG_GNSS_POSITION_REPORT:
       report = unpack_position(log_payload)
       if report["u_PosSource"] != 2:
+        maybe_soft_reset(now_mono)
         continue
       vNED = [report["q_FltVelEnuMps[1]"], report["q_FltVelEnuMps[0]"], -report["q_FltVelEnuMps[2]"]]
       vNEDsigma = [report["q_FltVelSigmaMps[1]"], report["q_FltVelSigmaMps[0]"], -report["q_FltVelSigmaMps[2]"]]
@@ -359,6 +399,18 @@ def main() -> NoReturn:
       # quectel gps verticalAccuracy is clipped to 500, set invalid if so
       gps.hasFix = gps.verticalAccuracy != 500
       if gps.hasFix:
+        if reset_streak:
+          cloudlog.warning(
+            f"qcomgpsd soft-reset: hasFix restored after {now_mono - last_reset_mono:.0f}s "
+            f"streak={reset_streak} period={GPS_SOFT_RESET_S:.0f}s")
+        elif not had_fix:
+          since_reset = f"{now_mono - last_reset_mono:.0f}s" if last_reset_mono else "none"
+          cloudlog.warning(
+            f"qcomgpsd: first hasFix boot={now_mono - boot_mono:.0f}s "
+            f"since_reset={since_reset} period={GPS_SOFT_RESET_S:.0f}s")
+        last_fix_mono = now_mono
+        had_fix = True
+        reset_streak = 0
         want_assistance = False
         stop_download_event.set()
       pm.send('gpsLocation', msg)
@@ -458,6 +510,8 @@ def main() -> NoReturn:
               setattr(sv, k, v)
 
       pm.send('qcomGnss', msg)
+
+    maybe_soft_reset(now_mono)
 
 if __name__ == "__main__":
   main()

@@ -35,11 +35,13 @@ class ModemDiag:
     assert payload[-2:] == pack('<H', ModemDiag.ccitt_crc16(payload[:-2]))
     return payload[:-2]
 
-  def recv(self):
+  def recv(self, timeout=None):
     # self.serial.read_until makes tons of syscalls!
+    # timeout=None blocks forever (setup path); timeout>0 returns (None, None) on idle.
     raw_payload = [self.pend]
     while self.TRAILER_CHAR not in raw_payload[-1]:
-      select.select([self.serial.fd], [], [])
+      if not select.select([self.serial.fd], [], [], timeout)[0]:
+        return None, None
       raw = self.serial.read(0x10000)
       raw_payload.append(raw)
     raw_payload = b''.join(raw_payload)
