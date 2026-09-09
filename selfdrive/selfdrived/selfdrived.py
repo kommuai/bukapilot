@@ -453,7 +453,7 @@ class SelfdriveD:
 
     if not self.initialized:
       all_valid = CS.canValid and self.sm.all_checks()
-      init_timeout = 30. if KA2 else (15. if TESTING_CLOSET else 6.)
+      init_timeout = 60. if KA2 else (15. if TESTING_CLOSET else 6.)
       timed_out = self.sm.frame * DT_CTRL > init_timeout
       cameras_ready = (
         self.sm.alive['roadCameraState']
