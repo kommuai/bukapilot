@@ -15,7 +15,11 @@ from openpilot.common.realtime import Ratekeeper
 from openpilot.common.swaglog import cloudlog
 from openpilot.system.version import get_version, get_commit, terms_version, training_version
 from openpilot.common.params import Params
-from openpilot.selfdrive.nav.destination_store import set_destination, parse_destination_json
+from openpilot.selfdrive.nav.destination_store import (
+  NAV_LAST_OPERATION_KEY, NAV_ROUTE_FAILURE_KEY, NAV_ROUTE_REQUEST_KEY, NAV_SESSION_ID_KEY, NAV_STATUS_KEY,
+  NAV_STOP_INDEX_KEY, NAV_STOP_VERSION_KEY,
+  parse_destination_json, read_stop_list, set_destination, write_stop_list,
+)
 import json
 from openpilot.system.hardware import HARDWARE
 from opendbc.car.car_helpers import supported_cars
@@ -39,6 +43,23 @@ def _nav_dest_key_from_params(params) -> str:
     return f"{float(dest['latitude']):.5f}|{float(dest['longitude']):.5f}"
   except (KeyError, TypeError, ValueError):
     return ""
+
+
+def _nav_json_param(key: str, default):
+  raw = params.get(key)
+  if isinstance(raw, bytes): raw = raw.decode("utf-8", errors="replace")
+  if not raw: return default
+  try:
+    value = json.loads(raw)
+  except (TypeError, ValueError, json.JSONDecodeError):
+    return default
+  return value
+
+def _nav_int_param(key: str, default: int = 0) -> int:
+  try:
+    return int(params.get(key) or default)
+  except (TypeError, ValueError, OverflowError):
+    return default
 
 DONGLE_ID = params.get("DongleId") or ""
 
@@ -256,7 +277,7 @@ class AppBridge:
 
 
   def _nav_ble_sync(self, out: dict) -> None:
-    """GPS + route flags on BLE (old apps ignore unknown keys)."""
+    """Navigation state sent with BLE status frames."""
     out['navCapable'] = True
     try:
       if self.sm.valid.get('gpsLocation'):
@@ -267,6 +288,13 @@ class AppBridge:
         }
       out['hasRoute'] = safe_get('NavHasRoute', True)
       out['rerouteNeeded'] = safe_get('NavRerouteNeeded', True)
+      out['navStatus'] = str(params.get(NAV_STATUS_KEY) or '')
+      out['navSessionId'] = str(params.get(NAV_SESSION_ID_KEY) or '')
+      out['navStopList'] = read_stop_list(params)
+      out['navStopIndex'] = _nav_int_param(NAV_STOP_INDEX_KEY)
+      out['navStopListVersion'] = _nav_int_param(NAV_STOP_VERSION_KEY)
+      request = _nav_json_param(NAV_ROUTE_REQUEST_KEY, None)
+      out['navRouteRequest'] = request if isinstance(request, dict) and request.get('requestId') else None
     except Exception:
       pass
 
@@ -479,6 +507,88 @@ class AppBridge:
             cloudlog.warning(
               f"appbridged navSetDestination same_key {new_key} name={dest_name} route_kept=1"
             )
+        case 'navSetStops':
+          operation_id = str(settings.get('operationId') or '')[:96]
+          if operation_id and operation_id == str(params.get(NAV_LAST_OPERATION_KEY) or ''):
+            cloudlog.warning(f'appbridged navSetStops duplicate operation={operation_id}')
+            return
+          stops = write_stop_list(params, settings.get('stops') or [], index=0)
+          session_id = str(settings.get('sessionId') or params.get(NAV_SESSION_ID_KEY) or '')[:96]
+          if not session_id:
+            session_id = f"nav-{int(monotonic() * 1000)}"
+          params.put(NAV_SESSION_ID_KEY, session_id)
+          if operation_id: params.put(NAV_LAST_OPERATION_KEY, operation_id)
+          params.remove(NAV_ROUTE_REQUEST_KEY)
+          params.remove(NAV_ROUTE_FAILURE_KEY)
+          params.put(NAV_STATUS_KEY, 'route_pending' if stops else 'idle')
+          params.remove('NavRouteData')
+          params.put_bool('NavHasRoute', False)
+          params.put_bool('NavRerouteNeeded', bool(stops))
+          cloudlog.warning(
+            f'appbridged navSetStops ok operation={operation_id or "none"} session={session_id} count={len(stops)}'
+          )
+        case 'navClearStops':
+          operation_id = str(settings.get('operationId') or '')[:96]
+          if operation_id and operation_id == str(params.get(NAV_LAST_OPERATION_KEY) or ''):
+            cloudlog.warning(f'appbridged navClearStops duplicate operation={operation_id}')
+            return
+          write_stop_list(params, [], index=0)
+          if operation_id: params.put(NAV_LAST_OPERATION_KEY, operation_id)
+          params.remove(NAV_ROUTE_REQUEST_KEY)
+          params.remove(NAV_ROUTE_FAILURE_KEY)
+          params.put(NAV_STATUS_KEY, 'idle')
+          params.remove('NavRouteData')
+          params.put_bool('NavHasRoute', False)
+          params.put_bool('NavRerouteNeeded', False)
+          params.remove(NAV_SESSION_ID_KEY)
+          cloudlog.warning(f'appbridged navClearStops ok operation={operation_id or "none"}')
+        case 'navRouteResponse':
+          request_id = str(settings.get('requestId') or '')
+          request = _nav_json_param(NAV_ROUTE_REQUEST_KEY, None)
+          expected_request = request.get('requestId', '') if isinstance(request, dict) else ''
+          if not request_id or request_id != expected_request:
+            cloudlog.warning(
+              f'appbridged navRouteResponse stale request={request_id or "none"} expected={expected_request or "none"}'
+            )
+            return
+          route = settings.get('route')
+          if not route:
+            params.remove(NAV_ROUTE_REQUEST_KEY)
+            params.put(NAV_ROUTE_FAILURE_KEY, json.dumps({'requestId': request_id, 'reason': str(settings.get('error') or 'route_unavailable')[:120]}))
+            params.put(NAV_STATUS_KEY, 'route_unavailable')
+            cloudlog.warning(f'appbridged navRouteResponse unavailable request={request_id}')
+            return
+          route_str = route if isinstance(route, str) else json.dumps(route)
+          if len(route_str) < 32 or len(route_str) > 110 * 1024:
+            params.remove(NAV_ROUTE_REQUEST_KEY)
+            params.put(NAV_ROUTE_FAILURE_KEY, json.dumps({'requestId': request_id, 'reason': 'invalid_size'}))
+            params.put(NAV_STATUS_KEY, 'route_unavailable')
+            cloudlog.warning(f'appbridged navRouteResponse invalid request={request_id} bytes={len(route_str)}')
+            return
+          try:
+            route_data = json.loads(route_str)
+            if not isinstance(route_data, dict) or not route_data.get('geometry') or not route_data.get('steps'):
+              raise ValueError('missing_geometry_or_steps')
+          except (TypeError, ValueError, json.JSONDecodeError) as e:
+            params.remove(NAV_ROUTE_REQUEST_KEY)
+            params.put(NAV_ROUTE_FAILURE_KEY, json.dumps({'requestId': request_id, 'reason': type(e).__name__}))
+            params.put(NAV_STATUS_KEY, 'route_unavailable')
+            cloudlog.warning(f'appbridged navRouteResponse invalid request={request_id} error={type(e).__name__}')
+            return
+          expected = _nav_dest_key_from_params(params)
+          pushed = str(settings.get('destKey') or '')
+          if pushed and expected and pushed != expected:
+            cloudlog.warning(f'appbridged navRouteResponse stale_dest request={request_id} expected={expected} pushed={pushed}')
+            return
+          params.put('NavRouteData', route_str)
+          params.put_bool('NavHasRoute', True)
+          params.put_bool('NavRerouteNeeded', False)
+          params.remove(NAV_ROUTE_FAILURE_KEY)
+          params.put(NAV_STATUS_KEY, 'route_received')
+          cloudlog.warning(
+            f'appbridged navRouteResponse ok request={request_id} dest={expected} bytes={len(route_str)} '
+            f'points={len(route_data.get("geometry") or [])} steps={len(route_data.get("steps") or [])}'
+          )
         case 'navClearDestination':
           cloudlog.warning('appbridged navClearDestination manual')
           set_destination(params, None)

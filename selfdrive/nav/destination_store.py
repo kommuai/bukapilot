@@ -6,7 +6,23 @@ from typing import Any
 NAV_DESTINATION_KEY = "NavDestination"
 NAV_INSTRUCTION_STATE_KEY = "NavInstructionState"
 NAV_ROUTE_DATA_KEY = "NavRouteData"
+NAV_STOP_LIST_KEY = "NavStopList"
+NAV_STOP_INDEX_KEY = "NavStopIndex"
+NAV_STOP_VERSION_KEY = "NavStopListVersion"
+NAV_SESSION_ID_KEY = "NavSessionId"
+NAV_ROUTE_REQUEST_KEY = "NavRouteRequest"
+NAV_STATUS_KEY = "NavStatus"
+NAV_LAST_OPERATION_KEY = "NavLastOperationId"
+NAV_ROUTE_FAILURE_KEY = "NavRouteRequestFailure"
+MAX_NAV_STOPS = 10
 
+
+
+def _coerce_int(value: Any, default: int = 0) -> int:
+  try:
+    return int(value)
+  except (TypeError, ValueError, OverflowError):
+    return default
 
 
 def _coerce_float(value: Any) -> float | None:
@@ -54,3 +70,34 @@ def set_destination(params: Any, destination: dict[str, Any] | None) -> bool:
     return False
   params.put(NAV_DESTINATION_KEY, json.dumps(dest))
   return True
+
+
+def normalize_stop_list(value: Any) -> list[dict[str, Any]]:
+  if isinstance(value, bytes):
+    value = value.decode("utf-8", errors="replace")
+  if isinstance(value, str):
+    value = _json_value(value, [])
+  if not isinstance(value, list):
+    return []
+  out = []
+  for item in value[:MAX_NAV_STOPS]:
+    if (stop := normalize_destination_payload(item)):
+      stop["id"] = str(item.get("id") or f"{stop['longitude']:.6f},{stop['latitude']:.6f}")
+      out.append(stop)
+  return out
+
+
+def read_stop_list(params: Any) -> list[dict[str, Any]]:
+  return normalize_stop_list(params.get(NAV_STOP_LIST_KEY))
+
+
+def write_stop_list(params: Any, stops: Any, *, index: int = 0) -> list[dict[str, Any]]:
+  normalized = normalize_stop_list(stops)
+  params.put(NAV_STOP_LIST_KEY, json.dumps(normalized))
+  params.put(NAV_STOP_INDEX_KEY, str(max(0, min(_coerce_int(index), len(normalized)))))
+  params.put(NAV_STOP_VERSION_KEY, str(_coerce_int(params.get(NAV_STOP_VERSION_KEY)) + 1))
+  if normalized:
+    set_destination(params, normalized[0])
+  else:
+    set_destination(params, None)
+  return normalized
