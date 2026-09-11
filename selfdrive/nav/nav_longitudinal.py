@@ -19,6 +19,12 @@ NAV_TURN_TARGET_SPEEDS = {
 ROUNDABOUT_SPEED = 12.0 * CV.MPH_TO_MS
 
 
+def _number(value, default: float = 0.0) -> float:
+  try: parsed = float(value)
+  except (TypeError, ValueError, OverflowError): return default
+  return parsed if math.isfinite(parsed) else default
+
+
 def _maneuver_target(maneuver_type: str, modifier: str) -> float | None:
   t, m = (maneuver_type or "").lower(), (modifier or "").lower()
   if m == "uturn" or "uturn" in t or "u-turn" in t: return NAV_TURN_TARGET_SPEEDS["uturn"]
@@ -44,7 +50,7 @@ def _log_nav_ceiling(v_cruise: float, ceiling: float, state: dict) -> float:
     cloudlog.warning(
       f"nav_longitudinal ceiling_mps={ceiling:.2f} cruise_mps={v_cruise:.2f} "
       f"type={state.get('maneuverType')} mod={state.get('maneuverModifier')} "
-      f"dist_m={float(state.get('maneuverDistance') or 0):.0f}"
+      f"dist_m={_number(state.get('maneuverDistance')):.0f}"
     )
     _last_logged_nav_ceiling = ceiling
   return ceiling
@@ -58,8 +64,8 @@ def nav_turn_speed_ceiling(v_cruise: float, min_steer_speed: float = 0.0) -> flo
   if not isinstance(state, dict) or not state.get("valid"): return v_cruise
 
   candidates = [
-    (str(state.get("maneuverType") or ""), str(state.get("maneuverModifier") or ""), float(state.get("maneuverDistance") or 0.0)),
-    (str(state.get("nextManeuverType") or ""), str(state.get("nextManeuverModifier") or ""), float(state.get("nextManeuverDistance") or 0.0)),
+    (str(state.get("maneuverType") or ""), str(state.get("maneuverModifier") or ""), _number(state.get("maneuverDistance"))),
+    (str(state.get("nextManeuverType") or ""), str(state.get("nextManeuverModifier") or ""), _number(state.get("nextManeuverDistance"))),
   ]
   best = None
   for mtype, mod, dist in candidates:

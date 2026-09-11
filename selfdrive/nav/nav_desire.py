@@ -1,5 +1,6 @@
 from __future__ import annotations
 import json
+import math
 from cereal import log
 from openpilot.common.constants import CV
 from openpilot.common.params import Params
@@ -7,6 +8,7 @@ from openpilot.common.swaglog import cloudlog
 from numpy import interp
 
 _last_logged_nav_desire: str | None = None
+_last_logged_nav_gate: tuple | None = None
 
 LaneChangeDirection = log.LaneChangeDirection
 TURN_IMMINENT_V = [0.0, 5.0, 10.0]
@@ -15,6 +17,12 @@ KEEP_IMMINENT_V = [0.0, 15.0, 30.0]
 KEEP_IMMINENT_D = [25.0, 90.0, 160.0]
 AMBIGUOUS_SPLIT_SCALE = 0.6
 LANE_CHANGE_SPEED_MIN = 20 * CV.MPH_TO_MS
+
+
+def _number(value, default: float = 0.0) -> float:
+  try: parsed = float(value)
+  except (TypeError, ValueError, OverflowError): return default
+  return parsed if math.isfinite(parsed) else default
 
 
 def _load_state() -> dict:
@@ -28,8 +36,10 @@ def _effective_modifier(state: dict, v_ego: float, maneuver_distance: float) -> 
   mtype = str(state.get("maneuverType") or "").lower()
   if mtype in ("off ramp", "fork") and any(x in modifier.lower() for x in ("left", "right")):
     keep_dist = float(interp(v_ego, KEEP_IMMINENT_V, KEEP_IMMINENT_D))
-    if (int(state.get("sameSideLaneCount") or 0) > 1 and
-        (int(state.get("laneCount") or 0) == 0 or int(state.get("laneCount") or 0) - int(state.get("sameSideLaneCount") or 0) <= 2)):
+    same_side_lanes = int(_number(state.get("sameSideLaneCount")))
+    lane_count = int(_number(state.get("laneCount")))
+    if (same_side_lanes > 1 and
+        (lane_count == 0 or lane_count - same_side_lanes <= 2)):
       keep_dist *= AMBIGUOUS_SPLIT_SCALE
     if maneuver_distance > keep_dist: return ""
     if state.get("activeLaneAtRoadEdge") and state.get("hasSharedSameSideLane"): return ""
@@ -56,13 +66,30 @@ def _log_nav_desire(desire: log.Desire, *, modifier: str = "", maneuver_distance
   _last_logged_nav_desire = None if name == "none" else name
 
 
+def _log_nav_gate(modifier: str, reason: str, carstate, lateral_active: bool, maneuver_distance: float) -> None:
+  global _last_logged_nav_gate
+  key = (modifier, reason, bool(lateral_active), bool(carstate.leftBlinker), bool(carstate.rightBlinker),
+         bool(carstate.leftBlindspot), bool(carstate.rightBlindspot), bool(carstate.steeringPressed),
+         bool(carstate.standstill), round(_number(carstate.vEgo), 1))
+  if key == _last_logged_nav_gate:
+    return
+  _last_logged_nav_gate = key
+  cloudlog.warning(
+    f"nav_gate modifier={modifier or 'none'} reason={reason} dist_m={_number(maneuver_distance):.0f} "
+    f"v_ego={_number(carstate.vEgo):.1f} blinkers={int(bool(carstate.leftBlinker))}/"
+    f"{int(bool(carstate.rightBlinker))} blindspots={int(bool(carstate.leftBlindspot))}/"
+    f"{int(bool(carstate.rightBlindspot))} steering={int(bool(carstate.steeringPressed))} "
+    f"standstill={int(bool(carstate.standstill))} lateral={int(bool(lateral_active))}"
+  )
+
+
 def _nav_context(carstate, lateral_active: bool):
   params = Params()
   if not params.get_bool("NavDesiresAllowed") or not lateral_active:
     return None
   if not (state := _load_state()).get("valid"):
     return None
-  maneuver_distance = float(state.get("maneuverDistance") or 0.0)
+  maneuver_distance = _number(state.get("maneuverDistance"))
   modifier = _effective_modifier(state, carstate.vEgo, maneuver_distance)
   if not modifier:
     return None
@@ -99,48 +126,67 @@ def navigation_desire(carstate, lateral_active: bool) -> log.Desire:
   params = Params()
   ctx = _nav_context(carstate, lateral_active)
   if ctx is None:
+    _log_nav_gate("", "unavailable", carstate, lateral_active, 0.0)
     _log_nav_desire(log.Desire.none)
     return log.Desire.none
   state, modifier, maneuver_distance = ctx
 
   lane_pos = params.get_bool("NavLanePositioningAllowed")
   if modifier == "slightLeft":
-    if not lane_pos or carstate.rightBlinker or carstate.leftBlindspot:
+    if not lane_pos:
+      _log_nav_gate(modifier, "lane_positioning_disabled", carstate, lateral_active, maneuver_distance)
+      _log_nav_desire(log.Desire.none)
+      return log.Desire.none
+    if carstate.rightBlinker or carstate.leftBlindspot:
+      _log_nav_gate(modifier, "lane_position_safety", carstate, lateral_active, maneuver_distance)
       _log_nav_desire(log.Desire.none)
       return log.Desire.none
     if carstate.steeringPressed and carstate.steeringTorque > 0:
       _log_nav_desire(log.Desire.keepLeft, modifier=modifier, maneuver_distance=maneuver_distance, v_ego=carstate.vEgo)
       return log.Desire.keepLeft
+    _log_nav_gate(modifier, "steering_confirmation", carstate, lateral_active, maneuver_distance)
     _log_nav_desire(log.Desire.none)
     return log.Desire.none
   if modifier == "slightRight":
-    if not lane_pos or carstate.leftBlinker or carstate.rightBlindspot:
+    if not lane_pos:
+      _log_nav_gate(modifier, "lane_positioning_disabled", carstate, lateral_active, maneuver_distance)
+      _log_nav_desire(log.Desire.none)
+      return log.Desire.none
+    if carstate.leftBlinker or carstate.rightBlindspot:
+      _log_nav_gate(modifier, "lane_position_safety", carstate, lateral_active, maneuver_distance)
       _log_nav_desire(log.Desire.none)
       return log.Desire.none
     if carstate.steeringPressed and carstate.steeringTorque < 0:
       _log_nav_desire(log.Desire.keepRight, modifier=modifier, maneuver_distance=maneuver_distance, v_ego=carstate.vEgo)
       return log.Desire.keepRight
+    _log_nav_gate(modifier, "steering_confirmation", carstate, lateral_active, maneuver_distance)
     _log_nav_desire(log.Desire.none)
     return log.Desire.none
   if modifier in ("left", "sharpLeft"):
-    if not carstate.leftBlinker or carstate.rightBlinker or carstate.leftBlindspot or carstate.standstill:
+    if (not carstate.leftBlinker or carstate.rightBlinker or carstate.leftBlindspot or carstate.standstill):
+      _log_nav_gate(modifier, "turn_safety", carstate, lateral_active, maneuver_distance)
       _log_nav_desire(log.Desire.none)
       return log.Desire.none
     if carstate.vEgo >= LANE_CHANGE_SPEED_MIN:
+      _log_nav_gate(modifier, "speed", carstate, lateral_active, maneuver_distance)
       _log_nav_desire(log.Desire.none)
       return log.Desire.none
     if maneuver_distance <= float(interp(carstate.vEgo, TURN_IMMINENT_V, TURN_IMMINENT_D)):
       _log_nav_desire(log.Desire.turnLeft, modifier=modifier, maneuver_distance=maneuver_distance, v_ego=carstate.vEgo)
       return log.Desire.turnLeft
+    _log_nav_gate(modifier, "not_imminent", carstate, lateral_active, maneuver_distance)
   if modifier in ("right", "sharpRight"):
-    if not carstate.rightBlinker or carstate.leftBlinker or carstate.rightBlindspot or carstate.standstill:
+    if (not carstate.rightBlinker or carstate.leftBlinker or carstate.rightBlindspot or carstate.standstill):
+      _log_nav_gate(modifier, "turn_safety", carstate, lateral_active, maneuver_distance)
       _log_nav_desire(log.Desire.none)
       return log.Desire.none
     if carstate.vEgo >= LANE_CHANGE_SPEED_MIN:
+      _log_nav_gate(modifier, "speed", carstate, lateral_active, maneuver_distance)
       _log_nav_desire(log.Desire.none)
       return log.Desire.none
     if maneuver_distance <= float(interp(carstate.vEgo, TURN_IMMINENT_V, TURN_IMMINENT_D)):
       _log_nav_desire(log.Desire.turnRight, modifier=modifier, maneuver_distance=maneuver_distance, v_ego=carstate.vEgo)
       return log.Desire.turnRight
+    _log_nav_gate(modifier, "not_imminent", carstate, lateral_active, maneuver_distance)
   _log_nav_desire(log.Desire.none)
   return log.Desire.none

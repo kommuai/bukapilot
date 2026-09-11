@@ -155,7 +155,12 @@ class Navigationd:
       except (TypeError, ValueError, json.JSONDecodeError):
         request = None
       request_id = str(request.get('requestId') or '') if isinstance(request, dict) else ''
-      created_at = float(request.get('createdAtMonotonic') or 0.0) if isinstance(request, dict) else 0.0
+      try:
+        created_at = float(request.get('createdAtMonotonic') or 0.0) if isinstance(request, dict) else 0.0
+      except (TypeError, ValueError, OverflowError):
+        created_at = 0.0
+      if not isfinite(created_at):
+        created_at = 0.0
       if request_id and created_at and now - created_at < ROUTE_REQUEST_TIMEOUT_SECONDS:
         self._route_request_id = request_id
         self._route_request_started_at = created_at
