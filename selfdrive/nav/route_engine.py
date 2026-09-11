@@ -144,6 +144,22 @@ def normalize_lane_direction(direction: str) -> str:
   return normalized if normalized in LANE_DIRECTIONS else "none"
 
 
+def _finite_float(value: Any, *, minimum: float | None = None) -> float:
+  number = float(value)
+  if not math.isfinite(number) or (minimum is not None and number < minimum):
+    raise ValueError("non-finite_or_negative_route_value")
+  return number
+
+
+def _coordinate(data: Any) -> Coordinate:
+  if not isinstance(data, dict): raise ValueError("invalid_coordinate")
+  latitude = _finite_float(data["latitude"])
+  longitude = _finite_float(data["longitude"])
+  if not -90.0 <= latitude <= 90.0 or not -180.0 <= longitude <= 180.0:
+    raise ValueError("coordinate_out_of_range")
+  return Coordinate(latitude, longitude)
+
+
 def field_valid(dat: dict[str, Any], field: str) -> bool:
   return field in dat and dat[field] is not None
 
@@ -213,22 +229,23 @@ class NavigationRoute:
   def from_mapbox_route(cls, route_data: dict[str, Any]) -> "NavigationRoute" | None:
     geometry_data = route_data.get("geometry") or []
     steps_data = route_data.get("steps") or []
-    if not geometry_data or not steps_data:
+    if not isinstance(geometry_data, list) or not isinstance(steps_data, list) or not geometry_data or not steps_data:
       return None
 
-    geometry = [Coordinate(float(coord["latitude"]), float(coord["longitude"])) for coord in geometry_data]
+    geometry = [_coordinate(coord) for coord in geometry_data]
     cumulative_distances = [0.0]
     for index in range(1, len(geometry)):
       cumulative_distances.append(cumulative_distances[-1] + geometry[index - 1].distance_to(geometry[index]))
 
     steps: list[RouteStep] = []
     for step in steps_data:
-      location = Coordinate(float(step["location"]["latitude"]), float(step["location"]["longitude"]))
+      if not isinstance(step, dict): raise ValueError("invalid_route_step")
+      location = _coordinate(step["location"])
       closest_index = min(range(len(geometry)), key=lambda idx: location.distance_to(geometry[idx]))
       steps.append(RouteStep(
         banner_instructions=step.get("bannerInstructions", []),
-        distance=float(step["distance"]),
-        duration=float(step["duration"]),
+        distance=_finite_float(step["distance"], minimum=0.0),
+        duration=_finite_float(step["duration"], minimum=0.0),
         maneuver=str(step["maneuver"]),
         location=location,
         cumulative_distance=cumulative_distances[closest_index],
@@ -242,8 +259,8 @@ class NavigationRoute:
       geometry_cumulative_distances=cumulative_distances,
       bearings=bearings,
       steps=steps,
-      total_distance=float(route_data.get("totalDistance", 0.0)),
-      total_duration=float(route_data.get("totalDuration", 0.0)),
+      total_distance=_finite_float(route_data.get("totalDistance", 0.0), minimum=0.0),
+      total_duration=_finite_float(route_data.get("totalDuration", 0.0), minimum=0.0),
     )
 
   def route_bearing_misaligned(self, closest_segment_index: int, current_bearing: float | None, v_ego: float) -> bool:
