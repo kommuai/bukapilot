@@ -206,6 +206,7 @@ class Navigationd:
       cloudlog.warning(f"navigationd stop_advance remaining={len(next_stops)}")
       return
     self._clear_route(remove_destination=True, reason='arrival')
+    write_stop_list(self.params, [], index=0)
     self._last_nav_status = 'arrived'
     self.params.put(NAV_STATUS_KEY, 'arrived')
 
