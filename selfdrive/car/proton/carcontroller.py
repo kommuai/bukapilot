@@ -1,4 +1,4 @@
-from selfdrive.car.proton.protoncan import create_can_steer_command, send_buttons
+from selfdrive.car.proton.protoncan import create_can_steer_command, create_steering_torque_spoof, send_buttons
 from selfdrive.car.proton.values import DBC
 from opendbc.can.packer import CANPacker
 from common.numpy_fast import clip
@@ -91,6 +91,11 @@ class CarController():
         self.num_cruise_btn_sent += 1
         can_sends.append(send_buttons(self.packer, raw_cnt, True))
 
+      if lat_active:
+        # Spoof a nonzero hands-on torque so the stock EPS doesn't raise a false
+        # hands-on-wheel warning/disengage during ICC-only lateral control.
+        can_sends.append(create_steering_torque_spoof(self.packer, CS.steering_torque_values))
+
       ldw_steering = CS.stock_ldw_steering
       # Passing LKS mode values does not change car stored values, so also pass LDW value to ADAS steering.
       if self.always_lks_tactile:
@@ -100,7 +105,7 @@ class CarController():
         lks_audio, lks_tactile = CS.lks_audio, CS.lks_tactile
 
       can_sends.append(create_can_steer_command(self.packer, apply_steer, lat_active, \
-      (is_icc_on := CS.is_icc_on) and CS.hand_on_wheel_warning, is_icc_on and CS.hand_on_wheel_warning_2, \
+      CS.hand_on_wheel_warning, CS.hand_on_wheel_warning_2, \
       raw_cnt, CS.lks_aux, lks_audio, lks_tactile, CS.lks_assist_mode, \
       CS.lka_enable, ldw_steering, steer_enabled))
 

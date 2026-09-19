@@ -48,6 +48,7 @@ class CarState(CarStateBase):
     self.prev_angle = 0
     self.res_btn_pressed = False
     self.gas_override = False
+    self.steering_torque_values = {}
 
     f = Features()
     self.mads = f.has("StockAcc")
@@ -111,6 +112,15 @@ class CarState(CarStateBase):
     steer_dir = 1 if (steeringAngleDeg - self.prev_angle >= 0) else -1
     self.prev_angle = steeringAngleDeg
     ret.steeringTorque = steeringTorque = cp.vl["STEERING_TORQUE"]['MAIN_TORQUE'] * steer_dir
+    self.steering_torque_values = {
+      "COUNTER": cp.vl["STEERING_TORQUE"]["COUNTER"],
+      "CHECKSUM": cp.vl["STEERING_TORQUE"]["CHECKSUM"],
+      "SET_ME_ACC": cp.vl["STEERING_TORQUE"]["SET_ME_ACC"],
+      "SET_ME_1": cp.vl["STEERING_TORQUE"]["SET_ME_1"],
+      "SET_ME_2": cp.vl["STEERING_TORQUE"]["SET_ME_2"],
+      "SET_ME_3": cp.vl["STEERING_TORQUE"]["SET_ME_3"],
+      "DRIVER_TORQUE_NO_ADAS": cp.vl["STEERING_TORQUE"]["DRIVER_TORQUE_NO_ADAS"],
+    }
     ret.steeringTorqueEps = cp.vl["STEERING_MODULE"]['STEER_RATE'] * steer_dir
     ret.steeringPressed = abs(steeringTorque) > 124
     ret.steerWarning = False
@@ -221,7 +231,13 @@ class CarState(CarStateBase):
       ("APPS_1", "GAS_PEDAL", 0.),
       ("BRAKE_PRESSURE", "BRAKE", 0.),
       ("MAIN_TORQUE", "STEERING_TORQUE", 0),
-      ("DRIVER_TORQUE", "STEERING_TORQUE", 0),
+      ("DRIVER_TORQUE_NO_ADAS", "STEERING_TORQUE", 0),
+      ("COUNTER", "STEERING_TORQUE", 0),
+      ("CHECKSUM", "STEERING_TORQUE", 0),
+      ("SET_ME_ACC", "STEERING_TORQUE", 0),
+      ("SET_ME_1", "STEERING_TORQUE", 1),
+      ("SET_ME_2", "STEERING_TORQUE", 0),
+      ("SET_ME_3", "STEERING_TORQUE", 0),
       ("STEER_ANGLE", "STEERING_MODULE", 0),
       ("STEER_RATE", "STEERING_MODULE", 0),
       ("ESC_ON", "PARKING_BRAKE", 0),

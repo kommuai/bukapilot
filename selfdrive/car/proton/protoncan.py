@@ -167,3 +167,14 @@ def send_buttons(packer, count, send_cruise):
   return packer.make_can_msg("ACC_BUTTONS", 0, values)
 
 init_lut_crc8_8h2f()
+
+def create_steering_torque_spoof(packer, stock):
+  """Spoof the STEERING_TORQUE message so the stock EPS module sees a nonzero
+  hands-on torque while bukapilot is actively steering (ICC-only lateral),
+  preventing a false hands-on-wheel warning/disengage."""
+  values = {**stock, "MAIN_TORQUE": 125}
+  dat = packer.make_can_msg("STEERING_TORQUE", 0, values)[2]
+  values["CHECKSUM"] = get_crc8_8h2f(dat[:-1])
+
+  return packer.make_can_msg("STEERING_TORQUE", 0, values)
+
