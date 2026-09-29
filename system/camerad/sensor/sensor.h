@@ -24,9 +24,9 @@ namespace ox03c10_limits {
 constexpr int kMinVts = 2069;
 constexpr int kMaxVts = 2069;
 constexpr int kActiveRows = 1200;
-constexpr int kHdr4Margin = 47;  // VS(34) + HDR4 guard(12) + strict-inequality step
-constexpr int kMaxExposure = kMaxVts - kHdr4Margin;
-constexpr int kMaxAnalogGainIdx = 53;  // 15.0x; index 54 is 15.5x
+constexpr int kMaxExposure = 2016;  // Reference HDR4 integration limit at 20 FPS.
+constexpr int kHdr4Margin = kMaxVts - kMaxExposure;
+constexpr int kMaxAnalogGainIdx = 54;  // 15.5x reference endpoint.
 constexpr int kSpdMinExposure = 683;
 }
 

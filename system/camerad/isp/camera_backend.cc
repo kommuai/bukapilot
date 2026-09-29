@@ -27,8 +27,7 @@ constexpr uint8_t kAeReversalHoldFrames = 10;
 constexpr uint8_t kAeChangeConfirmFrames = 3;
 constexpr size_t kAeRawHistorySize = 5;
 constexpr float kAeRawEmaAlpha = 0.2f;
-constexpr float kAeGreyDeadband = 0.02f;
-constexpr float kAeMaxEvStepStops = 1.0f / 16.0f;
+constexpr float kAeGreyDeadband = 0.04f;
 
 int8_t ae_direction(int value) {
   return value > 0 ? 1 : value < 0 ? -1 : 0;
@@ -178,7 +177,9 @@ bool Ka2CameraBackend::open(CameraState *cam) {
   dc_gain_weight_ = cam->ci->dc_gain_min_weight;
   gain_idx_ = cam->ci->analog_gain_rec_idx;
   exposure_time_ = 5;
-  dc_gain_enabled_ = false;
+  // OX03C10 is initialized in fixed HCG mode by the sensor register table.
+  // Keep the software exposure model and published metadata in that same domain.
+  dc_gain_enabled_ = true;
   last_exposure_direction_ = 0;
   last_gain_direction_ = 0;
   pending_exposure_direction_ = 0;
@@ -491,39 +492,45 @@ void Ka2CameraBackend::set_camera_exposure(CameraState *cam, float grey_frac) {
   float k = (1.0f - k_ev) / 3.0f;
   desired_ev = (k * cur_ev_[0]) + (k * cur_ev_[1]) + (k * cur_ev_[2]) + (k_ev * desired_ev);
   const float current_ev = std::max(cur_ev_scaled / cam->ci->ev_scale, 1e-6f);
-  const float max_ev_ratio = exp2f(kAeMaxEvStepStops);
-  desired_ev = std::clamp(desired_ev, current_ev / max_ev_ratio, current_ev * max_ev_ratio);
-
   best_ev_score_ = 1e6f;
   new_exp_g_ = gain_idx_;
   new_exp_t_ = exposure_time_;
 
-  bool enable_dc_gain = dc_gain_enabled_;
-  if (!enable_dc_gain && target_grey < cam->ci->dc_gain_on_grey) {
-    enable_dc_gain = true;
-    dc_gain_weight_ = cam->ci->dc_gain_min_weight;
-  } else if (enable_dc_gain && target_grey > cam->ci->dc_gain_off_grey) {
-    enable_dc_gain = false;
-    dc_gain_weight_ = cam->ci->dc_gain_max_weight;
-  }
-  if (enable_dc_gain && dc_gain_weight_ < cam->ci->dc_gain_max_weight) dc_gain_weight_ += 1;
-  if (!enable_dc_gain && dc_gain_weight_ > cam->ci->dc_gain_min_weight) dc_gain_weight_ -= 1;
+  // The sensor's stream-start register table selects HCG. Direct-I2C AE changes
+  // exposure and analog gain only; it must not report that fixed HCG as LCG.
+  const bool enable_dc_gain = true;
 
   // Match reference's bounded gain ramp: only evaluate one gain step on either
   // side of the current index per physical frame. The sensor's hard maximum
-  // remains kMaxAnalogGainIdx (15.0x analog gain).
+  // remains kMaxAnalogGainIdx (15.5x analog gain).
   int selected_gain = std::clamp(gain_idx_, cam->ci->analog_gain_min_idx, cam->ci->analog_gain_max_idx);
-  const float dc_gain = enable_dc_gain
-      ? (1.0f + dc_gain_weight_ * (cam->ci->dc_gain_factor - 1.0f) /
-         std::max(1, cam->ci->dc_gain_max_weight))
-      : 1.0f;
+  const float dc_gain = cam->ci->dc_gain_factor;
   const int min_gain = std::max(selected_gain - 1, cam->ci->analog_gain_min_idx);
   const int max_gain = std::min(selected_gain + 1, cam->ci->analog_gain_max_idx);
+  const bool wants_more_exposure = desired_ev > current_ev;
+  const bool wants_less_exposure = desired_ev < current_ev;
   for (int candidate_gain = min_gain; candidate_gain <= max_gain; candidate_gain++) {
+    // Preserve the sensor's low-noise priority: use the available integration
+    // range before changing analog gain. This also prevents quantized gain
+    // candidates from pulling a dark scene back to a short exposure.
+    if (candidate_gain != selected_gain &&
+        ((wants_more_exposure && exposure_time_ < cam->ci->exposure_time_max) ||
+         (wants_less_exposure && exposure_time_ > cam->ci->exposure_time_min))) {
+      continue;
+    }
     const float candidate_total_gain = cam->ci->sensor_analog_gains[candidate_gain] * dc_gain;
-    const int candidate_exposure = std::clamp(
-        (int)std::lround(desired_ev / candidate_total_gain),
-        cam->ci->exposure_time_min, cam->ci->exposure_time_max);
+    int candidate_exposure = (int)std::lround(desired_ev / candidate_total_gain);
+    // Do not let integer line quantization pin AE at its current setting while
+    // the filtered target is still asking for more or less exposure.
+    if (candidate_gain == selected_gain && desired_ev > current_ev &&
+        candidate_exposure <= exposure_time_) {
+      candidate_exposure = exposure_time_ + 1;
+    } else if (candidate_gain == selected_gain && desired_ev < current_ev &&
+               candidate_exposure >= exposure_time_) {
+      candidate_exposure = exposure_time_ - 1;
+    }
+    candidate_exposure = std::clamp(
+        candidate_exposure, cam->ci->exposure_time_min, cam->ci->exposure_time_max);
     // Preserve reference's preference for the recommended gain in bright scenes.
     if (candidate_gain < cam->ci->analog_gain_rec_idx && candidate_exposure > 20 &&
         candidate_gain < selected_gain) {
@@ -541,7 +548,7 @@ void Ka2CameraBackend::set_camera_exposure(CameraState *cam, float grey_frac) {
   const int exposure_delta = std::abs(new_exp_t_ - exposure_time_);
   const bool significant_change =
       last_exp_reg_count_ == 0 || new_exp_g_ != gain_idx_ || enable_dc_gain != dc_gain_enabled_ ||
-      exposure_delta > std::max(2, (int)std::lround(exposure_time_ * 0.02f));
+      exposure_delta >= 1;
   const bool grey_in_deadband = std::abs(grey_frac - target_grey) <= kAeGreyDeadband;
 
   // Histogram quantization can make the optimizer cross the same boundary in
@@ -558,14 +565,15 @@ void Ka2CameraBackend::set_camera_exposure(CameraState *cam, float grey_frac) {
   const bool reversing = exposure_reversal || gain_reversal;
   const bool severe_grey_error = grey_frac < target_grey * 0.5f ||
                                  grey_frac > target_grey * 1.5f;
-  const bool at_low_exposure_limit =
-      exposure_time_ <= cam->ci->exposure_time_min + 2 && desired_ev < current_ev;
-  const bool at_high_exposure_limit =
-      exposure_time_ >= cam->ci->exposure_time_max - 2 && desired_ev > current_ev;
-  const bool reversal_emergency = severe_grey_error || at_low_exposure_limit ||
-                                  at_high_exposure_limit;
+  const bool underexposed_recovery = grey_frac < target_grey * 0.5f &&
+                                     desired_ev > current_ev;
 
-  bool allow_change = significant_change && (!grey_in_deadband || last_exp_reg_count_ == 0);
+  // A quantized or invalid low-light statistic can sit inside the normal
+  // deadband even while the frame is severely underexposed.  Let the bounded
+  // AE ramp recover in that case; ordinary small fluctuations remain gated.
+  bool allow_change = significant_change &&
+                      (!grey_in_deadband || severe_grey_error ||
+                       last_exp_reg_count_ == 0);
   bool reversal_accepted = false;
   if (!allow_change) {
     pending_exposure_direction_ = 0;
@@ -583,7 +591,10 @@ void Ka2CameraBackend::set_camera_exposure(CameraState *cam, float grey_frac) {
       if (++pending_change_frames_ < kAeChangeConfirmFrames) allow_change = false;
     }
     if (reversal_hold_frames_ > 0) --reversal_hold_frames_;
-  } else if (reversal_emergency) {
+  } else if (underexposed_recovery) {
+    // A dark scene must be allowed to recover even when the quantized
+    // candidate briefly appears to reverse. Otherwise the reversal hold can
+    // freeze AE at a low exposure indefinitely.
     pending_exposure_direction_ = 0;
     pending_gain_direction_ = 0;
     pending_change_frames_ = 0;
@@ -651,28 +662,35 @@ int32_t Ka2CameraBackend::run_rkaiq_ae(const rk_aiq_customAe_stats_t *stats,
   }
   result->is_longfrm_mode = false;
 
-  // Use the median of BLC-corrected BIG RAWAE luma cells. The histogram
-  // selected by the current ISP30 swap is not a reliable scene metric, while
-  // these cells track the sensor exposure in the 8-bit luma domain.
+  // Use the median of the hardware-populated BIG RAWAE RGB cells. On this
+  // ISP30 path channely_xy is a software-only translator field and remains
+  // empty, so reading it makes dark scenes look falsely bright to AE.
   if (!stats) return 0;
+  // The ISP30 translator maps the output-correlated HDR RAWAE2 plane to
+  // chn[0] for every camera. Other planes are valid HDR measurements, but do
+  // not represent the published control image and must not drive AE.
   const auto &channel = stats->rawae_stat[0].rawae_big;
+  constexpr size_t kRawAeCellCount = sizeof(channel.channelg_xy) / sizeof(channel.channelg_xy[0]);
+  std::array<uint16_t, kRawAeCellCount> luma = {};
   bool has_signal = false;
-  for (const uint16_t value : channel.channely_xy) {
-    has_signal |= value != 0;
+  for (size_t i = 0; i < luma.size(); i++) {
+    const uint32_t r = channel.channelr_xy[i] / 4;
+    const uint32_t g = channel.channelg_xy[i] / 16;
+    const uint32_t b = channel.channelb_xy[i] / 4;
+    luma[i] = static_cast<uint16_t>(std::min<uint32_t>(
+        65535, (299 * r + 587 * g + 114 * b + 500) / 1000));
+    // Validate the packed source values, not the quantized 8/10/12-bit
+    // luma inputs. At the dark end a real signal can be below one converted
+    // DN in every cell and must still be allowed to drive exposure upward.
+    has_signal |= channel.channelr_xy[i] != 0 || channel.channelg_xy[i] != 0 ||
+                  channel.channelb_xy[i] != 0;
   }
   if (!has_signal) {
-    // A zero BIG RAWAE window is an underexposure signal, not a value to
-    // hold. Publishing zero lets bounded AE recover from the quantization
-    // floor instead of retaining a stale bright measurement.
-    filter_raw_grey(0.0f);
-    rkaiq_pending_grey_.store(0.0f, std::memory_order_relaxed);
-    rkaiq_ae_callback_seq_.fetch_add(1, std::memory_order_release);
+    // No hardware samples means no measurement. Keep the last valid value;
+    // treating an empty buffer as black would cause an exposure jump.
     return 0;
   }
 
-  constexpr size_t kRawAeCellCount = sizeof(channel.channely_xy) / sizeof(channel.channely_xy[0]);
-  std::array<uint16_t, kRawAeCellCount> luma = {};
-  std::copy(std::begin(channel.channely_xy), std::end(channel.channely_xy), luma.begin());
   const size_t trim = luma.size() / 10;
   std::nth_element(luma.begin(), luma.begin() + trim, luma.end());
   std::nth_element(luma.begin() + trim, luma.end() - trim, luma.end());

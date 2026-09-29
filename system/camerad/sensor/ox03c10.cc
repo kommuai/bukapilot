@@ -116,13 +116,15 @@ std::vector<i2c_random_wr_payload> OX03C10::getExposureRegisters(int exposure_ti
 int OX03C10::getExposureRegisters(int exposure_time, int new_exp_g, bool dc_gain_enabled,
                                   i2c_random_wr_payload *out, int capacity) const {
   if (!out || capacity < 9 || new_exp_g < analog_gain_min_idx || new_exp_g > analog_gain_max_idx) return -1;
+  // HCG is selected once by the stream-start register table; this packet only
+  // changes exposure and HCG-path analog gain, like the reference writer.
   (void)dc_gain_enabled;
  // t_HCG&t_LCG + t_VS on LPD, t_SPD on SPD
   uint32_t hcg_time = exposure_time;
   uint32_t lcg_time = hcg_time;
-  uint32_t spd_time = std::min(std::max((uint32_t)exposure_time,
-                                        (uint32_t)ox03c10_limits::kSpdMinExposure),
-                               (uint32_t)exposure_time + VS_TIME_MAX_OX03C10);
+  uint32_t spd_time = std::min(
+      std::max((uint32_t)exposure_time, (uint32_t)ox03c10_limits::kSpdMinExposure),
+      (uint32_t)ox03c10_limits::kMaxExposure + VS_TIME_MAX_OX03C10);
   uint32_t vs_time = std::min(std::max((uint32_t)exposure_time / 40, VS_TIME_MIN_OX03C10), VS_TIME_MAX_OX03C10);
 
   uint32_t real_gain = ox03c10_analog_gains_reg[new_exp_g];
