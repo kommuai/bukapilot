@@ -49,6 +49,7 @@ private:
   void process_ae_job(const AeJob &job);
   int32_t run_rkaiq_ae(const rk_aiq_customAe_stats_t *stats,
                        rk_aiq_customeAe_results_t *result);
+  float filter_raw_grey(float raw_grey);
   void log_ae_metrics(CameraState *cam, uint32_t frame_id);
   float get_gain_factor(const CameraState *cam) const;
   void apply_pwl_on(CameraState *cam);
@@ -113,8 +114,12 @@ private:
   int8_t last_gain_direction_ = 0;
   int8_t pending_exposure_direction_ = 0;
   int8_t pending_gain_direction_ = 0;
-  uint8_t pending_reversal_frames_ = 0;
+  uint8_t pending_change_frames_ = 0;
   uint8_t reversal_hold_frames_ = 0;
+  std::array<float, 5> raw_grey_history_ = {};
+  uint8_t raw_grey_history_pos_ = 0;
+  bool raw_grey_filter_ready_ = false;
+  float filtered_raw_grey_ = 0.0f;
   float measured_grey_fraction_ = 0.f;
   float target_grey_fraction_ = 0.125f;
   float fl_pix_ = 0.f;

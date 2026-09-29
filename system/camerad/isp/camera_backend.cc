@@ -24,6 +24,11 @@ constexpr int kI2cRetries = 5;
 constexpr uint32_t kTemperaturePollPeriod = 8;
 constexpr uint8_t kAeReversalConfirmFrames = 4;
 constexpr uint8_t kAeReversalHoldFrames = 10;
+constexpr uint8_t kAeChangeConfirmFrames = 3;
+constexpr size_t kAeRawHistorySize = 5;
+constexpr float kAeRawEmaAlpha = 0.2f;
+constexpr float kAeGreyDeadband = 0.02f;
+constexpr float kAeMaxEvStepStops = 1.0f / 16.0f;
 
 int8_t ae_direction(int value) {
   return value > 0 ? 1 : value < 0 ? -1 : 0;
@@ -178,8 +183,12 @@ bool Ka2CameraBackend::open(CameraState *cam) {
   last_gain_direction_ = 0;
   pending_exposure_direction_ = 0;
   pending_gain_direction_ = 0;
-  pending_reversal_frames_ = 0;
+  pending_change_frames_ = 0;
   reversal_hold_frames_ = 0;
+  raw_grey_history_.fill(0.0f);
+  raw_grey_history_pos_ = 0;
+  raw_grey_filter_ready_ = false;
+  filtered_raw_grey_ = 0.0f;
   analog_gain_frac_ = cam->ci->sensor_analog_gains[gain_idx_];
   {
     float g0 = get_gain_factor(cam) * analog_gain_frac_ * exposure_time_;
@@ -241,6 +250,24 @@ float Ka2CameraBackend::get_gain_factor(const CameraState *cam) const {
   // LCG is unity.  Only HCG contributes the sensor's DCG ratio.
   if (!cam->ci || !dc_gain_enabled_) return 1.0f;
   return (1.0f + dc_gain_weight_ * (cam->ci->dc_gain_factor - 1.0f) / std::max(1, cam->ci->dc_gain_max_weight));
+}
+
+float Ka2CameraBackend::filter_raw_grey(float raw_grey) {
+  if (!raw_grey_filter_ready_) {
+    raw_grey_history_.fill(raw_grey);
+    raw_grey_history_pos_ = 0;
+    raw_grey_filter_ready_ = true;
+    filtered_raw_grey_ = raw_grey;
+    return raw_grey;
+  }
+
+  raw_grey_history_[raw_grey_history_pos_] = raw_grey;
+  raw_grey_history_pos_ = (raw_grey_history_pos_ + 1) % kAeRawHistorySize;
+  std::array<float, kAeRawHistorySize> ordered = raw_grey_history_;
+  std::nth_element(ordered.begin(), ordered.begin() + kAeRawHistorySize / 2, ordered.end());
+  filtered_raw_grey_ += kAeRawEmaAlpha *
+                        (ordered[kAeRawHistorySize / 2] - filtered_raw_grey_);
+  return filtered_raw_grey_;
 }
 
 bool Ka2CameraBackend::set_frame_length_vts(CameraState *cam, int exposure_lines) {
@@ -463,6 +490,9 @@ void Ka2CameraBackend::set_camera_exposure(CameraState *cam, float grey_frac) {
   float desired_ev = std::clamp(cur_ev_scaled / cam->ci->ev_scale * target_grey / grey_frac, cam->ci->min_ev, cam->ci->max_ev);
   float k = (1.0f - k_ev) / 3.0f;
   desired_ev = (k * cur_ev_[0]) + (k * cur_ev_[1]) + (k * cur_ev_[2]) + (k_ev * desired_ev);
+  const float current_ev = std::max(cur_ev_scaled / cam->ci->ev_scale, 1e-6f);
+  const float max_ev_ratio = exp2f(kAeMaxEvStepStops);
+  desired_ev = std::clamp(desired_ev, current_ev / max_ev_ratio, current_ev * max_ev_ratio);
 
   best_ev_score_ = 1e6f;
   new_exp_g_ = gain_idx_;
@@ -512,6 +542,7 @@ void Ka2CameraBackend::set_camera_exposure(CameraState *cam, float grey_frac) {
   const bool significant_change =
       last_exp_reg_count_ == 0 || new_exp_g_ != gain_idx_ || enable_dc_gain != dc_gain_enabled_ ||
       exposure_delta > std::max(2, (int)std::lround(exposure_time_ * 0.02f));
+  const bool grey_in_deadband = std::abs(grey_frac - target_grey) <= kAeGreyDeadband;
 
   // Histogram quantization can make the optimizer cross the same boundary in
   // opposite directions on adjacent frames. Confirm reversals and hold them
@@ -525,7 +556,6 @@ void Ka2CameraBackend::set_camera_exposure(CameraState *cam, float grey_frac) {
                              last_gain_direction_ != 0 &&
                              gain_direction != last_gain_direction_;
   const bool reversing = exposure_reversal || gain_reversal;
-  const float current_ev = cur_ev_scaled / cam->ci->ev_scale;
   const bool severe_grey_error = grey_frac < target_grey * 0.5f ||
                                  grey_frac > target_grey * 1.5f;
   const bool at_low_exposure_limit =
@@ -535,44 +565,46 @@ void Ka2CameraBackend::set_camera_exposure(CameraState *cam, float grey_frac) {
   const bool reversal_emergency = severe_grey_error || at_low_exposure_limit ||
                                   at_high_exposure_limit;
 
-  bool allow_change = significant_change;
+  bool allow_change = significant_change && (!grey_in_deadband || last_exp_reg_count_ == 0);
   bool reversal_accepted = false;
-  if (!significant_change) {
+  if (!allow_change) {
     pending_exposure_direction_ = 0;
     pending_gain_direction_ = 0;
-    pending_reversal_frames_ = 0;
+    pending_change_frames_ = 0;
     if (reversal_hold_frames_ > 0) --reversal_hold_frames_;
   } else if (!reversing) {
-    pending_exposure_direction_ = 0;
-    pending_gain_direction_ = 0;
-    pending_reversal_frames_ = 0;
+    if (last_exp_reg_count_ != 0) {
+      if (pending_exposure_direction_ != exposure_direction ||
+          pending_gain_direction_ != gain_direction) {
+        pending_exposure_direction_ = exposure_direction;
+        pending_gain_direction_ = gain_direction;
+        pending_change_frames_ = 0;
+      }
+      if (++pending_change_frames_ < kAeChangeConfirmFrames) allow_change = false;
+    }
     if (reversal_hold_frames_ > 0) --reversal_hold_frames_;
   } else if (reversal_emergency) {
     pending_exposure_direction_ = 0;
     pending_gain_direction_ = 0;
-    pending_reversal_frames_ = 0;
+    pending_change_frames_ = 0;
     reversal_accepted = true;
   } else if (reversal_hold_frames_ > 0) {
     --reversal_hold_frames_;
     pending_exposure_direction_ = 0;
     pending_gain_direction_ = 0;
-    pending_reversal_frames_ = 0;
+    pending_change_frames_ = 0;
     allow_change = false;
   } else {
     if (pending_exposure_direction_ != exposure_direction ||
         pending_gain_direction_ != gain_direction) {
       pending_exposure_direction_ = exposure_direction;
       pending_gain_direction_ = gain_direction;
-      pending_reversal_frames_ = 0;
+      pending_change_frames_ = 0;
     }
-    if (pending_reversal_frames_ < kAeReversalConfirmFrames) {
-      ++pending_reversal_frames_;
-    }
-    if (pending_reversal_frames_ < kAeReversalConfirmFrames) {
+    if (++pending_change_frames_ < kAeReversalConfirmFrames) {
       allow_change = false;
-    } else {
-      reversal_accepted = true;
     }
+    if (allow_change) reversal_accepted = true;
   }
 
   if (!allow_change) {
@@ -589,10 +621,10 @@ void Ka2CameraBackend::set_camera_exposure(CameraState *cam, float grey_frac) {
 
   if (exposure_direction != 0) last_exposure_direction_ = exposure_direction;
   if (gain_direction != 0) last_gain_direction_ = gain_direction;
+  pending_change_frames_ = 0;
   if (reversal_accepted) {
     pending_exposure_direction_ = 0;
     pending_gain_direction_ = 0;
-    pending_reversal_frames_ = 0;
     reversal_hold_frames_ = kAeReversalHoldFrames;
   }
 
@@ -632,6 +664,7 @@ int32_t Ka2CameraBackend::run_rkaiq_ae(const rk_aiq_customAe_stats_t *stats,
     // A zero BIG RAWAE window is an underexposure signal, not a value to
     // hold. Publishing zero lets bounded AE recover from the quantization
     // floor instead of retaining a stale bright measurement.
+    filter_raw_grey(0.0f);
     rkaiq_pending_grey_.store(0.0f, std::memory_order_relaxed);
     rkaiq_ae_callback_seq_.fetch_add(1, std::memory_order_release);
     return 0;
@@ -640,11 +673,17 @@ int32_t Ka2CameraBackend::run_rkaiq_ae(const rk_aiq_customAe_stats_t *stats,
   constexpr size_t kRawAeCellCount = sizeof(channel.channely_xy) / sizeof(channel.channely_xy[0]);
   std::array<uint16_t, kRawAeCellCount> luma = {};
   std::copy(std::begin(channel.channely_xy), std::end(channel.channely_xy), luma.begin());
-  std::nth_element(luma.begin(), luma.begin() + luma.size() / 2, luma.end());
-  const float raw_grey = static_cast<float>(luma[luma.size() / 2]) / 256.0f;
+  const size_t trim = luma.size() / 10;
+  std::nth_element(luma.begin(), luma.begin() + trim, luma.end());
+  std::nth_element(luma.begin() + trim, luma.end() - trim, luma.end());
+  uint64_t sum = 0;
+  for (size_t i = trim; i < luma.size() - trim; i++) sum += luma[i];
+  const float raw_grey = static_cast<float>(sum) /
+                         (256.0f * static_cast<float>(luma.size() - 2 * trim));
+  const float filtered_raw_grey = filter_raw_grey(raw_grey);
   const float grey = camera_->camera_num == 1
-      ? calibrated_grey(raw_grey, kRoadGreyCalibration)
-      : calibrated_grey(raw_grey, kWideGreyCalibration);
+      ? calibrated_grey(filtered_raw_grey, kRoadGreyCalibration)
+      : calibrated_grey(filtered_raw_grey, kWideGreyCalibration);
   rkaiq_pending_grey_.store(grey, std::memory_order_relaxed);
   rkaiq_ae_callback_seq_.fetch_add(1, std::memory_order_release);
   return 0;
