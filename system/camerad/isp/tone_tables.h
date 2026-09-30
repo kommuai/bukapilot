@@ -53,9 +53,9 @@ inline constexpr int kOx03c10DegammaYMild[kDegammaKnots] = {
 
 // CCM from ox03c10.cc (Q12 / 128) — applied in rk_isp_userspace.cc
 inline constexpr uint32_t kOx03c10CcmQ[9] = {
-  0x000000b6, 0x00000ff1, 0x00000fda,
-  0x00000fcc, 0x000000b9, 0x00000ffb,
-  0x00000fc2, 0x00000ff6, 0x000000c9,
+  0x00000096, 0x00000ff0, 0x00000ffb,
+  0x00000fe1, 0x000000a4, 0x00000ffc,
+  0x00000ff5, 0x00000fd3, 0x000000ba,
 };
 
 inline constexpr uint16_t kOx03c10GammaV11[kGammaKnots] = {

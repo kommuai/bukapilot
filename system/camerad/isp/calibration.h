@@ -70,7 +70,9 @@ struct Profiles {
       value[i].disable_algos_len = sizeof(kDisabledAlgos) / sizeof(kDisabledAlgos[0]);
     }
 
-    value[1].has_lsc = 1;
+    // Temporary experiment: leave the road LSC mesh available in the profile,
+    // but do not register it as active for this capture.
+    value[1].has_lsc = 0;
     value[1].lsc_sector_x = rk_road_lsc::kSectorSizeX;
     value[1].lsc_sector_y = rk_road_lsc::kSectorSizeY;
     value[1].lsc_sector_len = rk_road_lsc::kSectorCount;

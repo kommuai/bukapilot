@@ -480,8 +480,13 @@ void Ka2CameraBackend::set_camera_exposure(CameraState *cam, float grey_frac) {
   const float k_grey = (dt / ts_grey) / (1.0f + dt / ts_grey);
   const float k_ev = (dt / ts_ev) / (1.0f + dt / ts_ev);
 
-  const uint32_t previous_frame = cam->frame_id_last == 0 ? 0 : cam->frame_id_last - 1;
-  const float cur_ev_scaled = cur_ev_[previous_frame % 3] * cam->ci->ev_scale;
+  // The sensor state is authoritative.  The old ring was updated only after
+  // a successful commit, so a rejected change left stale EV values rotating
+  // by frame index and made the reversal guard reject every next step.
+  const float current_gain = analog_gain_frac_ * get_gain_factor(cam);
+  const float current_ev = std::max(exposure_time_ * current_gain, 1e-6f);
+  cur_ev_[0] = cur_ev_[1] = cur_ev_[2] = current_ev;
+  const float cur_ev_scaled = current_ev * cam->ci->ev_scale;
   float new_target_grey = std::clamp(
       0.4f - 0.3f * log2f(1.0f + cam->ci->target_grey_factor * cur_ev_scaled) / log2f(6000.0f),
       tg_min, 0.4f);
@@ -491,7 +496,6 @@ void Ka2CameraBackend::set_camera_exposure(CameraState *cam, float grey_frac) {
   float desired_ev = std::clamp(cur_ev_scaled / cam->ci->ev_scale * target_grey / grey_frac, cam->ci->min_ev, cam->ci->max_ev);
   float k = (1.0f - k_ev) / 3.0f;
   desired_ev = (k * cur_ev_[0]) + (k * cur_ev_[1]) + (k * cur_ev_[2]) + (k_ev * desired_ev);
-  const float current_ev = std::max(cur_ev_scaled / cam->ci->ev_scale, 1e-6f);
   best_ev_score_ = 1e6f;
   new_exp_g_ = gain_idx_;
   new_exp_t_ = exposure_time_;
