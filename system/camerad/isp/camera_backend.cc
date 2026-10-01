@@ -28,6 +28,8 @@ constexpr uint8_t kAeChangeConfirmFrames = 3;
 constexpr size_t kAeRawHistorySize = 5;
 constexpr float kAeRawEmaAlpha = 0.2f;
 constexpr float kAeGreyDeadband = 0.04f;
+constexpr int kRoadCameraIndex = 1;
+constexpr float kRoadCameraTargetGreyBias = 0.06f;
 
 int8_t ae_direction(int value) {
   return value > 0 ? 1 : value < 0 ? -1 : 0;
@@ -471,7 +473,7 @@ void Ka2CameraBackend::set_camera_exposure(CameraState *cam, float grey_frac) {
   if (!cam->enabled || !cam->ci) return;
   std::lock_guard lk(exp_lock_);
 
-  static const float target_grey_minimums[3] = {0.1f, 0.1f, 0.125f};
+  static const float target_grey_minimums[3] = {0.15f, 0.15f, 0.15f};
   const float tg_min = target_grey_minimums[std::clamp(cam->camera_num, 0, 2)];
 
   const float dt = 0.05f;
@@ -487,9 +489,12 @@ void Ka2CameraBackend::set_camera_exposure(CameraState *cam, float grey_frac) {
   const float current_ev = std::max(exposure_time_ * current_gain, 1e-6f);
   cur_ev_[0] = cur_ev_[1] = cur_ev_[2] = current_ev;
   const float cur_ev_scaled = current_ev * cam->ci->ev_scale;
-  float new_target_grey = std::clamp(
-      0.4f - 0.3f * log2f(1.0f + cam->ci->target_grey_factor * cur_ev_scaled) / log2f(6000.0f),
-      tg_min, 0.4f);
+  // The minimum above is only a lower clamp and is often inactive. Apply a
+  // dedicated offset so the road camera's normal AE target is also brighter.
+  const float dynamic_target_grey =
+      0.4f - 0.3f * log2f(1.0f + cam->ci->target_grey_factor * cur_ev_scaled) / log2f(6000.0f);
+  const float target_grey_bias = cam->camera_num == kRoadCameraIndex ? kRoadCameraTargetGreyBias : 0.0f;
+  const float new_target_grey = std::clamp(dynamic_target_grey + target_grey_bias, tg_min, 0.4f);
   float target_grey = (1.0f - k_grey) * target_grey_fraction_ + k_grey * new_target_grey;
 
   grey_frac = std::max(grey_frac, 1e-4f);
