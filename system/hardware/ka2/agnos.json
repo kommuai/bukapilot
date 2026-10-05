@@ -11,7 +11,7 @@
   },
   {
     "name": "boot",
-    "url": "https://web.kommu.ai/depot/upload/publicbox/boot.img.xz",
+    "url": "https://web.kommu.ai/depot/upload/publicbox/boot-0c19fd11c2cf8a5ae07c61c0cc7f0683a9d614474c28df62929d4f1e76d2b3bc.img.xz",
     "hash": "0c19fd11c2cf8a5ae07c61c0cc7f0683a9d614474c28df62929d4f1e76d2b3bc",
     "hash_raw": "0c19fd11c2cf8a5ae07c61c0cc7f0683a9d614474c28df62929d4f1e76d2b3bc",
     "size": 268435456,
