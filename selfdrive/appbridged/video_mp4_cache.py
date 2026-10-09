@@ -3,14 +3,12 @@ import shutil
 import signal
 import subprocess
 import threading
-import time
 from pathlib import Path
 
 from openpilot.common.swaglog import cloudlog
 from openpilot.selfdrive.appbridged.video_constants import (
   CACHE_ROOT,
   FFMPEG_HEVC_INPUT_ARGS,
-  FFMPEG_H264_ENCODE_ARGS,
   FFMPEG_H264_HW_ENCODE_ARGS,
   FFMPEG_NO_SUBSTREAMS,
   MP4_CACHE_DIR,
@@ -132,14 +130,12 @@ class Mp4ConvertJob:
     except OSError:
       return False
 
-  def _h264_mp4_cmd(self, input_path: Path, output_path: Path, *, hw_decode: bool) -> list[str]:
-    cmd = ["ffmpeg", "-y", "-nostdin", "-loglevel", "error"]
-    if hw_decode:
-      cmd.extend(["-probesize", "32768", "-analyzeduration", "0", "-c:v", "hevc_rkmpp", "-i", str(input_path)])
-    else:
-      cmd.extend([*FFMPEG_HEVC_INPUT_ARGS, "-i", str(input_path)])
-    cmd.extend([*FFMPEG_NO_SUBSTREAMS, *FFMPEG_H264_HW_ENCODE_ARGS, "-movflags", "+faststart", str(output_path)])
-    return cmd
+  def _h264_mp4_cmd(self, input_path: Path, output_path: Path) -> list[str]:
+    return [
+      "ffmpeg", "-y", "-nostdin", "-loglevel", "error",
+      "-probesize", "32768", "-analyzeduration", "0", "-c:v", "hevc_rkmpp", "-i", str(input_path),
+      *FFMPEG_NO_SUBSTREAMS, *FFMPEG_H264_HW_ENCODE_ARGS, "-movflags", "+faststart", str(output_path),
+    ]
 
   def _remux_hevc_wrap(self, wrap: Path) -> bool:
     wrap.unlink(missing_ok=True)
@@ -156,48 +152,19 @@ class Mp4ConvertJob:
 
   def _encode_mp4(self, tmp: Path) -> bool:
     wrap = _hevc_wrap_path(self.mp4_path)
-    t0 = time.monotonic()
     try:
-      if self._remux_hevc_wrap(wrap):
-        tmp.unlink(missing_ok=True)
-        if self._spawn_ffmpeg(self._h264_mp4_cmd(wrap, tmp, hw_decode=True)) and self._valid_output(tmp):
-          cloudlog.info(
-            f"mp4 convert ok path=rkmpp_hw hevc={self.hevc_path} "
-            f"elapsed={time.monotonic() - t0:.2f}s"
-          )
-          return True
-        cloudlog.warning("mp4 h264 encode failed (rkmpp_hw), trying fallback")
-      else:
-        cloudlog.warning("mp4 remux failed, trying sw_decode path")
-
+      if self._cancelled:
+        return False
+      if not self._remux_hevc_wrap(wrap):
+        cloudlog.warning("mp4 remux failed")
+        return False
       if self._cancelled:
         return False
       tmp.unlink(missing_ok=True)
-      if self._spawn_ffmpeg(self._h264_mp4_cmd(Path(self.hevc_path), tmp, hw_decode=False)) and self._valid_output(tmp):
-        cloudlog.info(
-          f"mp4 convert ok path=rkmpp_sw_decode hevc={self.hevc_path} "
-          f"elapsed={time.monotonic() - t0:.2f}s"
-        )
-        return True
-      cloudlog.warning("mp4 h264 encode failed (rkmpp_sw_decode), trying libx264")
-
-      if self._cancelled:
+      if not self._spawn_ffmpeg(self._h264_mp4_cmd(wrap, tmp)) or not self._valid_output(tmp):
+        cloudlog.warning("mp4 h264 encode failed")
         return False
-      tmp.unlink(missing_ok=True)
-      cmd = [
-        "ffmpeg", "-y", "-nostdin", "-loglevel", "error",
-        *FFMPEG_HEVC_INPUT_ARGS, "-i", self.hevc_path,
-        *FFMPEG_NO_SUBSTREAMS, *FFMPEG_H264_ENCODE_ARGS, "-movflags", "+faststart",
-        str(tmp),
-      ]
-      if self._spawn_ffmpeg(cmd) and self._valid_output(tmp):
-        cloudlog.info(
-          f"mp4 convert ok path=libx264 hevc={self.hevc_path} "
-          f"elapsed={time.monotonic() - t0:.2f}s"
-        )
-        return True
-      cloudlog.warning("mp4 h264 encode failed (libx264)")
-      return False
+      return True
     finally:
       wrap.unlink(missing_ok=True)
 

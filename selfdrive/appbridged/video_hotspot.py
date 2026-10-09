@@ -2,9 +2,12 @@ import os
 import glob
 import hashlib
 import re
+import socket
 import subprocess
 import threading
 import time
+
+import psutil
 
 HOTSPOT_SERVICE = "wlan1-setup.service"
 _hotspot_lock = threading.Lock()
@@ -91,17 +94,9 @@ def _iface_ipv4_addresses(iface: str) -> list[str]:
   if not _iface_exists(iface):
     return []
   try:
-    result = subprocess.run(
-      ["ip", "-4", "addr", "show", iface],
-      text=True,
-      timeout=2,
-      stdout=subprocess.PIPE,
-      stderr=subprocess.DEVNULL,
-      check=False,
-    )
-  except (subprocess.SubprocessError, OSError):
+    return [addr.address for addr in psutil.net_if_addrs().get(iface, ()) if addr.family == socket.AF_INET]
+  except (OSError, psutil.Error):
     return []
-  return re.findall(r"inet (\d+\.\d+\.\d+\.\d+)/", result.stdout)
 
 
 def _hotspot_iface_up() -> bool:

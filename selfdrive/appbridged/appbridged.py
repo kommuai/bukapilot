@@ -1,9 +1,6 @@
 #!/usr/bin/env python3
-import socket
-import os
 import msgpack
 import subprocess
-import psutil
 import threading
 import re
 import math
@@ -249,6 +246,9 @@ class AppBridge:
     self._nav_ble_diag_route_transfer = NavRouteTransfer()
     self.ble.on_connect_callback = self.video_handler.on_ble_connected
     self.ble.on_disconnect_callback = self.video_handler.on_ble_disconnected
+    self._wlan_info_wake = threading.Event()
+    threading.Thread(target=self._wlan_info_worker, daemon=True, name="appbridge-wlan-info").start()
+    self._wlan_info_wake.set()
 
   def scan_wifi(self):
     if hasattr(self, "wifiScanProcess"): # Avoid starting a new scan until the previous one finishes
@@ -309,18 +309,29 @@ class AppBridge:
     return True
 
   def update_wlan_info(self):
-    def get_wlan_info():
-      def get_ip(iface):
-        return next((a.address for a in psutil.net_if_addrs().get(iface, []) if a.family == socket.AF_INET), None)
+    self._wlan_info_wake.set()
+
+  def _wlan_info_worker(self):
+    while True:
+      self._wlan_info_wake.wait()
+      self._wlan_info_wake.clear()
       try:
-        self.local_wlan_ip = get_ip("wlan0")
-        self.active_wlan_ssid = (subprocess.run(["iwgetid", "wlan0", "-r"], capture_output=True, text=True, timeout=0.2).stdout.strip() or None)
-        wlan1_ip = get_ip("wlan1")
-        self.hotspot_enabled = bool(wlan1_ip)
-        self.hotspot_ip = wlan1_ip
-      except Exception:
-        self.local_wlan_ip, self.active_wlan_ssid, self.hotspot_enabled, self.hotspot_ip = None, None, False, None
-    threading.Thread(target=get_wlan_info, daemon=True).start()
+        if (result := subprocess.run(["ip", "-4", "-o", "addr", "show"], capture_output=True, text=True, timeout=0.3)).returncode == 0:
+          ips = {}
+          for line in result.stdout.splitlines():
+            fields = line.split()
+            if len(fields) >= 4 and fields[2] == "inet":
+              ips.setdefault(fields[1].split("@", 1)[0], fields[3].split("/", 1)[0])
+          self.local_wlan_ip = ips.get("wlan0")
+          self.hotspot_ip = ips.get("wlan1")
+          self.hotspot_enabled = bool(self.hotspot_ip)
+      except (OSError, subprocess.SubprocessError):
+        pass
+      try:
+        if (result := subprocess.run(["iwgetid", "wlan0", "-r"], capture_output=True, text=True, timeout=0.2)).returncode in (0, 1):
+          self.active_wlan_ssid = result.stdout.strip() or None
+      except (OSError, subprocess.SubprocessError):
+        pass
 
 
   def _nav_control_snapshot(self) -> dict:
@@ -425,7 +436,7 @@ class AppBridge:
       if state: snapshot['longControlState'] = state
     return snapshot
 
-  def _nav_ble_sync(self, out: dict) -> None:
+  def _nav_ble_sync(self, out: dict) -> bool:
     """Send the canonical navigation snapshot on every navigation channel."""
     try:
       out['navProtocolVersion'] = NAV_PROTOCOL_VERSION
@@ -436,7 +447,9 @@ class AppBridge:
           'latitude': float(g.latitude), 'longitude': float(g.longitude),
           'bearing': float(getattr(g, 'bearingDeg', 0.0) or 0.0),
         }
-      with nav_stop_list_lock():
+      with nav_stop_list_lock(blocking=False) as lock_acquired:
+        if not lock_acquired:
+          return False
         out['hasRoute'] = safe_get('NavHasRoute', True)
         out['rerouteNeeded'] = safe_get('NavRerouteNeeded', True)
         out['navStatus'] = params.get(NAV_STATUS_KEY) or ''
@@ -464,15 +477,19 @@ class AppBridge:
           self.last_nav_control_log_key = log_key
           cloudlog.warning(f"nav_control {log_key}")
       self._nav_sync_error = ''
+      return True
     except Exception as e:
       error = f'{type(e).__name__}:{e}'
       if error != self._nav_sync_error:
         cloudlog.error(f'appbridged nav BLE sync failed error={error}')
       self._nav_sync_error = error
+      return False
 
-  def _nav_ble_status(self, out: dict, is_offroad: bool) -> None:
-    out['isOffroad'] = is_offroad
-    self._nav_ble_sync(out)
+  def _nav_ble_status(self, out: dict, is_offroad: bool | None) -> bool:
+    if is_offroad is not None:
+      out['isOffroad'] = is_offroad
+    if not self._nav_ble_sync(out):
+      return False
     out['navActive'] = bool(safe_get('NavDestination')) or safe_get('NavHasRoute', True)
     try:
       clear_reason = params.get('NavDestinationWaypoints')
@@ -483,12 +500,15 @@ class AppBridge:
       out['navClearReason'] = ''
     if dest := parse_destination_json(params.get('NavDestination')):
       out['navDestination'] = dest
+    return True
 
-  def send_background_nav_message(self, is_offroad: bool) -> None:
+  def send_background_nav_message(self) -> None:
     nav = {}
-    self._nav_ble_status(nav, is_offroad)
+    if not self._nav_ble_status(nav, None):
+      return
     if not (safe_get('NavHasRoute', False) or bool(safe_get('NavDestination')) or nav.get('navStopList') or nav.get('navRouteRequest')):
       return
+    nav['isOffroad'] = params.get_bool('IsOffroad')
     try:
       self.ble.chunk_and_send(CHANNEL_SETTINGS, msgpack.packb(nav))
     except Exception as e:
@@ -1757,7 +1777,6 @@ class AppBridge:
     is_metric = None
     while True:
       (sm := self.sm).update(0)
-      (rk := self.rk).monitor_time()
 
       # 1 Hz WiFi/hotspot task
       if (cur_time := monotonic()) - self.last_1hz_task_time >= 1:
@@ -1781,6 +1800,7 @@ class AppBridge:
             f'transfer={expired["transferId"]} parts={expired["receivedParts"]}/{expired["partCount"]} '
             f'bytes={expired["receivedBytes"]}/{expired["totalBytes"]} idle={expired["idleSeconds"]:.1f}s'
           )
+
         # Check WiFi and hotspot
         self.update_wlan_info()
         if attempt_ssid := self.wifi_connect_attempt_ssid:
@@ -1815,7 +1835,8 @@ class AppBridge:
         # 3 Hz settings send
         if cur_time - self.last_periodic_time >= 0.333:
           self.last_periodic_time = cur_time
-          is_metric = params.get_bool("IsMetric") # Always update at 3 Hz
+          if self.send_channel in (CHANNEL_SETTINGS, CHANNEL_VISUALISATION):
+            is_metric = params.get_bool("IsMetric")
           if self.send_channel == CHANNEL_SETTINGS:
             if is_offroad is None:
               is_offroad = params.get_bool("IsOffroad")
@@ -1830,16 +1851,19 @@ class AppBridge:
         if (self.send_channel not in (CHANNEL_SETTINGS, CHANNEL_VISUALISATION)
             and cur_time - self.last_background_nav_sync_time >= NAV_BACKGROUND_SYNC_INTERVAL_SEC):
           self.last_background_nav_sync_time = cur_time
-          self.send_background_nav_message(params.get_bool('IsOffroad'))
+          self.send_background_nav_message()
 
-        # 2 Hz video keepalive — avoids racing videoListReq.
+        # 2 Hz video keepalive to avoid racing videoListReq.
         if (self.send_channel == CHANNEL_VIDEO
             and cur_time - self.last_video_heartbeat_time >= VIDEO_KEEPALIVE_PERIOD_SEC
             and not self.video_handler.should_pause_video_keepalive()):
           self.last_video_heartbeat_time = cur_time
           self.video_handler.send_list_keepalive()
 
-      rk.keep_time()
+      lagged = self.rk.keep_time()
+      if lagged and self.rk.remaining < -(1.0 / MESSAGE_HZ):
+        # Resume at the current cadence after a multi-frame pause instead of catching up stale deadlines.
+        self.rk = Ratekeeper(MESSAGE_HZ)
 
 def main():
   AppBridge().appbridged_thread()

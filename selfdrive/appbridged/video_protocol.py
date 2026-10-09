@@ -14,6 +14,7 @@ from openpilot.selfdrive.appbridged.video_constants import (
   MEDIA_MOUNT,
   MP4_CACHE_DIR,
   THUMB_CACHE_DIR,
+  THUMB_SEND_BUDGET_MS,
   THUMB_SEND_BURST,
   TRANSPORT_EXPIRES_SEC,
   VIDEO_HTTP_PORT,
@@ -364,7 +365,7 @@ class VideoProtocolHandler:
 
   def _disable_transfer_hotspot(self, started_for_transfer: bool) -> None:
     self._hotspot_warm_until = None
-    if started_for_transfer and is_hotspot_active():
+    if started_for_transfer:
       disable_hotspot()
 
   def _defer_delete_mp4(self, mp4_path) -> None:
@@ -510,12 +511,16 @@ class VideoProtocolHandler:
     queue: list[dict],
     *,
     max_send: int | None = None,
+    max_duration_ms: float | None = None,
   ) -> tuple[list[dict], bool]:
     """Send cached thumbnails in strict queue order (oldest segment first)."""
+    started_at = time.perf_counter()
     sent = 0
     to_remove: list[dict] = []
     send_limit = max_send if max_send is not None else THUMB_SEND_BURST
     for item in queue:
+      if sent and max_duration_ms is not None and (time.perf_counter() - started_at) * 1000 >= max_duration_ms:
+        break
       if not (jpeg := read_cached_thumb(item["hevc"], item["cache"])):
         break
       if not self._send_thumbnail(item["driveId"], item["segment"], item["camera"], jpeg):
@@ -523,6 +528,8 @@ class VideoProtocolHandler:
       to_remove.append(item)
       sent += 1
       if send_limit and sent >= send_limit:
+        break
+      if max_duration_ms is not None and (time.perf_counter() - started_at) * 1000 >= max_duration_ms:
         break
     return to_remove, True
 
@@ -540,7 +547,7 @@ class VideoProtocolHandler:
     send_limit = 8 if gen_busy else THUMB_SEND_BURST
     if time.monotonic() < self._post_transfer_until:
       send_limit = min(send_limit, 2)
-    to_remove, send_ok = self._send_ready_cached_thumbs(queue_snapshot, max_send=send_limit)
+    to_remove, send_ok = self._send_ready_cached_thumbs(queue_snapshot, max_send=send_limit, max_duration_ms=THUMB_SEND_BUDGET_MS)
     if not send_ok:
       return
     with self._lock:
@@ -812,12 +819,13 @@ class VideoProtocolHandler:
       return
     transfer_id = session.get("transferId")
     mp4_path = session.get("mp4")
+    hotspot_started = bool(session.get("hotspot_started_for_transfer"))
     self._wifi_session = None
     if self._http_server and transfer_id is not None:
       self._http_server.unregister(transfer_id)
     self._defer_delete_mp4(mp4_path)
     now = time.monotonic()
-    if session.get("hotspot_started_for_transfer") and is_hotspot_active():
+    if hotspot_started:
       self._slide_hotspot_warm_unlocked(now)
     else:
       self._hotspot_warm_until = None
@@ -850,9 +858,9 @@ class VideoProtocolHandler:
     if (phase := session.get("phase")) == "complete":
       return self._finish_wifi_transfer_success()
     if phase == "waiting_hotspot":
-      if not is_hotspot_joinable(fresh=True) and (cur_time - session["started_at"]) < HOTSPOT_WAIT_SEC:
-        return
       if not is_hotspot_joinable(fresh=True):
+        if (cur_time - session["started_at"]) < HOTSPOT_WAIT_SEC:
+          return
         return self._fail_wifi_session(cur_time)
       session["phase"] = "ready_hotspot"
       phase = "ready_hotspot"
@@ -938,8 +946,7 @@ class VideoProtocolHandler:
     if (warm_until := self._hotspot_warm_until) is None or cur_time < warm_until:
       return
     self._hotspot_warm_until = None
-    if is_hotspot_active():
-      disable_hotspot()
+    disable_hotspot()
 
   def tick(self, cur_time: float):
     thumbs_ok = False
@@ -949,6 +956,7 @@ class VideoProtocolHandler:
         self._abort_active_unlocked()
         self._send_error("transfer_timeout")
         return
+
       self._try_finish_convert(cur_time)
       self._try_send_hotspot_ready(cur_time)
       self._tick_wifi_session(cur_time)
