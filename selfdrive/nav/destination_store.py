@@ -22,13 +22,17 @@ MAX_NAV_STOPS = 10
 
 
 @contextmanager
-def nav_stop_list_lock():
+def nav_stop_list_lock(*, blocking: bool = True):
   """Serialize stop-list read/modify/write across appbridged and navigationd."""
   fd = os.open("/tmp/kommu-nav-stop-list.lock", os.O_CREAT | os.O_RDWR, 0o600)
   try:
-    fcntl.flock(fd, fcntl.LOCK_EX)
     try:
-      yield
+      fcntl.flock(fd, fcntl.LOCK_EX | (0 if blocking else fcntl.LOCK_NB))
+    except BlockingIOError:
+      yield False
+      return
+    try:
+      yield True
     finally:
       fcntl.flock(fd, fcntl.LOCK_UN)
   finally:

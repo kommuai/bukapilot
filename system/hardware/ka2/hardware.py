@@ -59,6 +59,7 @@ class Ka2(HardwareBase):
   def __init__(self):
     super().__init__()
     self._lock = threading.RLock()
+    self._sd_lock = threading.Lock()
     self._modem_cache: dict = {}
     self._modem_cache_ts: float = 0
     self._last_cellular_summary: str = "Unknown"
@@ -75,7 +76,7 @@ class Ka2(HardwareBase):
   def sd_status(self) -> str | None:
     nf = "SD card not formatted"
     try:
-      with self._lock:
+      with self._sd_lock:
         if self._sd_formatting:
           return "Formatting SD card"
       if not self._sd_inserted():
@@ -94,17 +95,19 @@ class Ka2(HardwareBase):
       return nf
 
   def is_sd_formatting(self) -> bool:
-    with self._lock:
+    with self._sd_lock:
       return self._sd_formatting
 
   def format_sd(self) -> bool:
     from openpilot.common.swaglog import cloudlog
     try:
-      with self._lock:
+      with self._sd_lock:
         if self._sd_formatting:
           return False
-        st = self.sd_status()
-        if st is not None and ("not inserted" in st.lower() or "formatting" in st.lower()):
+      if (st := self.sd_status()) is not None and ("not inserted" in st.lower() or "formatting" in st.lower()):
+        return False
+      with self._sd_lock:
+        if self._sd_formatting:
           return False
         self._sd_formatting = True
 
@@ -129,7 +132,7 @@ class Ka2(HardwareBase):
         except Exception as e:
           cloudlog.warning(f"SD format error: {e}")
         finally:
-          with self._lock:
+          with self._sd_lock:
             self._sd_formatting = False
 
       threading.Thread(target=worker, daemon=True).start()

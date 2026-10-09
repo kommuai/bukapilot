@@ -15,6 +15,7 @@ MIN_SEGMENTS_PER_DRIVE = 2
 
 # Video BLE link frames: keep 240 B default in ble_helper (hard limit for phone compatibility).
 THUMB_SEND_BURST = 16
+THUMB_SEND_BUDGET_MS = 20.0
 
 MP4_CONVERT_TIMEOUT_SEC = 120.0
 VIDEO_HTTP_PORT = 8089
@@ -33,13 +34,8 @@ FFMPEG_HEVC_INPUT_ARGS = ["-c:v", "hevc", "-vsync", "0", "-f", "hevc", "-flags2"
 FFMPEG_NO_SUBSTREAMS = ["-an", "-sn", "-dn"]
 
 # Download MP4 output: H.264/AVC for Windows, Android, and iOS without extra HEVC codecs.
-# RK3588 fast path: remux on tmpfs, hevc_rkmpp → h264_rkmpp MPP zero-copy (~5.1s on ka2).
-# Fallback: SW hevc decode + h264_rkmpp (~30s), then libx264 veryfast CRF 23.
+# RK3588: remux on tmpfs, then hevc_rkmpp decode and h264_rkmpp encode.
 FFMPEG_H264_HW_ENCODE_ARGS = ["-c:v", "h264_rkmpp"]
-FFMPEG_H264_ENCODE_ARGS = [
-  "-c:v", "libx264", "-preset", "veryfast", "-crf", "23",
-  "-pix_fmt", "yuv420p", "-threads", "0",
-]
 
 LIST_PAYLOAD_BUDGET = 55000
 
