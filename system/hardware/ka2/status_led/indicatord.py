@@ -12,10 +12,12 @@ import time
 import threading
 from typing import Callable, Dict, Optional, Tuple
 
-from openpilot.system.hardware.ka2.status_led.status_led import set_led, WS2812_SCRIPT_DEFAULT
+from openpilot.common.params import Params
+from openpilot.system.hardware.ka2.status_led.status_led import set_led, set_rainbow, WS2812_SCRIPT_DEFAULT
 from cereal import messaging
 
 StateTuple = Tuple[str, str, Optional[str], str]  # (color, mode, rate, brightness)
+AGNOS_UPDATE_STATE_PREFIX = "download and install OS "
 
 class AlertLEDService:
     def __init__(
@@ -51,11 +53,15 @@ class AlertLEDService:
 
         self._stop = threading.Event()
         self._sm = messaging.SubMaster([self.topic_cs, self.topic_dc])
+        self._params = Params()
 
         self._last_key: Optional[Tuple[str, str, Optional[str]]] = None
         self._last_state: Optional[StateTuple] = None
         self._last_msg_time_cs: Optional[float] = None
         self._last_integ: int = (self.integ_min + self.integ_max) // 2
+        self._last_active = False
+        self._last_alert_type = "not_running"
+        self._agnos_update_led_active = False
 
         # boot → not-running yellow (counts as a state)
         state = ("YELLOW", "solid", None, self.not_running_brightness)
@@ -71,6 +77,17 @@ class AlertLEDService:
             now = time.monotonic()
             self._sm.update(self.base_poll_ms)
             now = time.monotonic()
+
+            agnos_update_active = self._agnos_update_in_progress()
+            update_just_finished = self._agnos_update_led_active and not agnos_update_active
+            if agnos_update_active:
+                if not self._agnos_update_led_active:
+                    self._apply_rainbow()
+                    self._agnos_update_led_active = True
+            elif update_just_finished:
+                # Let the normal state machine restore the previous LED state.
+                self._agnos_update_led_active = False
+                self._last_key = None
 
             if self._sm.updated[self.topic_dc]:
                 dc = self._sm[self.topic_dc]
@@ -92,11 +109,20 @@ class AlertLEDService:
 
                 color, mode, rate = self._classify_key(alert_type, active)
                 key = (color, mode, rate)
+                brightness = str(self._map_integ_to_brightness_inverse(self._last_integ))
+                desired: StateTuple = (color, mode, rate, brightness)
+                self._last_state = desired
+                self._last_active = active
+                self._last_alert_type = alert_type
+
+                if agnos_update_active:
+                    # Keep recording the latest normal state, but let the rainbow
+                    # own the LEDs until the AGNOS update state leaves progress.
+                    self._last_key = key
+                    continue
+
                 if key != self._last_key:
-                    brightness = str(self._map_integ_to_brightness_inverse(self._last_integ))
-                    desired: StateTuple = (color, mode, rate, brightness)
                     self._apply(desired, active=active, alert_type=alert_type, force=True)
-                    self._last_state = desired
                     self._last_key = key
                     if self.on_change:
                         self._safe_on_change(active, alert_type, desired)
@@ -106,7 +132,7 @@ class AlertLEDService:
 
             # not-running fallback
             no_heartbeat = (self._last_msg_time_cs is None) or ((now - self._last_msg_time_cs) > self.not_running_timeout_s)
-            if (not self._sm.alive[self.topic_cs]) or no_heartbeat:
+            if not agnos_update_active and ((not self._sm.alive[self.topic_cs]) or no_heartbeat):
                 key = ("YELLOW", "solid", None)
                 if self._last_key != key:
                     state = ("YELLOW", "solid", None, self.not_running_brightness)
@@ -115,6 +141,28 @@ class AlertLEDService:
                     self._last_key = key
                     if self.on_change:
                         self._safe_on_change(False, "not_running", state)
+
+            if update_just_finished and self._last_key is None and self._last_state is not None:
+                self._apply(self._last_state, active=self._last_active, alert_type=self._last_alert_type, force=True)
+                self._last_key = (self._last_state[0], self._last_state[1], self._last_state[2])
+
+    def _agnos_update_in_progress(self) -> bool:
+        try:
+            state = self._params.get("UpdaterState") or ""
+            if isinstance(state, bytes):
+                state = state.decode("utf-8", "replace")
+            return str(state).startswith(AGNOS_UPDATE_STATE_PREFIX)
+        except Exception:
+            return False
+
+    def _apply_rainbow(self) -> None:
+        try:
+            set_rainbow(ws_script=self.ws_script, fire_and_forget=True)
+            if self.debug:
+                print("[indicatord] AGNOS update -> rainbow", flush=False)
+        except Exception as e:
+            if self.debug:
+                print(f"[indicatord] failed to show AGNOS rainbow: {e!r}", flush=False)
 
     # mapping: alert_type format is "eventName/eventType" (e.g. cameraMalfunction/permanent, wrongGear/noEntry)
     # Event types (ET): enable, noEntry, warning, userDisable, softDisable, immediateDisable, permanent

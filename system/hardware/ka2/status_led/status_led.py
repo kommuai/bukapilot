@@ -13,6 +13,8 @@ import sys
 import time
 import shlex
 import subprocess
+import colorsys
+import importlib.util
 from typing import Optional
 
 WS2812_SCRIPT_DEFAULT = "/usr/kommu/ws2812.py"
@@ -123,3 +125,82 @@ def set_led(
         # Blocking call; show stderr to caller for troubleshooting
         return subprocess.run(args, check=False)
 
+
+def _load_ws2812_module(ws_script: str):
+    """Load the existing hardware driver without duplicating its SPI protocol."""
+    spec = importlib.util.spec_from_file_location("kommu_ws2812", ws_script)
+    if spec is None or spec.loader is None:
+        raise ImportError(f"Unable to load ws2812 driver: {ws_script}")
+
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def _run_rainbow_worker(
+    ws_script: str,
+    brightness: int = 200,
+    frame_period: float = 0.08,
+):
+    """Continuously move a rainbow across the LEDs until this process is stopped."""
+    ws2812 = _load_ws2812_module(ws_script)
+    strip = ws2812.WS2812SPI(brightness=max(0, min(255, int(brightness))))
+    strip.open()
+
+    n_leds = max(1, int(strip.n_leds))
+    frame = 0
+    while True:
+        phase = (frame * 0.02) % 1.0
+        colors = []
+        for led_index in range(n_leds):
+            hue = (phase + led_index / n_leds) % 1.0
+            red, green, blue = colorsys.hsv_to_rgb(hue, 1.0, 1.0)
+            colors.append((int(red * 255), int(green * 255), int(blue * 255)))
+
+        # Reuse the existing driver's payload and SPI encoding so the animation
+        # stays aligned with the hardware implementation in /usr/kommu.
+        strip._write_payload(strip._build_payload(colors))
+        frame += 1
+        time.sleep(frame_period)
+
+
+def set_rainbow(
+    *,
+    ws_script: str = WS2812_SCRIPT_DEFAULT,
+    brightness: int = 200,
+    fire_and_forget: bool = True,
+):
+    """Animate a moving rainbow until another LED state preempts it."""
+    global _current_proc
+
+    if not os.path.exists(ws_script):
+        raise FileNotFoundError(f"ws_script not found: {ws_script}")
+
+    _preempt_previous()
+    py = sys.executable or "python3"
+    args = [
+        py,
+        __file__,
+        "--rainbow-worker",
+        ws_script,
+        str(max(0, min(255, int(brightness)))),
+    ]
+    _dbg("exec: " + " ".join(shlex.quote(x) for x in args))
+
+    if fire_and_forget:
+        _current_proc = subprocess.Popen(
+            args,
+            stdout=subprocess.DEVNULL,
+            stderr=None if os.getenv("STATUS_LED_DEBUG") == "1" else subprocess.DEVNULL,
+            text=True,
+        )
+        return None
+
+    return subprocess.run(args, check=False)
+
+
+if __name__ == "__main__" and len(sys.argv) > 1 and sys.argv[1] == "--rainbow-worker":
+    _run_rainbow_worker(
+        sys.argv[2] if len(sys.argv) > 2 else WS2812_SCRIPT_DEFAULT,
+        int(sys.argv[3]) if len(sys.argv) > 3 else 200,
+    )
