@@ -10,6 +10,7 @@ import datetime
 import cereal.messaging as messaging
 from cereal import log
 from openpilot.common.realtime import Ratekeeper
+from openpilot.common.constants import CV
 from openpilot.common.swaglog import cloudlog
 from openpilot.system.version import get_version, get_commit, terms_version, training_version
 from openpilot.common.params import Params
@@ -532,7 +533,10 @@ class AppBridge:
       data["t"] = extract_lead(rd, "leadTwo")
       update_dict_from_sm(data, sm["driverMonitoringState"], ["isActiveMode"])
       data["h"] = sm["liveCalibration"].to_dict().get("height", [None])[0]
-      update_dict_from_sm(data, sm["carState"], ["vEgoCluster", "vCruiseCluster"])
+      car_state = sm["carState"]
+      update_dict_from_sm(data, car_state, ["vEgoCluster"])
+      update_dict_from_sm(data, car_state.cruiseState, ["speedCluster"])
+      data["vCruiseCluster"] = data.pop("speedCluster") * CV.MS_TO_KPH  # Device field is in m/s.
     except Exception:
       pass
     # Nav HUD for Visualisation (nv only when active; old apps ignore unknown keys).
