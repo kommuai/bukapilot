@@ -184,6 +184,20 @@
     },
     {
       "brand": "Honda",
+      "model": "CRV Gen 6",
+      "year": "2023-2026",
+      "variant": "All",
+      "acc_low_speed": true,
+      "acc_speed_range": "0 - 145",
+      "acc_stop_and_go": true,
+      "lkc_torque": "High",
+      "lkc_speed_range": "0 - 145",
+      "max_steering_angle": "45°",
+      "support": "Supports only Honda vehicles that comes with Honda Sensing.",
+      "note": "Longitudinal control uses stock's Adaptive Cruise Control."
+    },
+    {
+      "brand": "Honda",
       "model": "HRV",
       "year": "2023-2026",
       "variant": "All",
