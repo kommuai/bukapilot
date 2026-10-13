@@ -1,0 +1,219 @@
+VERSION ""
+
+
+NS_ :
+    NS_DESC_
+    CM_
+    BA_DEF_
+    BA_
+    VAL_
+    CAT_DEF_
+    CAT_
+    FILTER
+    BA_DEF_DEF_
+    EV_DATA_
+    ENVVAR_DATA_
+    SGTYPE_
+    SGTYPE_VAL_
+    BA_DEF_SGTYPE_
+    BA_SGTYPE_
+    SIG_TYPE_REF_
+    VAL_TABLE_
+    SIG_GROUP_
+    SIG_VALTYPE_
+    SIGTYPE_VALTYPE_
+    BO_TX_BU_
+    BA_DEF_REL_
+    BA_REL_
+    BA_DEF_DEF_REL_
+    BU_SG_REL_
+    BU_EV_REL_
+    BU_BO_REL_
+    SG_MUL_VAL_
+
+BS_:
+
+BU_: EON XXX INTERCEPTOR ANY ACTUATOR SAFETY
+
+BO_ 129 GAS_PEDAL_2: 8 XXX
+ SG_ GAS_COUNTER : 31|8@0+ (1,0) [0|255] "" XXX
+ SG_ VEHICLE_SPEED : 32|16@0+ (0.007,0) [0|300] "kph" XXX
+
+BO_ 160 IMU: 8 XXX
+ SG_ CHECKSUM : 7|8@0+ (1,0) [0|255] "" XXX
+ SG_ COUNTER : 15|4@0+ (1,0) [0|15] "" XXX
+ SG_ VEHICLE_SPEED : 16|16@0+ (0.007,0) [0|300] "kph" XXX
+ SG_ YAW_RATE : 39|16@0- (0.01,0) [-327|327] "deg/s" XXX
+ SG_ LATERAL_ACCEL : 55|16@0- (0.01,0) [-327|327] "m/s2" XXX
+
+BO_ 161 BRAKE_AUX: 8 XXX
+ SG_ BRAKE_AUX : 7|32@0+ (1,0) [0|4294967295] "" XXX
+
+BO_ 163 KINEMATICS: 8 XXX
+ SG_ COUNTER : 7|16@0+ (1,0) [0|65535] "" XXX
+ SG_ STEERING_ANGLE : 23|16@0- (0.06,-746.88) [-500|500] "deg" XXX
+
+BO_ 164 STEERING_TORQUE: 8 XXX
+ SG_ COUNTER : 7|16@0+ (1,0) [0|65535] "" XXX
+ SG_ TORQUE_MUX : 39|8@0+ (1,0) [0|255] "" XXX
+
+BO_ 165 LKAS: 8 XXX
+ SG_ CHECKSUM : 7|8@0+ (1,0) [0|255] "" XXX
+ SG_ COUNTER : 11|4@0+ (1,0) [0|15] "" XXX
+ SG_ STEER_REQ : 12|1@0+ (1,0) [0|1] "" XXX
+ SG_ SET_ME_7 : 15|3@0+ (1,0) [0|7] "" XXX
+ SG_ LKAS_B2 : 23|8@0+ (1,0) [0|255] "" XXX
+ SG_ SET_ME_1 : 31|1@0+ (1,0) [0|1] "" XXX
+ SG_ STEER_CMD : 29|14@0+ (0.01,-90) [-90|73.83] "deg" XXX
+ SG_ LKAS_B5 : 47|8@0+ (1,0) [0|255] "" XXX
+ SG_ LKAS_B6 : 55|8@0+ (1,0) [0|255] "" XXX
+ SG_ LKAS_B7 : 63|8@0+ (1,0) [0|255] "" XXX
+
+BO_ 430 ADAS_ACC: 8 XXX
+ SG_ CHECKSUM : 7|8@0+ (1,0) [0|255] "" XXX
+ SG_ COUNTER : 15|8@0+ (1,0) [0|255] "" XXX
+ SG_ ACC_BYTE2 : 23|8@0+ (1,0) [0|255] "" XXX
+ SG_ ACC_REQ : 28|1@0+ (1,0) [0|1] "" XXX
+ SG_ ACC_CMD : 29|14@0+ (1,0) [0|16383] "" XXX
+ SG_ ACC_BYTE6 : 55|8@0+ (1,0) [0|255] "" XXX
+
+BO_ 181 BRAKE: 8 XXX
+ SG_ COUNTER : 7|16@0+ (1,0) [0|65535] "" XXX
+ SG_ BRAKE_SEQ : 23|8@0+ (1,0) [0|255] "" XXX
+ SG_ BRAKE_PRESSURE_1 : 31|8@0+ (1,0) [0|255] "" XXX
+ SG_ BRAKE_PHASE : 39|8@0+ (1,0) [0|255] "" XXX
+ SG_ BRAKE_PRESSURE_2 : 47|8@0+ (1,0) [0|255] "" XXX
+
+BO_ 188 GAS_PEDAL: 8 XXX
+ SG_ COUNTER : 7|16@0+ (1,0) [0|65535] "" XXX
+ SG_ GAS_PEDAL_1 : 47|8@0+ (0.015625,0) [0|1] "" XXX
+ SG_ GAS_PEDAL_2 : 55|8@0+ (0.015625,0) [0|1] "" XXX
+ SG_ GAS_PEDAL_3 : 63|8@0+ (1,0) [0|255] "" XXX
+
+BO_ 221 STALK_2: 8 XXX
+ SG_ BLINKER_AUX : 24|8@1+ (1,0) [0|255] "" XXX
+
+BO_ 224 STALK: 8 XXX
+ SG_ CHECKSUM : 7|8@0+ (1,0) [0|255] "" XXX
+ SG_ TURN_SIGNAL : 23|8@0+ (1,0) [0|255] "" XXX
+ SG_ STALK_CMD : 31|8@0+ (1,0) [0|255] "" XXX
+ SG_ STALK_TAIL : 63|8@0+ (1,0) [0|255] "" XXX
+
+BO_ 386 SEATBELTS: 8 XXX
+ SG_ COUNTER : 7|16@0+ (1,0) [0|65535] "" XXX
+ SG_ SEATBELT_PROFILE : 23|8@0+ (1,0) [0|255] "" XXX
+ SG_ SEATBELT_MUX : 47|8@0+ (1,0) [0|255] "" XXX
+ SG_ SEATBELT_DRIVER : 55|8@0+ (1,0) [0|255] "" XXX
+
+BO_ 182 WHEEL_FR: 64 XXX
+ SG_ WHEEL_SPEED : 52|13@1+ (0.1,0) [0|819.1] "kph" XXX
+
+BO_ 183 WHEEL_FL: 16 XXX
+ SG_ WHEEL_SPEED : 52|13@1+ (0.1,0) [0|819.1] "kph" XXX
+
+BO_ 185 WHEEL_RL: 16 XXX
+ SG_ WHEEL_SPEED : 52|13@1+ (0.1,0) [0|819.1] "kph" XXX
+
+BO_ 186 WHEEL_RR: 64 XXX
+ SG_ WHEEL_SPEED : 52|13@1+ (0.1,0) [0|819.1] "kph" XXX
+
+BO_ 190 ACC_HUD: 8 XXX
+ SG_ CRUISE_STATE_RAW : 16|8@1+ (1,0) [0|255] "" XXX
+
+BO_ 434 ADAS_STATUS: 8 XXX
+ SG_ COUNTER : 7|8@0+ (1,0) [0|255] "" XXX
+ SG_ FOLLOW_DISTANCE : 16|8@1+ (1,0) [0|255] "" XXX
+
+BO_ 965 ACC_HUD_2: 8 XXX
+ SG_ FOLLOW_DISTANCE_HUD : 32|8@1+ (1,0) [0|255] "" XXX
+
+BO_ 441 STEERING_EPS: 8 XXX
+ SG_ DRIVER_TORQUE : 15|16@0- (0.01,0) [0|327] "Nm" XXX
+ SG_ EPS_TORQUE : 47|16@0- (0.001,0) [-32|32] "Nm" XXX
+
+BO_ 444 WHEELSPEED_EXTRA: 8 XXX
+ SG_ WHEEL_EXTRA : 7|64@0+ (1,0) [0|1.844674407370955e+19] "" XXX
+
+BO_ 443 PCM_BUTTONS: 8 XXX
+ SG_ COUNTER : 7|16@0+ (1,0) [0|65535] "" XXX
+ SG_ PCM_BTN_MUX : 23|8@0+ (1,0) [0|255] "" XXX
+ SG_ PCM_BTN_STATE : 24|8@1+ (1,0) [0|255] "" XXX
+
+BO_ 460 DOORS: 8 XXX
+ SG_ DOOR_STATE : 8|8@1+ (1,0) [0|255] "" XXX
+ SG_ DOOR_STATE_2 : 16|8@1+ (1,0) [0|255] "" XXX
+
+BO_ 464 ACC_CMD: 8 XXX
+ SG_ ACC_CMD_BYTE3 : 31|8@0+ (1,0) [0|255] "" XXX
+ SG_ ACC_CMD_BYTE4 : 39|8@0+ (1,0) [0|255] "" XXX
+
+BO_ 688 BODY_STATUS: 8 XXX
+ SG_ BODY_HDR : 31|32@0+ (1,0) [0|4294967295] "" XXX
+ SG_ BODY_SUB : 40|8@1+ (1,0) [0|255] "" XXX
+ SG_ BODY_EVENT : 48|8@1+ (1,0) [0|255] "" XXX
+ SG_ GEAR_STATUS : 48|8@1+ (1,0) [0|255] "" XXX
+
+BO_ 689 GEAR_SHIFTER: 8 XXX
+ SG_ GEAR_BYTE0 : 7|8@0+ (1,0) [0|255] "" XXX
+ SG_ GEAR_BYTE1 : 15|8@0+ (1,0) [0|255] "" XXX
+
+BO_ 912 SHIFT_BUTTON: 8 XXX
+ SG_ SHIFT_BTN_B3 : 31|8@0+ (1,0) [0|255] "" XXX
+
+BO_ 690 TRANSMISSION: 8 XXX
+ SG_ GEAR_MUX : 7|32@0+ (1,0) [0|4294967295] "" XXX
+ SG_ GEAR : 40|8@1+ (1,0) [0|255] "" XXX
+
+CM_ "Perodua QV-E (P01A) powertrain / body CAN. Reverse-engineered from QVE captures.";
+
+BO_ 128 CAM_SESSION_HDR: 20 XXX
+ SG_ COUNTER_B2 : 16|8@1+ (1,0) [0|255] "" XXX
+
+BO_ 176 CAM_LANE_FD: 64 XXX
+ SG_ COUNTER_B2 : 16|8@1+ (1,0) [0|255] "" XXX
+
+CM_ BO_ 224 STALK "Turn stalk: byte2 TURN_SIGNAL 1=left 2=right 8=generic toggle";
+CM_ BO_ 221 STALK_2 "Turn stalk aux: byte2 0x2A=left 0x34=right";
+CM_ BO_ 188 GAS_PEDAL "Accel 0-1: max(byte5,byte6,byte7&0x7F)/64; byte7 0x80=pedal active";
+CM_ BO_ 181 BRAKE "Brake 0-1: max((byte3-12)/30,(byte5-8)/56); byte4 is phase not pressure";
+CM_ BO_ 163 KINEMATICS "Steer angle bytes2-3: (raw-0x30A0)*0.06 deg";
+CM_ BO_ 164 STEERING_TORQUE "Counter/mux only; driver torque is on 441 bytes1-2";
+CM_ BO_ 165 LKAS "LKAS TX 0xA5: STEER_REQ bit12; STEER_CMD bit29 len14 scale 0.01 offset -90 deg; idle=0 -> 16e0ffa32892db6a";
+CM_ BO_ 430 ADAS_ACC "ACC TX 0x1AE: ACC_REQ bit12; ACC_CMD bit29 len14 units TBD";
+CM_ BO_ 441 STEERING_EPS "Driver torque bytes1-2 (0.01 Nm); EPS torque bytes5-6 (0.001 Nm)";
+CM_ BO_ 464 ACC_CMD "RES byte3=0xDF; SET byte4=0xD5; byte0-1 are checksum/counter";
+CM_ BO_ 190 ACC_HUD "Cruise HUD byte2: 0x1B=idle 0x2B=enabled 0x4B=ready";
+CM_ BO_ 443 PCM_BUTTONS "SET stalk byte3 bits0+2 set (0x55); idle 0x50/0x70";
+CM_ BO_ 434 ADAS_STATUS "Follow distance bars: byte2 upper nibble family (0x1X=1 0x5X/0x9X=2 0x3X=3 0x7X/0xBX=4)";
+CM_ BO_ 965 ACC_HUD_2 "HUD gap confirm byte4: 0x47/0x48=1bar 0x49/0x4A=2bar 0x4B/0x4C=3bar 0x4D=4bar";
+CM_ BO_ 129 GAS_PEDAL_2 "Duplicate vehicle speed broadcast";
+CM_ BO_ 182 WHEEL_FR "CAN-FD FR 0xB6; paired 0xB7=FL 0xB9=RL 0xBA=RR";
+CM_ BO_ 183 WHEEL_FL "CAN-FD FL wheel speed (16 byte frame)";
+CM_ BO_ 185 WHEEL_RL "CAN-FD RL wheel speed (16 byte frame)";
+CM_ BO_ 186 WHEEL_RR "CAN-FD RR wheel speed (64 byte frame)";
+CM_ SG_ 182 WHEEL_SPEED "Bit 52 len 13 scale 0.1 kph";
+CM_ BO_ 386 SEATBELTS "Driver belt: byte6 0xE1+byte5 0x88=unlatched 0x89=latched; 0xDB profile=unlatched";
+CM_ BO_ 688 BODY_STATUS "Events: sub1 0x38=latch 0x08=unbelt; sub3 0x08=door close; 0x48=door open";
+CM_ BO_ 688 BODY_STATUS "Events on byte6; GEAR_STATUS byte6: 0xB0=D 0xB8=N 0xC8=R; 0x88 is idle mux not gear";
+CM_ BO_ 689 GEAR_SHIFTER "PRNDL: byte0 bit7=1 -> D/R; byte0=0x3F byte1=0xD8=P 0xF8=N";
+CM_ BO_ 912 SHIFT_BUTTON "Shifter button byte3 high nibble: 4=R 5=D";
+CM_ BO_ 690 TRANSMISSION "Legacy PRNDL byte5 (690); use 689 GEAR_SHIFTER instead";
+CM_ SG_ 224 TURN_SIGNAL "0=off 1=left 2=right 8=generic toggle";
+CM_ SG_ 221 BLINKER_AUX "0x2A=left 0x34=right";
+CM_ SG_ 460 DOOR_STATE "Byte1: 0xFC/0xFD=ajar 0xFB=closed";
+CM_ SG_ 460 DOOR_STATE_2 "Byte2: 0x41=open 0x40=closed";
+CM_ SG_ 688 BODY_SUB "Event source: 1=seatbelt 3=door 6=door";
+CM_ SG_ 688 BODY_EVENT "0x38=belt latch 0x08=unbelt/door close 0x48=door open";
+CM_ SG_ 386 SEATBELT_PROFILE "0xDB=unlatched profile; 0xC0/C8=latched profile";
+CM_ SG_ 386 SEATBELT_MUX "0x88=unlatched 0x89=latched when byte6=0xE1";
+CM_ SG_ 386 SEATBELT_DRIVER "0xE1 normal 0xF1 buckling 0xF3/0xE0 unlatched";
+CM_ SG_ 188 GAS_PEDAL_3 "Low 7 bits are position; 0x80 is active flag not travel";
+CM_ SG_ 181 BRAKE_PRESSURE_1 "Primary pressure byte3; idle 0x0C";
+CM_ SG_ 181 BRAKE_PRESSURE_2 "Aux pressure byte5; idle 8";
+CM_ SG_ 181 BRAKE_PHASE "Cycles 0x08..0xE8 step 0x20; not pedal travel";
+
+CM_ BO_ 128 CAM_SESSION_HDR "Cam keepalive/session 0x80; byte2 session counter for B0/B1 sync";
+CM_ BO_ 176 CAM_LANE_FD "Cam lane FD 0xB0; counter byte2 fallback when 0x80 missing";
+
+VAL_ 386 SEATBELT_DRIVER 224 "UNLATCHED" 225 "LATCHED" 241 "BUCKLING" 243 "UNLATCHED";
+VAL_ 690 GEAR 4 "D" 8 "N" 9 "R" 136 "P";

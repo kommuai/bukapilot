@@ -1,0 +1,32 @@
+[
+  {
+    "name": "rootfs",
+    "url": "https://web.kommu.ai/depot/upload/publicbox/rootfs-d41160e38d433e2b8a043d1792e007779c60050a04e0f12cacd28a517e52208b.simg.xz",
+    "hash": "d41160e38d433e2b8a043d1792e007779c60050a04e0f12cacd28a517e52208b",
+    "hash_raw": "8e93f2836b607b4ed6bcda520a1ef306de26988be0f7a9ca95b5c4b8d1f7e787",
+    "size": 4166725632,
+    "sparse": true,
+    "full_check": false,
+    "has_ab": true
+  },
+  {
+    "name": "boot",
+    "url": "https://web.kommu.ai/depot/upload/publicbox/boot-bc8e10cb3d80e7a6da1b24d19d1ed9f771d223a3122d69dd0b6b5cb0a4e5597d.img.xz",
+    "hash": "bc8e10cb3d80e7a6da1b24d19d1ed9f771d223a3122d69dd0b6b5cb0a4e5597d",
+    "hash_raw": "bc8e10cb3d80e7a6da1b24d19d1ed9f771d223a3122d69dd0b6b5cb0a4e5597d",
+    "size": 268435456,
+    "sparse": false,
+    "full_check": true,
+    "has_ab": true
+  },
+  {
+    "name": "uboot",
+    "url": "https://web.kommu.ai/depot/upload/publicbox/uboot.img.xz",
+    "hash": "31d0d57334177262f798daff9e6c710f11ae0272f5dbf4219e5f4502172c1dbf",
+    "hash_raw": "31d0d57334177262f798daff9e6c710f11ae0272f5dbf4219e5f4502172c1dbf",
+    "size": 8388608,
+    "sparse": false,
+    "full_check": true,
+    "has_ab": true
+  }
+]
