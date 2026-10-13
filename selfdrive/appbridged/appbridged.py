@@ -616,7 +616,7 @@ class AppBridge:
     string_keys = {
       'FeaturesPackage', 'CarName', 'UpdaterTargetBranch',
       'UpdaterState', 'UpdateFailedCount', 'LastUpdateTime',
-      'GithubUsername', 'GsmApn'
+      'GithubUsername', 'GsmApn', 'DrivePathOffset'
     }
 
     for key in bool_keys:
