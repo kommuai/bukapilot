@@ -9,8 +9,10 @@ from uuid import uuid4
 import datetime
 import cereal.messaging as messaging
 from cereal import log
+from cereal.services import SERVICE_LIST
 from openpilot.common.realtime import Ratekeeper
 from openpilot.common.constants import CV
+from opendbc.car import ACCELERATION_DUE_TO_GRAVITY
 from openpilot.common.swaglog import cloudlog
 from openpilot.system.version import get_version, get_commit, terms_version, training_version
 from openpilot.common.params import Params
@@ -20,6 +22,7 @@ from openpilot.selfdrive.nav.destination_store import (
   NAV_STOP_INDEX_KEY, NAV_STOP_VERSION_KEY,
   parse_destination_json, read_stop_list, write_stop_list,
 )
+from openpilot.selfdrive.selfdrived.events import ET
 from openpilot.selfdrive.appbridged.nav_route_transfer import NavRouteTransfer, ROUTE_TRANSFER_IDLE_TIMEOUT_SECONDS
 import json
 from openpilot.system.hardware import HARDWARE
@@ -33,7 +36,7 @@ from openpilot.selfdrive.appbridged.video_scanner import validate_storage
 from openpilot.selfdrive.appbridged.video_hotspot import disable_hotspot, enable_hotspot
 
 # BLE Constants
-MESSAGE_HZ = 16  # Visualisation BLE loop rate
+MESSAGE_HZ = SERVICE_LIST["modelV2"].frequency  # Match or stay below modelV2 updates to avoid outpacing fresh data.
 params = Params()
 
 def _nav_dest_key_from_params(params) -> str:
@@ -68,6 +71,8 @@ DONGLE_ID = params.get("DongleId") or ""
 CHANNEL_VISUALISATION = 0x01
 CHANNEL_SETTINGS = 0x02
 CHANNEL_VIDEO = 0x03
+EVENT_HISTORY_TYPES = {ET.NO_ENTRY, ET.SOFT_DISABLE, ET.IMMEDIATE_DISABLE}
+
 
 # Wi-Fi/nmcli Constants
 WIFI_CONNECT_TIMEOUT_SECONDS = 20 # Timeout for device Wi-Fi connection attempts
@@ -190,9 +195,16 @@ class AppBridge:
     self.sm = sm if sm else messaging.SubMaster([
       'modelV2', 'selfdriveState', 'radarState', 'liveCalibration',
       'driverMonitoringState', 'carState', 'carControl', 'carOutput',
-      'controlsState', 'longitudinalPlan',
+      'controlsState', 'liveParameters', 'longitudinalPlan',
       'uploaderState', 'gpsLocation', 'navInstruction'
     ])
+    self._event_history = {}
+    self._vis_tx_count = 0
+    self._vis_tx_log_at = monotonic()
+    self._vis_tx_below_since = None
+    self._vis_tx_started = False
+    self._video_dl_valid_at = 0.0
+    self._video_dl_valid = False
     self.rk = Ratekeeper(MESSAGE_HZ) # Ratekeeper for loop
     self.last_periodic_time = 0 # Track last periodic task
     self.last_video_heartbeat_time = 0
@@ -515,6 +527,28 @@ class AppBridge:
     except Exception as e:
       cloudlog.error(f'appbridged background nav BLE send failed error={e}')
 
+  def _update_event_history(self):
+    if self.sm.valid.get('selfdriveState'):
+      alert_data = self.sm['selfdriveState'].to_dict()
+      alert_key = str(alert_data.get('alertType') or '')
+      event_name, _, alert_type = alert_key.partition('/')
+      if event_name and alert_type in EVENT_HISTORY_TYPES and (title := str(alert_data.get('alertText2') or '').strip()):
+        self._event_history[alert_key] = {
+          'lastSeenAt': datetime.datetime.now(datetime.timezone.utc).isoformat(timespec='milliseconds').replace('+00:00', 'Z'),
+          'title': title,
+          'alertStatus': alert_data.get('alertStatus'),
+        }
+
+  def _video_download_valid(self):
+    # Live frames repeat this status; list requests and video actions validate independently.
+    if (now := monotonic()) - self._video_dl_valid_at >= 1.0:
+      self._video_dl_valid_at = now
+      try:
+        self._video_dl_valid = validate_storage(self.hw_helper)[0]
+      except Exception:
+        self._video_dl_valid = False
+    return self._video_dl_valid
+
   def send_visualisation_message(self, is_metric):
     # Offroad / no model: still send a light frame so nav HUD (and cancel) can update.
     sm = self.sm
@@ -524,6 +558,7 @@ class AppBridge:
       data = {}
     data["m"] = is_metric
     data["d"] = DONGLE_ID
+    data['eventHistory'] = sorted(self._event_history.values(), key=lambda event: event['lastSeenAt'], reverse=True)
     try:
       update_dict_from_sm(data, sm["selfdriveState"], ["enabled", "state", "experimentalMode",
                                                        "alertText1", "alertText2", "alertStatus",
@@ -538,6 +573,27 @@ class AppBridge:
       data["vCruiseCluster"] = data.pop("speedCluster") * CV.MS_TO_KPH  # Device field is in m/s.
     except Exception:
       pass
+    if sm.valid.get('controlsState'):
+      try:
+        controls_state = sm['controlsState']
+        steering_demand = None
+        if controls_state.lateralControlState.which() == 'angleState':
+          if sm.valid.get('carState') and sm.valid.get('liveParameters'):
+            car_state = sm['carState']
+            speed = float(car_state.vEgo)
+            curvature = float(controls_state.curvature)
+            desired_curvature = float(controls_state.desiredCurvature)
+            roll = float(sm['liveParameters'].roll)
+            steering_demand = (curvature * speed ** 2 - roll * ACCELERATION_DUE_TO_GRAVITY) / 3.0 \
+              + (desired_curvature - curvature) * speed ** 2
+        elif sm.valid.get('carOutput'):
+          steering_demand = -float(sm['carOutput'].actuatorsOutput.torque)
+        elif sm.valid.get('carControl'):
+          steering_demand = -float(sm['carControl'].actuators.torque)
+        if steering_demand is not None and math.isfinite(steering_demand):
+          data['steeringDemand'] = min(max(steering_demand, -1.0), 1.0)
+      except (AttributeError, TypeError, ValueError, OverflowError):
+        pass
     # Nav HUD for Visualisation (nv only when active; old apps ignore unknown keys).
     try:
       nv = None
@@ -562,14 +618,33 @@ class AppBridge:
     except Exception as e:
       cloudlog.error(f"BLE visualisation nav HUD error: {e}")
     self._nav_ble_sync(data)
-    try:
-      sd = self.hw_helper.get_sd_status()
-      data['videoDlValid'] = validate_storage(self.hw_helper, sd)[0]
-    except Exception:
-      data['videoDlValid'] = False
+    data['videoDlValid'] = self._video_download_valid()
     data = quantize(data)
+    tx_active = self.ble.tx_char is not None
+    now = monotonic()
+    if not tx_active:
+      self._vis_tx_count = 0
+      self._vis_tx_log_at = now
+      self._vis_tx_below_since = None
+      self._vis_tx_started = False
+    elif now - self._vis_tx_log_at >= 1.0:
+      elapsed = now - self._vis_tx_log_at
+      tx_rate = round(self._vis_tx_count / elapsed)
+      target_rate = round(MESSAGE_HZ)
+      if self._vis_tx_started and tx_rate > 0 and target_rate - tx_rate > 1:
+        if self._vis_tx_below_since is None:
+          self._vis_tx_below_since = now
+        elif now - self._vis_tx_below_since >= 1.0:
+          print(f"BLE Visualisation TX rate below target: {tx_rate}/{target_rate}Hz")
+      else:
+        self._vis_tx_below_since = None
+      self._vis_tx_count = 0
+      self._vis_tx_log_at = now
     try:
       self.ble.chunk_and_send(CHANNEL_VISUALISATION, msgpack.packb(data))
+      if tx_active:
+        self._vis_tx_count += 1
+        self._vis_tx_started = True
     except Exception as e:
       cloudlog.error(f"BLE visualisation sending error: {e}")
 
@@ -589,7 +664,7 @@ class AppBridge:
     sett['networkType'] = self.hw_helper.get_network_type()
     sett['simStatus'] = self.hw_helper.get_sim_status()
     sett['remainingDataUpload'] = f"{int(self.sm['uploaderState'].immediateQueueSize)} MB" if (sd := self.hw_helper.get_sd_status()) is None else sd
-    sett['videoDlValid'] = validate_storage(self.hw_helper, sd)[0]
+    sett['videoDlValid'] = self._video_download_valid()
 
     self._nav_ble_status(sett, is_offroad)
     sett['NavDesiresAllowed'] = safe_get('NavDesiresAllowed', True)
@@ -636,7 +711,6 @@ class AppBridge:
         text=True,
         bufsize=1
       )
-      self.supportTunnelProcess = proc
 
       # Capture the first line (the port)
       if (line := proc.stdout.readline()):
@@ -1780,6 +1854,7 @@ class AppBridge:
     is_metric = None
     while True:
       (sm := self.sm).update(0)
+      self._update_event_history()
 
       # 1 Hz WiFi/hotspot task
       if (cur_time := monotonic()) - self.last_1hz_task_time >= 1:
