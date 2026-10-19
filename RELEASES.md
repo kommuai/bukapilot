@@ -1,3 +1,11 @@
+Version 10.1.1 (2026-10-10)
+========================
+* Direct footage download on KommuAI app
+* RK-AGNOS 12.0.1
+  * Full HDR4 camera
+  * Fix unstable wlan1 AP connection
+  * Image size down by 800MB
+
 Version 10.1.0 (2026-04-13)
 ========================
 * Bump to openpilot v0.10.3
