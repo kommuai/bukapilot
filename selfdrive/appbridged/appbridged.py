@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import msgpack
+import hashlib
 import subprocess
 import threading
 import re
@@ -9,8 +10,10 @@ from uuid import uuid4
 import datetime
 import cereal.messaging as messaging
 from cereal import log
+from cereal.services import SERVICE_LIST
 from openpilot.common.realtime import Ratekeeper
 from openpilot.common.constants import CV
+from opendbc.car import ACCELERATION_DUE_TO_GRAVITY
 from openpilot.common.swaglog import cloudlog
 from openpilot.system.version import get_version, get_commit, terms_version, training_version
 from openpilot.common.params import Params
@@ -20,6 +23,7 @@ from openpilot.selfdrive.nav.destination_store import (
   NAV_STOP_INDEX_KEY, NAV_STOP_VERSION_KEY,
   parse_destination_json, read_stop_list, write_stop_list,
 )
+from openpilot.selfdrive.selfdrived.events import ET
 from openpilot.selfdrive.appbridged.nav_route_transfer import NavRouteTransfer, ROUTE_TRANSFER_IDLE_TIMEOUT_SECONDS
 import json
 from openpilot.system.hardware import HARDWARE
@@ -33,17 +37,20 @@ from openpilot.selfdrive.appbridged.video_scanner import validate_storage
 from openpilot.selfdrive.appbridged.video_hotspot import disable_hotspot, enable_hotspot
 
 # BLE Constants
-MESSAGE_HZ = 16  # Visualisation BLE loop rate
+MESSAGE_HZ = SERVICE_LIST["modelV2"].frequency  # Match or stay below modelV2 updates to avoid outpacing fresh data.
 params = Params()
 
-def _nav_dest_key_from_params(params) -> str:
-  dest = parse_destination_json(params.get("NavDestination"))
+def _nav_dest_key(dest) -> str:
   if not dest:
     return ""
   try:
     return f"{float(dest['latitude']):.5f}|{float(dest['longitude']):.5f}"
   except (KeyError, TypeError, ValueError):
     return ""
+
+
+def _nav_dest_key_from_params(params) -> str:
+  return _nav_dest_key(parse_destination_json(params.get("NavDestination")))
 
 
 def _nav_json_param(key: str, default):
@@ -68,6 +75,8 @@ DONGLE_ID = params.get("DongleId") or ""
 CHANNEL_VISUALISATION = 0x01
 CHANNEL_SETTINGS = 0x02
 CHANNEL_VIDEO = 0x03
+EVENT_HISTORY_TYPES = {ET.NO_ENTRY, ET.SOFT_DISABLE, ET.IMMEDIATE_DISABLE}
+
 
 # Wi-Fi/nmcli Constants
 WIFI_CONNECT_TIMEOUT_SECONDS = 20 # Timeout for device Wi-Fi connection attempts
@@ -80,6 +89,116 @@ NAV_BLE_DIAG_MAPBOX_TIMEOUT_SEC = 30.0
 NAV_BACKGROUND_SYNC_INTERVAL_SEC = 1.0
 NAV_PROTOCOL_VERSION = 2
 NAV_ROUTE_TRANSFER_VERSION = 2
+NAV_ROUTE_SELECTION_MAX_BYTES = 1024 * 1024
+NAV_ROUTE_SELECTION_MAX_PARTS = 255
+NAV_ROUTE_SELECTION_MAX_CANDIDATES = 16
+NAV_ROUTE_SELECTION_MAX_SET_BYTES = 4 * 1024 * 1024
+NAV_ROUTE_SELECTION_IDLE_TIMEOUT_SEC = ROUTE_TRANSFER_IDLE_TIMEOUT_SECONDS
+
+
+def _nav_validate_candidate_manifest(candidate_set_id, active_route_id, candidates):
+  if not isinstance(candidate_set_id, str) or not 1 <= len(candidate_set_id) <= 100:
+    return False
+  if not isinstance(active_route_id, str) or not 1 <= len(active_route_id) <= 160:
+    return False
+  if not isinstance(candidates, list) or not 1 <= len(candidates) <= NAV_ROUTE_SELECTION_MAX_CANDIDATES:
+    return False
+  seen = set()
+  aggregate_bytes = 0
+  for entry in candidates:
+    if not isinstance(entry, dict):
+      return False
+    route_id, digest, payload_bytes = entry.get('routeId'), entry.get('payloadSha256'), entry.get('payloadBytes')
+    if (not isinstance(route_id, str) or not 1 <= len(route_id) <= 160 or route_id in seen
+        or not isinstance(digest, str) or re.fullmatch(r'[0-9a-f]{64}', digest) is None
+        or type(payload_bytes) is not int or not 32 <= payload_bytes <= NAV_ROUTE_SELECTION_MAX_BYTES):
+      return False
+    seen.add(route_id)
+    aggregate_bytes += payload_bytes
+    if aggregate_bytes > NAV_ROUTE_SELECTION_MAX_SET_BYTES:
+      return False
+  return active_route_id in seen
+
+
+def _nav_validate_banner_instructions(banners):
+  if not isinstance(banners, list) or len(banners) > 8:
+    return False
+  for banner in banners:
+    if not isinstance(banner, dict):
+      return False
+    distance = banner.get('distanceAlongGeometry')
+    if (isinstance(distance, bool) or not isinstance(distance, (int, float))
+        or not math.isfinite(distance) or distance < 0):
+      return False
+    for group_name in ('primary', 'secondary', 'sub'):
+      group = banner.get(group_name)
+      if group is None:
+        continue
+      if not isinstance(group, dict):
+        return False
+      for field in ('text', 'type', 'modifier'):
+        value = group.get(field)
+        if value is not None and (not isinstance(value, str) or len(value) > 256):
+          return False
+      components = group.get('components')
+      if components is not None:
+        if not isinstance(components, list) or len(components) > 16:
+          return False
+        for component in components:
+          if not isinstance(component, dict):
+            return False
+          text = component.get('text')
+          if text is not None and (not isinstance(text, str) or len(text) > 256):
+            return False
+  return True
+
+
+def _nav_parse_route_payload(raw, route_id, digest, payload_bytes):
+  if (not isinstance(raw, bytes) or type(payload_bytes) is not int
+      or not 32 <= payload_bytes <= NAV_ROUTE_SELECTION_MAX_BYTES
+      or len(raw) != payload_bytes):
+    raise ValueError('invalid_route_bytes')
+  if not isinstance(digest, str) or re.fullmatch(r'[0-9a-f]{64}', digest) is None:
+    raise ValueError('invalid_route_digest')
+  if hashlib.sha256(raw).hexdigest() != digest:
+    raise ValueError('route_digest_mismatch')
+  text = raw.decode('utf-8', errors='strict')
+  data = json.loads(text)
+  if not isinstance(data, dict) or data.get('schemaVersion') != 1 or data.get('routeId') != route_id:
+    raise ValueError('invalid_route_identity')
+  geometry, steps = data.get('geometry'), data.get('steps')
+  if not isinstance(geometry, list) or not 2 <= len(geometry) <= 50000:
+    raise ValueError('invalid_route_geometry')
+  for point in geometry:
+    if not isinstance(point, dict): raise ValueError('invalid_route_geometry')
+    lat, lon = point.get('latitude'), point.get('longitude')
+    if (isinstance(lat, bool) or not isinstance(lat, (int, float)) or not math.isfinite(lat) or not -90 <= lat <= 90
+        or isinstance(lon, bool) or not isinstance(lon, (int, float)) or not math.isfinite(lon) or not -180 <= lon <= 180):
+      raise ValueError('invalid_route_geometry')
+  if not isinstance(steps, list) or not 1 <= len(steps) <= 10000:
+    raise ValueError('invalid_route_steps')
+  for step in steps:
+    if not isinstance(step, dict): raise ValueError('invalid_route_step')
+    loc, distance, duration = step.get('location'), step.get('distance'), step.get('duration')
+    if (not isinstance(loc, dict) or isinstance(distance, bool) or not isinstance(distance, (int, float))
+        or not math.isfinite(distance) or distance < 0 or isinstance(duration, bool)
+        or not isinstance(duration, (int, float)) or not math.isfinite(duration) or duration < 0
+        or not isinstance(step.get('maneuver'), str) or len(step['maneuver']) > 64
+        or not isinstance(step.get('instruction', ''), str) or len(step.get('instruction', '')) > 500
+        or not isinstance(loc.get('latitude'), (int, float)) or isinstance(loc.get('latitude'), bool)
+        or not math.isfinite(loc['latitude']) or not -90 <= loc['latitude'] <= 90
+        or not isinstance(loc.get('longitude'), (int, float)) or isinstance(loc.get('longitude'), bool)
+        or not math.isfinite(loc['longitude']) or not -180 <= loc['longitude'] <= 180
+        or not _nav_validate_banner_instructions(step.get('bannerInstructions', []))):
+      raise ValueError('invalid_route_step')
+  speech = data.get('speechInstructions', [])
+  if not isinstance(speech, list) or len(speech) > 20000:
+    raise ValueError('invalid_route_guidance')
+  for item in speech:
+    if (not isinstance(item, dict) or not isinstance(item.get('announcement'), str)
+        or not 1 <= len(item['announcement']) <= 500):
+      raise ValueError('invalid_route_guidance')
+  return text, data
 
 # Device Constants
 UPDATE_PROCESS = "system.updated.updated"
@@ -190,9 +309,18 @@ class AppBridge:
     self.sm = sm if sm else messaging.SubMaster([
       'modelV2', 'selfdriveState', 'radarState', 'liveCalibration',
       'driverMonitoringState', 'carState', 'carControl', 'carOutput',
-      'controlsState', 'longitudinalPlan',
+      'controlsState', 'liveParameters', 'longitudinalPlan',
       'uploaderState', 'gpsLocation', 'navInstruction'
     ])
+    self._event_history = {}
+    self.nav_panel_subscribed = False
+    self.nav_panel_sync_requested = False
+    self._vis_tx_count = 0
+    self._vis_tx_log_at = monotonic()
+    self._vis_tx_below_since = None
+    self._vis_tx_started = False
+    self._video_dl_valid_at = 0.0
+    self._video_dl_valid = False
     self.rk = Ratekeeper(MESSAGE_HZ) # Ratekeeper for loop
     self.last_periodic_time = 0 # Track last periodic task
     self.last_video_heartbeat_time = 0
@@ -208,7 +336,6 @@ class AppBridge:
     self.receiver = ChunkReceiver(self.ble) # Handle incoming messages in separate thread
     self.send_channel = None # Keep track of which channel to send messages
     self.send_car_names_cnt = -1
-    self._legacy_nav_commands_logged = set()
     self._nav_ble_diag_test_id = ''
     self._nav_ble_diag_last_sequence = 0
     self._nav_ble_diag_probe_count = 0
@@ -238,13 +365,22 @@ class AppBridge:
     self._nav_ble_diag_status_text = "No replay"
     self._nav_ble_diag_maneuver_type = ""
     self._nav_ble_diag_maneuver_modifier = ""
+    self._nav_ble_diag_maneuver_distance = None
+    self._nav_ble_diag_maneuver_primary_text = ""
+    self._nav_ble_diag_maneuver_secondary_text = ""
+    self._nav_ble_diag_maneuver_lanes = []
     self.hotspot_enabled = False
     self.hotspot_ip = None
     self.hw_helper = HardwareHelper()
     self.video_handler = VideoProtocolHandler(self.ble, self.hw_helper)
     self._nav_sync_error = ''
     self._nav_route_transfer = NavRouteTransfer()
+    self._nav_route_select_transfer = NavRouteTransfer()
+    self._nav_route_select_transfer_context = None
     self._nav_ble_diag_route_transfer = NavRouteTransfer()
+    self._nav_ble_diag_select_transfer = NavRouteTransfer()
+    self._nav_ble_diag_select_context = None
+    self._nav_ble_diag_candidate_context = None
     self.ble.on_connect_callback = self.video_handler.on_ble_connected
     self.ble.on_disconnect_callback = self.video_handler.on_ble_disconnected
     self._wlan_info_wake = threading.Event()
@@ -437,7 +573,7 @@ class AppBridge:
       if state: snapshot['longControlState'] = state
     return snapshot
 
-  def _nav_ble_sync(self, out: dict) -> bool:
+  def _nav_ble_sync(self, out: dict, destination) -> bool:
     """Send the canonical navigation snapshot on every navigation channel."""
     try:
       out['navProtocolVersion'] = NAV_PROTOCOL_VERSION
@@ -447,6 +583,8 @@ class AppBridge:
         out['lastNavPosition'] = {
           'latitude': float(g.latitude), 'longitude': float(g.longitude),
           'bearing': float(getattr(g, 'bearingDeg', 0.0) or 0.0),
+          'hasFix': bool(getattr(g, 'hasFix', False)),
+          'unixTimestampMillis': int(getattr(g, 'unixTimestampMillis', 0) or 0),
         }
       with nav_stop_list_lock(blocking=False) as lock_acquired:
         if not lock_acquired:
@@ -454,6 +592,18 @@ class AppBridge:
         out['hasRoute'] = safe_get('NavHasRoute', True)
         out['rerouteNeeded'] = safe_get('NavRerouteNeeded', True)
         out['navStatus'] = params.get(NAV_STATUS_KEY) or ''
+        candidate_context = _nav_json_param('NavRouteCandidateContext', None)
+        installed_route_id = str(params.get('NavRouteInstalledRouteId') or '')
+        if (out['hasRoute'] is True and out['navStatus'] == 'route_active'
+            and isinstance(candidate_context, dict)
+            and candidate_context.get('activeRouteId') == installed_route_id
+            and candidate_context.get('destKey') == _nav_dest_key(destination)):
+          out['navRouteCandidateContext'] = candidate_context
+        selection_ack = _nav_json_param('NavRouteSelectAck', None)
+        if isinstance(selection_ack, dict) and selection_ack.get('candidateSetId') == (
+            candidate_context.get('candidateSetId') if isinstance(candidate_context, dict) else None
+        ):
+          out['navRouteSelectAck'] = selection_ack
         out['navStopList'] = read_stop_list(params)
         out['navStopIndex'] = _nav_int_param(NAV_STOP_INDEX_KEY)
         out['navStopListVersion'] = _nav_int_param(NAV_STOP_VERSION_KEY)
@@ -462,7 +612,7 @@ class AppBridge:
         request_dest_key = (
           f"{request_dest['latitude']:.5f}|{request_dest['longitude']:.5f}" if request_dest else ''
         )
-        active_dest_key = _nav_dest_key_from_params(params)
+        active_dest_key = _nav_dest_key(destination)
         if (isinstance(request, dict) and request.get('requestId')
             and request_dest_key and request_dest_key == active_dest_key):
           request = dict(request)
@@ -489,9 +639,11 @@ class AppBridge:
   def _nav_ble_status(self, out: dict, is_offroad: bool | None) -> bool:
     if is_offroad is not None:
       out['isOffroad'] = is_offroad
-    if not self._nav_ble_sync(out):
+    destination_value = params.get('NavDestination')
+    destination = parse_destination_json(destination_value)
+    if not self._nav_ble_sync(out, destination):
       return False
-    out['navActive'] = bool(safe_get('NavDestination')) or safe_get('NavHasRoute', True)
+    out['navActive'] = bool(destination_value) or out['hasRoute']
     try:
       clear_reason = params.get('NavDestinationWaypoints')
       if isinstance(clear_reason, bytes):
@@ -499,24 +651,53 @@ class AppBridge:
       out['navClearReason'] = (json.loads(clear_reason) or {}).get('clearReason', '') if clear_reason else ''
     except Exception:
       out['navClearReason'] = ''
-    if dest := parse_destination_json(params.get('NavDestination')):
-      out['navDestination'] = dest
+    if destination:
+      out['navDestination'] = destination
     return True
 
-  def send_background_nav_message(self) -> None:
+  def send_background_nav_message(self, is_metric: bool, force: bool = False) -> None:
     nav = {}
     if not self._nav_ble_status(nav, None):
       return
-    if not (safe_get('NavHasRoute', False) or bool(safe_get('NavDestination')) or nav.get('navStopList') or nav.get('navRouteRequest')):
+    nav['IsMetric'] = is_metric
+    if not force and not (
+      nav.get('navActive') or nav.get('navStopList') or nav.get('navRouteRequest')
+    ):
       return
     nav['isOffroad'] = params.get_bool('IsOffroad')
+    if force:
+      nav['NavDesiresAllowed'] = safe_get('NavDesiresAllowed', True)
+      nav['NavLongitudinalAllowed'] = safe_get('NavLongitudinalAllowed', True)
+      nav['NavLanePositioningAllowed'] = safe_get('NavLanePositioningAllowed', True)
     try:
       self.ble.chunk_and_send(CHANNEL_SETTINGS, msgpack.packb(nav))
     except Exception as e:
       cloudlog.error(f'appbridged background nav BLE send failed error={e}')
 
+  def _update_event_history(self):
+    if self.sm.valid.get('selfdriveState'):
+      alert_data = self.sm['selfdriveState'].to_dict()
+      alert_key = str(alert_data.get('alertType') or '')
+      event_name, _, alert_type = alert_key.partition('/')
+      if event_name and alert_type in EVENT_HISTORY_TYPES and (title := str(alert_data.get('alertText2') or '').strip()):
+        self._event_history[alert_key] = {
+          'lastSeenAt': datetime.datetime.now(datetime.timezone.utc).isoformat(timespec='milliseconds').replace('+00:00', 'Z'),
+          'title': title,
+          'alertStatus': alert_data.get('alertStatus'),
+        }
+
+  def _video_download_valid(self):
+    # Live frames repeat this status; list requests and video actions validate independently.
+    if (now := monotonic()) - self._video_dl_valid_at >= 1.0:
+      self._video_dl_valid_at = now
+      try:
+        self._video_dl_valid = validate_storage(self.hw_helper)[0]
+      except Exception:
+        self._video_dl_valid = False
+    return self._video_dl_valid
+
   def send_visualisation_message(self, is_metric):
-    # Offroad / no model: still send a light frame so nav HUD (and cancel) can update.
+    # Offroad / no model: still send a light frame so nav guidance (and cancel) can update.
     sm = self.sm
     try:
       data = extract_model_data(sm["modelV2"].to_dict())
@@ -524,6 +705,7 @@ class AppBridge:
       data = {}
     data["m"] = is_metric
     data["d"] = DONGLE_ID
+    data['eventHistory'] = sorted(self._event_history.values(), key=lambda event: event['lastSeenAt'], reverse=True)
     try:
       update_dict_from_sm(data, sm["selfdriveState"], ["enabled", "state", "experimentalMode",
                                                        "alertText1", "alertText2", "alertStatus",
@@ -538,38 +720,86 @@ class AppBridge:
       data["vCruiseCluster"] = data.pop("speedCluster") * CV.MS_TO_KPH  # Device field is in m/s.
     except Exception:
       pass
-    # Nav HUD for Visualisation (nv only when active; old apps ignore unknown keys).
+    if sm.valid.get('controlsState'):
+      try:
+        controls_state = sm['controlsState']
+        steering_demand = None
+        if controls_state.lateralControlState.which() == 'angleState':
+          if sm.valid.get('carState') and sm.valid.get('liveParameters'):
+            car_state = sm['carState']
+            speed = float(car_state.vEgo)
+            curvature = float(controls_state.curvature)
+            desired_curvature = float(controls_state.desiredCurvature)
+            roll = float(sm['liveParameters'].roll)
+            steering_demand = (curvature * speed ** 2 - roll * ACCELERATION_DUE_TO_GRAVITY) / 3.0 \
+              + (desired_curvature - curvature) * speed ** 2
+        elif sm.valid.get('carOutput'):
+          steering_demand = -float(sm['carOutput'].actuatorsOutput.torque)
+        elif sm.valid.get('carControl'):
+          steering_demand = -float(sm['carControl'].actuators.torque)
+        if steering_demand is not None and math.isfinite(steering_demand):
+          data['steeringDemand'] = min(max(steering_demand, -1.0), 1.0)
+      except (AttributeError, TypeError, ValueError, OverflowError):
+        pass
+    # Drive navigation for Visualisation (nv only when active; old apps ignore unknown keys).
+    destination = None
     try:
       nv = None
       dn = ''
-      if dest := parse_destination_json(params.get('NavDestination')):
-        dn = str(dest.get('name') or dest.get('place_name') or 'Destination')[:48]
+      destination = parse_destination_json(params.get('NavDestination'))
+      if destination:
+        dn = str(destination.get('name') or destination.get('place_name') or 'Destination')[:48]
       if sm.valid.get('navInstruction') and (ni := sm['navInstruction']):
         primary = str(getattr(ni, 'maneuverPrimaryText', '') or '')
         secondary = str(getattr(ni, 'maneuverSecondaryText', '') or '')
         md = float(getattr(ni, 'maneuverDistance', 0.0) or 0.0)
         rd_m = float(getattr(ni, 'distanceRemaining', 0.0) or 0.0)
         if primary or md > 0 or rd_m > 0 or dn:
+          lanes = [[
+            [direction for direction in (str(value) for value in lane.directions) if direction != 'none'],
+            bool(lane.active), str(lane.activeDirection),
+          ] for lane in ni.lanes]
           nv = {
             'p': (primary[:48] or dn), 'q': secondary[:48], 'md': md, 'rd': rd_m,
             'mm': str(getattr(ni, 'maneuverModifier', '') or '')[:16],
             'mt': str(getattr(ni, 'maneuverType', '') or '')[:16], 'dn': dn,
           }
+          if lanes:
+            nv['l'] = lanes
       if nv is None and dn:
         nv = {'p': dn, 'q': '', 'md': -1.0, 'rd': -1.0, 'mm': '', 'mt': 'destination', 'dn': dn}
       if nv is not None:
         data['nv'] = nv
     except Exception as e:
-      cloudlog.error(f"BLE visualisation nav HUD error: {e}")
-    self._nav_ble_sync(data)
-    try:
-      sd = self.hw_helper.get_sd_status()
-      data['videoDlValid'] = validate_storage(self.hw_helper, sd)[0]
-    except Exception:
-      data['videoDlValid'] = False
+      cloudlog.error(f"BLE visualisation nav guidance error: {e}")
+    self._nav_ble_sync(data, destination)
+    data['videoDlValid'] = self._video_download_valid()
     data = quantize(data)
+    tx_active = self.ble.tx_char is not None
+    now = monotonic()
+    if not tx_active:
+      self._vis_tx_count = 0
+      self._vis_tx_log_at = now
+      self._vis_tx_below_since = None
+      self._vis_tx_started = False
+    elif now - self._vis_tx_log_at >= 1.0:
+      elapsed = now - self._vis_tx_log_at
+      tx_rate = round(self._vis_tx_count / elapsed)
+      target_rate = round(MESSAGE_HZ)
+      if self._vis_tx_started and tx_rate > 0 and target_rate - tx_rate > 1:
+        if self._vis_tx_below_since is None:
+          self._vis_tx_below_since = now
+        elif now - self._vis_tx_below_since >= 1.0:
+          print(f"BLE Visualisation TX rate below target: {tx_rate}/{target_rate}Hz")
+      else:
+        self._vis_tx_below_since = None
+      self._vis_tx_count = 0
+      self._vis_tx_log_at = now
     try:
       self.ble.chunk_and_send(CHANNEL_VISUALISATION, msgpack.packb(data))
+      if tx_active:
+        self._vis_tx_count += 1
+        self._vis_tx_started = True
     except Exception as e:
       cloudlog.error(f"BLE visualisation sending error: {e}")
 
@@ -589,7 +819,7 @@ class AppBridge:
     sett['networkType'] = self.hw_helper.get_network_type()
     sett['simStatus'] = self.hw_helper.get_sim_status()
     sett['remainingDataUpload'] = f"{int(self.sm['uploaderState'].immediateQueueSize)} MB" if (sd := self.hw_helper.get_sd_status()) is None else sd
-    sett['videoDlValid'] = validate_storage(self.hw_helper, sd)[0]
+    sett['videoDlValid'] = self._video_download_valid()
 
     self._nav_ble_status(sett, is_offroad)
     sett['NavDesiresAllowed'] = safe_get('NavDesiresAllowed', True)
@@ -636,7 +866,6 @@ class AppBridge:
         text=True,
         bufsize=1
       )
-      self.supportTunnelProcess = proc
 
       # Capture the first line (the port)
       if (line := proc.stdout.readline()):
@@ -666,12 +895,18 @@ class AppBridge:
         if changed:
           updated = write_stop_list(params, updated, index=0)
         if route_reset:
+          self._nav_route_select_transfer.clear()
+          self._nav_route_select_transfer_context = None
           self._nav_route_transfer.clear()
           params.remove(NAV_ROUTE_REQUEST_KEY)
           params.remove(NAV_ROUTE_FAILURE_KEY)
           params.remove('NavRouteData')
           params.remove('NavInstructionState')
           params.remove('NavDestinationWaypoints')
+          params.remove('NavRouteCandidateContext')
+          params.remove('NavRouteInstalledRouteId')
+          params.remove('NavRouteSelectEnvelope')
+          params.remove('NavRouteSelectAck')
           params.put_bool('NavHasRoute', False)
           if updated:
             params.put(NAV_SESSION_ID_KEY, f'nav-{uuid4().hex}')
@@ -757,36 +992,47 @@ class AppBridge:
         )
         return
 
-      route = settings.get('route')
-      if not route:
+      raw_payload = settings.get('routePayloadUtf8')
+      if raw_payload is None:
         self._nav_route_transfer.clear()
         params.remove(NAV_ROUTE_REQUEST_KEY)
         params.put(NAV_ROUTE_FAILURE_KEY, json.dumps({
           'requestId': request_id,
           'reason': str(settings.get('error') or 'route_unavailable')[:120],
         }))
-        params.put(NAV_STATUS_KEY, 'route_unavailable')
+        if not params.get_bool('NavHasRoute'):
+          params.put(NAV_STATUS_KEY, 'route_unavailable')
         cloudlog.warning(f'appbridged navRouteResponse unavailable request={request_id}')
         return
-
-      route_str = route if isinstance(route, str) else json.dumps(route)
-      if len(route_str) < 32:
-        params.remove(NAV_ROUTE_REQUEST_KEY)
-        params.put(NAV_ROUTE_FAILURE_KEY, json.dumps({'requestId': request_id, 'reason': 'invalid_size'}))
-        params.put(NAV_STATUS_KEY, 'route_unavailable')
-        cloudlog.warning(f'appbridged navRouteResponse invalid request={request_id} bytes={len(route_str)}')
+      candidate_set_id = settings.get('candidateSetId')
+      active_route_id = settings.get('activeRouteId')
+      candidate_routes = settings.get('candidateRoutes')
+      if not _nav_validate_candidate_manifest(candidate_set_id, active_route_id, candidate_routes):
+        cloudlog.warning(f'appbridged navRouteResponse invalid request={request_id} reason=invalid_manifest')
         return
+      primary = next((entry for entry in candidate_routes if entry['routeId'] == active_route_id), None)
       try:
-        route_data = json.loads(route_str)
-        if not isinstance(route_data, dict) or not route_data.get('geometry') or not route_data.get('steps'):
-          raise ValueError('missing_geometry_or_steps')
-      except (TypeError, ValueError, json.JSONDecodeError) as e:
-        params.remove(NAV_ROUTE_REQUEST_KEY)
-        params.put(NAV_ROUTE_FAILURE_KEY, json.dumps({'requestId': request_id, 'reason': type(e).__name__}))
-        params.put(NAV_STATUS_KEY, 'route_unavailable')
-        cloudlog.warning(f'appbridged navRouteResponse invalid request={request_id} error={type(e).__name__}')
+        route_str, route_data = _nav_parse_route_payload(raw_payload, active_route_id, primary['payloadSha256'], primary['payloadBytes'])
+      except (TypeError, ValueError, UnicodeDecodeError, json.JSONDecodeError) as e:
+        cloudlog.warning(
+          f'appbridged navRouteResponse invalid request={request_id} bytes={len(raw_payload) if isinstance(raw_payload, bytes) else 0} '
+          f'error={type(e).__name__}'
+        )
         return
-
+      if route_data.get('totalDistance', 0) <= 0 or route_data.get('totalDuration', 0) <= 0:
+        cloudlog.warning(f'appbridged navRouteResponse invalid request={request_id} reason=invalid_metrics')
+        return
+      candidate_context = {
+        'candidateSetId': candidate_set_id,
+        'activeRouteId': active_route_id,
+        'candidateRoutes': candidate_routes,
+        'sessionId': request_session,
+        'requestId': request_id,
+        'routeGeneration': request_generation,
+        'destKey': expected,
+        'stopVersion': request_stop_version,
+      }
+      params.put('NavRouteCandidateContext', json.dumps(candidate_context, separators=(',', ':')))
       params.put('NavRouteData', route_str)
       params.put_bool('NavHasRoute', True)
       params.put_bool('NavRerouteNeeded', False)
@@ -797,6 +1043,158 @@ class AppBridge:
         f'appbridged navRouteResponse ok request={request_id} dest={expected} bytes={len(route_str)} '
         f'points={len(route_data.get("geometry") or [])} steps={len(route_data.get("steps") or [])}'
       )
+
+  def _send_nav_route_select_ack(self, settings: dict, status: str, reason: str = '') -> None:
+    ack = {
+      'selectionId': str(settings.get('selectionId') or '')[:100],
+      'candidateSetId': str(settings.get('candidateSetId') or '')[:100],
+      'selectedRouteId': str(settings.get('selectedRouteId') or '')[:160],
+      'selectionSequence': settings.get('selectionSequence'),
+      'payloadSha256': str(settings.get('_candidateDigest') or settings.get('payloadSha256') or '')[:64],
+      'status': status,
+    }
+    if reason:
+      ack['reason'] = str(reason)[:40]
+    try:
+      self.ble.chunk_and_send(CHANNEL_SETTINGS, msgpack.packb({'navRouteSelectAck': ack}))
+    except Exception as e:
+      cloudlog.error(f'appbridged nav route select ACK send failed error={type(e).__name__}')
+
+  def _nav_route_select_context_reason(self, settings: dict) -> str:
+    context = _nav_json_param('NavRouteCandidateContext', None)
+    if not isinstance(settings, dict) or not isinstance(context, dict):
+      return 'stale_context'
+    if params.get_bool('IsOffroad') or not params.get_bool('NavHasRoute'):
+      return 'stale_context'
+    if str(params.get('NavRouteInstalledRouteId') or '') != str(context.get('activeRouteId') or ''):
+      return 'stale_context'
+    if (settings.get('candidateSetId') != context.get('candidateSetId')
+        or settings.get('sessionId') != context.get('sessionId')
+        or settings.get('requestId') != context.get('requestId')
+        or settings.get('routeGeneration') != context.get('routeGeneration')
+        or settings.get('destKey') != context.get('destKey')
+        or context.get('destKey') != _nav_dest_key_from_params(params)
+        or context.get('sessionId') != str(params.get(NAV_SESSION_ID_KEY) or 'legacy')):
+      return 'stale_context'
+    if context.get('stopVersion') is not None and (
+        type(context.get('stopVersion')) is not int
+        or settings.get('stopVersion') != context.get('stopVersion')
+        or _nav_int_param(NAV_STOP_VERSION_KEY) != context.get('stopVersion')):
+      return 'stale_context'
+    if not _nav_validate_candidate_manifest(
+        context.get('candidateSetId'), context.get('activeRouteId'), context.get('candidateRoutes')):
+      return 'stale_context'
+    if not isinstance(settings.get('selectionId'), str) or not 1 <= len(settings['selectionId']) <= 100:
+      return 'invalid_route'
+    if type(settings.get('selectionSequence')) is not int or settings['selectionSequence'] < 1:
+      return 'invalid_route'
+    route_id = settings.get('selectedRouteId')
+    if not isinstance(route_id, str) or not 1 <= len(route_id) <= 160:
+      return 'wrong_route'
+    manifest = next((entry for entry in context['candidateRoutes'] if entry['routeId'] == route_id), None)
+    if manifest is None:
+      return 'wrong_route'
+    settings['_candidateDigest'] = manifest['payloadSha256']
+    settings['_candidateBytes'] = manifest['payloadBytes']
+    return ''
+
+  def _stage_nav_route_selection(self, settings: dict, raw: bytes) -> None:
+    reason = self._nav_route_select_context_reason(settings)
+    if reason:
+      self._send_nav_route_select_ack(settings, 'rejected', reason)
+      return
+    try:
+      route_text, route_data = _nav_parse_route_payload(raw, settings['selectedRouteId'], settings['_candidateDigest'], settings['_candidateBytes'])
+      if route_data.get('totalDistance', 0) <= 0 or route_data.get('totalDuration', 0) <= 0:
+        raise ValueError('invalid_route_metrics')
+    except (TypeError, ValueError, UnicodeDecodeError, json.JSONDecodeError):
+      self._send_nav_route_select_ack(settings, 'rejected', 'invalid_route')
+      return
+    context = _nav_json_param('NavRouteCandidateContext', None)
+    highest_sequence = context.get('selectionSequence', 0) if isinstance(context, dict) else -1
+    ack = _nav_json_param('NavRouteSelectAcceptedAck', None)
+    if type(highest_sequence) is not int or highest_sequence < 0:
+      self._send_nav_route_select_ack(settings, 'rejected', 'stale_context')
+      return
+    if settings['selectionSequence'] <= highest_sequence:
+      if (settings['selectionSequence'] == highest_sequence and isinstance(ack, dict)
+          and ack.get('selectionSequence') == settings['selectionSequence']
+          and ack.get('selectionId') == settings['selectionId']
+          and ack.get('candidateSetId') == settings['candidateSetId']
+          and ack.get('selectedRouteId') == settings['selectedRouteId']
+          and ack.get('payloadSha256') == settings['_candidateDigest']):
+        self._send_nav_route_select_ack(settings, ack.get('status', 'rejected'), ack.get('reason', ''))
+      else:
+        self._send_nav_route_select_ack(settings, 'rejected', 'stale_selection')
+      return
+    previous = _nav_json_param('NavRouteSelectEnvelope', None)
+    envelope = {key: settings[key] for key in (
+      'selectionId', 'selectionSequence', 'candidateSetId', 'selectedRouteId', 'sessionId', 'requestId',
+      'routeGeneration', 'destKey',
+    ) if key in settings}
+    if 'stopVersion' in settings:
+      envelope['stopVersion'] = settings['stopVersion']
+    envelope['payloadSha256'] = settings['_candidateDigest']
+    envelope['routePayloadBase64'] = __import__('base64').b64encode(raw).decode('ascii')
+    envelope['receivedAtMonotonic'] = monotonic()
+    if isinstance(previous, dict) and previous.get('selectionId') == envelope['selectionId']:
+      if all(previous.get(key) == envelope.get(key) for key in (
+          'selectionSequence', 'candidateSetId', 'selectedRouteId', 'payloadSha256', 'routePayloadBase64')):
+        return
+      self._send_nav_route_select_ack(settings, 'rejected', 'wrong_route')
+      return
+    params.put('NavRouteSelectEnvelope', json.dumps(envelope, separators=(',', ':')))
+    cloudlog.warning(
+      f'appbridged nav route selection staged set={settings["candidateSetId"][:36]} '
+      f'route={settings["selectedRouteId"][:48]} bytes={len(raw)}'
+    )
+
+  def _apply_nav_route_select(self, settings: dict, is_offroad: bool) -> None:
+    if is_offroad or params.get_bool('IsOffroad'):
+      self._send_nav_route_select_ack(settings, 'rejected', 'stale_context')
+      return
+    raw = settings.get('routePayloadUtf8')
+    if not isinstance(raw, bytes) or len(raw) > NAV_ROUTE_SELECTION_MAX_BYTES:
+      self._send_nav_route_select_ack(settings, 'rejected', 'invalid_route')
+      return
+    self._stage_nav_route_selection(settings, raw)
+
+  def _apply_nav_route_select_start(self, settings: dict, is_offroad: bool) -> None:
+    reason = self._nav_route_select_context_reason(settings)
+    total_bytes, part_count = settings.get('totalBytes'), settings.get('partCount')
+    if (reason or is_offroad or params.get_bool('IsOffroad')
+        or type(total_bytes) is not int or not 32 <= total_bytes <= NAV_ROUTE_SELECTION_MAX_BYTES
+        or type(part_count) is not int or not 1 <= part_count <= NAV_ROUTE_SELECTION_MAX_PARTS):
+      self._nav_route_select_transfer.clear()
+      self._nav_route_select_transfer_context = None
+      self._send_nav_route_select_ack(settings, 'rejected', reason or 'invalid_route')
+      return
+    result = self._nav_route_select_transfer.start(settings)
+    if not result.get('ok'):
+      self._nav_route_select_transfer.clear()
+      self._nav_route_select_transfer_context = None
+      self._send_nav_route_select_ack(settings, 'rejected', 'invalid_route')
+      return
+    self._nav_route_select_transfer_context = dict(settings)
+
+  def _apply_nav_route_select_part(self, settings: dict, is_offroad: bool) -> None:
+    context = self._nav_route_select_transfer_context
+    reason = self._nav_route_select_context_reason(context) if context else 'stale_context'
+    if reason or is_offroad or params.get_bool('IsOffroad'):
+      self._nav_route_select_transfer.clear()
+      self._nav_route_select_transfer_context = None
+      self._send_nav_route_select_ack(context or settings, 'rejected', reason or 'stale_context')
+      return
+    result = self._nav_route_select_transfer.add_part(settings)
+    if not result.get('ok'):
+      self._nav_route_select_transfer.clear()
+      self._nav_route_select_transfer_context = None
+      if result.get('reason') != 'stale_transfer':
+        self._send_nav_route_select_ack(context, 'rejected', 'transfer_incomplete')
+      return
+    if result.get('complete'):
+      self._nav_route_select_transfer_context = None
+      self._stage_nav_route_selection(context, result['routeBytes'])
 
   def _nav_route_transfer_matches_request(self, message: dict, request: dict) -> bool:
     request_id = str(request.get('requestId') or '')
@@ -830,13 +1228,14 @@ class AppBridge:
     request = _nav_json_param(NAV_ROUTE_REQUEST_KEY, None)
     if not isinstance(request, dict) or request.get('requestId') != request_id:
       return
+    had_active_route = params.get_bool('NavHasRoute')
     params.remove(NAV_ROUTE_REQUEST_KEY)
     params.put(NAV_ROUTE_FAILURE_KEY, json.dumps({
       'requestId': request_id, 'reason': str(reason or 'transfer_failed')[:80],
     }, separators=(',', ':')))
-    params.put_bool('NavHasRoute', False)
-    params.put_bool('NavRerouteNeeded', bool(read_stop_list(params)))
-    params.put(NAV_STATUS_KEY, 'route_unavailable')
+    if not had_active_route:
+      params.put_bool('NavRerouteNeeded', bool(read_stop_list(params)))
+      params.put(NAV_STATUS_KEY, 'route_unavailable')
 
   def _apply_nav_route_response_start(self, settings: dict, is_offroad: bool) -> None:
     request_id = str(settings.get('requestId') or '')
@@ -853,6 +1252,16 @@ class AppBridge:
         params.remove(NAV_ROUTE_REQUEST_KEY)
         params.put(NAV_STATUS_KEY, 'paused_offroad')
         return
+      if (settings.get('totalBytes', 0) > NAV_ROUTE_SELECTION_MAX_BYTES
+          or settings.get('partCount', 0) > NAV_ROUTE_SELECTION_MAX_PARTS
+          or not _nav_validate_candidate_manifest(
+            settings.get('candidateSetId'), settings.get('activeRouteId'), settings.get('candidateRoutes')
+          )):
+        self._fail_nav_route_transfer_locked(request_id, transfer_id, 'selection_bounds')
+        return
+      request['candidateSetId'] = settings.get('candidateSetId')
+      request['activeRouteId'] = settings.get('activeRouteId')
+      request['candidateRoutes'] = settings.get('candidateRoutes')
       result = self._nav_route_transfer.start(settings)
       if not result.get('ok'):
         self._fail_nav_route_transfer_locked(request_id, transfer_id, result.get('reason', 'invalid_start'))
@@ -914,6 +1323,9 @@ class AppBridge:
           'routeGeneration': request.get('routeGeneration'),
           'destKey': _nav_dest_key_from_params(params),
           'stopVersion': request.get('stopVersion'),
+          'candidateSetId': request.get('candidateSetId'),
+          'activeRouteId': request.get('activeRouteId'),
+          'candidateRoutes': request.get('candidateRoutes'),
           'receivedParts': result['receivedParts'],
           'totalBytes': result['totalBytes'],
         }
@@ -926,21 +1338,13 @@ class AppBridge:
 
     if route_bytes is None or completed is None:
       return
-    try:
-      route = route_bytes.decode('utf-8')
-    except UnicodeDecodeError:
-      with nav_stop_list_lock():
-        self._fail_nav_route_transfer_locked(request_id, transfer_id, 'invalid_utf8')
-      cloudlog.warning(
-        f'appbridged navRouteTransfer invalid_encoding request={request_id} transfer={transfer_id}'
-      )
-      return
     cloudlog.warning(
       f'appbridged navRouteTransfer complete request={request_id} transfer={transfer_id} '
       f'parts={completed["receivedParts"]} bytes={completed["totalBytes"]} '
-      f'dest={completed["destKey"]} stop_version={completed.get("stopVersion")}'
+      f'dest={completed["destKey"]} stop_version={completed.get("stopVersion")} '
+      f'candidate_set={str(completed.get("candidateSetId") or "")[:36]}'
     )
-    self._apply_nav_route_response({**completed, 'route': route}, is_offroad)
+    self._apply_nav_route_response({**completed, 'routePayloadUtf8': route_bytes}, is_offroad)
 
   def _apply_nav_route_response_abort(self, settings, is_offroad):
     request_id = str(settings.get('requestId') or '')
@@ -987,18 +1391,24 @@ class AppBridge:
           distances[-1],
           max(0.0, elapsed - self._nav_ble_diag_route_started_elapsed) * self._nav_ble_diag_route_speed_mps,
         )
+        from openpilot.selfdrive.nav.route_engine import bearing_between_two_points
         for index in range(1, len(distances)):
-          if distance <= distances[index]:
-            segment = distances[index] - distances[index - 1]
-            fraction = (distance - distances[index - 1]) / segment if segment > 0.0 else 0.0
+          segment = distances[index] - distances[index - 1]
+          if segment > 0.0 and distance <= distances[index]:
+            fraction = (distance - distances[index - 1]) / segment
             start = route.geometry[index - 1]
             end = route.geometry[index]
             return (
               start.latitude + (end.latitude - start.latitude) * fraction,
               start.longitude + (end.longitude - start.longitude) * fraction,
+              bearing_between_two_points(start, end),
             )
-        return route.geometry[-1].latitude, route.geometry[-1].longitude
-    return self._nav_ble_diag_fake_gps or (0.0, 0.0)
+        last = route.geometry[-1]
+        bearing = bearing_between_two_points(route.geometry[-2], last) if len(route.geometry) > 1 else None
+        return last.latitude, last.longitude, bearing
+    if self._nav_ble_diag_fake_gps:
+      return (*self._nav_ble_diag_fake_gps, None)
+    return 0.0, 0.0, None
 
   def _reset_nav_ble_diag_route_state(self, status, status_text):
     self._nav_ble_diag_route_transfer.clear()
@@ -1026,6 +1436,10 @@ class AppBridge:
     self._nav_ble_diag_status_text = status_text
     self._nav_ble_diag_maneuver_type = ""
     self._nav_ble_diag_maneuver_modifier = ""
+    self._nav_ble_diag_maneuver_distance = None
+    self._nav_ble_diag_maneuver_primary_text = ""
+    self._nav_ble_diag_maneuver_secondary_text = ""
+    self._nav_ble_diag_maneuver_lanes = []
 
   def _send_nav_ble_diag_scenario_state(self):
     test_id = self._nav_ble_diag_test_id
@@ -1033,7 +1447,7 @@ class AppBridge:
       return
     transfer = self._nav_ble_diag_route_transfer.progress()
     elapsed = max(0.0, monotonic() - self._nav_ble_diag_started_at)
-    latitude, longitude = self._nav_ble_diag_fake_position(elapsed)
+    latitude, longitude, bearing = self._nav_ble_diag_fake_position(elapsed)
     stop_index = min(self._nav_ble_diag_stop_index, len(self._nav_ble_diag_route_stops) - 1)
     stop_name = self._nav_ble_diag_route_stops[stop_index][0]
     distance_remaining = None
@@ -1045,12 +1459,17 @@ class AppBridge:
           distance_remaining = max(0.0, float(progress.distance_remaining))
       except (TypeError, ValueError, OverflowError):
         pass
+    fake_gps = {'latitude': latitude, 'longitude': longitude}
+    if bearing is not None:
+      fake_gps['bearing'] = bearing
     state = {
       'testId': test_id,
       'stopIndex': stop_index,
       'stopName': stop_name,
       'requestId': self._nav_ble_diag_request_id,
       'destKey': self._nav_ble_diag_dest_key,
+      'candidateSetId': (self._nav_ble_diag_candidate_context or {}).get('candidateSetId', ''),
+      'activeRouteId': (self._nav_ble_diag_candidate_context or {}).get('activeRouteId', ''),
       'status': self._nav_ble_diag_status,
       'statusText': self._nav_ble_diag_status_text,
       'maneuverType': self._nav_ble_diag_maneuver_type,
@@ -1071,8 +1490,16 @@ class AppBridge:
       'diagnosticEnvelopeTooLarge': self._nav_ble_diag_envelope_too_large,
       'skipCount': self._nav_ble_diag_skip_count,
       'elapsedSec': int(elapsed),
-      'fakeGps': {'latitude': latitude, 'longitude': longitude},
+      'fakeGps': fake_gps,
     }
+    if self._nav_ble_diag_maneuver_distance is not None:
+      state['maneuverDistance'] = self._nav_ble_diag_maneuver_distance
+    if self._nav_ble_diag_maneuver_primary_text:
+      state['maneuverPrimaryText'] = self._nav_ble_diag_maneuver_primary_text
+    if self._nav_ble_diag_maneuver_secondary_text:
+      state['maneuverSecondaryText'] = self._nav_ble_diag_maneuver_secondary_text
+    if self._nav_ble_diag_maneuver_lanes:
+      state['lanes'] = self._nav_ble_diag_maneuver_lanes
     if distance_remaining is not None:
       state['distanceRemainingM'] = distance_remaining
     try:
@@ -1080,11 +1507,22 @@ class AppBridge:
     except Exception as e:
       cloudlog.error(f'appbridged nav BLE replay state send failed test={test_id} error={type(e).__name__}')
 
-  def _set_nav_ble_diag_status(self, status, status_text, maneuver_type="", maneuver_modifier=""):
+  def _set_nav_ble_diag_status(self, status, status_text, maneuver_type="", maneuver_modifier="",
+                               maneuver_distance=None, maneuver_primary_text="",
+                               maneuver_secondary_text="", lanes=None):
     self._nav_ble_diag_status = str(status)[:40]
     self._nav_ble_diag_status_text = str(status_text).replace('\n', ' ')[:120]
     self._nav_ble_diag_maneuver_type = str(maneuver_type or "")[:24]
     self._nav_ble_diag_maneuver_modifier = str(maneuver_modifier or "")[:24]
+    self._nav_ble_diag_maneuver_distance = (
+      float(maneuver_distance) if maneuver_distance is not None and math.isfinite(maneuver_distance) and maneuver_distance >= 0 else None
+    )
+    self._nav_ble_diag_maneuver_primary_text = str(maneuver_primary_text or "")[:48]
+    self._nav_ble_diag_maneuver_secondary_text = str(maneuver_secondary_text or "")[:48]
+    self._nav_ble_diag_maneuver_lanes = [[
+      [str(direction) for direction in lane.get("directions", [])[:5]],
+      bool(lane.get("active")), str(lane.get("activeDirection", "none")),
+    ] for lane in (lanes or [])[:8] if isinstance(lane, dict)]
     cloudlog.warning(
       f'appbridged nav BLE replay state test={self._nav_ble_diag_test_id} '
       f'stop={self._nav_ble_diag_stop_index} status={self._nav_ble_diag_status} '
@@ -1099,7 +1537,7 @@ class AppBridge:
     if self._nav_ble_diag_route is None:
       return
     elapsed = max(0.0, now - self._nav_ble_diag_started_at)
-    latitude, longitude = self._nav_ble_diag_fake_position(elapsed)
+    latitude, longitude, _ = self._nav_ble_diag_fake_position(elapsed)
     try:
       from openpilot.selfdrive.nav.route_engine import Coordinate
       progress = self._nav_ble_diag_route.get_progress(Coordinate(latitude, longitude))
@@ -1122,12 +1560,18 @@ class AppBridge:
       )
       return
     step = progress.current_step
+    nav_instruction = self._nav_ble_diag_route.build_instruction_payload(progress)
     instruction = str(step.instruction or step.maneuver or 'Continue').replace('\n', ' ')[:72]
     self._set_nav_ble_diag_status(
       'route_progress',
       f'{self._nav_ble_diag_route_stops[self._nav_ble_diag_stop_index][0]}: {instruction} '
       f'({int(progress.distance_to_end_of_step)} m to step)',
-      maneuver_type=step.maneuver, maneuver_modifier=step.modifier,
+      maneuver_type=nav_instruction['maneuverType'],
+      maneuver_modifier=nav_instruction['maneuverModifier'],
+      maneuver_distance=nav_instruction['maneuverDistance'],
+      maneuver_primary_text=nav_instruction['maneuverPrimaryText'],
+      maneuver_secondary_text=nav_instruction['maneuverSecondaryText'],
+      lanes=nav_instruction['lanes'],
     )
     cloudlog.warning(
       f'appbridged nav BLE replay progress test={self._nav_ble_diag_test_id} '
@@ -1306,7 +1750,7 @@ class AppBridge:
       self._nav_ble_diag_mapbox_pending_sequence = 0
       self._nav_ble_diag_mapbox_pending_at = 0.0
 
-    latitude, longitude = self._nav_ble_diag_fake_position(elapsed)
+    latitude, longitude, _ = self._nav_ble_diag_fake_position(elapsed)
     request_id = f'{test_id}-{sequence}-{stop_index}'
     dest_key = f'{dest_lat:.5f}|{dest_lon:.5f}'
     probe = {
@@ -1448,6 +1892,14 @@ class AppBridge:
         self._nav_ble_diag_route_rejected += 1
         self._set_nav_ble_diag_status('route_unavailable', 'Directions response timed out')
       return
+    if (type(settings.get('totalBytes')) is not int or not 32 <= settings['totalBytes'] <= NAV_ROUTE_SELECTION_MAX_BYTES
+        or type(settings.get('partCount')) is not int or not 1 <= settings['partCount'] <= NAV_ROUTE_SELECTION_MAX_PARTS):
+      self._fail_nav_ble_diag_route_transfer(settings, 'route_transfer_bounds')
+      return
+    if not _nav_validate_candidate_manifest(
+        settings.get('candidateSetId'), settings.get('activeRouteId'), settings.get('candidateRoutes')):
+      self._fail_nav_ble_diag_route_transfer(settings, 'candidate_manifest')
+      return
     result = self._nav_ble_diag_route_transfer.start(settings)
     if not result.get('ok'):
       self._fail_nav_ble_diag_route_transfer(settings, result.get('reason'))
@@ -1497,15 +1949,10 @@ class AppBridge:
       self._nav_ble_diag_mapbox_pending_at = monotonic()
     complete_settings = None
     if result.get('complete'):
-      try:
-        route_text = result['routeBytes'].decode('utf-8')
-      except UnicodeDecodeError:
-        self._fail_nav_ble_diag_route_transfer(settings, 'invalid_route_encoding')
-        return
       self._nav_ble_diag_transfer_completed += 1
       self._nav_ble_diag_transfer_bytes += result['totalBytes']
       complete_settings = dict(settings)
-      complete_settings['route'] = route_text
+      complete_settings['routePayloadUtf8'] = result['routeBytes']
       self._nav_ble_diag_route_transfer.clear()
     elif result.get('receivedParts') == 1 or result.get('receivedParts') % 8 == 0:
       self._set_nav_ble_diag_status(
@@ -1521,6 +1968,161 @@ class AppBridge:
     )
     if complete_settings is not None:
       self._apply_nav_ble_diag_mapbox_result(complete_settings, is_offroad)
+
+  def _send_nav_ble_diag_select_ack(self, settings, status, reason=''):
+    ack = {
+      key: settings.get(key) for key in
+      ('selectionId', 'selectionSequence', 'testId', 'sequence', 'requestId', 'destKey', 'candidateSetId', 'selectedRouteId')
+    }
+    ack['payloadSha256'] = settings.get('_candidateDigest', '')
+    ack['status'] = status
+    if reason:
+      ack['reason'] = str(reason)[:40]
+    try:
+      self.ble.chunk_and_send(CHANNEL_SETTINGS, msgpack.packb({'navBleDiagSelectRouteAck': ack}))
+    except Exception as e:
+      cloudlog.warning(f'appbridged nav BLE replay selection ACK send failed error={type(e).__name__}')
+
+  def _nav_ble_diag_selection_reason(self, settings, is_offroad):
+    context = self._nav_ble_diag_candidate_context
+    if not isinstance(context, dict) or not is_offroad or not params.get_bool('IsOffroad'):
+      return 'stale_context'
+    now = monotonic()
+    if (type(settings.get('selectionSequence')) is not int or settings['selectionSequence'] < 1
+        or settings.get('testId') != context.get('testId') or settings.get('testId') != self._nav_ble_diag_test_id
+        or now - self._nav_ble_diag_started_at > NAV_BLE_DIAG_MAX_AGE_SEC
+        or settings.get('sequence') != context.get('sequence')
+        or settings.get('requestId') != context.get('requestId')
+        or settings.get('destKey') != context.get('destKey')
+        or settings.get('candidateSetId') != context.get('candidateSetId')
+        or (self._nav_ble_diag_mapbox_pending_sequence
+            and context.get('sequence') != self._nav_ble_diag_mapbox_pending_sequence)
+):
+      return 'stale_context'
+    if not _nav_validate_candidate_manifest(
+        context.get('candidateSetId'), context.get('activeRouteId'), context.get('candidateRoutes')):
+      return 'stale_context'
+    manifest = next((item for item in context.get('candidateRoutes', [])
+                     if isinstance(item, dict) and item.get('routeId') == settings.get('selectedRouteId')), None)
+    if manifest is None:
+      return 'wrong_route'
+    settings['_candidateDigest'] = manifest['payloadSha256']
+    settings['_candidateBytes'] = manifest['payloadBytes']
+    return ''
+
+  def _commit_nav_ble_diag_route_selection(self, settings, raw):
+    reason = self._nav_ble_diag_selection_reason(settings, True)
+    if reason:
+      self._send_nav_ble_diag_select_ack(settings, 'rejected', reason)
+      return
+    context = self._nav_ble_diag_candidate_context
+    highest_sequence = context.get('selectionSequence', 0)
+    if type(highest_sequence) is not int or highest_sequence < 0:
+      self._send_nav_ble_diag_select_ack(settings, 'rejected', 'stale_context')
+      return
+    if isinstance(raw, str):
+      raw = raw.encode('utf-8', errors='strict')
+    if (not isinstance(raw, bytes) or len(raw) != settings.get('_candidateBytes')
+        or hashlib.sha256(raw).hexdigest() != settings.get('_candidateDigest')):
+      self._send_nav_ble_diag_select_ack(settings, 'rejected', 'invalid_route')
+      return
+    if settings['selectionSequence'] <= highest_sequence:
+      if (settings['selectionSequence'] == highest_sequence
+          and context.get('lastSelectionId') == settings.get('selectionId')
+          and context.get('lastSelectedRouteId') == settings.get('selectedRouteId')
+          and context.get('lastPayloadSha256') == settings.get('_candidateDigest')):
+        self._send_nav_ble_diag_select_ack(settings, 'accepted')
+      else:
+        self._send_nav_ble_diag_select_ack(settings, 'rejected', 'stale_selection')
+      return
+    context = self._nav_ble_diag_candidate_context
+    manifest = next((item for item in context['candidateRoutes']
+                     if item.get('routeId') == settings.get('selectedRouteId')), None)
+    try:
+      route_text, route_data = _nav_parse_route_payload(
+        raw, settings.get('selectedRouteId'), manifest.get('payloadSha256') if manifest else None,
+        manifest.get('payloadBytes') if manifest else None
+      )
+      from openpilot.selfdrive.nav.route_engine import Coordinate, NavigationRoute
+      route = NavigationRoute.from_mapbox_route(route_data)
+      now = monotonic()
+      latitude, longitude, _ = self._nav_ble_diag_fake_position(now - self._nav_ble_diag_started_at)
+      progress = route.get_progress(Coordinate(latitude, longitude)) if route else None
+      if route is None or progress is None:
+        raise ValueError('invalid_route')
+    except Exception as e:
+      self._send_nav_ble_diag_select_ack(settings, 'rejected', 'invalid_route')
+      cloudlog.warning(f'appbridged nav BLE replay selection rejected error={type(e).__name__}')
+      return
+    reason = self._nav_ble_diag_selection_reason(settings, True)
+    if reason:
+      self._send_nav_ble_diag_select_ack(settings, 'rejected', reason)
+      return
+    self._nav_ble_diag_route = route
+    context['activeRouteId'] = settings['selectedRouteId']
+    context['selectionSequence'] = settings['selectionSequence']
+    context['lastSelectionId'] = settings['selectionId']
+    context['lastSelectedRouteId'] = settings['selectedRouteId']
+    context['lastPayloadSha256'] = settings['_candidateDigest']
+    self._nav_ble_diag_route_started_elapsed = max(0.0, now - self._nav_ble_diag_started_at)
+    nav_instruction = route.build_instruction_payload(progress)
+    instruction = str(nav_instruction['maneuverPrimaryText'] or 'Continue').replace('\n', ' ')[:72]
+    self._set_nav_ble_diag_status(
+      'route_progress',
+      f'{self._nav_ble_diag_route_stops[self._nav_ble_diag_stop_index][0]}: {instruction} '
+      f'({int(progress.distance_to_end_of_step)} m to step)',
+      maneuver_type=nav_instruction['maneuverType'], maneuver_modifier=nav_instruction['maneuverModifier'],
+      maneuver_distance=nav_instruction['maneuverDistance'],
+      maneuver_primary_text=nav_instruction['maneuverPrimaryText'],
+      maneuver_secondary_text=nav_instruction['maneuverSecondaryText'],
+      lanes=nav_instruction['lanes'],
+    )
+    self._send_nav_ble_diag_select_ack(settings, 'accepted')
+    cloudlog.warning(
+      f'appbridged nav BLE replay selection activated test={settings.get("testId")} '
+      f'route={settings.get("selectedRouteId")} bytes={len(raw)}'
+    )
+
+  def _apply_nav_ble_diag_select_route(self, settings, is_offroad):
+    reason = self._nav_ble_diag_selection_reason(settings, is_offroad)
+    if reason:
+      self._send_nav_ble_diag_select_ack(settings, 'rejected', reason)
+      return
+    self._commit_nav_ble_diag_route_selection(settings, settings.get('routePayloadUtf8'))
+
+  def _apply_nav_ble_diag_select_route_start(self, settings, is_offroad):
+    reason = self._nav_ble_diag_selection_reason(settings, is_offroad)
+    if reason or type(settings.get('totalBytes')) is not int or not 32 <= settings['totalBytes'] <= NAV_ROUTE_SELECTION_MAX_BYTES \
+        or type(settings.get('partCount')) is not int or not 1 <= settings['partCount'] <= NAV_ROUTE_SELECTION_MAX_PARTS:
+      self._send_nav_ble_diag_select_ack(settings, 'rejected', reason or 'invalid_route')
+      self._nav_ble_diag_select_transfer.clear()
+      self._nav_ble_diag_select_context = None
+      return
+    result = self._nav_ble_diag_select_transfer.start(settings)
+    if not result.get('ok'):
+      self._send_nav_ble_diag_select_ack(settings, 'rejected', result.get('reason', 'invalid_route'))
+      return
+    self._nav_ble_diag_select_context = dict(settings)
+
+  def _apply_nav_ble_diag_select_route_part(self, settings, is_offroad):
+    reason = self._nav_ble_diag_selection_reason(settings, is_offroad)
+    if reason:
+      self._send_nav_ble_diag_select_ack(settings, 'rejected', reason)
+      self._nav_ble_diag_select_transfer.clear()
+      self._nav_ble_diag_select_context = None
+      return
+    result = self._nav_ble_diag_select_transfer.add_part(settings)
+    if not result.get('ok'):
+      if result.get('reason') != 'stale_transfer':
+        self._send_nav_ble_diag_select_ack(settings, 'rejected', result.get('reason', 'invalid_route'))
+        self._nav_ble_diag_select_transfer.clear()
+        self._nav_ble_diag_select_context = None
+      return
+    if result.get('complete'):
+      context = self._nav_ble_diag_select_context or settings
+      self._nav_ble_diag_select_transfer.clear()
+      self._nav_ble_diag_select_context = None
+      self._commit_nav_ble_diag_route_selection(context, result['routeBytes'])
 
   def _apply_nav_ble_diag_mapbox_result_abort(self, settings, is_offroad):
     reason = self._nav_ble_diag_transfer_context_error(settings, is_offroad)
@@ -1622,13 +2224,25 @@ class AppBridge:
       )
       return
 
-    route_data = settings.get('route')
+    route_bytes = settings.get('routePayloadUtf8')
+    candidate_set_id = settings.get('candidateSetId')
+    active_route_id = settings.get('activeRouteId')
+    candidate_routes = settings.get('candidateRoutes')
+    primary = next((entry for entry in candidate_routes if isinstance(entry, dict)
+                   and entry.get('routeId') == active_route_id), None) if isinstance(candidate_routes, list) else None
     try:
-      if isinstance(route_data, str):
-        route_data = json.loads(route_data)
+      if not _nav_validate_candidate_manifest(candidate_set_id, active_route_id, candidate_routes):
+        raise ValueError('invalid_manifest')
+      if not isinstance(primary, dict):
+        raise ValueError('invalid_manifest')
+      if isinstance(route_bytes, str):
+        route_bytes = route_bytes.encode('utf-8', errors='strict')
+      route_text, route_data = _nav_parse_route_payload(
+        route_bytes, active_route_id, primary.get('payloadSha256'), primary.get('payloadBytes')
+      )
       from openpilot.selfdrive.nav.route_engine import Coordinate, NavigationRoute
-      route = NavigationRoute.from_mapbox_route(route_data) if isinstance(route_data, dict) else None
-      latitude, longitude = self._nav_ble_diag_fake_position(now - self._nav_ble_diag_started_at)
+      route = NavigationRoute.from_mapbox_route(route_data)
+      latitude, longitude, _ = self._nav_ble_diag_fake_position(now - self._nav_ble_diag_started_at)
       progress = route.get_progress(Coordinate(latitude, longitude)) if route else None
     except Exception as e:
       route = None
@@ -1645,15 +2259,25 @@ class AppBridge:
       return
 
     self._nav_ble_diag_route = route
+    self._nav_ble_diag_candidate_context = {
+      'testId': test_id, 'sequence': sequence, 'requestId': request_id, 'destKey': dest_key,
+      'candidateSetId': candidate_set_id, 'candidateRoutes': candidate_routes,
+      'activeRouteId': active_route_id, 'selectionSequence': 0,
+      'lastSelectionId': '', 'lastSelectedRouteId': '', 'lastPayloadSha256': '',
+    }
     self._nav_ble_diag_route_accepted += 1
     self._nav_ble_diag_route_started_elapsed = max(0.0, now - self._nav_ble_diag_started_at)
-    step = progress.current_step
-    instruction = str(step.instruction or step.maneuver or 'Continue').replace('\n', ' ')[:72]
+    nav_instruction = self._nav_ble_diag_route.build_instruction_payload(progress)
+    instruction = str(nav_instruction['maneuverPrimaryText'] or 'Continue').replace('\n', ' ')[:72]
     self._set_nav_ble_diag_status(
       'route_progress',
       f'{self._nav_ble_diag_route_stops[self._nav_ble_diag_stop_index][0]}: {instruction} '
       f'({int(progress.distance_to_end_of_step)} m to step)',
-      maneuver_type=step.maneuver, maneuver_modifier=step.modifier,
+      maneuver_type=nav_instruction['maneuverType'], maneuver_modifier=nav_instruction['maneuverModifier'],
+      maneuver_distance=nav_instruction['maneuverDistance'],
+      maneuver_primary_text=nav_instruction['maneuverPrimaryText'],
+      maneuver_secondary_text=nav_instruction['maneuverSecondaryText'],
+      lanes=nav_instruction['lanes'],
     )
     cloudlog.warning(
       f'appbridged nav BLE replay result accepted test={test_id} seq={sequence} '
@@ -1733,6 +2357,12 @@ class AppBridge:
           self._apply_nav_route_response_part(settings, is_offroad)
         case 'navRouteResponseAbort':
           self._apply_nav_route_response_abort(settings, is_offroad)
+        case 'navRouteSelect':
+          self._apply_nav_route_select(settings, is_offroad)
+        case 'navRouteSelectStart':
+          self._apply_nav_route_select_start(settings, is_offroad)
+        case 'navRouteSelectPart':
+          self._apply_nav_route_select_part(settings, is_offroad)
         case 'navBleDiagProbe':
           self._apply_nav_ble_diag_probe(settings)
         case 'navBleDiagSkipStop':
@@ -1745,10 +2375,15 @@ class AppBridge:
           self._apply_nav_ble_diag_mapbox_result_part(settings, is_offroad)
         case 'navBleDiagMapboxResultAbort':
           self._apply_nav_ble_diag_mapbox_result_abort(settings, is_offroad)
-        case 'navSetDestination' | 'navSetStops' | 'navClearDestination' | 'navPushRoute':
-          if msg_type not in self._legacy_nav_commands_logged:
-            cloudlog.warning(f'appbridged ignored legacy navigation command={msg_type}')
-            self._legacy_nav_commands_logged.add(msg_type)
+        case 'navBleDiagSelectRoute':
+          self._apply_nav_ble_diag_select_route(settings, is_offroad)
+        case 'navBleDiagSelectRouteStart':
+          self._apply_nav_ble_diag_select_route_start(settings, is_offroad)
+        case 'navBleDiagSelectRoutePart':
+          self._apply_nav_ble_diag_select_route_part(settings, is_offroad)
+        case 'navPanelSubscription':
+          self.nav_panel_subscribed = bool(settings.get('active'))
+          self.nav_panel_sync_requested = self.nav_panel_subscribed
         case 'disableHotspot':
           disable_hotspot()
     except Exception as e:
@@ -1777,20 +2412,32 @@ class AppBridge:
     return c, m # Other message types, pass to next function
 
   def appbridged_thread(self):
-    is_metric = None
+    is_metric = params.get_bool('IsMetric')
     while True:
       (sm := self.sm).update(0)
+      self._update_event_history()
 
       # 1 Hz WiFi/hotspot task
       if (cur_time := monotonic()) - self.last_1hz_task_time >= 1:
         self.last_1hz_task_time = cur_time
+        is_metric = params.get_bool('IsMetric')
         with nav_stop_list_lock():
+          if expired := self._nav_route_select_transfer.expire(cur_time):
+            context = self._nav_route_select_transfer_context or {}
+            self._nav_route_select_transfer_context = None
+            self._send_nav_route_select_ack(context, 'rejected', 'transfer_incomplete')
+            cloudlog.warning('appbridged nav route selection transfer expired')
           if expired := self._nav_route_transfer.expire(cur_time):
             cloudlog.warning(
               f'appbridged navRouteTransfer expired request={expired["requestId"]} '
               f'transfer={expired["transferId"]} parts={expired["receivedParts"]}/{expired["partCount"]} '
               f'bytes={expired["receivedBytes"]}/{expired["totalBytes"]} idle={expired["idleSeconds"]:.1f}s'
             )
+        if expired := self._nav_ble_diag_select_transfer.expire(cur_time):
+          context = self._nav_ble_diag_select_context or {}
+          self._nav_ble_diag_select_context = None
+          self._nav_ble_diag_select_transfer.clear()
+          self._send_nav_ble_diag_select_ack(context, 'rejected', 'transfer_incomplete')
         if expired := self._nav_ble_diag_route_transfer.expire(cur_time):
           if self._nav_ble_diag_mapbox_pending_sequence:
             self._fail_nav_ble_diag_route_transfer({
@@ -1817,6 +2464,8 @@ class AppBridge:
             self.wifi_connect_attempt_ssid = None
             self.wifi_connect_attempt_start_time = None
 
+      if not self.ble.connected:
+        self.nav_panel_subscribed = self.nav_panel_sync_requested = False
       if self.ble.connected: # Only receive/send if connected
         is_offroad = None # Always get latest is_offroad
         state = None
@@ -1838,8 +2487,6 @@ class AppBridge:
         # 3 Hz settings send
         if cur_time - self.last_periodic_time >= 0.333:
           self.last_periodic_time = cur_time
-          if self.send_channel in (CHANNEL_SETTINGS, CHANNEL_VISUALISATION):
-            is_metric = params.get_bool("IsMetric")
           if self.send_channel == CHANNEL_SETTINGS:
             if is_offroad is None:
               is_offroad = params.get_bool("IsOffroad")
@@ -1851,10 +2498,16 @@ class AppBridge:
         if self.send_channel == CHANNEL_VISUALISATION:
           self.send_visualisation_message(is_metric)
 
-        if (self.send_channel not in (CHANNEL_SETTINGS, CHANNEL_VISUALISATION)
-            and cur_time - self.last_background_nav_sync_time >= NAV_BACKGROUND_SYNC_INTERVAL_SEC):
+        if (self.nav_panel_subscribed and self.send_channel == CHANNEL_VISUALISATION
+            and (self.nav_panel_sync_requested
+                 or cur_time - self.last_background_nav_sync_time >= NAV_BACKGROUND_SYNC_INTERVAL_SEC)):
+          self.nav_panel_sync_requested = False
           self.last_background_nav_sync_time = cur_time
-          self.send_background_nav_message()
+          self.send_background_nav_message(is_metric, force=True)
+        elif (self.send_channel not in (CHANNEL_SETTINGS, CHANNEL_VISUALISATION)
+              and cur_time - self.last_background_nav_sync_time >= NAV_BACKGROUND_SYNC_INTERVAL_SEC):
+          self.last_background_nav_sync_time = cur_time
+          self.send_background_nav_message(is_metric)
 
         # 2 Hz video keepalive to avoid racing videoListReq.
         if (self.send_channel == CHANNEL_VIDEO

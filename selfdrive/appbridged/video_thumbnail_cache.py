@@ -1,11 +1,9 @@
 import os
-import shutil
 import subprocess
 from pathlib import Path
 
 from openpilot.common.swaglog import cloudlog
 from openpilot.selfdrive.appbridged.video_constants import (
-  CACHE_ROOT,
   FFMPEG_HEVC_INPUT_ARGS,
   FFMPEG_NO_SUBSTREAMS,
   THUMB_CACHE_DIR,
@@ -132,11 +130,3 @@ def _generate_thumb(hevc_path: str, cache_path: Path) -> bool:
     except OSError:
       pass
     return False
-
-
-def clear_thumb_cache() -> None:
-  shutil.rmtree(THUMB_CACHE_DIR, ignore_errors=True)
-  try:
-    Path(CACHE_ROOT).rmdir()
-  except OSError:
-    pass
