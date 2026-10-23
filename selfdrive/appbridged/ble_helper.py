@@ -4,7 +4,7 @@ import threading
 import os
 import subprocess
 from time import monotonic, sleep
-from queue import SimpleQueue
+from queue import Empty, SimpleQueue
 from bluezero import adapter, peripheral
 from openpilot.common.swaglog import cloudlog
 
@@ -132,9 +132,12 @@ class BLEBridge:
       self._tx_accepts_bytes = False
       tx_char.set_value(list(payload))
 
-  def read(self):
-    """Pop next received BLE packet if available."""
-    return q.get_nowait() if not (q := self.rx_queue).empty() else None
+  def read(self, timeout=None):
+    """Pop next received BLE packet, optionally waiting for one."""
+    try:
+      return self.rx_queue.get(timeout=timeout) if timeout is not None else self.rx_queue.get_nowait()
+    except Empty:
+      return None
 
   def start(self):
     """Start BLE peripheral loop."""
@@ -186,14 +189,15 @@ class ChunkReceiver:
   def _receive_loop(self):
     """Continuously read BLE packets, assemble chunks, drop timed-out messages."""
     while True:
-      processed_packet = False
       if connected := self.ble.connected:
         ble_read = self.ble.read
         active_messages = self.active_messages
         completed_messages_put = self.completed_messages.put
-        while (pkt := ble_read()) is not None:
-          processed_packet = True
+        pkt = ble_read(timeout=0.05)
+        while pkt is not None:
+          next_pkt = ble_read()
           if len(pkt) < 4:
+            pkt = next_pkt
             continue
 
           channel = pkt[0]
@@ -201,6 +205,7 @@ class ChunkReceiver:
           total_segments = pkt[2]
           seg_idx = pkt[3]
           if total_segments == 0 or seg_idx >= total_segments:
+            pkt = next_pkt
             continue
 
           chunk = pkt[4:]
@@ -231,9 +236,10 @@ class ChunkReceiver:
           if now >= self._next_cleanup_time:
             self._cleanup_stale_messages(now)
             self._next_cleanup_time = now + (CHUNK_TIMEOUT * 0.5)
+          pkt = next_pkt
 
-      if not processed_packet:
-        sleep(0.002 if connected else 0.05) # Small sleep only when no packets are ready
+      if not connected:
+        sleep(0.05)
 
   def _cleanup_stale_messages(self, now):
     if stale_keys := [k for k, (_, _, last_time) in self.active_messages.items() if now - last_time > CHUNK_TIMEOUT]:

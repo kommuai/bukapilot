@@ -339,9 +339,6 @@ class VideoProtocolHandler:
       self._tick_storage_ok = False
       return False
 
-  def is_transfer_active(self) -> bool:
-    return self._is_busy()
-
   def should_pause_video_keepalive(self) -> bool:
     return self._wifi_session is not None
 

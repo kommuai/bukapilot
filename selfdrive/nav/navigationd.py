@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 import json
+import base64
+import hashlib
 from math import isfinite
 from time import monotonic
 from uuid import uuid4
@@ -29,6 +31,54 @@ UNSURE_SUPPRESS_SECONDS = 3.0
 ROUTE_REQUEST_TIMEOUT_SECONDS = 20.0
 ROUTE_REQUEST_COOLDOWN_SECONDS = 30.0
 REROUTE_REQUEST_DELAY_SECONDS = 10.0
+NAV_ROUTE_SELECTION_MAX_BYTES = 1024 * 1024
+NAV_ROUTE_SELECTION_MAX_PARTS = 255
+NAV_ROUTE_SELECTION_MAX_CANDIDATES = 16
+NAV_ROUTE_SELECTION_MAX_SET_BYTES = 4 * 1024 * 1024
+
+
+def _is_exact_route_selection_retry(selection_sequence, highest_sequence, previous_ack,
+                                    selection_id, candidate_set_id, route_id, payload_sha256):
+  return (selection_sequence == highest_sequence and isinstance(previous_ack, dict)
+          and previous_ack.get('selectionSequence') == selection_sequence
+          and previous_ack.get('selectionId') == selection_id
+          and previous_ack.get('candidateSetId') == candidate_set_id
+          and previous_ack.get('selectedRouteId') == route_id
+          and previous_ack.get('payloadSha256') == payload_sha256)
+
+
+def _validate_route_banner_instructions(banners):
+  if not isinstance(banners, list) or len(banners) > 8:
+    return False
+  for banner in banners:
+    if not isinstance(banner, dict):
+      return False
+    distance = banner.get('distanceAlongGeometry')
+    if (isinstance(distance, bool) or not isinstance(distance, (int, float))
+        or not isfinite(distance) or distance < 0):
+      return False
+    for group_name in ('primary', 'secondary', 'sub'):
+      group = banner.get(group_name)
+      if group is None:
+        continue
+      if not isinstance(group, dict):
+        return False
+      for field in ('text', 'type', 'modifier'):
+        value = group.get(field)
+        if value is not None and (not isinstance(value, str) or len(value) > 256):
+          return False
+      components = group.get('components')
+      if components is not None:
+        if not isinstance(components, list) or len(components) > 16:
+          return False
+        for component in components:
+          if not isinstance(component, dict):
+            return False
+          text = component.get('text')
+          if text is not None and (not isinstance(text, str) or len(text) > 256):
+            return False
+  return True
+
 
 
 class Navigationd:
@@ -42,6 +92,10 @@ class Navigationd:
     self.params.remove(NAV_ROUTE_FAILURE_KEY)
     self.params.remove(NAV_STATUS_KEY)
     self.params.remove(NAV_INSTRUCTION_STATE_KEY)
+    self.params.remove('NavRouteCandidateContext')
+    self.params.remove('NavRouteInstalledRouteId')
+    self.params.remove('NavRouteSelectEnvelope')
+    self.params.remove('NavRouteSelectAck')
     cloudlog.warning(
       f"navigationd boot_recovery transient_cleared request={int(had_request)} "
       f"failure={int(had_failure)} status={int(had_status)}"
@@ -107,6 +161,10 @@ class Navigationd:
     self._control_suppressed = False
     self.params.remove(NAV_ROUTE_DATA_KEY)
     self.params.remove(NAV_INSTRUCTION_STATE_KEY)
+    self.params.remove('NavRouteCandidateContext')
+    self.params.remove('NavRouteInstalledRouteId')
+    self.params.remove('NavRouteSelectEnvelope')
+    self.params.remove('NavRouteSelectAck')
     self.params.put_bool("NavRerouteNeeded", False)
     self.params.put_bool("NavHasRoute", False)
     self._route_dest_key = ""
@@ -379,11 +437,218 @@ class Navigationd:
       cloudlog.warning(f"navigationd stop_advance reason={reason} remaining=0")
       return True
 
+  def _route_selection_ack(self, envelope: dict, status: str, reason: str = '') -> None:
+    ack = {
+      'selectionId': str(envelope.get('selectionId') or '')[:100],
+      'candidateSetId': str(envelope.get('candidateSetId') or '')[:100],
+      'selectedRouteId': str(envelope.get('selectedRouteId') or '')[:160],
+      'selectionSequence': envelope.get('selectionSequence'),
+      'payloadSha256': str(envelope.get('payloadSha256') or '')[:64],
+      'status': status,
+    }
+    if reason:
+      ack['reason'] = reason[:40]
+    encoded_ack = json.dumps(ack, separators=(',', ':'))
+    self.params.put('NavRouteSelectAck', encoded_ack)
+    if status == 'accepted':
+      self.params.put('NavRouteSelectAcceptedAck', encoded_ack)
+
+  def _apply_route_selection_locked(self) -> None:
+    raw_envelope = self.params.get('NavRouteSelectEnvelope')
+    if not raw_envelope:
+      return
+    try:
+      if isinstance(raw_envelope, bytes): raw_envelope = raw_envelope.decode('utf-8', errors='strict')
+      envelope = json.loads(raw_envelope)
+      if not isinstance(envelope, dict): raise ValueError('invalid_envelope')
+    except (TypeError, ValueError, UnicodeDecodeError, json.JSONDecodeError):
+      self.params.remove('NavRouteSelectEnvelope')
+      return
+
+    selection_id = envelope.get('selectionId')
+    selection_sequence = envelope.get('selectionSequence')
+    try:
+      previous_accepted_ack = json.loads(self.params.get('NavRouteSelectAcceptedAck') or '')
+    except (TypeError, ValueError, json.JSONDecodeError):
+      previous_accepted_ack = None
+
+    def reject(reason: str) -> None:
+      self._route_selection_ack(envelope, 'rejected', reason)
+      self.params.remove('NavRouteSelectEnvelope')
+      cloudlog.warning(f"navigationd route_selection rejected reason={reason}")
+
+    if (not isinstance(selection_id, str) or not 1 <= len(selection_id) <= 100
+        or type(selection_sequence) is not int or selection_sequence < 1
+        or not isinstance(envelope.get('candidateSetId'), str)
+        or not isinstance(envelope.get('selectedRouteId'), str)):
+      reject('invalid_route')
+      return
+    context = self.params.get('NavRouteCandidateContext')
+    try:
+      if isinstance(context, bytes): context = context.decode('utf-8', errors='strict')
+      context = json.loads(context or '')
+    except (TypeError, ValueError, UnicodeDecodeError, json.JSONDecodeError):
+      context = None
+    if not isinstance(context, dict):
+      reject('stale_context')
+      return
+    destination = parse_destination_json(self.params.get('NavDestination'))
+    dest_key = f"{destination['latitude']:.5f}|{destination['longitude']:.5f}" if destination else ''
+    session_id = str(self.params.get(NAV_SESSION_ID_KEY) or 'legacy')
+    stop_version = self._stop_version()
+    if (self.params.get_bool('IsOffroad') or not self.params.get_bool('NavHasRoute')
+        or context.get('candidateSetId') != envelope.get('candidateSetId')
+        or envelope.get('sessionId') != session_id or context.get('sessionId') != session_id
+        or envelope.get('requestId') != context.get('requestId')
+        or envelope.get('routeGeneration') != context.get('routeGeneration')
+        or envelope.get('destKey') != dest_key or context.get('destKey') != dest_key
+        or (context.get('stopVersion') is not None
+            and (type(context.get('stopVersion')) is not int or context.get('stopVersion') != stop_version
+                 or envelope.get('stopVersion') != stop_version))):
+      reject('stale_context')
+      return
+    route_id = envelope['selectedRouteId']
+    manifests = context.get('candidateRoutes')
+    if not isinstance(manifests, list) or not 1 <= len(manifests) <= NAV_ROUTE_SELECTION_MAX_CANDIDATES:
+      reject('wrong_route')
+      return
+    manifest_ids = set()
+    manifest_bytes = 0
+    manifest_valid = True
+    for item in manifests:
+      if not isinstance(item, dict):
+        manifest_valid = False
+        break
+      item_id, item_digest, item_bytes = item.get('routeId'), item.get('payloadSha256'), item.get('payloadBytes')
+      if (not isinstance(item_id, str) or not 1 <= len(item_id) <= 160 or item_id in manifest_ids
+          or not isinstance(item_digest, str) or len(item_digest) != 64
+          or any(ch not in '0123456789abcdef' for ch in item_digest)
+          or type(item_bytes) is not int or not 32 <= item_bytes <= NAV_ROUTE_SELECTION_MAX_BYTES):
+        manifest_valid = False
+        break
+      manifest_ids.add(item_id)
+      manifest_bytes += item_bytes
+      if manifest_bytes > NAV_ROUTE_SELECTION_MAX_SET_BYTES:
+        manifest_valid = False
+        break
+    if not manifest_valid or context.get('activeRouteId') not in manifest_ids:
+      reject('wrong_route')
+      return
+    manifest = next((item for item in manifests if isinstance(item, dict) and item.get('routeId') == route_id), None)
+    if manifest is None:
+      reject('wrong_route')
+      return
+    encoded = envelope.get('routePayloadBase64')
+    if not isinstance(encoded, str) or not 1 <= len(encoded) <= 4 * ((NAV_ROUTE_SELECTION_MAX_BYTES + 2) // 3):
+      reject('invalid_route')
+      return
+    try:
+      route_bytes = base64.b64decode(encoded, validate=True)
+    except (ValueError, base64.binascii.Error):
+      reject('invalid_route')
+      return
+    if (not 32 <= len(route_bytes) <= NAV_ROUTE_SELECTION_MAX_BYTES
+        or type(manifest.get('payloadBytes')) is not int or len(route_bytes) != manifest['payloadBytes']):
+      reject('invalid_route')
+      return
+    digest = envelope.get('payloadSha256')
+    if (not isinstance(digest, str) or len(digest) != 64
+        or any(ch not in '0123456789abcdef' for ch in digest)
+        or digest != manifest.get('payloadSha256') or hashlib.sha256(route_bytes).hexdigest() != digest):
+      reject('invalid_route')
+      return
+    highest_sequence = context.get('selectionSequence', 0)
+    if type(highest_sequence) is not int or highest_sequence < 0:
+      reject('stale_context')
+      return
+    if selection_sequence <= highest_sequence:
+      if _is_exact_route_selection_retry(
+          selection_sequence, highest_sequence, previous_accepted_ack, selection_id,
+          envelope.get('candidateSetId'), route_id, digest):
+        self.params.put('NavRouteSelectAck', json.dumps(previous_accepted_ack, separators=(',', ':')))
+        self.params.remove('NavRouteSelectEnvelope')
+        return
+      reject('stale_selection')
+      return
+    if route_id == context.get('activeRouteId'):
+      reject('wrong_route')
+      return
+    try:
+      route_text = route_bytes.decode('utf-8', errors='strict')
+      route_data = json.loads(route_text)
+      if (not isinstance(route_data, dict) or route_data.get('schemaVersion') != 1
+          or route_data.get('routeId') != route_id):
+        raise ValueError('invalid_route_identity')
+      geometry, steps = route_data.get('geometry'), route_data.get('steps')
+      if not isinstance(geometry, list) or not 2 <= len(geometry) <= 50000:
+        raise ValueError('invalid_geometry')
+      for point in geometry:
+        if not isinstance(point, dict):
+          raise ValueError('invalid_geometry')
+        lat, lon = point.get('latitude'), point.get('longitude')
+        if (isinstance(lat, bool) or not isinstance(lat, (int, float)) or not isfinite(lat) or not -90 <= lat <= 90
+            or isinstance(lon, bool) or not isinstance(lon, (int, float)) or not isfinite(lon) or not -180 <= lon <= 180):
+          raise ValueError('invalid_geometry')
+      if not isinstance(steps, list) or not 1 <= len(steps) <= 10000:
+        raise ValueError('invalid_steps')
+      for step in steps:
+        if (not isinstance(step, dict)
+            or not _validate_route_banner_instructions(step.get('bannerInstructions', []))):
+          raise ValueError('invalid_step_guidance')
+      route = NavigationRoute.from_mapbox_route(route_data)
+      if route is None:
+        raise ValueError('invalid_route')
+    except (TypeError, ValueError, KeyError, IndexError, OverflowError, UnicodeDecodeError, json.JSONDecodeError):
+      reject('invalid_route')
+      return
+
+    # Recheck the context at the consumer boundary immediately before activation.
+    current_dest = parse_destination_json(self.params.get('NavDestination'))
+    current_dest_key = (
+      f"{current_dest['latitude']:.5f}|{current_dest['longitude']:.5f}" if current_dest else ''
+    )
+    if (self.params.get_bool('IsOffroad') or dest_key != current_dest_key
+        or session_id != str(self.params.get(NAV_SESSION_ID_KEY) or 'legacy')
+        or stop_version != self._stop_version()):
+      reject('stale_context')
+      return
+    self._route = route
+    self._route_raw = route_text
+    self._route_dest_key = self._dest_key(destination)
+    self._route_session_id = session_id
+    self._route_generation += 1
+    self._reset_route_acceptance_state()
+    self._off_route_started_at = self._bearing_misaligned_started_at = self._arrival_started_at = None
+    self._last_nav_state = None
+    self.params.put(NAV_ROUTE_DATA_KEY, route_text)
+    self.params.put('NavRouteInstalledRouteId', route_id)
+    context['activeRouteId'] = route_id
+    context['selectionSequence'] = selection_sequence
+    self.params.put('NavRouteCandidateContext', json.dumps(context, separators=(',', ':')))
+    self.params.put_bool('NavHasRoute', True)
+    self.params.put_bool('NavRerouteNeeded', False)
+    self.params.remove(NAV_ROUTE_FAILURE_KEY)
+    self.params.remove('NavDestinationWaypoints')
+    self._clear_route_request('route_selected')
+    self._same_route_reroute_not_before = 0.0
+    self._same_route_accept_position = None
+    self._same_route_guard_logged = False
+    self._route_request_failures = 0
+    self._last_failed_request_id = ''
+    self._set_nav_status('route_active')
+    self._route_selection_ack(envelope, 'accepted')
+    self.params.remove('NavRouteSelectEnvelope')
+    cloudlog.warning(
+      f"navigationd route_selection activated set={context['candidateSetId'][:36]} "
+      f"route={route_id[:48]} bytes={len(route_bytes)} generation={self._route_generation}"
+    )
+
   def _load_pushed_route(self) -> None:
     with nav_stop_list_lock():
       self._load_pushed_route_locked()
 
   def _load_pushed_route_locked(self) -> None:
+    self._apply_route_selection_locked()
     raw = self.params.get(NAV_ROUTE_DATA_KEY) or ""
     if isinstance(raw, bytes): raw = raw.decode("utf-8", errors="replace")
     if not raw:
@@ -422,6 +687,7 @@ class Navigationd:
       self.params.remove(NAV_ROUTE_DATA_KEY)
       return
     self._route = route
+    self.params.put('NavRouteInstalledRouteId', str(data.get('routeId') or ''))
     self._route_raw = raw
     self._route_dest_key = self._last_dest_key
     self._route_session_id = str(self.params.get(NAV_SESSION_ID_KEY) or 'legacy')

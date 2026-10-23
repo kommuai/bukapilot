@@ -108,10 +108,3 @@ def scan_drives(limit: int = MAX_DRIVES) -> list[dict]:
     if len(drives) >= limit:
       break
   return drives
-
-
-def get_drive(drive_id: str) -> dict | None:
-  for drive in scan_drives(MAX_DRIVES):
-    if drive["driveId"] == drive_id:
-      return drive
-  return None
