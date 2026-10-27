@@ -280,6 +280,8 @@ class Updater:
     b: str | None = self.params.get("UpdaterTargetBranch")
     if b is None:
       b = self.get_branch(BASEDIR)
+    if b == 'staging':
+      b = 'release_2'
     b = {
       ("tizi", "release3"): "release-tizi",
     }.get((HARDWARE.get_device_type(), b), b)
