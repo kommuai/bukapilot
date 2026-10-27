@@ -37,7 +37,8 @@ from openpilot.selfdrive.appbridged.video_scanner import validate_storage
 from openpilot.selfdrive.appbridged.video_hotspot import disable_hotspot, enable_hotspot
 
 # BLE Constants
-MESSAGE_HZ = SERVICE_LIST["modelV2"].frequency  # Match or stay below modelV2 updates to avoid outpacing fresh data.
+MAX_MESSAGE_HZ = SERVICE_LIST["modelV2"].frequency  # Cap the loop and Drive sends at fresh model updates.
+MAX_IN_FLIGHT_FRAMES = 7  # Allows multiple frames to stay in flight while ACKs return.
 params = Params()
 
 def _nav_dest_key(dest) -> str:
@@ -315,13 +316,9 @@ class AppBridge:
     self._event_history = {}
     self.nav_panel_subscribed = False
     self.nav_panel_sync_requested = False
-    self._vis_tx_count = 0
-    self._vis_tx_log_at = monotonic()
-    self._vis_tx_below_since = None
-    self._vis_tx_started = False
     self._video_dl_valid_at = 0.0
     self._video_dl_valid = False
-    self.rk = Ratekeeper(MESSAGE_HZ) # Ratekeeper for loop
+    self.rk = Ratekeeper(MAX_MESSAGE_HZ) # Ratekeeper for loop
     self.last_periodic_time = 0 # Track last periodic task
     self.last_video_heartbeat_time = 0
     self.last_background_nav_sync_time = 0
@@ -335,6 +332,8 @@ class AppBridge:
     threading.Thread(target=self.ble.start, daemon=True).start() # Start BLE peripheral
     self.receiver = ChunkReceiver(self.ble) # Handle incoming messages in separate thread
     self.send_channel = None # Keep track of which channel to send messages
+    self._latest_ack_supported = False
+    self._latest_inflight_msg_ids = []
     self.send_car_names_cnt = -1
     self._nav_ble_diag_test_id = ''
     self._nav_ble_diag_last_sequence = 0
@@ -697,6 +696,12 @@ class AppBridge:
     return self._video_dl_valid
 
   def send_visualisation_message(self, is_metric):
+    if self.ble.tx_char is None:
+      self._latest_ack_supported = False
+      self._latest_inflight_msg_ids.clear()
+    if self._latest_ack_supported and len(self._latest_inflight_msg_ids) >= MAX_IN_FLIGHT_FRAMES:
+      return
+
     # Offroad / no model: still send a light frame so nav guidance (and cancel) can update.
     sm = self.sm
     try:
@@ -775,31 +780,12 @@ class AppBridge:
     self._nav_ble_sync(data, destination)
     data['videoDlValid'] = self._video_download_valid()
     data = quantize(data)
-    tx_active = self.ble.tx_char is not None
-    now = monotonic()
-    if not tx_active:
-      self._vis_tx_count = 0
-      self._vis_tx_log_at = now
-      self._vis_tx_below_since = None
-      self._vis_tx_started = False
-    elif now - self._vis_tx_log_at >= 1.0:
-      elapsed = now - self._vis_tx_log_at
-      tx_rate = round(self._vis_tx_count / elapsed)
-      target_rate = round(MESSAGE_HZ)
-      if self._vis_tx_started and tx_rate > 0 and target_rate - tx_rate > 1:
-        if self._vis_tx_below_since is None:
-          self._vis_tx_below_since = now
-        elif now - self._vis_tx_below_since >= 1.0:
-          print(f"BLE Visualisation TX rate below target: {tx_rate}/{target_rate}Hz")
-      else:
-        self._vis_tx_below_since = None
-      self._vis_tx_count = 0
-      self._vis_tx_log_at = now
     try:
-      self.ble.chunk_and_send(CHANNEL_VISUALISATION, msgpack.packb(data))
-      if tx_active:
-        self._vis_tx_count += 1
-        self._vis_tx_started = True
+      msg_id = self.ble.chunk_and_send(CHANNEL_VISUALISATION, msgpack.packb(data))
+      if msg_id is not None:
+        self._latest_inflight_msg_ids.append(msg_id)
+        if len(self._latest_inflight_msg_ids) > MAX_IN_FLIGHT_FRAMES:
+          del self._latest_inflight_msg_ids[:-MAX_IN_FLIGHT_FRAMES]
     except Exception as e:
       cloudlog.error(f"BLE visualisation sending error: {e}")
 
@@ -2384,6 +2370,12 @@ class AppBridge:
         case 'navPanelSubscription':
           self.nav_panel_subscribed = bool(settings.get('active'))
           self.nav_panel_sync_requested = self.nav_panel_subscribed
+        case 'latestAck':
+          if (self.send_channel == CHANNEL_VISUALISATION
+              and type((msg_id := settings.get('msgId'))) is int and 1 <= msg_id <= 255):
+            self._latest_ack_supported = True
+            if msg_id in self._latest_inflight_msg_ids:
+              del self._latest_inflight_msg_ids[:self._latest_inflight_msg_ids.index(msg_id) + 1]
         case 'disableHotspot':
           disable_hotspot()
     except Exception as e:
@@ -2404,6 +2396,9 @@ class AppBridge:
     if not m.pop('devMode', False) and DONGLE_ID not in device_list:
       return None
     if m.get('msgType') == 'curPage':
+      if c != self.send_channel:
+        self._latest_ack_supported = False
+        self._latest_inflight_msg_ids.clear()
       self.send_channel = c
       self.send_car_names_cnt = 0
       if c == CHANNEL_VIDEO:
@@ -2466,6 +2461,8 @@ class AppBridge:
 
       if not self.ble.connected:
         self.nav_panel_subscribed = self.nav_panel_sync_requested = False
+        self._latest_ack_supported = False
+        self._latest_inflight_msg_ids.clear()
       if self.ble.connected: # Only receive/send if connected
         is_offroad = None # Always get latest is_offroad
         state = None
@@ -2517,9 +2514,9 @@ class AppBridge:
           self.video_handler.send_list_keepalive()
 
       lagged = self.rk.keep_time()
-      if lagged and self.rk.remaining < -(1.0 / MESSAGE_HZ):
+      if lagged and self.rk.remaining < -(1.0 / MAX_MESSAGE_HZ):
         # Resume at the current cadence after a multi-frame pause instead of catching up stale deadlines.
-        self.rk = Ratekeeper(MESSAGE_HZ)
+        self.rk = Ratekeeper(MAX_MESSAGE_HZ)
 
 def main():
   AppBridge().appbridged_thread()

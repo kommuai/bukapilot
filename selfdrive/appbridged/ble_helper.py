@@ -175,6 +175,7 @@ class BLEBridge:
       offset = seg_idx * CHUNK_SIZE
       header[3] = seg_idx
       send(header + view[offset:offset + CHUNK_SIZE])
+    return msg_id
 
 class ChunkReceiver:
   """Assemble incoming BLE chunks into full messages."""
