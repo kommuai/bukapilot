@@ -53,7 +53,6 @@ class MetaDriveWorld(World):
     self.vehicle_last_pos = self.vehicle_state_recv.recv().position # wait for a state message to ensure metadrive is launched
     self.status_q.put(QueueMessage(QueueMessageType.START_STATUS, "started"))
 
-    self.steer_ratio = 15
     self.vc = [0.0,0.0]
     self.reset_time = 0
     self.should_reset = False
@@ -88,6 +87,9 @@ class MetaDriveWorld(World):
       state.velocity = md_vehicle.velocity
       state.bearing = md_vehicle.bearing
       state.steering_angle = md_vehicle.steering_angle
+      state.imu.bearing = md_vehicle.bearing
+      state.imu.accelerometer = md_vehicle.acceleration
+      state.imu.gyroscope = md_vehicle.gyroscope
       state.gps.from_xy(curr_pos)
       state.valid = True
 

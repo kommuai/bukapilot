@@ -1,15 +1,16 @@
 #!/usr/bin/env python3
 import argparse
+import os
 
 from typing import Any
 from multiprocessing import Queue
 
 from openpilot.tools.sim.bridge.metadrive.metadrive_bridge import MetaDriveBridge
 
-def create_bridge(dual_camera, high_quality):
+def create_bridge(dual_camera, high_quality, render=False):
   queue: Any = Queue()
 
-  simulator_bridge = MetaDriveBridge(dual_camera, high_quality)
+  simulator_bridge = MetaDriveBridge(dual_camera, high_quality, render=render)
   simulator_process = simulator_bridge.run(queue)
 
   return queue, simulator_process, simulator_bridge
@@ -23,13 +24,19 @@ def parse_args(add_args=None):
   parser.add_argument('--joystick', action='store_true')
   parser.add_argument('--high_quality', action='store_true')
   parser.add_argument('--dual_camera', action='store_true')
+  render_group = parser.add_mutually_exclusive_group()
+  render_group.add_argument('--render', dest='render', action='store_true',
+                            help='Show the MetaDrive simulator window')
+  render_group.add_argument('--headless', dest='render', action='store_false',
+                            help='Run without a MetaDrive window')
+  parser.set_defaults(render=bool(os.environ.get('DISPLAY') or os.environ.get('WAYLAND_DISPLAY')))
 
   return parser.parse_args(add_args)
 
 if __name__ == "__main__":
   args = parse_args()
 
-  queue, simulator_process, simulator_bridge = create_bridge(args.dual_camera, args.high_quality)
+  queue, simulator_process, simulator_bridge = create_bridge(args.dual_camera, args.high_quality, args.render)
 
   if args.joystick:
     # start input poll for joystick

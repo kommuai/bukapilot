@@ -12,6 +12,8 @@ from openpilot.selfdrive.locationd.models.constants import GENERATED_DIR
 from openpilot.selfdrive.locationd.helpers import PoseCalibrator, Pose
 from openpilot.common.swaglog import cloudlog
 
+SIMULATION = bool(int(os.getenv("SIMULATION", "0")))
+
 MAX_ANGLE_OFFSET_DELTA = 20 * DT_MDL  # Max 20 deg/s
 ROLL_MAX_DELTA = np.radians(20.0) * DT_MDL  # 20deg in 1 second is well within curvature limits
 ROLL_MIN, ROLL_MAX = np.radians(-10), np.radians(10)
@@ -217,14 +219,15 @@ def migrate_cached_vehicle_params_if_needed(params: Params):
     params.remove("LiveParameters")
 
 
-def retrieve_initial_vehicle_params(params: Params, CP: car.CarParams, replay: bool, debug: bool):
+def retrieve_initial_vehicle_params(params: Params, CP: car.CarParams, replay: bool, debug: bool,
+                                    simulation: bool = SIMULATION):
   last_parameters_data = params.get("LiveParametersV2")
   last_carparams_data = params.get("CarParamsPrevRoute")
 
   steer_ratio, stiffness_factor, angle_offset_deg, p_initial = CP.steerRatio, 1.0, 0.0, None
 
   retrieve_success = False
-  if last_parameters_data is not None and last_carparams_data is not None:
+  if not simulation and last_parameters_data is not None and last_carparams_data is not None:
     try:
       with log.Event.from_bytes(last_parameters_data) as last_lp_msg, car.CarParams.from_bytes(last_carparams_data) as last_CP:
         lp = last_lp_msg.liveParameters
@@ -279,10 +282,11 @@ def main():
   while True:
     sm.update()
     if sm.all_checks():
-      for which in sorted(sm.updated.keys(), key=lambda x: sm.logMonoTime[x]):
-        if sm.updated[which]:
-          t = sm.logMonoTime[which] * 1e-9
-          learner.handle_log(t, which, sm[which])
+      if not SIMULATION:
+        for which in sorted(sm.updated.keys(), key=lambda x: sm.logMonoTime[x]):
+          if sm.updated[which]:
+            t = sm.logMonoTime[which] * 1e-9
+            learner.handle_log(t, which, sm[which])
 
     if sm.updated['livePose']:
       msg = learner.get_msg(sm.all_checks(), debug=DEBUG)

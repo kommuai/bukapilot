@@ -57,6 +57,24 @@ class TestParamsd:
     np.testing.assert_allclose(offset, msg.liveParameters.angleOffsetAverageDeg)
     assert params.get("LiveParametersV2") is not None
 
+  def test_simulation_ignores_saved_vehicle_params(self):
+    params = Params()
+
+    lr = migrate(LogReader(TEST_ROUTE), [migrate_carParams])
+    CP = next(m for m in lr if m.which() == "carParams").carParams
+
+    msg = get_random_live_parameters(CP)
+    params.put("LiveParametersV2", msg.to_bytes())
+    params.put("CarParamsPrevRoute", CP.as_builder().to_bytes())
+
+    sr, sf, offset, p_init = retrieve_initial_vehicle_params(
+      params, CP, replay=False, debug=True, simulation=True
+    )
+    np.testing.assert_allclose(sr, CP.steerRatio)
+    np.testing.assert_allclose(sf, 1.0)
+    np.testing.assert_allclose(offset, 0.0)
+    assert p_init is None
+
   def test_read_saved_params_corrupted_old_format(self):
     params = Params()
     params.put("LiveParameters", {})

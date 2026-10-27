@@ -21,7 +21,20 @@ C3_HPR = Vec3(0, 0,0)
 
 
 metadrive_simulation_state = namedtuple("metadrive_simulation_state", ["running", "done", "done_info"])
-metadrive_vehicle_state = namedtuple("metadrive_vehicle_state", ["velocity", "position", "bearing", "steering_angle"])
+metadrive_vehicle_state = namedtuple(
+  "metadrive_vehicle_state",
+  ["velocity", "position", "bearing", "steering_angle", "acceleration", "gyroscope"],
+)
+
+
+def metadrive_action_from_wheel_angle(steering_angle, max_steering, steer_ratio):
+  """Convert OpenPilot's steering-wheel angle to MetaDrive action units."""
+  return np.clip(steering_angle / (max_steering * steer_ratio), -1, 1)
+
+
+def wheel_angle_from_metadrive_action(action, max_steering, steer_ratio):
+  """Convert MetaDrive's normalized tire-angle action to wheel-angle feedback."""
+  return action * max_steering * steer_ratio
 
 def apply_metadrive_patches(arrive_dest_done=True):
   # By default, metadrive won't try to use cuda images unless it's used as a sensor for vehicles, so patch that in
@@ -52,6 +65,7 @@ def metadrive_process(dual_camera: bool, config: dict, camera_array, wide_camera
                       controls_recv: Connection, simulation_state_send: Connection, vehicle_state_send: Connection,
                       exit_event, op_engaged, test_duration, test_run):
   arrive_dest_done = config.pop("arrive_dest_done", True)
+  steer_ratio = config.pop("steer_ratio", 16.82)
   apply_metadrive_patches(arrive_dest_done)
 
   road_image = np.frombuffer(camera_array.get_obj(), dtype=np.uint8).reshape((H, W, 3))
@@ -61,15 +75,13 @@ def metadrive_process(dual_camera: bool, config: dict, camera_array, wide_camera
 
   env = MetaDriveEnv(config)
 
-  def get_current_lane_info(vehicle):
-    _, lane_info, on_lane = vehicle.navigation._get_current_lane(vehicle)
-    lane_idx = lane_info[2] if lane_info is not None else None
-    return lane_idx, on_lane
+  def is_on_lane(vehicle):
+    _, _, on_lane = vehicle.navigation._get_current_lane(vehicle)
+    return on_lane
 
   def reset():
     env.reset()
     env.vehicle.config["max_speed_km_h"] = 1000
-    lane_idx_prev, _ = get_current_lane_info(env.vehicle)
 
     simulation_state = metadrive_simulation_state(
       running=True,
@@ -78,9 +90,7 @@ def metadrive_process(dual_camera: bool, config: dict, camera_array, wide_camera
     )
     simulation_state_send.send(simulation_state)
 
-    return lane_idx_prev
-
-  lane_idx_prev = reset()
+  reset()
   start_time = None
 
   def get_cam_as_rgb(cam):
@@ -95,15 +105,36 @@ def metadrive_process(dual_camera: bool, config: dict, camera_array, wide_camera
 
   rk = Ratekeeper(100, None)
 
-  steer_ratio = 8
+  # MetaDrive's action is a normalized tire/front-wheel angle. The simulated
+  # Honda exposes a steering-wheel angle to OpenPilot, so both directions must
+  # use the same effective steering ratio.
+  max_steering = getattr(env.vehicle, "max_steering", env.vehicle.MAX_STEERING)
   vc = [0,0]
+  physics_dt = config.get("physics_world_step_size", 0.05)
+  previous_step_velocity = np.asarray(env.vehicle.velocity, dtype=float)
+  acceleration_forward = acceleration_left = 0.0
 
   while not exit_event.is_set():
+    velocity = vec3(x=float(env.vehicle.velocity[0]), y=float(env.vehicle.velocity[1]), z=0)
+    heading = float(env.vehicle.heading_theta)
+    # Read angular velocity from Bullet instead of differentiating heading at
+    # the 100 Hz bridge rate. MetaDrive advances physics every 50 ms, so a
+    # wall-clock derivative at this loop rate otherwise becomes four zero
+    # samples followed by one large spike.
+    yaw_rate = float(env.vehicle._body.getAngularVelocity()[2])
+
     vehicle_state = metadrive_vehicle_state(
-      velocity=vec3(x=float(env.vehicle.velocity[0]), y=float(env.vehicle.velocity[1]), z=0),
+      velocity=velocity,
       position=env.vehicle.position,
-      bearing=float(math.degrees(env.vehicle.heading_theta)),
-      steering_angle=env.vehicle.steering * env.vehicle.MAX_STEERING
+      bearing=float(math.degrees(heading)),
+      steering_angle=wheel_angle_from_metadrive_action(
+        env.vehicle.steering, max_steering, steer_ratio
+      ),
+      # locationd maps raw sensor [x, y, z] to device [x, y, z] as
+      # [-z, -y, -x]. MetaDrive uses +y-left/+z-up, while the device frame
+      # uses +y-right/+z-down.
+      acceleration=vec3(x=0, y=acceleration_left, z=-acceleration_forward),
+      gyroscope=vec3(x=yaw_rate, y=0, z=0),
     )
     vehicle_state_send.send(vehicle_state)
 
@@ -111,14 +142,17 @@ def metadrive_process(dual_camera: bool, config: dict, camera_array, wide_camera
       while controls_recv.poll(0):
         steer_angle, gas, should_reset = controls_recv.recv()
 
-      steer_metadrive = steer_angle * 1 / (env.vehicle.MAX_STEERING * steer_ratio)
-      steer_metadrive = np.clip(steer_metadrive, -1, 1)
+      steer_metadrive = metadrive_action_from_wheel_angle(
+        steer_angle, max_steering, steer_ratio
+      )
 
       vc = [steer_metadrive, gas]
 
       if should_reset:
-        lane_idx_prev = reset()
+        reset()
         start_time = None
+        previous_step_velocity = np.asarray(env.vehicle.velocity, dtype=float)
+        acceleration_forward = acceleration_left = 0.0
 
     is_engaged = op_engaged.is_set()
     if is_engaged and start_time is None:
@@ -126,10 +160,16 @@ def metadrive_process(dual_camera: bool, config: dict, camera_array, wide_camera
 
     if rk.frame % 5 == 0:
       _, _, terminated, _, _ = env.step(vc)
+      stepped_velocity = np.asarray(env.vehicle.velocity, dtype=float)
+      velocity_delta = (stepped_velocity - previous_step_velocity) / physics_dt
+      stepped_heading = float(env.vehicle.heading_theta)
+      forward = np.array([math.cos(stepped_heading), math.sin(stepped_heading)])
+      left = np.array([-math.sin(stepped_heading), math.cos(stepped_heading)])
+      acceleration_forward = float(np.dot(velocity_delta, forward))
+      acceleration_left = float(np.dot(velocity_delta, left))
+      previous_step_velocity = stepped_velocity
       timeout = True if start_time is not None and time.monotonic() - start_time >= test_duration else False
-      lane_idx_curr, on_lane = get_current_lane_info(env.vehicle)
-      out_of_lane = lane_idx_curr != lane_idx_prev or not on_lane
-      lane_idx_prev = lane_idx_curr
+      out_of_lane = not is_on_lane(env.vehicle)
 
       if terminated or ((out_of_lane or timeout) and test_run):
         if terminated:

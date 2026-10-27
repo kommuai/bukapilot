@@ -175,7 +175,11 @@ Ignition: {self.simulator_state.ignition} Engaged: {self.simulator_state.is_enga
       if self.simulator_state.is_engaged:
         throttle_op = np.clip(self.simulated_car.sm['carControl'].actuators.accel / 1.6, 0.0, 1.0)
         brake_op = np.clip(-self.simulated_car.sm['carControl'].actuators.accel / 4.0, 0.0, 1.0)
-        steer_op = self.simulated_car.sm['carControl'].actuators.steeringAngleDeg
+        # The control target includes the learned steering-sensor offset. The
+        # simulator applies a physical angle, so remove the offset at the
+        # actuator boundary. SimulatedCar adds it back to sensor feedback.
+        steer_op = (self.simulated_car.sm['carControl'].actuators.steeringAngleDeg
+                    - self.simulated_car.sm['liveParameters'].angleOffsetDeg)
 
         self.past_startup_engaged = True
       elif not self.past_startup_engaged and self.simulated_car.sm['selfdriveState'].engageable:

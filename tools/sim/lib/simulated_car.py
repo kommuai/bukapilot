@@ -9,13 +9,18 @@ from openpilot.selfdrive.pandad.pandad_api_impl import can_list_to_can_capnp
 from openpilot.tools.sim.lib.common import SimulatorState
 
 
+def pcm_cruise_status(is_engaged: bool, pcm_cruise: bool) -> int:
+  """Return stock PCM cruise state only when the car uses PCM cruise."""
+  return int(is_engaged and pcm_cruise)
+
+
 class SimulatedCar:
   """Simulates a honda civic 2022 (panda state + can messages) to OpenPilot"""
   packer = CANPacker("honda_bosch_radarless_generated")
 
   def __init__(self):
     self.pm = messaging.PubMaster(['can', 'pandaStates'])
-    self.sm = messaging.SubMaster(['carControl', 'controlsState', 'carParams', 'selfdriveState'])
+    self.sm = messaging.SubMaster(['carControl', 'controlsState', 'carParams', 'selfdriveState', 'liveParameters'])
     self.cp = self.get_car_can_parser()
     self.idx = 0
     self.params = Params()
@@ -30,6 +35,8 @@ class SimulatedCar:
   def send_can_messages(self, simulator_state: SimulatorState):
     if not simulator_state.valid:
       return
+
+    self.sm.update(0)
 
     msg = []
 
@@ -50,7 +57,9 @@ class SimulatedCar:
     msg.append(self.packer.make_can_msg("GAS_PEDAL_2", 0, {}))
     msg.append(self.packer.make_can_msg("SEATBELT_STATUS", 0, {"SEATBELT_DRIVER_LATCHED": 1}))
     msg.append(self.packer.make_can_msg("STEER_STATUS", 0, {"STEER_TORQUE_SENSOR": simulator_state.user_torque}))
-    msg.append(self.packer.make_can_msg("STEERING_SENSORS", 0, {"STEER_ANGLE": simulator_state.steering_angle}))
+    msg.append(self.packer.make_can_msg("STEERING_SENSORS", 0, {
+      "STEER_ANGLE": simulator_state.steering_angle + self.sm["liveParameters"].angleOffsetDeg,
+    }))
     msg.append(self.packer.make_can_msg("VSA_STATUS", 0, {}))
     msg.append(self.packer.make_can_msg("STANDSTILL", 0, {"WHEELS_MOVING": 1 if simulator_state.speed >= 1.0 else 0}))
     msg.append(self.packer.make_can_msg("STEER_MOTOR_TORQUE", 0, {}))
@@ -66,7 +75,10 @@ class SimulatedCar:
                                     }))
     msg.append(self.packer.make_can_msg("POWERTRAIN_DATA", 0,
                                     {
-                                    "ACC_STATUS": int(simulator_state.is_engaged),
+                                    "ACC_STATUS": pcm_cruise_status(
+                                      simulator_state.is_engaged,
+                                      self.sm["carParams"].pcmCruise,
+                                    ),
                                     "PEDAL_GAS": simulator_state.user_gas,
                                     "BRAKE_PRESSED": simulator_state.user_brake > 0
                                     }))
@@ -80,8 +92,6 @@ class SimulatedCar:
     self.pm.send('can', can_list_to_can_capnp(msg))
 
   def send_panda_state(self, simulator_state):
-    self.sm.update(0)
-
     if self.params.get_bool("ObdMultiplexingEnabled") != self.obd_multiplexing:
       self.obd_multiplexing = not self.obd_multiplexing
       self.params.put_bool("ObdMultiplexingChanged", True)
