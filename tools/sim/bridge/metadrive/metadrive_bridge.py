@@ -10,44 +10,13 @@ from openpilot.tools.sim.bridge.metadrive.metadrive_world import MetaDriveWorld
 from openpilot.tools.sim.lib.camerad import W, H
 
 
-def straight_block(length):
-  return {
-    "id": "S",
-    "pre_block_socket_index": 0,
-    "length": length
-  }
-
-def curve_block(length, angle=45, direction=0, radius=None):
-  return {
-    "id": "C",
-    "pre_block_socket_index": 0,
-    "length": length,
-    "radius": length if radius is None else radius,
-    "angle": angle,
-    "dir": direction
-  }
-
-def create_map(track_size=60, curve_radius=None):
-  # The original 120 m bends exceed the curvature envelope represented by the
-  # driving model at the simulator's normal speed. Keep the tight route
-  # selectable for stress tests, but use a broader default for normal runs.
-  curve_radius = track_size * 5 if curve_radius is None else curve_radius
-  curve_len = track_size * 2
+def create_map(track_size=60):
   return dict(
     type=MapGenerateMethod.PG_MAP_FILE,
     lane_num=2,
-    lane_width=4.5,
-    config=[
-      None,
-      straight_block(track_size),
-      curve_block(curve_len, 90, radius=curve_radius),
-      straight_block(track_size),
-      curve_block(curve_len, 90, radius=curve_radius),
-      straight_block(track_size),
-      curve_block(curve_len, 90, radius=curve_radius),
-      straight_block(track_size),
-      curve_block(curve_len, 90, radius=curve_radius),
-    ]
+    lane_width=3.5,
+    exit_length=track_size,
+    start_position=[0, 0],
   )
 
 
@@ -76,6 +45,9 @@ class MetaDriveBridge(SimulatorBridge):
         render_vehicle=False,
         image_source="rgb_road",
       ),
+      traffic_vehicle_config=dict(
+        render_vehicle=True,
+      ),
       sensors=sensors,
       image_on_cuda=_cuda_enable,
       image_observation=True,
@@ -88,7 +60,11 @@ class MetaDriveBridge(SimulatorBridge):
       # Scale the Honda Civic ratio for MetaDrive's default vehicle
       # wheelbase (2.46894 m versus the Civic's 2.7 m).
       steer_ratio=16.82,
-      traffic_density=0.0, # traffic is incredibly expensive
+      # The figure-eight extends to about +/-605 m; MetaDrive's terrain
+      # semantic map defaults to +/-512 m and clips the road texture there.
+      # Use the full terrain region so both lobes render completely.
+      map_region_size=2048,
+      traffic_density=0.01, # traffic is incredibly expensive
       map_config=create_map(),
       decision_repeat=1,
       physics_world_step_size=self.TICKS_PER_FRAME/100,

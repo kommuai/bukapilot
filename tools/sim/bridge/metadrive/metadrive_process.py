@@ -1,4 +1,5 @@
 import math
+import os
 import time
 import numpy as np
 
@@ -8,9 +9,15 @@ from multiprocessing.connection import Connection
 
 from metadrive.engine.core.engine_core import EngineCore
 from metadrive.engine.core.image_buffer import ImageBuffer
+from metadrive.engine.base_engine import BaseEngine
+from metadrive.engine.asset_loader import AssetLoader
 from metadrive.envs.metadrive_env import MetaDriveEnv
 from metadrive.obs.image_obs import ImageObservation
 
+from openpilot.tools.sim.bridge.metadrive.figure_eight_map import (
+  FigureEightPGMapManager,
+  install_figure_eight_navigation,
+)
 from openpilot.common.realtime import Ratekeeper
 
 from openpilot.tools.sim.lib.common import vec3
@@ -18,6 +25,22 @@ from openpilot.tools.sim.lib.camerad import W, H
 
 C3_POSITION = Vec3(0.0, 0, 1.22)
 C3_HPR = Vec3(0, 0,0)
+
+
+class OpenpilotMetaDriveEnv(MetaDriveEnv):
+  @classmethod
+  def default_config(cls):
+    config = super().default_config()
+    # MetaDrive's traffic vehicle schema omits this key, although BaseVehicle
+    # indexes it directly when constructing each traffic vehicle.
+    config["traffic_vehicle_config"]["render_vehicle"] = True
+    return config
+
+  def setup_engine(self):
+    super().setup_engine()
+    # Keep MetaDrive's traffic/object managers, but replace its linear PGMap
+    # manager with the closed figure-eight map manager.
+    self.engine.update_manager("map_manager", FigureEightPGMapManager())
 
 
 metadrive_simulation_state = namedtuple("metadrive_simulation_state", ["running", "done", "done_info"])
@@ -37,6 +60,8 @@ def wheel_angle_from_metadrive_action(action, max_steering, steer_ratio):
   return action * max_steering * steer_ratio
 
 def apply_metadrive_patches(arrive_dest_done=True):
+  install_figure_eight_navigation()
+
   # By default, metadrive won't try to use cuda images unless it's used as a sensor for vehicles, so patch that in
   def add_image_sensor_patched(self, name: str, cls, args):
     if self.global_config["image_on_cuda"]:# and name == self.global_config["vehicle_config"]["image_source"]:
@@ -47,6 +72,25 @@ def apply_metadrive_patches(arrive_dest_done=True):
     self.sensors[name] = sensor
 
   EngineCore.add_image_sensor = add_image_sensor_patched
+
+  # MetaDrive 0.4.2.4's updater points to a minimal archive without vehicle
+  # models, while the compatible full 0.4.2.3 asset pack is available. Skip
+  # version-only replacement when the required full model assets are present.
+  original_try_pull_asset = BaseEngine.try_pull_asset
+
+  def try_pull_asset_patched():
+    required_assets = (
+      AssetLoader.file_path("models", "130", "vehicle.gltf"),
+      AssetLoader.file_path("models", "130", "right_tire_front.gltf"),
+      AssetLoader.file_path("models", "130", "right_tire_back.gltf"),
+      AssetLoader.file_path("textures", "grass1", "GroundGrassGreen002_COL_1K.jpg"),
+    )
+    if all(os.path.isfile(path) for path in required_assets):
+      AssetLoader.logger.info("Using installed MetaDrive vehicle assets; skipping minimal asset update")
+      return
+    original_try_pull_asset()
+
+  BaseEngine.try_pull_asset = staticmethod(try_pull_asset_patched)
 
   # we aren't going to use the built-in observation stack, so disable it to save time
   def observe_patched(self, *args, **kwargs):
@@ -73,7 +117,7 @@ def metadrive_process(dual_camera: bool, config: dict, camera_array, wide_camera
     assert wide_camera_array is not None
     wide_road_image = np.frombuffer(wide_camera_array.get_obj(), dtype=np.uint8).reshape((H, W, 3))
 
-  env = MetaDriveEnv(config)
+  env = OpenpilotMetaDriveEnv(config)
 
   def is_on_lane(vehicle):
     _, _, on_lane = vehicle.navigation._get_current_lane(vehicle)

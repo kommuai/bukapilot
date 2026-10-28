@@ -1,6 +1,7 @@
 import signal
 import threading
 import functools
+import time
 import numpy as np
 
 from collections import namedtuple
@@ -26,6 +27,58 @@ class QueueMessageType(Enum):
 
 def control_cmd_gen(cmd: str):
   return QueueMessage(QueueMessageType.CONTROL_COMMAND, cmd)
+
+def toggle_blinker(state: SimulatorState, direction: str) -> None:
+  if direction == "left":
+    state.left_blinker = not state.left_blinker
+    state.right_blinker = False
+  elif direction == "right":
+    state.right_blinker = not state.right_blinker
+    state.left_blinker = False
+  else:
+    raise ValueError(f"invalid blinker direction: {direction}")
+
+def clear_blinkers(state: SimulatorState) -> None:
+  state.left_blinker = False
+  state.right_blinker = False
+
+class SteeringTorqueHold:
+  """Keep matching engaged steering feedback visible across model frames."""
+  HOLD_SECONDS = 0.25
+
+  def __init__(self):
+    self.clear()
+
+  def clear(self) -> None:
+    self.direction: str | None = None
+    self.torque = 0.0
+    self.expires_at = 0.0
+
+  def update(self, state: SimulatorState, steer_manual: float, now: float | None = None) -> float:
+    now = time.monotonic() if now is None else now
+    if state.left_blinker != state.right_blinker:
+      signal_direction = "left" if state.left_blinker else "right"
+    else:
+      signal_direction = None
+
+    if steer_manual:
+      direction = "left" if steer_manual < 0 else "right"
+      torque = steer_manual * -10000
+      if state.is_engaged and direction == signal_direction:
+        self.direction = direction
+        self.torque = torque
+        self.expires_at = now + self.HOLD_SECONDS
+      else:
+        self.clear()
+      # The physical steering command remains one simulator tick. Only the
+      # user torque feedback is held by subsequent calls to update().
+      return torque
+
+    if (not state.is_engaged or signal_direction != self.direction or
+        self.direction is None or now > self.expires_at):
+      self.clear()
+      return 0.0
+    return self.torque
 
 def rk_loop(function, hz, exit_event: threading.Event):
   rk = Ratekeeper(hz, None)
@@ -58,6 +111,7 @@ class SimulatorBridge(ABC):
 
     self.past_startup_engaged = False
     self.startup_button_prev = True
+    self.steering_torque_hold = SteeringTorqueHold()
 
     self.test_run = False
 
@@ -123,8 +177,6 @@ Ignition: {self.simulator_state.ignition} Engaged: {self.simulator_state.is_enga
       throttle_op = steer_op = brake_op = 0.0
 
       self.simulator_state.cruise_button = 0
-      self.simulator_state.left_blinker = False
-      self.simulator_state.right_blinker = False
 
       throttle_manual = steer_manual = brake_manual = 0.
 
@@ -149,20 +201,18 @@ Ignition: {self.simulator_state.ignition} Engaged: {self.simulator_state.is_enga
             elif m[1] == "main":
               self.simulator_state.cruise_button = CruiseButtons.MAIN
           elif m[0] == "blinker":
-            if m[1] == "left":
-              self.simulator_state.left_blinker = True
-            elif m[1] == "right":
-              self.simulator_state.right_blinker = True
+            toggle_blinker(self.simulator_state, m[1])
           elif m[0] == "ignition":
             self.simulator_state.ignition = not self.simulator_state.ignition
           elif m[0] == "reset":
+            clear_blinkers(self.simulator_state)
             self.world.reset()
           elif m[0] == "quit":
             break
 
       self.simulator_state.user_brake = brake_manual
       self.simulator_state.user_gas = throttle_manual
-      self.simulator_state.user_torque = steer_manual * -10000
+      self.simulator_state.user_torque = self.steering_torque_hold.update(self.simulator_state, steer_manual)
 
       steer_manual = steer_manual * -40
 

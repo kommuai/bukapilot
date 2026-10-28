@@ -27,8 +27,12 @@ KEYBOARD_HELP = """
   |  3   | Cruise Cancel         |
   |  r   | Reset Simulation      |
   |  i   | Toggle Ignition       |
+  |  z   | Toggle left blinker   |
+  |  x   | Toggle right blinker  |
   |  q   | Exit all              |
   | wasd | Control manually      |
+
+ALC lane change: toggle z/x, then briefly tap a/d to confirm. OpenPilot keeps its normal safety checks.
 """
 
 

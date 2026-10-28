@@ -48,7 +48,6 @@ from tinygrad.runtime.ops_cl import set_external_cl_context, get_cl_buffer_ptr, 
 
 PROCESS_NAME = "selfdrive.modeld.modeld"
 SEND_RAW_PRED = os.getenv('SEND_RAW_PRED')
-KA2_MODEL_X_OFFSET_PIX = -30.0
 
 MODEL_DIR = Path(__file__).parent / 'models'
 VISION_PKL_PATH = MODEL_DIR / 'driving_vision_tinygrad.pkl'
@@ -726,13 +725,13 @@ def main(demo=False):
         device_from_calib_euler,
         dc.ecam.intrinsics if main_wide_camera else dc.fcam.intrinsics,
         False,
-        x_offset_pix=KA2_MODEL_X_OFFSET_PIX - drive_path_pix_main,
+        x_offset_pix=-drive_path_pix_main,
       ).astype(np.float32)
       model_transform_extra = get_warp_matrix(
         device_from_calib_euler,
         dc.ecam.intrinsics,
         True,
-        x_offset_pix=KA2_MODEL_X_OFFSET_PIX - drive_path_pix_extra,
+        x_offset_pix=-drive_path_pix_extra,
       ).astype(np.float32)
       live_calib_seen = True
 
