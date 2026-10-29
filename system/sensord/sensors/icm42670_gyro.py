@@ -28,6 +28,7 @@ ICM42670_GYRO_UI_FILT_BW_16HZ = 0x07
 
 ROT_ANGLE_RAD = 0.4082
 GYRO_SCALE_LSB_DPS = 131.0
+DEGREES_TO_RADIANS, ROT_COS, ROT_SIN = math.pi / 180.0, math.cos(-ROT_ANGLE_RAD), math.sin(-ROT_ANGLE_RAD)
 
 GYRO_CAL_SAMPLE_COUNT = 300
 GYRO_CAL_SAMPLE_DT = 0.005
@@ -65,7 +66,7 @@ class ICM42670_Gyro(Sensor):
     return gx, gy, gz
 
   def _counts_to_rad(self, counts: float) -> float:
-    return counts * (math.pi / 180.0) / GYRO_SCALE_LSB_DPS
+    return counts * DEGREES_TO_RADIANS / GYRO_SCALE_LSB_DPS
 
   def _calibrate_zero_rate_bias(self) -> None:
     samples: list[tuple[int, int, int]] = []
@@ -97,9 +98,8 @@ class ICM42670_Gyro(Sensor):
     gy_raw = self._counts_to_rad(gy_counts - self.bias_counts[1])
     gz_raw = self._counts_to_rad(gz_counts - self.bias_counts[2])
 
-    c, s = math.cos(-ROT_ANGLE_RAD), math.sin(-ROT_ANGLE_RAD)
-    gx = c * gx_raw - s * gz_raw
-    gz = s * gx_raw + c * gz_raw
+    gx = ROT_COS * gx_raw - ROT_SIN * gz_raw
+    gz = ROT_SIN * gx_raw + ROT_COS * gz_raw
 
     event = log.SensorEventData.new_message()
     event.timestamp = ts

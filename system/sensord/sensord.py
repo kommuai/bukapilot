@@ -84,11 +84,10 @@ def polling_loop(sensor: Sensor, service: str, event: threading.Event) -> None:
   while not event.is_set():
     try:
       evt = sensor.get_event()
-      if not sensor.is_data_valid():
-        continue
-      msg = messaging.new_message(service, valid=True)
-      setattr(msg, service, evt)
-      pm.send(service, msg)
+      if sensor.is_data_valid():
+        msg = messaging.new_message(service, valid=True)
+        setattr(msg, service, evt)
+        pm.send(service, msg)
     except Exception:
       cloudlog.exception(f"Error in {service} polling loop")
     rk.keep_time()

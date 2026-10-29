@@ -28,6 +28,7 @@ ICM42670_CONFIG_RATE_200_Hz = 0b00001000
 ICM42670_ACCEL_UI_FILT_BW_16HZ = 0x07
 
 ROT_ANGLE_RAD = 0.4082
+ACCEL_SCALE, ROT_COS, ROT_SIN = 9.80665 / 16384.0, math.cos(-ROT_ANGLE_RAD), math.sin(-ROT_ANGLE_RAD)
 
 
 class ICM42670_Accel(Sensor):
@@ -46,13 +47,11 @@ class ICM42670_Accel(Sensor):
     ts = ts if ts is not None else time.monotonic_ns()
     buf = self.read(ICM42670_REG_ACCEL_DATA_X1, 6)
     # 16-bit raw, ±2g → m/s² (scale 9.80665/16384)
-    accel_scale = 9.80665 / 16384.0
-    x_raw = self.parse_16bit(buf[5], buf[4]) * accel_scale
-    y_raw = -self.parse_16bit(buf[1], buf[0]) * accel_scale
-    z_raw = -self.parse_16bit(buf[3], buf[2]) * accel_scale
-    c, s = math.cos(-ROT_ANGLE_RAD), math.sin(-ROT_ANGLE_RAD)
-    xr = c * x_raw - s * z_raw
-    zr = s * x_raw + c * z_raw
+    x_raw = self.parse_16bit(buf[5], buf[4]) * ACCEL_SCALE
+    y_raw = -self.parse_16bit(buf[1], buf[0]) * ACCEL_SCALE
+    z_raw = -self.parse_16bit(buf[3], buf[2]) * ACCEL_SCALE
+    xr = ROT_COS * x_raw - ROT_SIN * z_raw
+    zr = ROT_SIN * x_raw + ROT_COS * z_raw
     event = log.SensorEventData.new_message()
     event.timestamp = ts
     event.version = 1
