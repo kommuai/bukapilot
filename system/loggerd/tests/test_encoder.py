@@ -55,7 +55,6 @@ class TestEncoder:
   def test_log_rotation(self, record_front):
     Params().put_bool("RecordFront", record_front)
 
-    managed_processes['sensord'].start()
     managed_processes['loggerd'].start()
     managed_processes['encoderd'].start()
 
@@ -149,4 +148,3 @@ class TestEncoder:
       managed_processes['loggerd'].stop()
       managed_processes['encoderd'].stop()
       managed_processes['camerad'].stop()
-      managed_processes['sensord'].stop()

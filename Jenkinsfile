@@ -214,6 +214,7 @@ node {
           step("test power draw", "pytest -s system/hardware/tici/tests/test_power_draw.py"),
           step("test encoder", "LD_LIBRARY_PATH=/usr/local/lib pytest system/loggerd/tests/test_encoder.py", [diffPaths: ["system/loggerd/"]]),
           step("test manager", "pytest system/manager/test/test_manager.py"),
+          step("test sensord", "pytest -n 0 -q system/sensord/tests", [diffPaths: ["system/sensord/"]]),
         ])
       },
       'loopback': {
@@ -234,12 +235,6 @@ node {
           step("build", "cd system/manager && ./build.py"),
           step("test camerad", "pytest system/camerad/test/test_camerad.py", [timeout: 60]),
           step("test exposure", "pytest system/camerad/test/test_exposure.py"),
-        ])
-      },
-      'sensord': {
-        deviceStage("LSM + MMC", "tizi-lsmc", ["UNSAFE=1"], [
-          step("build", "cd system/manager && ./build.py"),
-          step("test sensord", "pytest system/sensord/tests/test_sensord.py"),
         ])
       },
       'replay': {

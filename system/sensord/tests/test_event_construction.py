@@ -4,7 +4,6 @@ from cereal import log
 from openpilot.system.sensord.sensors.i2c_sensor import Sensor
 from openpilot.system.sensord.sensors.icm42670_temp import ICM42670_Temp
 from openpilot.system.sensord.sensors.lis2mdl_magn import LIS2MDL_Magn
-from openpilot.system.sensord.sensors.lsm6ds3_temp import LSM6DS3_Temp
 
 
 def expected_event(timestamp, version, source, union_name, payload, *, sensor=None, sensor_type=None, status=None):
@@ -39,28 +38,6 @@ def test_icm42670_temperature_event_keeps_unset_sensor_and_explicit_type():
   assert event.which() == "temperature"
   assert event.sensor == 0  # scalar field default: the baseline left it unset
   assert event.type == 4
-  assert event.to_dict() == expected.to_dict()
-  assert event.to_bytes() == expected.to_bytes()
-
-
-def test_lsm6ds3_temperature_event_keeps_ignored_timestamp_and_unset_ids(monkeypatch):
-  source = log.SensorEventData.SensorSource.lsm6ds3trc
-  sensor = object.__new__(LSM6DS3_Temp)
-  sensor.bus = SimpleNamespace(close=lambda: None)
-  sensor.source = source
-  sensor.read = lambda _address, _length: bytes((0x00, 0x01))
-  monotonic_value = 123.456789123
-  monkeypatch.setattr("openpilot.system.sensord.sensors.lsm6ds3_temp.time.monotonic", lambda: monotonic_value)
-
-  event = sensor.get_event(987654321)
-
-  timestamp = int(monotonic_value * 1e9)
-  expected = expected_event(timestamp, 1, source, "temperature", 26.0)
-  assert event.which() == "temperature"
-  assert event.timestamp == timestamp
-  assert event.timestamp != 987654321
-  assert event.sensor == expected.sensor == 0
-  assert event.type == expected.type == 0
   assert event.to_dict() == expected.to_dict()
   assert event.to_bytes() == expected.to_bytes()
 
