@@ -13,6 +13,7 @@ export PATH="$ROOT_DIR/.venv/bin:$PATH"
 export PARAMS_ROOT="${PARAMS_ROOT:-/tmp/bukapilot-metadrive-params}"
 export METADRIVE_GPU_MODEL_DIR="${METADRIVE_GPU_MODEL_DIR:-/tmp/bukapilot-metadrive-gpu-models}"
 export USE_RKNN=0
+export METADRIVE_GENERIC_OPENCL=1
 mkdir -p "$PARAMS_ROOT"
 
 if (( $# == 0 )); then
@@ -47,6 +48,7 @@ trap 'exit 130' INT
 trap 'exit 143' TERM
 
 echo "Starting MetaDrive bridge ($*) and Tinygrad/OpenCL modeld..."
+echo "Selecting Intel subgroup-matrix kernels automatically when the OpenCL device supports them (subgroup 16)"
 "$ROOT_DIR/.venv/bin/python3" -u "$ROOT_DIR/tools/sim/run_metadrive_bridge_process.py" \
   "$@" &
 bridge_pid=$!

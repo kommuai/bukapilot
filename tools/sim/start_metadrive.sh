@@ -30,8 +30,15 @@ prepare_gpu_model() {
   local model_name="$1"
   local source="$ROOT_DIR/selfdrive/modeld/models/${model_name}.onnx"
   local output="$METADRIVE_GPU_MODEL_DIR/${model_name}_tinygrad.pkl"
+  local cache_meta="$output.meta"
+  local opencl_compat="$ROOT_DIR/tools/sim/gpu_compat/sitecustomize.py"
+  local tinygrad_revision
+  local cache_key
 
-  if [[ -s "$output" && ! "$source" -nt "$output" ]]; then
+  tinygrad_revision=$(git -C "$ROOT_DIR/tinygrad_repo" rev-parse HEAD)
+  cache_key="$({ sha256sum "$source" "$opencl_compat" "$ROOT_DIR/tinygrad_repo/examples/openpilot/compile3.py"; printf '%s\n' "$tinygrad_revision" 'DEV=CL FLOAT16=1 IMAGE=2 JIT_BATCH_SIZE=0 METADRIVE_GENERIC_OPENCL=1 INTEL_MATRIX_EXTENSION=AUTO SUBGROUP_SIZE=16'; } | sha256sum | cut -d ' ' -f1)"
+
+  if [[ -s "$output" && -f "$cache_meta" && "$(<"$cache_meta")" == "$cache_key" ]]; then
     echo "Using cached OpenCL model: $output"
     return
   fi
@@ -39,10 +46,13 @@ prepare_gpu_model() {
   echo "Compiling ${model_name} for Tinygrad OpenCL (first run can take a few minutes)..."
   env \
     PYTHONPATH="$ROOT_DIR/tools/sim/gpu_compat:$ROOT_DIR/tinygrad_repo${PYTHONPATH:+:$PYTHONPATH}" \
-    DEV=CL FLOAT16=1 NOLOCALS=1 IMAGE=2 JIT_BATCH_SIZE=0 \
+    METADRIVE_GENERIC_OPENCL=1 \
+    DEV=CL FLOAT16=1 IMAGE=2 JIT_BATCH_SIZE=0 \
     "$ROOT_DIR/.venv/bin/python3" \
     "$ROOT_DIR/tinygrad_repo/examples/openpilot/compile3.py" \
     "$source" "$output"
+
+  printf '%s\n' "$cache_key" > "$cache_meta"
 }
 
 prepare_gpu_model driving_vision
