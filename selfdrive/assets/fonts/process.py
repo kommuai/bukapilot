@@ -97,19 +97,27 @@ def _process_font(font_path: Path, codepoints: tuple[int, ...]):
   file_buf = ffi.new("unsigned char[]", data)
   cp_buffer = ffi.new("int[]", codepoints)
   cp_ptr = ffi.cast("int *", cp_buffer)
-  glyphs = LoadFontData(ffi.cast("unsigned char *", file_buf), len(data), font_size, cp_ptr, len(codepoints), FONT_DEFAULT)
+  args = (ffi.cast("unsigned char *", file_buf), len(data), font_size, cp_ptr, len(codepoints), FONT_DEFAULT)
+  glyph_count = len(codepoints)
+  if len(ffi.typeof(LoadFontData).args) == 7:
+    glyph_count_ref = ffi.new("int *")
+    glyphs = LoadFontData(*args, glyph_count_ref)
+    glyph_count = glyph_count_ref[0]
+  else:
+    glyphs = LoadFontData(*args)
   if glyphs == ffi.NULL:
     raise RuntimeError("raylib failed to load font data")
 
   rects_ptr = ffi.new("Rectangle **")
-  image = GenImageFontAtlas(glyphs, rects_ptr, len(codepoints), font_size, GLYPH_PADDING, 0)
+  image = GenImageFontAtlas(glyphs, rects_ptr, glyph_count, font_size, GLYPH_PADDING, 0)
   if image.width == 0 or image.height == 0:
     raise RuntimeError("raylib returned an empty atlas")
 
   rects = rects_ptr[0]
   atlas_name = f"{font_path.stem}.png"
   atlas_path = FONT_DIR / atlas_name
-  entries, line_height, base = _glyph_metrics(glyphs, rects, codepoints)
+  actual_codepoints = tuple(glyphs[idx].value for idx in range(glyph_count))
+  entries, line_height, base = _glyph_metrics(glyphs, rects, actual_codepoints)
 
   if not ExportImage(image, atlas_path.as_posix().encode()):
     raise RuntimeError("Failed to export atlas image")

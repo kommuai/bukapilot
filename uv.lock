@@ -1304,6 +1304,7 @@ dependencies = [
     { name = "cython" },
     { name = "future-fstrings" },
     { name = "inputs" },
+    { name = "jeepney" },
     { name = "json-rpc" },
     { name = "kaitaistruct" },
     { name = "libusb1" },
@@ -1341,7 +1342,6 @@ dev = [
     { name = "azure-identity" },
     { name = "azure-storage-blob" },
     { name = "dictdiffer" },
-    { name = "jeepney" },
     { name = "matplotlib" },
     { name = "opencv-python-headless" },
     { name = "parameterized" },
@@ -1379,6 +1379,7 @@ testing = [
 tools = [
     { name = "dearpygui", marker = "platform_machine != 'aarch64' or sys_platform != 'linux'" },
     { name = "metadrive-simulator", marker = "platform_machine != 'aarch64'" },
+    { name = "pyopencl" },
 ]
 
 [package.metadata]
@@ -1399,7 +1400,7 @@ requires-dist = [
     { name = "future-fstrings" },
     { name = "hypothesis", marker = "extra == 'testing'", specifier = "==6.47.*" },
     { name = "inputs" },
-    { name = "jeepney", marker = "extra == 'dev'" },
+    { name = "jeepney" },
     { name = "jinja2", marker = "extra == 'docs'" },
     { name = "json-rpc" },
     { name = "kaitaistruct" },
@@ -1421,6 +1422,7 @@ requires-dist = [
     { name = "pycryptodome" },
     { name = "pyjwt" },
     { name = "pyopencl", marker = "extra == 'dev'" },
+    { name = "pyopencl", marker = "extra == 'tools'" },
     { name = "pyopenssl", specifier = "<24.3.0" },
     { name = "pyprof2calltree", marker = "extra == 'dev'" },
     { name = "pyserial" },

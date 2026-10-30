@@ -96,3 +96,4 @@ Pipfile
 .history
 .ionide
 
+/raylib_src/

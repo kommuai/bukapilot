@@ -2,7 +2,9 @@ import signal
 import threading
 import functools
 import time
+import os
 import numpy as np
+import cereal.messaging as messaging
 
 from collections import namedtuple
 from enum import Enum
@@ -12,12 +14,27 @@ from abc import ABC, abstractmethod
 from opendbc.car.honda.values import CruiseButtons
 from openpilot.common.params import Params
 from openpilot.common.realtime import Ratekeeper
-from openpilot.selfdrive.test.helpers import set_params_enabled
+from openpilot.system.version import terms_version, training_version
 from openpilot.tools.sim.lib.common import SimulatorState, World
 from openpilot.tools.sim.lib.simulated_car import SimulatedCar
 from openpilot.tools.sim.lib.simulated_sensors import SimulatedSensors
 
 QueueMessage = namedtuple("QueueMessage", ["type", "info"], defaults=[None])
+
+def set_sim_params_enabled():
+  """Enable the simulator without importing test-only helpers and pytest."""
+  os.environ["FINGERPRINT"] = "TOYOTA_COROLLA_TSS2"
+  os.environ["LOGPRINT"] = "debug"
+
+  params = Params()
+  params.put("HasAcceptedTerms", terms_version)
+  params.put("CompletedTrainingVersion", training_version)
+  params.put_bool("OpenpilotEnabledToggle", True)
+
+  msg = messaging.new_message("liveCalibration")
+  msg.liveCalibration.validBlocks = 20
+  msg.liveCalibration.rpyCalib = [0.0, 0.0, 0.0]
+  params.put("CalibrationParams", msg.to_bytes())
 
 class QueueMessageType(Enum):
   START_STATUS = 0
@@ -91,7 +108,7 @@ class SimulatorBridge(ABC):
   TICKS_PER_FRAME = 5
 
   def __init__(self, dual_camera, high_quality):
-    set_params_enabled()
+    set_sim_params_enabled()
     self.params = Params()
     self.params.put_bool("AlphaLongitudinalEnabled", True)
 

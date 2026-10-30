@@ -13,6 +13,8 @@ from metadrive.engine.base_engine import BaseEngine
 from metadrive.engine.asset_loader import AssetLoader
 from metadrive.envs.metadrive_env import MetaDriveEnv
 from metadrive.obs.image_obs import ImageObservation
+import metadrive.pull_asset as metadrive_pull_asset
+from metadrive.version import VERSION
 
 from openpilot.tools.sim.bridge.metadrive.figure_eight_map import (
   FigureEightPGMapManager,
@@ -73,24 +75,37 @@ def apply_metadrive_patches(arrive_dest_done=True):
 
   EngineCore.add_image_sensor = add_image_sensor_patched
 
-  # MetaDrive 0.4.2.4's updater points to a minimal archive without vehicle
-  # models, while the compatible full 0.4.2.3 asset pack is available. Skip
-  # version-only replacement when the required full model assets are present.
-  original_try_pull_asset = BaseEngine.try_pull_asset
+  # 0.4.2.4's wheel points to a minimal archive without traffic vehicle
+  # models. Use the full compatible 0.4.2.3 asset archive and verify the
+  # assets needed by this bridge before marking them current for 0.4.2.4.
+  metadrive_pull_asset.ASSET_URL = (
+    "https://github.com/metadriverse/metadrive/releases/download/MetaDrive-0.4.2.3/assets.zip"
+  )
 
-  def try_pull_asset_patched():
-    required_assets = (
-      AssetLoader.file_path("models", "130", "vehicle.gltf"),
-      AssetLoader.file_path("models", "130", "right_tire_front.gltf"),
-      AssetLoader.file_path("models", "130", "right_tire_back.gltf"),
-      AssetLoader.file_path("textures", "grass1", "GroundGrassGreen002_COL_1K.jpg"),
-    )
-    if all(os.path.isfile(path) for path in required_assets):
-      AssetLoader.logger.info("Using installed MetaDrive vehicle assets; skipping minimal asset update")
-      return
-    original_try_pull_asset()
+  required_assets = (
+    AssetLoader.file_path("models", "lada", "vehicle.gltf"),
+    AssetLoader.file_path("models", "lada", "right_tire_front.gltf"),
+    AssetLoader.file_path("models", "lada", "right_tire_back.gltf"),
+    AssetLoader.file_path("models", "130", "vehicle.gltf"),
+    AssetLoader.file_path("models", "130", "right_tire_front.gltf"),
+    AssetLoader.file_path("models", "130", "right_tire_back.gltf"),
+    AssetLoader.file_path("textures", "grass1", "GroundGrassGreen002_COL_1K.jpg"),
+  )
 
-  BaseEngine.try_pull_asset = staticmethod(try_pull_asset_patched)
+  def ensure_full_assets():
+    if not all(os.path.isfile(path) for path in required_assets):
+      AssetLoader.logger.info("Fetching full MetaDrive 0.4.2.3 assets required by the simulator")
+      metadrive_pull_asset.pull_asset(update=True)
+
+    missing_assets = [path for path in required_assets if not os.path.isfile(path)]
+    if missing_assets:
+      raise FileNotFoundError(f"Full MetaDrive asset archive is incomplete: {missing_assets}")
+
+    version_path = AssetLoader.file_path("version.txt")
+    with open(version_path, "w") as version_file:
+      version_file.write(VERSION + "\n")
+
+  BaseEngine.try_pull_asset = staticmethod(ensure_full_assets)
 
   # we aren't going to use the built-in observation stack, so disable it to save time
   def observe_patched(self, *args, **kwargs):

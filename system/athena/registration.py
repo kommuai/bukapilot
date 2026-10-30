@@ -20,6 +20,13 @@ def is_registered_device() -> bool:
 def register(show_spinner=False) -> str | None:
   params = Params()
 
+  if PC:
+    dongle_id = "SIMULATOR"
+    cloudlog.info("skipping device registration on PC")
+    params.put("DongleId", dongle_id)
+    set_offroad_alert("Offroad_UnregisteredHardware", False)
+    return dongle_id
+
   def _str(val):
     if val is None:
       return None

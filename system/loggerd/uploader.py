@@ -20,6 +20,7 @@ from openpilot.common.params import Params
 from openpilot.common.kommu import *
 from openpilot.common.realtime import set_core_affinity
 from openpilot.system.hardware.hw import Paths
+from openpilot.system.hardware import PC
 from openpilot.system.loggerd.xattr_cache import getxattr, setxattr
 from openpilot.system.loggerd.kommu import fia_upload, fia_upload_bytes, kapi, WEB_BASE
 from openpilot.system.loggerd.memory_pressure import (
@@ -427,6 +428,10 @@ class Uploader:
           self.raw_count += 1
 
 def main(exit_event: threading.Event | None = None) -> None:
+  if PC:
+    cloudlog.info("skipping uploader on PC")
+    return
+
   if exit_event is None:
     exit_event = threading.Event()
 
