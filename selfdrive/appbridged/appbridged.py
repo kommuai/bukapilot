@@ -582,6 +582,8 @@ class AppBridge:
         out['lastNavPosition'] = {
           'latitude': float(g.latitude), 'longitude': float(g.longitude),
           'bearing': float(getattr(g, 'bearingDeg', 0.0) or 0.0),
+          'speedMps': float(getattr(g, 'speed', 0.0) or 0.0),
+          'horizontalAccuracyM': float(getattr(g, 'horizontalAccuracy', 0.0) or 0.0),
           'hasFix': bool(getattr(g, 'hasFix', False)),
           'unixTimestampMillis': int(getattr(g, 'unixTimestampMillis', 0) or 0),
         }
@@ -2275,6 +2277,32 @@ class AppBridge:
     )
 
 
+  def _apply_nav_road_match(self, settings: dict) -> None:
+    try:
+      timestamp = settings.get('sourceTimestamp')
+      raw_lat = settings.get('rawLatitude')
+      raw_lon = settings.get('rawLongitude')
+      latitude = settings.get('latitude')
+      longitude = settings.get('longitude')
+      confidence = settings.get('confidence')
+      distance = settings.get('distanceM')
+      if (type(timestamp) is not int or timestamp <= 0
+          or any(type(value) not in (int, float) or not math.isfinite(value)
+                 for value in (raw_lat, raw_lon, latitude, longitude, confidence, distance))
+          or abs(raw_lat) > 90 or abs(latitude) > 90
+          or abs(raw_lon) > 180 or abs(longitude) > 180
+          or not 0.8 <= confidence <= 1.0 or not 0.0 <= distance <= 35.0):
+        return
+      match = {
+        'sourceTimestamp': timestamp,
+        'rawLatitude': float(raw_lat), 'rawLongitude': float(raw_lon),
+        'latitude': float(latitude), 'longitude': float(longitude),
+        'confidence': float(confidence), 'distanceM': float(distance),
+      }
+      params.put_nonblocking('NavRoadMatch', json.dumps(match, separators=(',', ':')))
+    except (TypeError, ValueError, OverflowError):
+      return
+
   def apply_settings_message(self, message, state, cur_time, is_offroad):
     """Apply a valid assembled settings message immediately."""
     msg_type = ''
@@ -2335,6 +2363,9 @@ class AppBridge:
           enable_hotspot()
         case 'navAddStop' | 'navRemoveStop' | 'navReorderStops' | 'navSkipStop' | 'navClearStops':
           self._apply_nav_stop_operation(msg_type, settings)
+        case 'navRoadMatch':
+          if not is_offroad:
+            self._apply_nav_road_match(settings)
         case 'navRouteResponse':
           self._apply_nav_route_response(settings, is_offroad)
         case 'navRouteResponseStart':
