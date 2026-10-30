@@ -78,6 +78,8 @@ def set_led(
     rate: Optional[str] = None,    # 'fast' | 'slow'
     duration: Optional[str] = None,# only for blink/run; None -> long sentinel
     brightness: str = "100",       # '0'..'100'
+    a_mode: Optional[str] = None,
+    b_mode: Optional[str] = None,
     ws_script: str = WS2812_SCRIPT_DEFAULT,
     fire_and_forget: bool = True,
 ):
@@ -92,6 +94,12 @@ def set_led(
 
     py = sys.executable or "python3"
     args = [py, ws_script, mode, "--brightness", brightness, "--a-color", a_hex, "--b-color", b_hex]
+
+    if mode == "run":
+        if a_mode is not None:
+            args += ["--a-mode", a_mode]
+        if b_mode is not None:
+            args += ["--b-mode", b_mode]
 
     if mode in ("blink", "run"):
         if rate:

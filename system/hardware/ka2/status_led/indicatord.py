@@ -14,7 +14,7 @@ from typing import Callable, Dict, Optional, Tuple
 
 from openpilot.common.params import Params
 from openpilot.system.hardware.ka2.status_led.status_led import set_led, set_rainbow, WS2812_SCRIPT_DEFAULT
-from cereal import messaging
+from cereal import log, messaging
 
 StateTuple = Tuple[str, str, Optional[str], str]  # (color, mode, rate, brightness)
 AGNOS_UPDATE_STATE_PREFIX = "download and install OS "
@@ -31,6 +31,7 @@ class AlertLEDService:
         not_running_brightness: str = "200",
         topic_cs: str = "selfdriveState",
         topic_dc: str = "driverCameraState",
+        topic_model: str = "modelV2",
         base_poll_ms: int = 500,
         overrides: Optional[Dict[str, Tuple[str, str, Optional[str]]]] = None,
         on_change: Optional[Callable[[bool, str, StateTuple], None]] = None,
@@ -45,6 +46,7 @@ class AlertLEDService:
         self.not_running_brightness = str(not_running_brightness)
         self.topic_cs = topic_cs
         self.topic_dc = topic_dc
+        self.topic_model = topic_model
         self.base_poll_ms = max(1, int(base_poll_ms))
         self.overrides = {k.lower(): v for k, v in (overrides or {}).items()}
         self.on_change = on_change
@@ -52,12 +54,14 @@ class AlertLEDService:
         self.debug = debug
 
         self._stop = threading.Event()
-        self._sm = messaging.SubMaster([self.topic_cs, self.topic_dc])
+        self._sm = messaging.SubMaster([self.topic_cs, self.topic_dc, self.topic_model])
         self._params = Params()
 
         self._last_key: Optional[Tuple[str, str, Optional[str]]] = None
         self._last_state: Optional[StateTuple] = None
         self._last_msg_time_cs: Optional[float] = None
+        self._last_msg_time_model: Optional[float] = None
+        self._lane_change_side: Optional[str] = None
         self._last_integ: int = (self.integ_min + self.integ_max) // 2
         self._last_active = False
         self._last_alert_type = "not_running"
@@ -71,6 +75,31 @@ class AlertLEDService:
 
     def stop(self):
         self._stop.set()
+
+    @staticmethod
+    def _lane_change_side_from(model_v2) -> Optional[str]:
+        meta = getattr(model_v2, "meta", None)
+        if meta is None:
+            return None
+
+        state = getattr(meta, "laneChangeState", log.LaneChangeState.off)
+        if state not in (log.LaneChangeState.preLaneChange,
+                         log.LaneChangeState.laneChangeStarting,
+                         log.LaneChangeState.laneChangeFinishing):
+            return None
+
+        direction = getattr(meta, "laneChangeDirection", log.LaneChangeDirection.none)
+        if direction == log.LaneChangeDirection.left:
+            return "left"
+        if direction == log.LaneChangeDirection.right:
+            return "right"
+        return None
+
+    def _apply_lane_change_blink(self, side: str):
+        a_mode, b_mode = ("blink_fast", "solid") if side == "right" else ("solid", "blink_fast")
+        set_led("ORANGE", "ORANGE", mode="run", a_mode=a_mode, b_mode=b_mode, duration="600",
+                brightness=str(self._map_integ_to_brightness_inverse(self._last_integ)),
+                ws_script=self.ws_script, fire_and_forget=True)
 
     def run_forever(self):
         while not self._stop.is_set():
@@ -88,6 +117,28 @@ class AlertLEDService:
                 # Let the normal state machine restore the previous LED state.
                 self._agnos_update_led_active = False
                 self._last_key = None
+
+            if self._sm.updated[self.topic_model]:
+                self._last_msg_time_model = now
+                side = self._lane_change_side_from(self._sm[self.topic_model])
+                if side != self._lane_change_side:
+                    self._lane_change_side = side
+                    if not agnos_update_active:
+                        if side is None and self._last_state is not None:
+                            self._apply(self._last_state, active=self._last_active,
+                                        alert_type=self._last_alert_type, force=True)
+                        elif side is not None:
+                            self._apply_lane_change_blink(side)
+            elif (self._lane_change_side is not None and self._last_msg_time_model is not None and
+                  now - self._last_msg_time_model > self.not_running_timeout_s):
+                self._lane_change_side = None
+                if not agnos_update_active and self._last_state is not None:
+                    self._apply(self._last_state, active=self._last_active,
+                                alert_type=self._last_alert_type, force=True)
+
+            if update_just_finished and self._lane_change_side is not None:
+                self._apply_lane_change_blink(self._lane_change_side)
+                self._last_key = ("lane_change", self._lane_change_side, None)
 
             if self._sm.updated[self.topic_dc]:
                 dc = self._sm[self.topic_dc]
@@ -121,6 +172,10 @@ class AlertLEDService:
                     self._last_key = key
                     continue
 
+                if self._lane_change_side is not None:
+                    self._last_key = key
+                    continue
+
                 if key != self._last_key:
                     self._apply(desired, active=active, alert_type=alert_type, force=True)
                     self._last_key = key
@@ -132,7 +187,7 @@ class AlertLEDService:
 
             # not-running fallback
             no_heartbeat = (self._last_msg_time_cs is None) or ((now - self._last_msg_time_cs) > self.not_running_timeout_s)
-            if not agnos_update_active and ((not self._sm.alive[self.topic_cs]) or no_heartbeat):
+            if not agnos_update_active and self._lane_change_side is None and ((not self._sm.alive[self.topic_cs]) or no_heartbeat):
                 key = ("YELLOW", "solid", None)
                 if self._last_key != key:
                     state = ("YELLOW", "solid", None, self.not_running_brightness)
