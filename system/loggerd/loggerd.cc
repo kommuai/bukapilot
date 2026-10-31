@@ -21,7 +21,11 @@ struct LoggerdState {
   int max_waiting = 0;
   double last_rotate_tms = 0.;      // last rotate time in ms
   int rotate_epoch = 0;
+  bool rotation_started = false;
 };
+
+const char *const deterministic_test_env = LOGGERD_TEST ? getenv("LOGGERD_TEST_DETERMINISTIC") : nullptr;
+const bool deterministic_test_mode = LOGGERD_TEST && deterministic_test_env != nullptr && atoi(deterministic_test_env) == 1;
 
 bool deterministic_ka2_mode() {
 #if defined(RK3588)
@@ -43,6 +47,7 @@ void logger_rotate(LoggerdState *s) {
   bool ret =s->logger.next();
   assert(ret);
   s->ready_to_rotate = 0;
+  s->rotation_started = false;
   s->last_rotate_tms = millis_since_boot();
   s->rotate_epoch++;
   publish_rotate_state(s, "committed");
@@ -53,18 +58,21 @@ void rotate_if_needed(LoggerdState *s) {
   double tms = millis_since_boot();
   double seg_length_secs = (tms - s->last_rotate_tms) / 1000.;
   const bool deterministic_mode = deterministic_ka2_mode();
+  bool all_ready = s->ready_to_rotate == s->max_waiting;
 
-  if (deterministic_mode && !LOGGERD_TEST) {
-    // Deterministic KA2 authority: rotate on loggerd clock boundary.
-    if (seg_length_secs >= SEGMENT_LENGTH) {
+  if (deterministic_mode && (!LOGGERD_TEST || deterministic_test_mode)) {
+    // Let encoders drain the old segment before committing the clock boundary.
+    if (!s->rotation_started && seg_length_secs >= SEGMENT_LENGTH) {
+      s->rotation_started = true;
       publish_rotate_state(s, "started");
+    }
+    if (s->rotation_started && all_ready) {
       logger_rotate(s);
     }
     return;
   }
 
   // all encoders ready, trigger rotation
-  bool all_ready = s->ready_to_rotate == s->max_waiting;
 
   // fallback logic to prevent extremely long segments in the case of camera, encoder, etc. malfunctions
   bool timed_out = false;
@@ -221,7 +229,7 @@ int handle_encoder_msg(LoggerdState *s, Message *msg, std::string &name, struct 
     }
   } else if (offset_segment_num > s->logger.segment()) {
     // encoderd packet has a newer segment, this means encoderd has rolled over
-    if (!deterministic_mode && !re.marked_ready_to_rotate) {
+    if ((!deterministic_mode || s->rotation_started) && !re.marked_ready_to_rotate) {
       re.marked_ready_to_rotate = true;
       ++s->ready_to_rotate;
       LOGD("rotate %d -> %d ready %d/%d for %s",

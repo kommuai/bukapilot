@@ -1,4 +1,5 @@
 #include <cassert>
+#include <chrono>
 #include <cstdlib>
 #include <sstream>
 
@@ -27,6 +28,7 @@ constexpr int ENCODER_FAILURE_LOG_PERIOD_MS = 1000;
 constexpr int ENCODER_FAILURE_LOG_BATCH_SIZE = 30;
 constexpr int ENCODER_SEGMENT_SYNC_PERIOD_MS = 100;
 constexpr int ENCODER_SEGMENT_SYNC_PERIOD_DETERMINISTIC_MS = 100;
+constexpr int MPP_SEGMENT_DRAIN_TIMEOUT_MS = 900;
 
 enum class SegmentPhase : uint8_t {
   Steady = 0,
@@ -209,6 +211,23 @@ void encoder_thread(EncoderdState *s, const LogCameraInfo &cam_info) {
 
   auto advance_segment_once = [&](bool drop_pending) {
 #if defined(RK3588)
+    if (!drop_pending) {
+      const auto deadline = std::chrono::steady_clock::now() +
+                            std::chrono::milliseconds(MPP_SEGMENT_DRAIN_TIMEOUT_MS);
+      for (auto &e : encoders) {
+        const auto remaining_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+          deadline - std::chrono::steady_clock::now()).count();
+        if (remaining_ms <= 0 ||
+            !static_cast<MppEncoder *>(e.get())->flush_pending_packets(static_cast<int>(remaining_ms))) {
+          LOGE("encoder %s failed to drain segment %d before the %d ms rotation deadline",
+               cam_info.thread_name, cur_seg, MPP_SEGMENT_DRAIN_TIMEOUT_MS);
+          for (auto &encoder : encoders) {
+            static_cast<MppEncoder *>(encoder.get())->set_flush_pending_on_close(false);
+          }
+          return false;
+        }
+      }
+    }
     for (auto &e : encoders) {
       static_cast<MppEncoder *>(e.get())->set_flush_pending_on_close(!drop_pending);
     }
@@ -226,6 +245,7 @@ void encoder_thread(EncoderdState *s, const LogCameraInfo &cam_info) {
       static_cast<MppEncoder *>(e.get())->set_flush_pending_on_close(true);
     }
 #endif
+    return true;
   };
 
   while (!do_exit) {
@@ -323,7 +343,9 @@ void encoder_thread(EncoderdState *s, const LogCameraInfo &cam_info) {
       }
       lagging = false;
 
-      if (!sync_encoders(s, cam_info.stream_type, extra.frame_id)) {
+      // KA2 follows loggerd's rotation handshake; frame-threshold synchronization
+      // skips real input frames at startup and after each segment rollover.
+      if (!deterministic_mode && !sync_encoders(s, cam_info.stream_type, extra.frame_id)) {
         continue;
       }
       if (do_exit) break;
@@ -350,6 +372,11 @@ void encoder_thread(EncoderdState *s, const LogCameraInfo &cam_info) {
             try {
               s->loggerd_segment_authority.store(std::stoi(loggerd_segment_raw));
             } catch (const std::exception&) {}
+          }
+          if (deterministic_mode && s->loggerd_rotate_state.load() == 0 &&
+              s->loggerd_segment_authority.load() >= 0) {
+            s->forced_segment_drop_pending.store(false);
+            update_max_atomic(s->forced_segment_target, s->loggerd_segment_authority.load() + 1);
           }
         }
         const int shared_rotate_state = s->loggerd_rotate_state.load();
@@ -406,7 +433,8 @@ void encoder_thread(EncoderdState *s, const LogCameraInfo &cam_info) {
       }
 
       // Never publish too far into future loggerd segment; tighten for non-critical streams.
-      const int max_ahead_segments = (deterministic_mode && !critical_stream) ? 0 : 1;
+      const int max_ahead_segments = (deterministic_mode && !critical_stream &&
+                                      s->forced_segment_drop_pending.load()) ? 0 : 1;
       if (loggerd_segment_seen >= 0 && cur_seg > (loggerd_segment_seen + max_ahead_segments)) {
         dropped_for_authority++;
         continue;
@@ -425,8 +453,12 @@ void encoder_thread(EncoderdState *s, const LogCameraInfo &cam_info) {
              cam_info.thread_name, cur_seg, forced_target, phase_name(phase), loggerd_rotate_state.c_str(), loggerd_segment_epoch_seen);
         while (!do_exit && cur_seg < forced_target) {
           phase = SegmentPhase::RotateCommit;
-          advance_segment_once(drop_pending);
+          if (!advance_segment_once(drop_pending)) {
+            do_exit = true;
+            break;
+          }
         }
+        if (do_exit) break;
         phase = SegmentPhase::Steady;
         reset_sync_for_camera(s, cam_info.stream_type);
         update_max_atomic(s->start_frame_id, extra.frame_id);
@@ -443,7 +475,10 @@ void encoder_thread(EncoderdState *s, const LogCameraInfo &cam_info) {
                  cam_info.thread_name, extra.frame_id, cur_seg);
             s->start_frame_id = anchored_start_frame;
           }
-          advance_segment_once(false);
+          if (!advance_segment_once(false)) {
+            do_exit = true;
+            break;
+          }
         }
       }
 

@@ -27,11 +27,13 @@ public:
   void encoder_close();
   void set_segment_num(int segment_num) override;
   void set_flush_pending_on_close(bool flush_pending);
+  bool flush_pending_packets(int timeout_ms = 500);
 private:
   void encoder_open(const char* path);
+  bool init_frame_buffer_pool(const char* path);
+  MppBuffer import_frame_buffer(VisionBuf *buf);
   MppBuffer acquire_frame_buffer();
   int drain_packets(bool non_block, size_t max_packets = std::numeric_limits<size_t>::max());
-
   int segment_num = -1;
   int counter = 0;
   bool is_open = false;
@@ -59,6 +61,7 @@ private:
   uint32_t zero_copy_import_failures = 0;
   bool output_timeout_non_block = false;
   bool flush_pending_on_close = true;
+  bool flush_eos_sent = false;
   static constexpr size_t PENDING_EXTRAS_MAX_INFLIGHT = 8;
   static constexpr size_t DRAIN_BUDGET_PER_FRAME = 2;
   uint32_t last_enqueued_frame_id = 0;

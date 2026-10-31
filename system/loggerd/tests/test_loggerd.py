@@ -1,3 +1,4 @@
+import json
 import numpy as np
 import os
 import re
@@ -5,7 +6,7 @@ import random
 import string
 import subprocess
 import time
-from collections import defaultdict
+from collections import Counter, defaultdict
 from pathlib import Path
 import pytest
 
@@ -203,6 +204,172 @@ class TestLoggerd:
       logged = {f.name for f in p.iterdir() if f.is_file()}
       diff = logged ^ expected_files
       assert len(diff) == 0, f"didn't get all expected files. seg={n} {route_path=}, {diff=}\n{logged=} {expected_files=}"
+
+  def test_ka2_deterministic_rotation_alignment(self, tmp_path, monkeypatch):
+    loggerd = managed_processes["loggerd"]
+    encoderd = managed_processes["encoderd"]
+    assert loggerd.proc is None and encoderd.proc is None, "loggerd test processes must not already be running"
+
+    log_root = tmp_path / "logs"
+    params_root = tmp_path / "params"
+    segment_length = 5
+    fps = 20
+    monkeypatch.setenv("LOG_ROOT", str(log_root))
+    monkeypatch.setenv("PARAMS_ROOT", str(params_root))
+    monkeypatch.setenv("LOGGERD_TEST", "1")
+    monkeypatch.setenv("LOGGERD_TEST_DETERMINISTIC", "1")
+    monkeypatch.setenv("LOGGERD_SEGMENT_LENGTH", str(segment_length))
+    monkeypatch.setenv("ENCODER_ZERO_COPY", "0")
+
+    params = Params(str(params_root))
+    params.put_bool("RecordFront", True)
+    params.put_bool("RecordAudio", True)
+
+    w, h = 320, 240
+    frame_size = w * h * 3 // 2
+    frame_spec = (w, h, frame_size, w, w * h)
+    streams = [
+      (VisionStreamType.VISION_STREAM_ROAD, "roadCameraState"),
+      (VisionStreamType.VISION_STREAM_WIDE_ROAD, "wideRoadCameraState"),
+      (VisionStreamType.VISION_STREAM_DRIVER, "driverCameraState"),
+    ]
+    services = [state for _, state in streams] + ["rawAudioData"]
+    pm = messaging.PubMaster(services)
+    vipc_server = None
+
+    try:
+      vipc_server = VisionIpcServer("camerad")
+      for stream_type, _ in streams:
+        vipc_server.create_buffers_with_sizes(stream_type, 40, *frame_spec)
+      vipc_server.start_listener()
+
+      loggerd.start()
+      encoderd.start()
+      for service in services:
+        assert pm.wait_for_readers_to_update(service, timeout=5)
+
+      deadline = time.monotonic() + 10
+      initial_state = None
+      while time.monotonic() < deadline:
+        segment = params.get("LoggerdSegment")
+        epoch = params.get("LoggerdSegmentEpoch")
+        if segment is not None and epoch is not None:
+          initial_state = (int(segment), int(epoch))
+          if initial_state[0] == 0:
+            break
+        time.sleep(0.05)
+      assert initial_state is not None and initial_state[0] == 0
+
+      frame = np.zeros(frame_size, dtype=np.uint8).tobytes()
+      audio_data = bytes(800 * 2)
+      frame_start = time.monotonic()
+      post_boundary_frames = 0
+      last_frame_id = 0
+
+      # Keep the synthetic stream flowing across loggerd's time boundary. Stop
+      # after enough segment-1 frames for the delayed qcamera encoder to emit.
+      for frame_id in range(1, segment_length * 2 * fps + 1):
+        target = frame_start + frame_id / fps
+        delay = target - time.monotonic()
+        if delay > 0:
+          time.sleep(delay)
+
+        timestamp_ns = frame_id * 1_000_000_000 // fps
+        for stream_type, state_name in streams:
+          vipc_server.send(stream_type, frame, frame_id, timestamp_ns, timestamp_ns)
+          camera_state = messaging.new_message(state_name)
+          getattr(camera_state, state_name).frameId = frame_id
+          pm.send(state_name, camera_state)
+        audio = messaging.new_message("rawAudioData")
+        audio.rawAudioData.data = audio_data
+        audio.rawAudioData.sampleRate = 16000
+        pm.send("rawAudioData", audio)
+        last_frame_id = frame_id
+
+        segment = params.get("LoggerdSegment")
+        if segment is not None and int(segment) >= 1:
+          post_boundary_frames += 1
+          if post_boundary_frames >= 45:
+            break
+
+      assert post_boundary_frames >= 45, "loggerd did not rotate and keep processing encoder frames"
+      final_segment = int(params.get("LoggerdSegment"))
+      final_epoch = int(params.get("LoggerdSegmentEpoch"))
+      assert final_segment == 1
+      assert final_epoch == initial_state[1] + 1
+    finally:
+      try:
+        encoderd.stop()
+      finally:
+        try:
+          loggerd.stop()
+        finally:
+          vipc_server = None
+
+    segment_dirs = sorted(log_root.glob("*--*"), key=lambda path: int(path.name.rsplit("--", 1)[1]))
+    assert [int(path.name.rsplit("--", 1)[1]) for path in segment_dirs] == [0, 1]
+    expected_files = {"rlog.zst", "qlog.zst", "qcamera.ts", "fcamera.hevc", "dcamera.hevc", "ecamera.hevc"}
+    encode_services = ("roadEncodeIdx", "wideRoadEncodeIdx", "driverEncodeIdx", "qRoadEncodeIdx")
+    frame_ids_by_service = defaultdict(list)
+    publish_times_by_service = defaultdict(list)
+
+    for segment_num, segment_dir in enumerate(segment_dirs):
+      files = {path.name for path in segment_dir.iterdir() if path.is_file()}
+      assert files == expected_files, f"unexpected segment {segment_num} files: {files ^ expected_files}"
+      assert all((segment_dir / name).stat().st_size > 0 for name in expected_files)
+
+      rlog = list(LogReader(str(segment_dir / "rlog.zst")))
+      self._check_init_data(rlog)
+      expected_start = SentinelType.startOfRoute if segment_num == 0 else SentinelType.startOfSegment
+      expected_end = SentinelType.endOfRoute if segment_num == 1 else SentinelType.endOfSegment
+      assert rlog[1].sentinel.type == expected_start
+      assert rlog[-1].sentinel.type == expected_end
+      assert any(message.which() == "rawAudioData" for message in rlog)
+
+      qlog = list(LogReader(str(segment_dir / "qlog.zst")))
+      self._check_init_data(qlog)
+      assert qlog[1].sentinel.type == expected_start
+      assert qlog[-1].sentinel.type == expected_end
+      for message in qlog:
+        service = message.which()
+        if service in encode_services:
+          index = getattr(message, service)
+          assert index.segmentNum == segment_num
+          assert 1 <= index.frameId <= last_frame_id
+          frame_ids_by_service[service].append(index.frameId)
+          publish_times_by_service[service].append(message.logMonoTime)
+
+    assert set(frame_ids_by_service) == set(encode_services)
+    expected_frame_ids = set(range(1, last_frame_id + 1))
+    for service, frame_ids in frame_ids_by_service.items():
+      frame_counts = Counter(frame_ids)
+      emitted_frame_ids = set(frame_counts)
+      missing_frame_ids = sorted(expected_frame_ids - emitted_frame_ids)
+      unexpected_frame_ids = sorted(emitted_frame_ids - expected_frame_ids)
+      duplicate_frame_ids = sorted(frame_id for frame_id, count in frame_counts.items() if count > 1)
+      assert not missing_frame_ids and not unexpected_frame_ids and not duplicate_frame_ids, (
+        f"incomplete EncodeIdx frame set for {service}: "
+        f"expected {len(expected_frame_ids)} frames 1..{last_frame_id}, got {len(frame_ids)}; "
+        f"missing={missing_frame_ids}, unexpected={unexpected_frame_ids}, duplicates={duplicate_frame_ids}"
+      )
+      publish_gaps_ns = [
+        later - earlier
+        for earlier, later in zip(publish_times_by_service[service], publish_times_by_service[service][1:])
+      ]
+      max_publish_gap_ns = max(publish_gaps_ns)
+      assert max_publish_gap_ns <= 2_000_000_000 // fps, (
+        f"encoder output stalled for {service}: largest publish gap {max_publish_gap_ns / 1e6:.1f} ms"
+      )
+      # The qRoad H.264 stream may reorder B-frames; the other KA2 outputs
+      # are HEVC and should retain input frame order.
+      if service != "qRoadEncodeIdx":
+        assert frame_ids == sorted(frame_ids), f"out-of-order EncodeIndex frame ids for {service}"
+
+    qcamera = subprocess.run(
+      ["ffprobe", "-v", "error", "-show_entries", "stream=codec_type", "-of", "json", str(segment_dirs[0] / "qcamera.ts")],
+      check=True, capture_output=True, text=True,
+    )
+    assert any(stream["codec_type"] == "audio" for stream in json.loads(qcamera.stdout)["streams"])
 
   def test_bootlog(self):
     # generate bootlog with fake launch log
