@@ -74,6 +74,7 @@ public:
   const char *thread_name;
   int fps = MAIN_FPS;
   VisionStreamType stream_type;
+  VisionStreamType encoder_stream_type;
   std::vector<EncoderInfo> encoder_infos;
 };
 
@@ -135,36 +136,72 @@ const EncoderInfo qcam_encoder_info = {
 const LogCameraInfo road_camera_info{
   .thread_name = "road_cam_encoder",
   .stream_type = VISION_STREAM_ROAD,
+  .encoder_stream_type =
+#if defined(RK3588)
+    VISION_STREAM_ENC_ROAD,
+#else
+    VISION_STREAM_ROAD,
+#endif
   .encoder_infos = {main_road_encoder_info, qcam_encoder_info}
 };
 
 const LogCameraInfo wide_road_camera_info{
   .thread_name = "wide_road_cam_encoder",
   .stream_type = VISION_STREAM_WIDE_ROAD,
+  .encoder_stream_type =
+#if defined(RK3588)
+    VISION_STREAM_ENC_WIDE_ROAD,
+#else
+    VISION_STREAM_WIDE_ROAD,
+#endif
   .encoder_infos = {main_wide_road_encoder_info}
 };
 
 const LogCameraInfo driver_camera_info{
   .thread_name = "driver_cam_encoder",
   .stream_type = VISION_STREAM_DRIVER,
+  .encoder_stream_type =
+#if defined(RK3588)
+    VISION_STREAM_ENC_DRIVER,
+#else
+    VISION_STREAM_DRIVER,
+#endif
   .encoder_infos = {main_driver_encoder_info}
 };
 
 const LogCameraInfo stream_road_camera_info{
   .thread_name = "road_cam_encoder",
   .stream_type = VISION_STREAM_ROAD,
+  .encoder_stream_type =
+#if defined(RK3588)
+    VISION_STREAM_ENC_ROAD,
+#else
+    VISION_STREAM_ROAD,
+#endif
   .encoder_infos = {stream_road_encoder_info}
 };
 
 const LogCameraInfo stream_wide_road_camera_info{
   .thread_name = "wide_road_cam_encoder",
   .stream_type = VISION_STREAM_WIDE_ROAD,
+  .encoder_stream_type =
+#if defined(RK3588)
+    VISION_STREAM_ENC_WIDE_ROAD,
+#else
+    VISION_STREAM_WIDE_ROAD,
+#endif
   .encoder_infos = {stream_wide_road_encoder_info}
 };
 
 const LogCameraInfo stream_driver_camera_info{
   .thread_name = "driver_cam_encoder",
   .stream_type = VISION_STREAM_DRIVER,
+  .encoder_stream_type =
+#if defined(RK3588)
+    VISION_STREAM_ENC_DRIVER,
+#else
+    VISION_STREAM_DRIVER,
+#endif
   .encoder_infos = {stream_driver_encoder_info}
 };
 

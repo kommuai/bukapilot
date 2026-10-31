@@ -1,17 +1,19 @@
 #pragma once
 
+#include <array>
 #include <memory>
+#include <mutex>
 
 #include "system/camerad/camera/common.h"
 #include "system/camerad/sensor/sensor.h"
 #include "system/camerad/isp/camera_backend.h"
 
+#define FRAME_BUF_COUNT 4
+
 bool cameras_open(MultiCameraState *s);
 void cameras_close(MultiCameraState *s);
 void cameras_init(VisionIpcServer *v, MultiCameraState *s);
 void cameras_run(MultiCameraState *s);
-
-#define FRAME_BUF_COUNT 4
 
 class CameraState {
 public:
@@ -31,6 +33,18 @@ public:
   uint32_t first_published_sequence = 0;
   bool frame_id_initialized = false;
 
+  struct PendingFrameLease {
+    bool pending = false;
+    bool processing_done = false;
+    bool encoder_done = false;
+    uint32_t frame_id = 0;
+    uint64_t generation = 0;
+  };
+  std::mutex lease_mutex;
+  std::mutex v4l2_ioctl_mutex;
+  uint64_t active_lease_generation = 0;
+  std::array<PendingFrameLease, FRAME_BUF_COUNT> pending_leases = {};
+
   struct v4l2_format fmt = {};
   struct v4l2_requestbuffers req = {};
   struct v4l2_buffer v4l_buf = {};
@@ -40,6 +54,13 @@ public:
   void camera_init(VisionIpcServer *v, VisionStreamType yuv_type);
   void dequeue_buf();
   void requeue_buf(int idx);
+  void start_frame_lease(uint64_t generation);
+  void acknowledge_frame(uint32_t frame_id, uint64_t generation);
+  void renew_frame_lease(uint64_t old_generation, uint64_t new_generation);
+  void stop_frame_lease(uint64_t generation);
+  void fail_frame_lease(uint64_t generation);
+  void finish_frame_processing(int idx, uint32_t frame_id, uint64_t generation);
+  void cancel_unpublished_frame(int idx);
   void queue_all_buffers();
   void camera_close();
 
@@ -53,5 +74,6 @@ typedef struct MultiCameraState {
   CameraState wide_road_cam;
   CameraState driver_cam;
 
+  VisionIpcServer *vipc_server = nullptr;
   PubMaster *pm;
 } MultiCameraState;

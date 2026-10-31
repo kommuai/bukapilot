@@ -37,6 +37,7 @@ typedef struct FrameMetadata {
   // Monotonic timestamp captured immediately after DQBUF. This is internal
   // camerad timing data and is not published in cereal.
   uint64_t dequeue_monotonic_ns = 0;
+  uint64_t lease_generation = 0;
 } FrameMetadata;
 
 struct MultiCameraState;
@@ -58,6 +59,7 @@ private:
 public:
   VisionIpcServer *vipc_server = nullptr;
   VisionStreamType stream_type;
+  VisionStreamType encoder_stream_type = VISION_STREAM_MAX;
   int cur_buf_idx = -1;
   FrameMetadata cur_frame_data = {};
   VisionBuf *cur_yuv_buf = nullptr;
@@ -68,7 +70,7 @@ public:
   CameraBuf() = default;
   ~CameraBuf() = default;
   void init(VisionIpcServer *v, int frame_cnt, VisionStreamType type);
-  void setupVipcBuffers(bool use_external);
+  void setupVipcBuffers(bool use_external, VisionStreamType encoder_stream);
   void sendFrameToVipc();
   bool acquire();
   // Returns the previously queued V4L2 index when the queue overflows.

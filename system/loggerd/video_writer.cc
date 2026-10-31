@@ -220,16 +220,22 @@ void VideoWriter::process_remaining_audio() {
 
 VideoWriter::~VideoWriter() {
   if (this->remuxing) {
-    if (this->audio_codec_ctx) {
-      process_remaining_audio();
-      encode_and_write_audio_frame(NULL); // flush encoder
-      avcodec_free_context(&this->audio_codec_ctx);
+    // A segment can end before the encoder produces its first keyframe. In
+    // that case no codec header was written, so FFmpeg's muxer has no valid
+    // stream state to flush or trailer. Discard buffered audio and just close
+    // the allocated output context.
+    if (this->header_written) {
+      if (this->audio_codec_ctx) {
+        process_remaining_audio();
+        encode_and_write_audio_frame(NULL); // flush encoder
+      }
+      int err = av_write_trailer(this->ofmt_ctx);
+      if (err != 0) LOGE("av_write_trailer failed %d", err);
     }
-    int err = av_write_trailer(this->ofmt_ctx);
-    if (err != 0) LOGE("av_write_trailer failed %d", err);
+    if (this->audio_codec_ctx) avcodec_free_context(&this->audio_codec_ctx);
     avcodec_free_context(&this->codec_ctx);
     if (this->audio_frame) av_frame_free(&this->audio_frame);
-    err = avio_closep(&this->ofmt_ctx->pb);
+    int err = avio_closep(&this->ofmt_ctx->pb);
     if (err != 0) LOGE("avio_closep failed %d", err);
     avformat_free_context(this->ofmt_ctx);
   } else {

@@ -4,7 +4,7 @@ import shutil
 import subprocess
 
 
-def test_mpp_encoder_private_input_helper(tmp_path):
+def test_mpp_encoder_dma_buf_validation(tmp_path):
   repo_root = Path(__file__).resolve().parents[3]
   native_test = Path(__file__).with_suffix(".cc")
   compiler = shutil.which("clang++")

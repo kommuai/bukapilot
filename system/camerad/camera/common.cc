@@ -70,25 +70,29 @@ void CameraBuf::init(VisionIpcServer *v, int frame_cnt, VisionStreamType type) {
   use_external_zerocopy = false;
 }
 
-void CameraBuf::setupVipcBuffers(bool use_external) {
+void CameraBuf::setupVipcBuffers(bool use_external, VisionStreamType encoder_stream) {
   use_external_zerocopy = use_external;
+  encoder_stream_type = use_external ? encoder_stream : VISION_STREAM_MAX;
 
   int nv12_width = rgb_width;
   int nv12_height = rgb_height;
   size_t nv12_size = nv12_frame_size;
   size_t nv12_uv_offset = nv12_width * nv12_height;
 
+  // Public VisionIPC buffers must remain stable for all camera readers. Only
+  // the private encoder stream exposes the V4L2 DMA-BUFs directly.
+  vipc_server->create_buffers_with_sizes(stream_type, YUV_BUFFER_COUNT, rgb_width, rgb_height,
+                                         nv12_size, nv12_width, nv12_uv_offset);
+
   if (use_external_zerocopy) {
     std::vector<VisionBuf *> ext_buffers;
     ext_buffers.reserve(frame_buf_count);
     for (int i = 0; i < frame_buf_count; ++i) {
-      camera_bufs[i].type = stream_type;
+      camera_bufs[i].type = encoder_stream_type;
       camera_bufs[i].idx = i;
       ext_buffers.push_back(&camera_bufs[i]);
     }
-    vipc_server->register_external_buffers(stream_type, ext_buffers);
-  } else {
-    vipc_server->create_buffers_with_sizes(stream_type, YUV_BUFFER_COUNT, rgb_width, rgb_height, nv12_size, nv12_width, nv12_uv_offset);
+    vipc_server->register_external_buffers(encoder_stream_type, ext_buffers);
   }
 }
 
@@ -111,22 +115,26 @@ bool CameraBuf::acquire() {
 void CameraBuf::sendFrameToVipc() {
   assert(cur_buf_idx >= 0 && cur_buf_idx < frame_buf_count);
   VisionBuf *camera_buf = &camera_bufs[cur_buf_idx];
-  if (use_external_zerocopy) {
-    cur_yuv_buf = camera_buf;
-  } else {
-    cur_yuv_buf = vipc_server->get_buffer(stream_type);
-    memcpy(cur_yuv_buf->addr, camera_buf->addr, nv12_frame_size);
-  }
+  cur_yuv_buf = vipc_server->get_buffer(stream_type);
+  memcpy(cur_yuv_buf->addr, camera_buf->addr, nv12_frame_size);
 
   VisionIpcBufExtra extra = {
     .frame_id = cur_frame_data.frame_id,
     .timestamp_sof = cur_frame_data.timestamp_sof,
     .timestamp_eof = cur_frame_data.timestamp_eof,
-    .valid = !use_external_zerocopy,  // valid indicates whether frame_id is readable from shared buffer payload.
+    .valid = true,
+    .lease_generation = 0,
   };
 
   cur_yuv_buf->set_frame_id(cur_frame_data.frame_id);
   vipc_server->send(cur_yuv_buf, &extra, false);
+
+  if (use_external_zerocopy && cur_frame_data.lease_generation != 0) {
+    VisionIpcBufExtra encoder_extra = extra;
+    encoder_extra.valid = false;  // The camera DMA-BUF is not modified with a frame ID.
+    encoder_extra.lease_generation = cur_frame_data.lease_generation;
+    vipc_server->send(camera_buf, &encoder_extra, false);
+  }
 }
 
 int CameraBuf::queue(size_t buf_idx) {
@@ -365,7 +373,8 @@ void *processing_thread(MultiCameraState *cameras, CameraState *cs, process_thre
       enqueue_thumbnail(&(cs->buf));
     }
     if (cs->ka2) cs->ka2->wait_for_ae(buf_idx);
-    cs->requeue_buf(buf_idx);
+    cs->finish_frame_processing(buf_idx, cs->buf.cur_frame_data.frame_id,
+                                cs->buf.cur_frame_data.lease_generation);
     ++cnt;
   }
   return NULL;
@@ -465,6 +474,7 @@ void camerad_thread() {
   cl_device_id device_id = nullptr;
   cl_context context = nullptr;
 
+#if !defined(RK3588)
   cl_device_id cl_device = cl_get_device_id_optional(CL_DEVICE_TYPE_DEFAULT);
   if (cl_device) {
     cl_platform_id device_platform;
@@ -485,6 +495,11 @@ void camerad_thread() {
   } else {
     LOGW("No OpenCL device found, running without OpenCL");
   }
+#else
+  // KA2 camera buffers are V4L2 DMA-BUFs and image operations use RGA. Avoid
+  // probing the optional Mali OpenCL driver here: on RK3588 systems without
+  // loaded GPU firmware, the vendor ICD can segfault during clGetDeviceIDs.
+#endif
 
   {
     MultiCameraState cameras = {};
@@ -492,9 +507,6 @@ void camerad_thread() {
 
     if (!cameras_open(&cameras)) {
       LOGE("camerad: camera startup failed; exiting");
-      // VisionIpcServer joins its listener unconditionally in the destructor.
-      // Start it here so the fail-closed path tears down cleanly as well.
-      vipc_server.start_listener();
       cameras_close(&cameras);
       return;
     }

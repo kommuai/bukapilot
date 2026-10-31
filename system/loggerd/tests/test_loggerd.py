@@ -16,6 +16,7 @@ from cereal.services import SERVICE_LIST
 from openpilot.common.basedir import BASEDIR
 from openpilot.common.params import Params
 from openpilot.common.timeout import Timeout
+from openpilot.system.hardware import KA2
 from openpilot.system.hardware.hw import Paths
 from openpilot.system.loggerd.xattr_cache import getxattr
 from openpilot.system.loggerd.deleter import PRESERVE_ATTR_NAME, PRESERVE_ATTR_VALUE
@@ -36,6 +37,16 @@ class TestLoggerd:
   def _get_latest_log_dir(self):
     log_dirs = sorted(Path(Paths.log_root()).iterdir(), key=lambda f: f.stat().st_mtime)
     return log_dirs[-1]
+
+  def _run_ka2_valid_dma_rotation(self, tmp_path, monkeypatch):
+    from openpilot.system.loggerd.tests.test_loggerd_liveness import (
+      _build_test_binaries,
+      _run_lifecycle_and_cleanup,
+    )
+
+    repo_root = Path(__file__).resolve().parents[3]
+    binaries = _build_test_binaries(repo_root)
+    _run_lifecycle_and_cleanup(tmp_path / "ka2_valid_dma_rotation", monkeypatch, binaries, "valid")
 
   def _get_log_dir(self, x):
     for l in x.splitlines():
@@ -188,7 +199,11 @@ class TestLoggerd:
       assert getattr(initData, initData_key) == v
       assert logged_params[param_key].decode() == v
 
-  def test_rotation(self):
+  def test_rotation(self, tmp_path, monkeypatch):
+    if KA2:
+      self._run_ka2_valid_dma_rotation(tmp_path, monkeypatch)
+      return
+
     Params().put("RecordFront", True)
 
     expected_files = {"rlog.zst", "qlog.zst", "qcamera.ts", "fcamera.hevc", "dcamera.hevc", "ecamera.hevc"}
@@ -206,6 +221,10 @@ class TestLoggerd:
       assert len(diff) == 0, f"didn't get all expected files. seg={n} {route_path=}, {diff=}\n{logged=} {expected_files=}"
 
   def test_ka2_deterministic_rotation_alignment(self, tmp_path, monkeypatch):
+    if KA2:
+      self._run_ka2_valid_dma_rotation(tmp_path, monkeypatch)
+      return
+
     loggerd = managed_processes["loggerd"]
     encoderd = managed_processes["encoderd"]
     assert loggerd.proc is None and encoderd.proc is None, "loggerd test processes must not already be running"
@@ -219,8 +238,6 @@ class TestLoggerd:
     monkeypatch.setenv("LOGGERD_TEST", "1")
     monkeypatch.setenv("LOGGERD_TEST_DETERMINISTIC", "1")
     monkeypatch.setenv("LOGGERD_SEGMENT_LENGTH", str(segment_length))
-    monkeypatch.setenv("ENCODER_ZERO_COPY", "0")
-
     params = Params(str(params_root))
     params.put_bool("RecordFront", True)
     params.put_bool("RecordAudio", True)
@@ -477,6 +494,9 @@ class TestLoggerd:
 
   @pytest.mark.parametrize("record_front", [True, False])
   def test_record_front(self, record_front):
+    if KA2:
+      pytest.skip("synthetic VisionIPC buffers are shared memory; KA2 full-resolution MPP requires DMA-BUF inputs")
+
     params = Params()
     params.put_bool("RecordFront", record_front)
 

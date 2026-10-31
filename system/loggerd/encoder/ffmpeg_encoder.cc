@@ -15,6 +15,7 @@ extern "C" {
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
 #include <libavutil/imgutils.h>
+#include <libavutil/opt.h>
 }
 
 #include "common/swaglog.h"
@@ -46,9 +47,9 @@ FfmpegEncoder::~FfmpegEncoder() {
 }
 
 void FfmpegEncoder::encoder_open() {
-  auto codec_id = encoder_info.get_settings(in_width).encode_type == cereal::EncodeIndex::Type::QCAMERA_H264
-                      ? AV_CODEC_ID_H264
-                      : AV_CODEC_ID_FFVHUFF;
+  const auto settings = encoder_info.get_settings(in_width);
+  const bool qcam = settings.encode_type == cereal::EncodeIndex::Type::QCAMERA_H264;
+  const auto codec_id = qcam ? AV_CODEC_ID_H264 : AV_CODEC_ID_FFVHUFF;
   const AVCodec *codec = avcodec_find_encoder(codec_id);
 
   this->codec_ctx = avcodec_alloc_context3(codec);
@@ -57,12 +58,22 @@ void FfmpegEncoder::encoder_open() {
   this->codec_ctx->height = frame->height;
   this->codec_ctx->pix_fmt = AV_PIX_FMT_YUV420P;
   this->codec_ctx->time_base = (AVRational){ 1, encoder_info.fps };
+  if (qcam) {
+    this->codec_ctx->bit_rate = settings.bitrate;
+    this->codec_ctx->gop_size = settings.gop_size;
+    this->codec_ctx->max_b_frames = settings.b_frames;
+    assert(this->codec_ctx->priv_data != nullptr);
+    // Keep qRoad output timely so segment rotation never waits for codec lookahead.
+    assert(av_opt_set(this->codec_ctx->priv_data, "preset", "ultrafast", 0) >= 0);
+    assert(av_opt_set(this->codec_ctx->priv_data, "tune", "zerolatency", 0) >= 0);
+  }
   int err = avcodec_open2(this->codec_ctx, codec, NULL);
   assert(err >= 0);
 
   is_open = true;
   segment_num++;
   counter = 0;
+  frame_count = 0;
 }
 
 void FfmpegEncoder::encoder_close() {
@@ -107,7 +118,7 @@ int FfmpegEncoder::encode_frame(VisionBuf* buf, VisionIpcBufExtra *extra) {
     frame->data[1] = cu;
     frame->data[2] = cv;
   }
-  frame->pts = counter*50*1000; // 50ms per frame
+  frame->pts = frame_count++;
 
   int ret = counter;
 

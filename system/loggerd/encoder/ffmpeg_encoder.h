@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdint>
 #include <cstdio>
 #include <cstdlib>
 #include <string>
@@ -25,6 +26,7 @@ public:
 private:
   int segment_num = -1;
   int counter = 0;
+  int64_t frame_count = 0;
   bool is_open = false;
 
   AVCodecContext *codec_ctx;

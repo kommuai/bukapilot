@@ -28,3 +28,30 @@ env.Program('bootlog.cc', LIBS=libs)
 
 if GetOption('extras'):
   env.Program('tests/test_logger', ['tests/test_runner.cc', 'tests/test_logger.cc', 'tests/test_zstd_writer.cc'], LIBS=libs + ['curl', 'crypto'])
+  env.Program('#build/system/loggerd/tests/visionipc_dmabuf_publisher',
+              'tests/visionipc_dmabuf_publisher.cc',
+              LIBS=[visionipc, messaging, common, 'OpenCL', 'pthread'])
+  env.Program('#build/system/loggerd/tests/test_loggerd_rotation',
+              'tests/test_loggerd_rotation.cc', LIBS=libs + ['curl', 'crypto'])
+  env.Program('#build/system/loggerd/tests/test_encoderd_recovery',
+              'tests/test_encoderd_recovery.cc', LIBS=libs + ['jpeg', 'curl', 'crypto'])
+
+  # Keep the legacy software branch isolated from production KA2 binaries and
+  # objects. This test-only target deliberately models a PC/non-RK3588 compile
+  # configuration while running on the pinned KA2 build host.
+  legacy_env = env.Clone()
+  legacy_env['OBJSUFFIX'] = '.non_rk3588.o'
+  legacy_env.Append(CCFLAGS=['-URK3588'])
+  legacy_env.Append(CXXFLAGS=['-URK3588'])
+  legacy_src = [
+    'logger.cc', 'zstd_writer.cc', 'memory_pressure.cc', 'video_writer.cc',
+    'encoder/encoder.cc', 'encoder/v4l_encoder.cc', 'encoder/jpeg_encoder.cc',
+    'encoder/ffmpeg_encoder.cc',
+  ]
+  legacy_logger_lib = legacy_env.Library('#build/system/loggerd/tests/logger_non_rk3588', legacy_src)
+  legacy_libs = [legacy_logger_lib, common, messaging, visionipc,
+                 'avformat', 'avcodec', 'avutil', 'yuv', 'OpenCL', 'pthread', 'zstd']
+  legacy_env.Program('#build/system/loggerd/tests/loggerd_non_rk3588', ['loggerd.cc'], LIBS=legacy_libs)
+  legacy_env.Program('#build/system/loggerd/tests/encoderd_non_rk3588', ['encoderd.cc'], LIBS=legacy_libs + ['jpeg'])
+  legacy_env.Program('#build/system/loggerd/tests/test_loggerd_rotation_non_rk3588',
+                     'tests/test_loggerd_rotation.cc', LIBS=legacy_libs + ['curl', 'crypto'])

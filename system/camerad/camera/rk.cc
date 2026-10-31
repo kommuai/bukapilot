@@ -1,5 +1,6 @@
 #include "system/camerad/camera/rk.h"
 
+#include <array>
 #include <poll.h>
 #include <linux/videodev2.h>
 #include <sys/mman.h>
@@ -13,6 +14,7 @@
 #include <vector>
 
 #include "common/swaglog.h"
+#include "msgq/visionipc/frame_lease.h"
 
 extern ExitHandler do_exit;
 
@@ -48,7 +50,7 @@ void CameraState::camera_map_bufs() {
       buf.camera_bufs[i].frame_id_in_buf = false;
       exported_count++;
     } else {
-      LOGW("camera %d: VIDIOC_EXPBUF failed idx=%d errno=%d '%s', using copy path",
+      LOGE("camera %d: VIDIOC_EXPBUF failed idx=%d errno=%d '%s'; KA2 encoder DMA-BUF is required",
            camera_num, i, errno, strerror(errno));
     }
   }
@@ -94,7 +96,12 @@ void CameraState::camera_init(VisionIpcServer *v, VisionStreamType yuv_type) {
 
   buf.init(v, FRAME_BUF_COUNT, yuv_type);
   camera_map_bufs();
-  buf.setupVipcBuffers(rk_zerocopy_active);
+  if (!rk_zerocopy_active) {
+    LOGE("camera %d: refusing to start without all V4L2 DMA-BUF exports", camera_num);
+    do_exit = true;
+    return;
+  }
+  buf.setupVipcBuffers(true, encoder_stream_for_camera(yuv_type));
 }
 
 void CameraState::camera_open(int camera_num_) {
@@ -138,7 +145,12 @@ void CameraState::dequeue_buf() {
   v4l_buf.length = 1;
   v4l_buf.m.planes = planes;
 
-  if (ioctl(video_fd, VIDIOC_DQBUF, &v4l_buf) < 0) {
+  int dq_ret;
+  {
+    std::lock_guard ioctl_lock(v4l2_ioctl_mutex);
+    dq_ret = ioctl(video_fd, VIDIOC_DQBUF, &v4l_buf);
+  }
+  if (dq_ret < 0) {
     LOGE("camera %d: VIDIOC_DQBUF failed errno=%d '%s'", camera_num, errno, strerror(errno));
     return;
   }
@@ -162,8 +174,21 @@ void CameraState::dequeue_buf() {
     md.frame_id = v4l_buf.sequence - first_published_sequence + 1;
     md.request_id = md.frame_id;
     if (ka2) ka2->on_dequeue(this, md);
+    {
+      std::lock_guard lease_lock(lease_mutex);
+      md.lease_generation = rk_zerocopy_active ? active_lease_generation : 0;
+      if (md.lease_generation != 0) {
+        pending_leases[idx] = {
+          .pending = true,
+          .processing_done = false,
+          .encoder_done = false,
+          .frame_id = md.frame_id,
+          .generation = md.lease_generation,
+        };
+      }
+    }
     const int dropped_idx = buf.queue(idx);
-    if (dropped_idx >= 0) requeue_buf(dropped_idx);
+    if (dropped_idx >= 0) cancel_unpublished_frame(dropped_idx);
   }
 
   buf.record_dequeue_latency(monotonic_time_ns() - md.dequeue_monotonic_ns);
@@ -186,12 +211,157 @@ void CameraState::requeue_buf(int idx) {
   buffer.length = 1;
   buffer.m.planes = &plane;
   buffer.index = idx;
+  std::lock_guard ioctl_lock(v4l2_ioctl_mutex);
   if (ioctl(video_fd, VIDIOC_QBUF, &buffer) < 0) {
     LOGE("camera %d: VIDIOC_QBUF failed idx=%d errno=%d '%s'", camera_num, idx, errno, strerror(errno));
   }
 }
 
+void CameraState::start_frame_lease(uint64_t generation) {
+  std::lock_guard lease_lock(lease_mutex);
+  if (generation == 0 || active_lease_generation != 0) {
+    LOGE("camera %d: invalid frame lease start generation=%llu active=%llu",
+         camera_num, static_cast<unsigned long long>(generation),
+         static_cast<unsigned long long>(active_lease_generation));
+    do_exit = true;
+    return;
+  }
+  active_lease_generation = generation;
+  LOG("camera %d: encoder DMA-BUF lease session started generation=%llu",
+      camera_num, static_cast<unsigned long long>(generation));
+}
+
+void CameraState::acknowledge_frame(uint32_t frame_id, uint64_t generation) {
+  int requeue_idx = -1;
+  bool found = false;
+  {
+    std::lock_guard lease_lock(lease_mutex);
+    for (int i = 0; i < FRAME_BUF_COUNT; ++i) {
+      PendingFrameLease &lease = pending_leases[i];
+      if (lease.pending && lease.frame_id == frame_id && lease.generation == generation) {
+        found = true;
+        lease.encoder_done = true;
+        if (lease.processing_done) {
+          lease = {};
+          requeue_idx = i;
+        }
+        break;
+      }
+    }
+  }
+  if (!found) {
+    LOGE("camera %d: encoder acknowledged unknown DMA-BUF frame=%u generation=%llu",
+         camera_num, frame_id, static_cast<unsigned long long>(generation));
+    do_exit = true;
+    return;
+  }
+  if (requeue_idx >= 0) requeue_buf(requeue_idx);
+}
+
+void CameraState::renew_frame_lease(uint64_t old_generation, uint64_t new_generation) {
+  std::array<int, FRAME_BUF_COUNT> requeue = {};
+  size_t requeue_count = 0;
+  {
+    std::lock_guard lease_lock(lease_mutex);
+    if (old_generation == 0 || new_generation == 0 || active_lease_generation != old_generation) {
+      LOGE("camera %d: invalid frame lease renewal old=%llu new=%llu active=%llu",
+           camera_num, static_cast<unsigned long long>(old_generation),
+           static_cast<unsigned long long>(new_generation),
+           static_cast<unsigned long long>(active_lease_generation));
+      do_exit = true;
+      return;
+    }
+    active_lease_generation = new_generation;
+    for (int i = 0; i < FRAME_BUF_COUNT; ++i) {
+      PendingFrameLease &lease = pending_leases[i];
+      if (lease.pending && lease.generation == old_generation) {
+        lease.encoder_done = true;
+        if (lease.processing_done) {
+          lease = {};
+          requeue[requeue_count++] = i;
+        }
+      }
+    }
+  }
+  for (size_t i = 0; i < requeue_count; ++i) requeue_buf(requeue[i]);
+  LOG("camera %d: encoder DMA-BUF lease session renewed generation=%llu",
+      camera_num, static_cast<unsigned long long>(new_generation));
+}
+
+void CameraState::stop_frame_lease(uint64_t generation) {
+  std::array<int, FRAME_BUF_COUNT> requeue = {};
+  size_t requeue_count = 0;
+  {
+    std::lock_guard lease_lock(lease_mutex);
+    if (generation == 0 || active_lease_generation != generation) {
+      LOGE("camera %d: invalid frame lease stop generation=%llu active=%llu",
+           camera_num, static_cast<unsigned long long>(generation),
+           static_cast<unsigned long long>(active_lease_generation));
+      do_exit = true;
+      return;
+    }
+    active_lease_generation = 0;
+    for (int i = 0; i < FRAME_BUF_COUNT; ++i) {
+      PendingFrameLease &lease = pending_leases[i];
+      if (lease.pending && lease.generation == generation) {
+        lease.encoder_done = true;
+        if (lease.processing_done) {
+          lease = {};
+          requeue[requeue_count++] = i;
+        }
+      }
+    }
+  }
+  for (size_t i = 0; i < requeue_count; ++i) requeue_buf(requeue[i]);
+  LOG("camera %d: encoder DMA-BUF lease session stopped generation=%llu",
+      camera_num, static_cast<unsigned long long>(generation));
+}
+
+void CameraState::fail_frame_lease(uint64_t generation) {
+  LOGE("camera %d: encoder lease connection lost generation=%llu; stopping camera to protect DMA-BUF ownership",
+       camera_num, static_cast<unsigned long long>(generation));
+  do_exit = true;
+}
+
+void CameraState::finish_frame_processing(int idx, uint32_t frame_id, uint64_t generation) {
+  if (generation == 0) {
+    requeue_buf(idx);
+    return;
+  }
+
+  bool requeue = false;
+  {
+    std::lock_guard lease_lock(lease_mutex);
+    if (idx < 0 || idx >= FRAME_BUF_COUNT) {
+      do_exit = true;
+      return;
+    }
+    PendingFrameLease &lease = pending_leases[idx];
+    if (!lease.pending || lease.frame_id != frame_id || lease.generation != generation) {
+      LOGE("camera %d: missing DMA-BUF lease for buffer=%d frame=%u generation=%llu",
+           camera_num, idx, frame_id, static_cast<unsigned long long>(generation));
+      do_exit = true;
+      return;
+    }
+    lease.processing_done = true;
+    if (lease.encoder_done) {
+      lease = {};
+      requeue = true;
+    }
+  }
+  if (requeue) requeue_buf(idx);
+}
+
+void CameraState::cancel_unpublished_frame(int idx) {
+  if (idx >= 0 && idx < FRAME_BUF_COUNT) {
+    std::lock_guard lease_lock(lease_mutex);
+    pending_leases[idx] = {};
+  }
+  requeue_buf(idx);
+}
+
 void cameras_init(VisionIpcServer *v, MultiCameraState *s) {
+  s->vipc_server = v;
   s->driver_cam.camera_init(v, VISION_STREAM_DRIVER);
   s->road_cam.camera_init(v, VISION_STREAM_ROAD);
   s->wide_road_cam.camera_init(v, VISION_STREAM_WIDE_ROAD);
@@ -267,6 +437,44 @@ static void process_road_camera(MultiCameraState *s, CameraState *c) {
 }
 
 void cameras_run(MultiCameraState *s) {
+  VisionIpcFrameLeaseServer lease_server;
+  const auto camera_for_stream = [s](VisionStreamType stream) -> CameraState * {
+    switch (stream) {
+      case VISION_STREAM_ROAD: return &s->road_cam;
+      case VISION_STREAM_DRIVER: return &s->driver_cam;
+      case VISION_STREAM_WIDE_ROAD: return &s->wide_road_cam;
+      default: return nullptr;
+    }
+  };
+  if (!lease_server.start([&](VisionIpcFrameLeaseServer::EventType event, VisionStreamType stream,
+                              uint32_t frame_id, uint64_t old_generation, uint64_t new_generation) {
+        CameraState *camera = camera_for_stream(stream);
+        if (!camera) {
+          LOGE("frame lease event for unsupported camera stream %d", static_cast<int>(stream));
+          do_exit = true;
+          return;
+        }
+        switch (event) {
+          case VisionIpcFrameLeaseServer::EventType::Started:
+            camera->start_frame_lease(new_generation);
+            break;
+          case VisionIpcFrameLeaseServer::EventType::Acknowledged:
+            camera->acknowledge_frame(frame_id, old_generation);
+            break;
+          case VisionIpcFrameLeaseServer::EventType::Renewed:
+            camera->renew_frame_lease(old_generation, new_generation);
+            break;
+          case VisionIpcFrameLeaseServer::EventType::Stopped:
+            camera->stop_frame_lease(old_generation);
+            break;
+          case VisionIpcFrameLeaseServer::EventType::Disconnected:
+            camera->fail_frame_lease(old_generation);
+            break;
+        }
+      })) {
+    do_exit = true;
+  }
+
   std::vector<std::thread> threads;
   if (s->driver_cam.enabled) threads.push_back(start_process_thread(s, &s->driver_cam, process_driver_camera));
   if (s->road_cam.enabled) threads.push_back(start_process_thread(s, &s->road_cam, process_road_camera));
@@ -305,6 +513,8 @@ void cameras_run(MultiCameraState *s) {
   }
 
   for (auto &t : threads) t.join();
+  lease_server.stop();
+  if (s->vipc_server) s->vipc_server->stop_listener();
   stop_thumbnail_worker();
   cameras_close(s);
 }
