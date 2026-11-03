@@ -22,11 +22,6 @@ from openpilot.common.realtime import set_core_affinity
 from openpilot.system.hardware.hw import Paths
 from openpilot.system.loggerd.xattr_cache import getxattr, setxattr
 from openpilot.system.loggerd.kommu import fia_upload, fia_upload_bytes, kapi, WEB_BASE
-from openpilot.system.loggerd.memory_pressure import (
-  is_memory_pressure_critical,
-  should_skip_filesystem_operation,
-  handle_memory_pressure,
-)
 from openpilot.common.swaglog import cloudlog
 
 NetworkType = log.DeviceState.NetworkType
@@ -113,8 +108,6 @@ def clear_locks(root: str) -> None:
 
 def get_pending_full_upload_segments() -> list[str]:
   """Return list of logdirs for which the server requested a full upload."""
-  if should_skip_filesystem_operation():
-    return []
   dongle_id = Params().get("DongleId")
   if not dongle_id:
     return []
@@ -196,18 +189,10 @@ class Uploader:
     self.last_speed = 0.0
 
   def list_upload_files(self, metered: bool) -> Iterator[tuple[str, str, str]]:
-    # Skip directory scanning if memory is critical
-    if should_skip_filesystem_operation():
-      return
-
     r = self.params.get("AthenadRecentlyViewedRoutes")
     requested_routes = [] if r is None else [route for route in r.split(",") if route]
 
     for logdir in listdir_by_creation(self.root):
-      # Check memory again before processing each directory
-      if should_skip_filesystem_operation():
-        break
-
       path = os.path.join(self.root, logdir)
       try:
         names = os.listdir(path)
@@ -451,14 +436,6 @@ def main(exit_event: threading.Event | None = None) -> None:
   backoff = 0.1
   while not exit_event.is_set():
     sm.update(100)
-
-    # Check memory pressure - skip upload operations if critical
-    if is_memory_pressure_critical():
-      handle_memory_pressure(clear_caches=True, clear_fs_cache=False)
-      cloudlog.warning("Skipping uploader operations due to critical memory pressure")
-      if allow_sleep:
-        time.sleep(30)  # Wait longer when memory is critical
-      continue
 
     offroad = params.get_bool("IsOffroad")
     network_type = sm['deviceState'].networkType if not force_wifi else NetworkType.wifi

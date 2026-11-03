@@ -11,7 +11,6 @@
 #include "common/params.h"
 #include "common/swaglog.h"
 #include "common/version.h"
-#include "system/loggerd/memory_pressure.h"
 
 // ***** log metadata *****
 kj::Array<capnp::word> logger_build_init_data() {
@@ -216,31 +215,6 @@ bool LoggerState::next() {
 }
 
 void LoggerState::write(uint8_t* data, size_t size, bool in_qlog) {
-  // Check memory pressure before writing
-  if (MemoryPressure::is_memory_pressure_critical()) {
-    // When memory is critical (80%+), skip non-essential writes
-    // Only write to qlog (required), skip rlog to reduce write pressure
-    if (in_qlog && qlog) {
-      qlog->write(data, size);
-      qlog->flush(true);  // Force flush more frequently under memory pressure
-    }
-    // Skip rlog writes when memory is critical to reduce write pressure
-    return;
-  }
-  
-  // Normal operation: write to both logs
-  if (rlog) {
-    rlog->write(data, size);
-    rlog->flush(false);
-  }
-  if (in_qlog && qlog) {
-    qlog->write(data, size);
-    qlog->flush(false);
-  }
-  
-  // When memory is high (75%+), flush more aggressively
-  if (MemoryPressure::is_memory_pressure_high()) {
-    if (rlog) rlog->flush(true);  // Force flush
-    if (qlog) qlog->flush(true);
-  }
+  if (rlog) rlog->write(data, size);
+  if (in_qlog && qlog) qlog->write(data, size);
 }

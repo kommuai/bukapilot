@@ -19,7 +19,12 @@ class TestDeleter(UploaderTestCase):
     self.f_type = "fcamera.hevc"
     super().setup_method()
     self.fake_stats = Stats(f_bavail=0, f_blocks=10, f_frsize=4096)
+    self.original_statvfs = deleter.os.statvfs
     deleter.os.statvfs = self.fake_statvfs
+
+  def teardown_method(self):
+    deleter.os.statvfs = self.original_statvfs
+    super().teardown_method()
 
   def start_thread(self):
     self.end_event = threading.Event()

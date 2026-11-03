@@ -1,13 +1,13 @@
 import os
-import time
-import threading
 import logging
 import json
 from pathlib import Path
 from openpilot.system.hardware.hw import Paths
 
 from openpilot.common.swaglog import cloudlog
-from openpilot.system.loggerd.uploader import main, UPLOAD_ATTR_NAME, UPLOAD_ATTR_VALUE
+from openpilot.system.loggerd.uploader import (
+  Uploader, NetworkType, UPLOAD_ATTR_NAME, UPLOAD_ATTR_VALUE, clear_locks,
+)
 
 from openpilot.system.loggerd.tests.loggerd_tests_common import UploaderTestCase
 
@@ -40,15 +40,14 @@ class TestUploader(UploaderTestCase):
     super().setup_method()
     log_handler.reset()
 
-  def start_thread(self):
-    self.end_event = threading.Event()
-    self.up_thread = threading.Thread(target=main, args=[self.end_event])
-    self.up_thread.daemon = True
-    self.up_thread.start()
-
-  def join_thread(self):
-    self.end_event.set()
-    self.up_thread.join()
+  def upload_all(self):
+    uploader = Uploader("0000000000000000", Paths.log_root())
+    for _ in range(1000):
+      result = uploader.step(NetworkType.wifi, False)
+      if result is None:
+        return
+      assert result
+    raise AssertionError("uploader did not drain the test queue")
 
   def gen_files(self, lock=False, xattr: bytes | None = None, boot=True) -> list[Path]:
     f_paths = []
@@ -56,7 +55,7 @@ class TestUploader(UploaderTestCase):
       f_paths.append(self.make_file_with_data(self.seg_dir, t, 1, lock=lock, upload_xattr=xattr))
 
     if boot:
-      f_paths.append(self.make_file_with_data("boot", f"{self.seg_dir}", 1, lock=lock, upload_xattr=xattr))
+      f_paths.append(self.make_file_with_data("boot", f"{self.seg_dir}.zst", 1, lock=lock, upload_xattr=xattr))
     return f_paths
 
   def gen_order(self, seg1: list[int], seg2: list[int], boot=True) -> list[str]:
@@ -68,13 +67,13 @@ class TestUploader(UploaderTestCase):
     keys += [f"{self.seg_format2.format(i)}/qlog.zst" for i in seg2]
     return keys
 
+  def file_for_upload_key(self, key: str) -> Path:
+    path = Path(Paths.log_root()) / key
+    return path.with_suffix("") if key.endswith("/qlog.zst") else path
+
   def test_upload(self):
     self.gen_files(lock=False)
-
-    self.start_thread()
-    # allow enough time that files could upload twice if there is a bug in the logic
-    time.sleep(1)
-    self.join_thread()
+    self.upload_all()
 
     exp_order = self.gen_order([self.seg_num], [])
 
@@ -82,17 +81,13 @@ class TestUploader(UploaderTestCase):
     assert not len(log_handler.upload_order) < len(exp_order), "Some files failed to upload"
     assert not len(log_handler.upload_order) > len(exp_order), "Some files were uploaded twice"
     for f_path in exp_order:
-      assert os.getxattr((Path(Paths.log_root()) / f_path).with_suffix(""), UPLOAD_ATTR_NAME) == UPLOAD_ATTR_VALUE, "All files not uploaded"
+      assert os.getxattr(self.file_for_upload_key(f_path), UPLOAD_ATTR_NAME) == UPLOAD_ATTR_VALUE, "All files not uploaded"
 
     assert log_handler.upload_order == exp_order, "Files uploaded in wrong order"
 
   def test_upload_with_wrong_xattr(self):
     self.gen_files(lock=False, xattr=b'0')
-
-    self.start_thread()
-    # allow enough time that files could upload twice if there is a bug in the logic
-    time.sleep(1)
-    self.join_thread()
+    self.upload_all()
 
     exp_order = self.gen_order([self.seg_num], [])
 
@@ -100,18 +95,14 @@ class TestUploader(UploaderTestCase):
     assert not len(log_handler.upload_order) < len(exp_order), "Some files failed to upload"
     assert not len(log_handler.upload_order) > len(exp_order), "Some files were uploaded twice"
     for f_path in exp_order:
-      assert os.getxattr((Path(Paths.log_root()) / f_path).with_suffix(""), UPLOAD_ATTR_NAME) == UPLOAD_ATTR_VALUE, "All files not uploaded"
+      assert os.getxattr(self.file_for_upload_key(f_path), UPLOAD_ATTR_NAME) == UPLOAD_ATTR_VALUE, "All files not uploaded"
 
     assert log_handler.upload_order == exp_order, "Files uploaded in wrong order"
 
   def test_upload_ignored(self):
     self.set_ignore()
     self.gen_files(lock=False)
-
-    self.start_thread()
-    # allow enough time that files could upload twice if there is a bug in the logic
-    time.sleep(1)
-    self.join_thread()
+    self.upload_all()
 
     exp_order = self.gen_order([self.seg_num], [])
 
@@ -119,7 +110,7 @@ class TestUploader(UploaderTestCase):
     assert not len(log_handler.upload_ignored) < len(exp_order), "Some files failed to ignore"
     assert not len(log_handler.upload_ignored) > len(exp_order), "Some files were ignored twice"
     for f_path in exp_order:
-      assert os.getxattr((Path(Paths.log_root()) / f_path).with_suffix(""), UPLOAD_ATTR_NAME) == UPLOAD_ATTR_VALUE, "All files not ignored"
+      assert os.getxattr(self.file_for_upload_key(f_path), UPLOAD_ATTR_NAME) == UPLOAD_ATTR_VALUE, "All files not ignored"
 
     assert log_handler.upload_ignored == exp_order, "Files ignored in wrong order"
 
@@ -135,28 +126,19 @@ class TestUploader(UploaderTestCase):
 
     exp_order = self.gen_order(seg1_nums, seg2_nums, boot=False)
 
-    self.start_thread()
-    # allow enough time that files could upload twice if there is a bug in the logic
-    time.sleep(1)
-    self.join_thread()
+    self.upload_all()
 
     assert len(log_handler.upload_ignored) == 0, "Some files were ignored"
     assert not len(log_handler.upload_order) < len(exp_order), "Some files failed to upload"
     assert not len(log_handler.upload_order) > len(exp_order), "Some files were uploaded twice"
     for f_path in exp_order:
-      assert os.getxattr((Path(Paths.log_root()) / f_path).with_suffix(""), UPLOAD_ATTR_NAME) == UPLOAD_ATTR_VALUE, "All files not uploaded"
+      assert os.getxattr(self.file_for_upload_key(f_path), UPLOAD_ATTR_NAME) == UPLOAD_ATTR_VALUE, "All files not uploaded"
 
     assert log_handler.upload_order == exp_order, "Files uploaded in wrong order"
 
   def test_no_upload_with_lock_file(self):
-    self.start_thread()
-
-    time.sleep(0.25)
     f_paths = self.gen_files(lock=True, boot=False)
-
-    # allow enough time that files should have been uploaded if they would be uploaded
-    time.sleep(1)
-    self.join_thread()
+    self.upload_all()
 
     for f_path in f_paths:
       fn = f_path.with_suffix(f_path.suffix.replace(".zst", ""))
@@ -165,19 +147,13 @@ class TestUploader(UploaderTestCase):
 
   def test_no_upload_with_xattr(self):
     self.gen_files(lock=False, xattr=UPLOAD_ATTR_VALUE)
-
-    self.start_thread()
-    # allow enough time that files could upload twice if there is a bug in the logic
-    time.sleep(1)
-    self.join_thread()
+    self.upload_all()
 
     assert len(log_handler.upload_order) == 0, "File uploaded again"
 
   def test_clear_locks_on_startup(self):
     f_paths = self.gen_files(lock=True, boot=False)
-    self.start_thread()
-    time.sleep(0.25)
-    self.join_thread()
+    clear_locks(Paths.log_root())
 
     for f_path in f_paths:
       lock_path = f_path.with_suffix(f_path.suffix + ".lock")

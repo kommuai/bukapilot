@@ -1,5 +1,6 @@
 import os
 import random
+import tempfile
 from pathlib import Path
 
 
@@ -33,25 +34,8 @@ class MockResponse:
     self.text = text
     self.status_code = status_code
 
-class MockApi:
-  def __init__(self, dongle_id):
-    pass
-
-  def get(self, *args, **kwargs):
-    return MockResponse('{"url": "http://localhost/does/not/exist", "headers": {}}', 200)
-
-  def get_token(self):
-    return "fake-token"
-
-class MockApiIgnore:
-  def __init__(self, dongle_id):
-    pass
-
-  def get(self, *args, **kwargs):
-    return MockResponse('', 412)
-
-  def get_token(self):
-    return "fake-token"
+  def json(self):
+    return {"segments": []}
 
 class UploaderTestCase:
   f_type = "UNKNOWN"
@@ -63,13 +47,35 @@ class UploaderTestCase:
   seg_dir: str
 
   def set_ignore(self):
-    uploader.Api = MockApiIgnore
+    uploader.fake_upload = False
+    uploader.fia_upload = lambda *args, **kwargs: MockResponse('', 412)
 
   def setup_method(self):
-    uploader.Api = MockApi
+    self._temp_dir = tempfile.TemporaryDirectory(prefix="loggerd-tests-", dir=Path(__file__).resolve().parents[3])
+    self.root = Path(self._temp_dir.name)
+    self._original_env = {key: os.environ.get(key) for key in ("LOG_ROOT", "PARAMS_ROOT", "OPENPILOT_PREFIX")}
+    os.environ.update({
+      "LOG_ROOT": str(self.root / "logs"),
+      "PARAMS_ROOT": str(self.root / "params"),
+      "OPENPILOT_PREFIX": f"_loggerd_test_{self.root.name}",
+    })
+    Path(os.environ["LOG_ROOT"]).mkdir()
+    Path(os.environ["PARAMS_ROOT"]).mkdir()
+
+    self._original_uploader = {
+      "kapi": uploader.kapi,
+      "fia_upload": uploader.fia_upload,
+      "fake_upload": uploader.fake_upload,
+      "force_wifi": uploader.force_wifi,
+      "allow_sleep": uploader.allow_sleep,
+    }
+    uploader.kapi = lambda *args, **kwargs: MockResponse('', 200)
     uploader.fake_upload = True
     uploader.force_wifi = True
     uploader.allow_sleep = False
+    from openpilot.system.loggerd import xattr_cache
+    xattr_cache._cached_attributes.clear()
+
     self.seg_num = random.randint(1, 300)
     self.seg_format = "00000004--0ac3964c96--{}"
     self.seg_format2 = "00000005--4c4e99b08b--{}"
@@ -78,6 +84,18 @@ class UploaderTestCase:
     self.params = Params()
     self.params.put("IsOffroad", True)
     self.params.put("DongleId", "0000000000000000")
+
+  def teardown_method(self):
+    from openpilot.system.loggerd import xattr_cache
+    xattr_cache._cached_attributes.clear()
+    for key, value in self._original_uploader.items():
+      setattr(uploader, key, value)
+    for key, value in self._original_env.items():
+      if value is None:
+        os.environ.pop(key, None)
+      else:
+        os.environ[key] = value
+    self._temp_dir.cleanup()
 
   def make_file_with_data(self, f_dir: str, fn: str, size_mb: float = .1, lock: bool = False,
                           upload_xattr: bytes | None = None, preserve_xattr: bytes | None = None) -> Path:
