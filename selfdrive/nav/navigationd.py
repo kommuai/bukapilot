@@ -110,7 +110,6 @@ class Navigationd:
     self._route_raw = ""
     self._last_position: Coordinate | None = None
     self._last_gps_timestamp_ms = 0
-    self._horizontal_accuracy_m: float | None = None
     self._last_speed_mps = 0.0
     self._last_bearing: float | None = None
     self._gps_was_valid = False
@@ -379,7 +378,7 @@ class Navigationd:
     session_id = str(self.params.get(NAV_SESSION_ID_KEY) or 'legacy')
     self._route_request_id = f"{session_id}:{self._route_generation}:{int(now * 1000)}"
     self._route_request_started_at = now
-    start = self._navigation_position(0.0) or self._last_position
+    start = self._navigation_position() or self._last_position
     request = {
       'requestId': self._route_request_id,
       'sessionId': session_id,
@@ -739,11 +738,6 @@ class Navigationd:
     except (TypeError, ValueError, OverflowError):
       timestamp_ms = 0
     self._last_gps_timestamp_ms = max(0, timestamp_ms)
-    try:
-      accuracy = float(getattr(gps, "horizontalAccuracy", 0.0) or 0.0)
-    except (TypeError, ValueError, OverflowError):
-      accuracy = 0.0
-    self._horizontal_accuracy_m = accuracy if isfinite(accuracy) and accuracy > 0 else None
     bearing = float(getattr(gps, "bearingDeg", getattr(gps, "bearing", 0.0)) or 0.0)
     self._last_bearing = bearing if isfinite(bearing) else None
     speed = float(getattr(gps, "speed", 0.0) or 0.0)
@@ -752,7 +746,7 @@ class Navigationd:
     self._last_speed_mps = max(0.0, speed) if isfinite(speed) else max(0.0, v_ego)
     return True, self._last_speed_mps
 
-  def _navigation_position(self, v_ego: float) -> Coordinate | None:
+  def _navigation_position(self) -> Coordinate | None:
     raw = self._last_position
     if raw is None or self._last_gps_timestamp_ms <= 0:
       return raw
@@ -766,30 +760,21 @@ class Navigationd:
       timestamp = match.get('sourceTimestamp')
       raw_lat, raw_lon = float(match.get('rawLatitude')), float(match.get('rawLongitude'))
       lat, lon = float(match.get('latitude')), float(match.get('longitude'))
-      confidence, distance_m = float(match.get('confidence')), float(match.get('distanceM'))
+      confidence = float(match.get('confidence'))
       if (type(timestamp) is not int or not 0 <= self._last_gps_timestamp_ms - timestamp <= 6000
-          or not all(isfinite(value) for value in (raw_lat, raw_lon, lat, lon, confidence, distance_m))
+          or not all(isfinite(value) for value in (raw_lat, raw_lon, lat, lon, confidence))
           or abs(raw_lat) > 90 or abs(lat) > 90 or abs(raw_lon) > 180 or abs(lon) > 180
           or confidence < 0.8 or confidence > 1.0):
         return raw
       anchor = Coordinate(raw_lat, raw_lon)
       matched = Coordinate(lat, lon)
-      displacement = float(anchor.distance_to(matched))
-      accuracy = self._horizontal_accuracy_m or 0.0
-      max_snap_m = min(35.0, max(10.0, accuracy * 1.5))
-      if (not isfinite(displacement) or displacement > max_snap_m
-          or distance_m < 0.0 or distance_m > max_snap_m):
+      # Carry the fresh Mapbox correction forward with the latest raw fix between API matches.
+      latitude = matched.latitude + raw.latitude - anchor.latitude
+      longitude_delta = (raw.longitude - anchor.longitude + 180.0) % 360.0 - 180.0
+      longitude = (matched.longitude + longitude_delta + 180.0) % 360.0 - 180.0
+      if not isfinite(latitude) or abs(latitude) > 90.0:
         return raw
-      age_s = (self._last_gps_timestamp_ms - timestamp) / 1000.0
-      moved_m = float(anchor.distance_to(raw))
-      max_movement = min(100.0, max(10.0, max(0.0, v_ego, self._last_speed_mps) * age_s + max(5.0, accuracy * 2.0)))
-      if not isfinite(moved_m) or moved_m > max_movement:
-        return raw
-      # Carry the accepted road correction forward with the latest raw fix between API matches.
-      return Coordinate(
-        matched.latitude + raw.latitude - anchor.latitude,
-        matched.longitude + raw.longitude - anchor.longitude,
-      )
+      return Coordinate(latitude, longitude)
     except (TypeError, ValueError, OverflowError):
       return raw
 
@@ -806,7 +791,7 @@ class Navigationd:
     if self._route is None or not location_valid or self._last_position is None:
       self._off_route_started_at = self._bearing_misaligned_started_at = self._arrival_started_at = None
       return None, None
-    navigation_position = self._navigation_position(v_ego) or self._last_position
+    navigation_position = self._navigation_position() or self._last_position
     if (progress := self._route.get_progress(navigation_position)) is None: return None, None
     now = monotonic()
     off_route = self._route.off_route_distance_exceeded(progress, v_ego)

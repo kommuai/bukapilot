@@ -2285,19 +2285,18 @@ class AppBridge:
       latitude = settings.get('latitude')
       longitude = settings.get('longitude')
       confidence = settings.get('confidence')
-      distance = settings.get('distanceM')
       if (type(timestamp) is not int or timestamp <= 0
           or any(type(value) not in (int, float) or not math.isfinite(value)
-                 for value in (raw_lat, raw_lon, latitude, longitude, confidence, distance))
+                 for value in (raw_lat, raw_lon, latitude, longitude, confidence))
           or abs(raw_lat) > 90 or abs(latitude) > 90
           or abs(raw_lon) > 180 or abs(longitude) > 180
-          or not 0.8 <= confidence <= 1.0 or not 0.0 <= distance <= 35.0):
+          or not 0.8 <= confidence <= 1.0):
         return
       match = {
         'sourceTimestamp': timestamp,
         'rawLatitude': float(raw_lat), 'rawLongitude': float(raw_lon),
         'latitude': float(latitude), 'longitude': float(longitude),
-        'confidence': float(confidence), 'distanceM': float(distance),
+        'confidence': float(confidence),
       }
       params.put_nonblocking('NavRoadMatch', json.dumps(match, separators=(',', ':')))
     except (TypeError, ValueError, OverflowError):
