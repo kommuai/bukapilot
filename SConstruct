@@ -18,7 +18,6 @@ TICI = os.path.isfile('/TICI')
 KA2 = os.path.isfile('/KA2')
 AGNOS = TICI
 
-AddOption('--kaitai', action='store_true', help='Regenerate kaitai struct parsers')
 AddOption('--asan', action='store_true', help='turn on ASAN')
 AddOption('--ubsan', action='store_true', help='turn on UBSan')
 AddOption('--mutation', action='store_true', help='generate mutation-ready code')
@@ -216,7 +215,6 @@ SConscript(['rednose/SConscript'])
 
 # Build system services
 SConscript([
-  'system/ubloxd/SConscript',
   'system/loggerd/SConscript',
 ])
 

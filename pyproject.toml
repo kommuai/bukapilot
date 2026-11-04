@@ -11,7 +11,7 @@ authors = [
 dependencies = [
   # multiple users
   "sounddevice",  # micd + soundd
-  "pyserial",     # pigeond + qcomgpsd
+  "pyserial",     # qcomgpsd
   "requests",     # many one-off uses
   "sympy",        # rednose + friends
   "crcmod-plus",  # cars + qcomgpsd
@@ -35,9 +35,6 @@ dependencies = [
   # with the latest release
   "pyopenssl < 24.3.0",
   "pyaudio",
-
-  # ubloxd (TODO: just use struct)
-  "kaitaistruct",
 
   # panda
   "libusb1",
@@ -164,7 +161,6 @@ testpaths = [
   "system/hardware",
   "system/loggerd",
   "system/tests",
-  "system/ubloxd",
   "system/webrtc",
   "tools/lib/tests",
   "tools/replay",

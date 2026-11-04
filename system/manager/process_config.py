@@ -23,15 +23,6 @@ def logging(started: bool, params: Params, CP: car.CarParams) -> bool:
   run = (not CP.notCar) or not params.get_bool("DisableLogging")
   return started and run
 
-def ublox_available() -> bool:
-  return os.path.exists('/dev/ttyHS0') and not os.path.exists('/persist/comma/use-quectel-gps')
-
-def ublox(started: bool, params: Params, CP: car.CarParams) -> bool:
-  use_ublox = ublox_available()
-  if use_ublox != params.get_bool("UbloxAvailable"):
-    params.put_bool("UbloxAvailable", use_ublox)
-  return started and use_ublox
-
 def plotter(started: bool, params: Params, CP: car.CarParams) -> bool:
   return started and params.get_bool("PlotterDebugMode")
 
@@ -46,9 +37,6 @@ def long_maneuver(started: bool, params: Params, CP: car.CarParams) -> bool:
 
 def not_long_maneuver(started: bool, params: Params, CP: car.CarParams) -> bool:
   return started and not params.get_bool("LongitudinalManeuverMode")
-
-def qcomgps(started: bool, params: Params, CP: car.CarParams) -> bool:
-  return started and not ublox_available()
 
 def always_run(started: bool, params: Params, CP: car.CarParams) -> bool:
   return True
@@ -107,12 +95,10 @@ procs = [
   PythonProcess("card", "selfdrive.car.card", only_onroad),
   PythonProcess("deleter", "system.loggerd.deleter", always_run),
   PythonProcess("dmonitoringd", "selfdrive.monitoring.dmonitoringd", driverview, enabled=(WEBCAM or not PC)),
-  PythonProcess("qcomgpsd", "system.qcomgpsd.qcomgpsd", qcomgps, enabled=(TICI or KA2)),
+  PythonProcess("qcomgpsd", "system.qcomgpsd.qcomgpsd", only_onroad, enabled=KA2),
   PythonProcess("pandad", "selfdrive.pandad.pandad", always_run),
   PythonProcess("paramsd", "selfdrive.locationd.paramsd", only_onroad),
   PythonProcess("lagd", "selfdrive.locationd.lagd", only_onroad),
-  PythonProcess("ubloxd", "system.ubloxd.ubloxd", ublox, enabled=TICI),
-  PythonProcess("pigeond", "system.ubloxd.pigeond", ublox, enabled=TICI),
   PythonProcess("plannerd", "selfdrive.controls.plannerd", not_long_maneuver),
   PythonProcess("navigationd", "selfdrive.nav.navigationd", run_navigationd),
   PythonProcess("maneuversd", "tools.longitudinal_maneuvers.maneuversd", long_maneuver),

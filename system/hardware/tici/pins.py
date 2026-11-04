@@ -2,8 +2,6 @@
 class GPIO:
   # both GPIO_STM_RST_N and GPIO_LTE_RST_N are misnamed, they are high to reset
   HUB_RST_N = 30
-  UBLOX_RST_N = 32
-  UBLOX_SAFEBOOT_N = 33
   GNSS_PWR_EN = 34 # SCHEMATIC LABEL: GPIO_UBLOX_PWR_EN
 
   STM_RST_N = 124

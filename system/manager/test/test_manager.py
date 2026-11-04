@@ -13,7 +13,7 @@ from openpilot.system.hardware import HARDWARE
 os.environ['FAKEUPLOAD'] = "1"
 
 MAX_STARTUP_TIME = 3
-BLACKLIST_PROCS = ['manage_athenad', 'pandad', 'pigeond']
+BLACKLIST_PROCS = ['manage_athenad', 'pandad']
 
 
 class TestManager:

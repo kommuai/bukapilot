@@ -517,12 +517,6 @@ CONFIGS = [
     tolerance=NUMPY_TOLERANCE,
   ),
   ProcessConfig(
-    proc_name="ubloxd",
-    pubs=["ubloxRaw"],
-    subs=["ubloxGnss", "gpsLocationExternal"],
-    ignore=["logMonoTime"],
-  ),
-  ProcessConfig(
     proc_name="torqued",
     pubs=["livePose", "liveCalibration", "liveDelay", "carState", "carControl", "carOutput"],
     subs=["liveTorqueParameters"],
