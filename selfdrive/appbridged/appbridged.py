@@ -38,7 +38,7 @@ from openpilot.selfdrive.appbridged.video_hotspot import disable_hotspot, enable
 
 # BLE Constants
 MAX_MESSAGE_HZ = SERVICE_LIST["modelV2"].frequency  # Cap the loop and Drive sends at fresh model updates.
-MAX_IN_FLIGHT_FRAMES = 7  # Allows multiple frames to stay in flight while ACKs return.
+MAX_IN_FLIGHT_FRAMES = 3  # Allows multiple frames to stay in flight while ACKs return.
 params = Params()
 
 def _nav_dest_key(dest) -> str:

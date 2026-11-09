@@ -111,6 +111,7 @@ inline static std::unordered_map<std::string, ParamKeyAttributes> keys = {
     {"NavLastOperationId", {CLEAR_ON_MANAGER_START, STRING}},
     {"NavLongitudinalAllowed", {PERSISTENT, BOOL, "1"}},
     {"NavPastDestinations", {PERSISTENT, STRING}},
+    {"NavRoadMatch", {CLEAR_ON_MANAGER_START | CLEAR_ON_OFFROAD_TRANSITION, STRING}},
     {"NavRerouteNeeded", {CLEAR_ON_MANAGER_START | CLEAR_ON_OFFROAD_TRANSITION, BOOL}},
     {"NavRouteCandidateContext", {CLEAR_ON_MANAGER_START | CLEAR_ON_OFFROAD_TRANSITION, STRING}},
     {"NavRouteData", {CLEAR_ON_MANAGER_START | CLEAR_ON_OFFROAD_TRANSITION, STRING}},
