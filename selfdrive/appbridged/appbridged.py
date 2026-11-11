@@ -25,6 +25,7 @@ from openpilot.selfdrive.nav.destination_store import (
 )
 from openpilot.selfdrive.selfdrived.events import ET
 from openpilot.selfdrive.appbridged.nav_route_transfer import NavRouteTransfer, ROUTE_TRANSFER_IDLE_TIMEOUT_SECONDS
+from openpilot.selfdrive.nav.navigationd_policy import nav_location_sources_match
 import json
 from openpilot.system.hardware import HARDWARE
 from opendbc.car.car_helpers import supported_cars
@@ -63,6 +64,21 @@ def _nav_json_param(key: str, default):
   except (TypeError, ValueError, json.JSONDecodeError):
     return default
   return value
+
+def _nav_location_source_mode() -> str:
+  if isinstance(source := params.get('NavLocationSource') or b'device', bytes):
+    source = source.decode('utf-8', errors='replace')
+  return source if source in ('device', 'phone', 'combined') else 'device'
+
+
+def _nav_distance_m(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
+  radians = math.pi / 180
+  d_lat = (lat2 - lat1) * radians
+  d_lon = (lon2 - lon1) * radians
+  a = (math.sin(d_lat / 2) ** 2 + math.cos(lat1 * radians) * math.cos(lat2 * radians)
+       * math.sin(d_lon / 2) ** 2)
+  return 6371000 * 2 * math.asin(math.sqrt(min(1.0, a)))
+
 
 def _nav_int_param(key: str, default: int = 0) -> int:
   try:
@@ -902,6 +918,7 @@ class AppBridge:
             params.put(NAV_STATUS_KEY, 'paused_offroad' if params.get_bool('IsOffroad') else 'route_pending')
           else:
             params.remove(NAV_SESSION_ID_KEY)
+            params.remove('NavRoadMatch')
             params.put_bool('NavRerouteNeeded', False)
             params.put(NAV_STATUS_KEY, 'idle')
 
@@ -948,6 +965,7 @@ class AppBridge:
       response_generation = settings.get('routeGeneration')
       request_generation = request.get('routeGeneration') if isinstance(request, dict) else None
       request_stop_version = request.get('stopVersion') if isinstance(request, dict) else None
+      request_source = request.get('sourceMode') if isinstance(request, dict) else None
       response_stop_version = settings.get('stopVersion')
       active_stop_version = _nav_int_param(NAV_STOP_VERSION_KEY)
       if is_offroad or params.get_bool('IsOffroad'):
@@ -967,12 +985,22 @@ class AppBridge:
         or (response_session is not None and str(response_session) != request_session)
         or (response_generation is not None and response_generation != request_generation)
         or not stop_version_matches
+        or not nav_location_sources_match(settings.get('sourceMode'), request_source)
+        or not nav_location_sources_match(request_source, _nav_location_source_mode())
       ):
-        params.remove(NAV_ROUTE_REQUEST_KEY)
+        self._nav_route_transfer.clear()
+        self._nav_route_select_transfer.clear()
+        self._nav_route_select_transfer_context = None
+        for key in (
+          NAV_ROUTE_REQUEST_KEY, 'NavRouteData', 'NavInstructionState',
+          'NavDestinationWaypoints', 'NavRouteCandidateContext', 'NavRouteInstalledRouteId',
+          'NavRouteSelectEnvelope', 'NavRouteSelectAck', 'NavRouteSelectAcceptedAck',
+        ):
+          params.remove(key)
+        has_navigation = bool(read_stop_list(params) or _nav_dest_key_from_params(params))
         params.put_bool('NavHasRoute', False)
-        stops = read_stop_list(params)
-        params.put_bool('NavRerouteNeeded', bool(stops))
-        params.put(NAV_STATUS_KEY, 'route_pending' if stops else 'idle')
+        params.put_bool('NavRerouteNeeded', has_navigation)
+        params.put(NAV_STATUS_KEY, 'route_pending' if has_navigation else 'idle')
         cloudlog.warning(
           f'appbridged navRouteResponse stale_dest request={request_id} '
           f'requested={request_dest_key or "none"} active={expected or "none"} '
@@ -1019,6 +1047,7 @@ class AppBridge:
         'routeGeneration': request_generation,
         'destKey': expected,
         'stopVersion': request_stop_version,
+        'sourceMode': request_source,
       }
       params.put('NavRouteCandidateContext', json.dumps(candidate_context, separators=(',', ':')))
       params.put('NavRouteData', route_str)
@@ -1056,7 +1085,9 @@ class AppBridge:
       return 'stale_context'
     if str(params.get('NavRouteInstalledRouteId') or '') != str(context.get('activeRouteId') or ''):
       return 'stale_context'
-    if (settings.get('candidateSetId') != context.get('candidateSetId')
+    if (not nav_location_sources_match(context.get('sourceMode'), _nav_location_source_mode())
+        or not nav_location_sources_match(settings.get('sourceMode'), context.get('sourceMode'))
+        or settings.get('candidateSetId') != context.get('candidateSetId')
         or settings.get('sessionId') != context.get('sessionId')
         or settings.get('requestId') != context.get('requestId')
         or settings.get('routeGeneration') != context.get('routeGeneration')
@@ -1118,7 +1149,7 @@ class AppBridge:
     previous = _nav_json_param('NavRouteSelectEnvelope', None)
     envelope = {key: settings[key] for key in (
       'selectionId', 'selectionSequence', 'candidateSetId', 'selectedRouteId', 'sessionId', 'requestId',
-      'routeGeneration', 'destKey',
+      'routeGeneration', 'destKey', 'sourceMode',
     ) if key in settings}
     if 'stopVersion' in settings:
       envelope['stopVersion'] = settings['stopVersion']
@@ -1200,6 +1231,8 @@ class AppBridge:
       and message.get('routeGeneration') == generation
       and active_dest_key and requested_dest_key == active_dest_key
       and message.get('destKey') == active_dest_key
+      and nav_location_sources_match(message.get('sourceMode'), request.get('sourceMode'))
+      and nav_location_sources_match(request.get('sourceMode'), _nav_location_source_mode())
       and session_id == str(params.get(NAV_SESSION_ID_KEY) or 'legacy')
       and (
         request.get('stopVersion') is None
@@ -1311,6 +1344,7 @@ class AppBridge:
           'routeGeneration': request.get('routeGeneration'),
           'destKey': _nav_dest_key_from_params(params),
           'stopVersion': request.get('stopVersion'),
+          'sourceMode': request.get('sourceMode'),
           'candidateSetId': request.get('candidateSetId'),
           'activeRouteId': request.get('activeRouteId'),
           'candidateRoutes': request.get('candidateRoutes'),
@@ -2280,27 +2314,74 @@ class AppBridge:
   def _apply_nav_road_match(self, settings: dict) -> None:
     try:
       timestamp = settings.get('sourceTimestamp')
-      raw_lat = settings.get('rawLatitude')
-      raw_lon = settings.get('rawLongitude')
+      mapbox_timestamp = settings.get('mapboxMatchedAt')
+      source_mode = settings.get('sourceMode')
       latitude = settings.get('latitude')
       longitude = settings.get('longitude')
       confidence = settings.get('confidence')
+      stationary_hold = settings.get('stationaryHold')
       if (type(timestamp) is not int or timestamp <= 0
+          or type(mapbox_timestamp) is not int or not 0 < mapbox_timestamp <= timestamp
+          or source_mode not in ('device', 'phone', 'combined')
+          or type(stationary_hold) is not bool
           or any(type(value) not in (int, float) or not math.isfinite(value)
-                 for value in (raw_lat, raw_lon, latitude, longitude, confidence))
-          or abs(raw_lat) > 90 or abs(latitude) > 90
-          or abs(raw_lon) > 180 or abs(longitude) > 180
+                 for value in (latitude, longitude, confidence))
+          or abs(latitude) > 90 or abs(longitude) > 180
           or not 0.8 <= confidence <= 1.0):
+        return
+      current_source = _nav_location_source_mode()
+      if current_source != source_mode:
+        return
+      if (isinstance(previous := _nav_json_param('NavRoadMatch', {}), dict)
+          and previous.get('sourceMode') == source_mode
+          and type(previous_timestamp := previous.get('sourceTimestamp', 0)) is int
+          and timestamp <= previous_timestamp):
+        return
+      if stationary_hold and previous and (
+          not isinstance(previous, dict) or previous.get('sourceMode') != source_mode
+          or previous.get('mapboxMatchedAt') != mapbox_timestamp
+          or not all(type(previous.get(key)) in (int, float) for key in ('latitude', 'longitude'))
+          or _nav_distance_m(latitude, longitude, previous['latitude'], previous['longitude']) > 0.1
+      ):
         return
       match = {
         'sourceTimestamp': timestamp,
-        'rawLatitude': float(raw_lat), 'rawLongitude': float(raw_lon),
+        'receivedAtMonotonic': monotonic(),
+        'mapboxMatchedAt': mapbox_timestamp,
+        'sourceMode': source_mode,
         'latitude': float(latitude), 'longitude': float(longitude),
         'confidence': float(confidence),
+        'stationaryHold': stationary_hold,
       }
+      if type(bearing := settings.get('bearing')) in (int, float) and math.isfinite(bearing) and 0 <= bearing < 360:
+        match['bearing'] = float(bearing)
+      if type(speed := settings.get('speedMps')) in (int, float) and math.isfinite(speed) and speed >= 0:
+        match['speedMps'] = float(speed)
       params.put_nonblocking('NavRoadMatch', json.dumps(match, separators=(',', ':')))
     except (TypeError, ValueError, OverflowError):
       return
+
+  def _apply_nav_location_source(self, settings: dict) -> None:
+    if (source := settings.get('sourceMode')) not in ('device', 'phone', 'combined'):
+      return
+    with nav_stop_list_lock():
+      if source == _nav_location_source_mode():
+        return
+      params.put('NavLocationSource', source)
+      params.remove('NavRoadMatch')
+      self._nav_route_transfer.clear()
+      self._nav_route_select_transfer.clear()
+      self._nav_route_select_transfer_context = None
+      for key in (
+        NAV_ROUTE_REQUEST_KEY, NAV_ROUTE_FAILURE_KEY, 'NavRouteData', 'NavInstructionState',
+        'NavDestinationWaypoints', 'NavRouteCandidateContext', 'NavRouteInstalledRouteId',
+        'NavRouteSelectEnvelope', 'NavRouteSelectAck', 'NavRouteSelectAcceptedAck',
+      ):
+        params.remove(key)
+      has_navigation = bool(read_stop_list(params) or _nav_dest_key_from_params(params))
+      params.put_bool('NavHasRoute', False)
+      params.put_bool('NavRerouteNeeded', has_navigation)
+      params.put(NAV_STATUS_KEY, 'route_pending' if has_navigation else 'idle')
 
   def apply_settings_message(self, message, state, cur_time, is_offroad):
     """Apply a valid assembled settings message immediately."""
@@ -2365,6 +2446,8 @@ class AppBridge:
         case 'navRoadMatch':
           if not is_offroad:
             self._apply_nav_road_match(settings)
+        case 'navLocationSource':
+          self._apply_nav_location_source(settings)
         case 'navRouteResponse':
           self._apply_nav_route_response(settings, is_offroad)
         case 'navRouteResponseStart':
