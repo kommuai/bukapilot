@@ -77,7 +77,13 @@ def normalize_destination_payload(payload: Any) -> dict[str, Any] | None:
   latitude, longitude = _coerce_float(payload.get("latitude")), _coerce_float(payload.get("longitude"))
   if not name or latitude is None or longitude is None or not (-90 <= latitude <= 90) or not (-180 <= longitude <= 180):
     return None
-  return {"name": name, "place_name": name, "latitude": latitude, "longitude": longitude}
+  return {
+    "name": name,
+    "place_name": name,
+    "latitude": latitude,
+    "longitude": longitude,
+    **({"town": t} if (t := str(payload.get("town") or payload.get("city") or payload.get("locality") or "").strip()[:80]) else {}),
+  }
 
 
 def _same_stop(first: dict[str, Any], second: dict[str, Any]) -> bool:

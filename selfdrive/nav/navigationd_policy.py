@@ -5,6 +5,11 @@ from openpilot.selfdrive.nav.destination_store import read_stop_list
 SAME_ROUTE_REROUTE_HOLD_SECONDS = 30.0
 SAME_ROUTE_REROUTE_DISTANCE_M = 40.0
 ROUTE_FAILURE_RETRY_LIMIT = 3
+NAV_STATIONARY_SPEED_MPS = 0.5
+
+
+def nav_location_sources_match(request_source, current_source) -> bool:
+  return request_source in ('device', 'phone', 'combined') and request_source == current_source
 
 
 def route_failure_retry_ready(now, cooldown_until, failures) -> bool:

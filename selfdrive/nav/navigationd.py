@@ -19,8 +19,8 @@ from openpilot.selfdrive.nav.destination_store import (
 from openpilot.selfdrive.nav.route_engine import Coordinate, NavigationRoute, RouteProgress
 from openpilot.selfdrive.appbridged.nav_route_transfer import ROUTE_TRANSFER_IDLE_TIMEOUT_SECONDS
 from openpilot.selfdrive.nav.navigationd_policy import (
-  ROUTE_FAILURE_RETRY_LIMIT, SAME_ROUTE_REROUTE_HOLD_SECONDS,
-  route_failure_retry_ready, same_route_reroute_blocked,
+  NAV_STATIONARY_SPEED_MPS, ROUTE_FAILURE_RETRY_LIMIT, SAME_ROUTE_REROUTE_HOLD_SECONDS,
+  nav_location_sources_match, route_failure_retry_ready, same_route_reroute_blocked,
 )
 
 NAVIGATIOND_HZ = 1
@@ -110,6 +110,8 @@ class Navigationd:
     self._route_raw = ""
     self._last_position: Coordinate | None = None
     self._last_gps_timestamp_ms = 0
+    self._last_source_mode = 'device'
+    self._last_match_mapbox_timestamp = 0
     self._last_speed_mps = 0.0
     self._last_bearing: float | None = None
     self._gps_was_valid = False
@@ -198,7 +200,7 @@ class Navigationd:
       return
     self._last_nav_status = status
     self.params.put(NAV_STATUS_KEY, status)
-    cloudlog.warning(f"navigationd status={status or 'none'} dest={self._last_dest_key}")
+    cloudlog.warning(f"navigationd status={status or 'none'} has_destination={bool(self._last_dest_key)}")
 
   def _clear_route_request(self, reason: str) -> None:
     if self._route_request_id:
@@ -375,10 +377,12 @@ class Navigationd:
     if now < self._route_request_cooldown_until:
       self._set_nav_status('route_unavailable')
       return
+    if (start := self._navigation_position()) is None:
+      self._set_nav_status('waiting_for_gps')
+      return
     session_id = str(self.params.get(NAV_SESSION_ID_KEY) or 'legacy')
     self._route_request_id = f"{session_id}:{self._route_generation}:{int(now * 1000)}"
     self._route_request_started_at = now
-    start = self._navigation_position() or self._last_position
     request = {
       'requestId': self._route_request_id,
       'sessionId': session_id,
@@ -388,14 +392,16 @@ class Navigationd:
       'createdAtMonotonic': now,
       'destination': dest,
       'start': {'latitude': start.latitude, 'longitude': start.longitude},
+      'startIsMapboxMatched': True,
+      'sourceMode': self._last_source_mode,
+      'sourceTimestamp': self._last_gps_timestamp_ms,
       'bearing': self._last_bearing,
     }
     self.params.put(NAV_ROUTE_REQUEST_KEY, json.dumps(request))
     self._set_nav_status('requesting_route')
     cloudlog.warning(
       f"navigationd route_request start request={self._route_request_id} reason={reason} "
-      f"dest={self._last_dest_key} stop_version={self._stop_version()} "
-      f"lat={self._last_position.latitude:.6f} lon={self._last_position.longitude:.6f}"
+      f"source={self._last_source_mode} stop_version={self._stop_version()}"
     )
 
   def _advance_stop(self, expected_dest_key: str, expected_session_id: str, *, reason: str) -> bool:
@@ -502,6 +508,8 @@ class Navigationd:
         or envelope.get('sessionId') != session_id or context.get('sessionId') != session_id
         or envelope.get('requestId') != context.get('requestId')
         or envelope.get('routeGeneration') != context.get('routeGeneration')
+        or not nav_location_sources_match(context.get('sourceMode'), self._last_source_mode)
+        or not nav_location_sources_match(envelope.get('sourceMode'), context.get('sourceMode'))
         or envelope.get('destKey') != dest_key or context.get('destKey') != dest_key
         or (context.get('stopVersion') is not None
             and (type(context.get('stopVersion')) is not int or context.get('stopVersion') != stop_version
@@ -710,73 +718,88 @@ class Navigationd:
       f"stop_version={self._stop_version()}"
     )
 
+  def _reject_nav_match(self, payload: str | bytes, speed: float) -> tuple[bool, float]:
+    self._last_gps_timestamp_ms = 0
+    self._last_match_mapbox_timestamp = 0
+    if payload:
+      current = self.params.get('NavRoadMatch')
+      if isinstance(current, bytes):
+        current = current.decode('utf-8', errors='replace')
+      if current == payload:
+        self.params.remove('NavRoadMatch')
+    return False, speed
+
   def _update_location(self) -> tuple[bool, float]:
-    """Keep last good fix across GPS outages (e.g. indoor car parks). Reject huge jumps after a gap."""
+    """Use device telemetry for speed, but only a fresh Mapbox match for nav coordinates."""
     self.sm.update(0)
     v_ego = float(self.sm["carState"].vEgo) if self.sm.seen["carState"] else 0.0
-    if not self.sm.updated["gpsLocation"] and not self.sm.seen["gpsLocation"]:
-      return False, v_ego
-    gps = self.sm["gpsLocation"]
-    if not self.sm.valid["gpsLocation"]:
-      return False, v_ego
-    lat, lon = float(gps.latitude), float(gps.longitude)
-    if not isfinite(lat) or not isfinite(lon) or (abs(lat) < 1e-6 and abs(lon) < 1e-6):
-      return False, v_ego
-    cand = Coordinate(lat, lon)
-    # After a GPS outage, ignore an absurd first fix (car-park multipath / teleport).
-    if self._last_position is not None and self._gps_was_valid is False:
-      try:
-        jump_m = float(cand.distance_to(self._last_position))
-      except (TypeError, ValueError):
-        jump_m = 0.0
-      if isfinite(jump_m) and jump_m > 250.0:
-        cloudlog.warning(f"navigationd ignoring GPS jump after outage ({jump_m:.0f} m)")
-        return False, max(0.0, v_ego)
-    self._last_position = cand
-    try:
-      timestamp_ms = int(getattr(gps, "unixTimestampMillis", 0) or 0)
-    except (TypeError, ValueError, OverflowError):
-      timestamp_ms = 0
-    self._last_gps_timestamp_ms = max(0, timestamp_ms)
-    bearing = float(getattr(gps, "bearingDeg", getattr(gps, "bearing", 0.0)) or 0.0)
-    self._last_bearing = bearing if isfinite(bearing) else None
-    speed = float(getattr(gps, "speed", 0.0) or 0.0)
-    if self.sm.seen["carState"]:
-      speed = max(speed, v_ego)
-    self._last_speed_mps = max(0.0, speed) if isfinite(speed) else max(0.0, v_ego)
-    return True, self._last_speed_mps
+    speed = max(0.0, v_ego)
+    if self.sm.valid["gpsLocation"] and isfinite(
+      gps_speed := float(getattr(self.sm["gpsLocation"], "speed", 0.0) or 0.0)
+    ):
+      speed = max(speed, gps_speed)
+    self._last_speed_mps = speed
 
-  def _navigation_position(self) -> Coordinate | None:
-    raw = self._last_position
-    if raw is None or self._last_gps_timestamp_ms <= 0:
-      return raw
+    if isinstance(source := self.params.get('NavLocationSource') or b'device', bytes):
+      source = source.decode('utf-8', errors='replace')
     payload = self.params.get('NavRoadMatch') or ''
-    if isinstance(payload, bytes):
-      payload = payload.decode('utf-8', errors='replace')
+    if isinstance(payload, bytes): payload = payload.decode('utf-8', errors='replace')
     try:
       match = json.loads(payload)
       if not isinstance(match, dict):
-        return raw
+        return self._reject_nav_match(payload, speed)
       timestamp = match.get('sourceTimestamp')
-      raw_lat, raw_lon = float(match.get('rawLatitude')), float(match.get('rawLongitude'))
+      mapbox_timestamp = match.get('mapboxMatchedAt')
+      received_at = match.get('receivedAtMonotonic')
       lat, lon = float(match.get('latitude')), float(match.get('longitude'))
       confidence = float(match.get('confidence'))
-      if (type(timestamp) is not int or not 0 <= self._last_gps_timestamp_ms - timestamp <= 6000
-          or not all(isfinite(value) for value in (raw_lat, raw_lon, lat, lon, confidence))
-          or abs(raw_lat) > 90 or abs(lat) > 90 or abs(raw_lon) > 180 or abs(lon) > 180
-          or confidence < 0.8 or confidence > 1.0):
-        return raw
-      anchor = Coordinate(raw_lat, raw_lon)
-      matched = Coordinate(lat, lon)
-      # Carry the fresh Mapbox correction forward with the latest raw fix between API matches.
-      latitude = matched.latitude + raw.latitude - anchor.latitude
-      longitude_delta = (raw.longitude - anchor.longitude + 180.0) % 360.0 - 180.0
-      longitude = (matched.longitude + longitude_delta + 180.0) % 360.0 - 180.0
-      if not isfinite(latitude) or abs(latitude) > 90.0:
-        return raw
-      return Coordinate(latitude, longitude)
+      now_mono = monotonic()
+      stationary_hold = match.get('stationaryHold')
+      if (type(timestamp) is not int or type(mapbox_timestamp) is not int
+          or match.get('sourceMode') != source or source not in ('device', 'phone', 'combined')
+          or type(stationary_hold) is not bool
+          or type(received_at) not in (int, float) or not isfinite(received_at)
+          or not 0 <= now_mono - received_at <= 6.0
+          or not 0 < mapbox_timestamp <= timestamp
+          or (not stationary_hold and timestamp - mapbox_timestamp > 15000)
+          or not all(type(value) in (int, float) and isfinite(value) for value in (lat, lon, confidence))
+          or abs(lat) > 90 or abs(lon) > 180
+          or not 0.8 <= confidence <= 1.0):
+        return self._reject_nav_match(payload, speed)
+      matched_position = Coordinate(lat, lon)
+      has_previous_match = self._last_gps_timestamp_ms > 0 and self._last_position is not None
+      vehicle_stopped = (self.sm.seen['carState'] and self.sm.valid['carState']
+                         and isfinite(v_ego) and 0 <= v_ego < NAV_STATIONARY_SPEED_MPS)
+      if stationary_hold and (not vehicle_stopped or (has_previous_match and (
+          source != self._last_source_mode
+          or mapbox_timestamp != self._last_match_mapbox_timestamp
+          or matched_position.distance_to(self._last_position) > 0.1
+      ))):
+        return self._reject_nav_match(payload, speed)
+      if source != self._last_source_mode:
+        self._route_request_failures = 0
+        self._last_failed_request_id = ''
+        self._route_request_cooldown_until = 0.0
+        self._same_route_reroute_not_before = 0.0
+        self._same_route_accept_position = None
+        self._last_match_mapbox_timestamp = 0
+      if not stationary_hold or not has_previous_match:
+        self._last_match_mapbox_timestamp = mapbox_timestamp
+      self._last_position = matched_position
+      self._last_gps_timestamp_ms = timestamp
+      self._last_source_mode = source
+      self._last_bearing = (float(bearing) if isinstance(bearing := match.get('bearing'), (int, float))
+                            and isfinite(bearing) and 0 <= bearing < 360 else None)
+      if isinstance(speed_mps := match.get('speedMps'), (int, float)) and isfinite(speed_mps) and speed_mps >= 0:
+        self._last_speed_mps = max(self._last_speed_mps, float(speed_mps))
+      return True, self._last_speed_mps
     except (TypeError, ValueError, OverflowError):
-      return raw
+      return self._reject_nav_match(payload, speed)
+
+  def _navigation_position(self) -> Coordinate | None:
+    if self._last_position is None or self._last_gps_timestamp_ms <= 0:
+      return None
+    return self._last_position
 
   @staticmethod
   def _bump_timer(started_at: float | None, condition: bool, now: float) -> float | None:
@@ -791,7 +814,8 @@ class Navigationd:
     if self._route is None or not location_valid or self._last_position is None:
       self._off_route_started_at = self._bearing_misaligned_started_at = self._arrival_started_at = None
       return None, None
-    navigation_position = self._navigation_position() or self._last_position
+    navigation_position = self._navigation_position()
+    if navigation_position is None: return None, None
     if (progress := self._route.get_progress(navigation_position)) is None: return None, None
     now = monotonic()
     off_route = self._route.off_route_distance_exceeded(progress, v_ego)
@@ -836,7 +860,7 @@ class Navigationd:
       if need_reroute and self._timer_expired(self._off_route_started_at, UNSURE_SUPPRESS_SECONDS, now):
         if not self._control_suppressed and not self._control_suppress_logged:
           self._control_suppress_logged = True
-          cloudlog.warning(f"navigationd control_suppressed dest={self._last_dest_key}")
+          cloudlog.warning(f"navigationd control_suppressed has_destination={bool(self._last_dest_key)}")
         self._control_suppressed = True
     if self._timer_expired(self._arrival_started_at, ARRIVAL_CLEAR_SECONDS, now):
       if now < float(self._skip_arrival_until):
@@ -949,10 +973,8 @@ class Navigationd:
       now_mono = monotonic()
       if location_valid and not self._gps_was_valid:
         # Brief grace after GPS returns so multipath does not instantly trigger a reroute.
-        position = self._last_position
         cloudlog.warning(
-          f"navigationd gps_regained lat={position.latitude:.5f} lon={position.longitude:.5f} "
-          f"speed_mps={v_ego:.2f} mono={now_mono:.3f} grace_sec=4"
+          f"navigationd gps_regained speed_mps={v_ego:.2f} mono={now_mono:.3f} grace_sec=4"
         )
         self._gps_regain_grace_until = now_mono + 4.0
         self._off_route_started_at = self._bearing_misaligned_started_at = None

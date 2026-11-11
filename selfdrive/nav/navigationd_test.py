@@ -2,7 +2,7 @@ import unittest
 
 from openpilot.selfdrive.nav.navigationd_policy import (
   has_persistent_nav_stops, route_failure_retry_ready,
-  same_route_reroute_blocked,
+  same_route_reroute_blocked, nav_location_sources_match,
 )
 
 
@@ -26,6 +26,13 @@ def stop(stop_id='stop-a'):
 
 
 class NavigationRecoveryTest(unittest.TestCase):
+  def test_route_source_must_match_and_be_supported(self):
+    self.assertTrue(nav_location_sources_match('phone', 'phone'))
+    self.assertTrue(nav_location_sources_match('combined', 'combined'))
+    self.assertFalse(nav_location_sources_match('device', 'phone'))
+    self.assertFalse(nav_location_sources_match(None, None))
+    self.assertFalse(nav_location_sources_match('invalid', 'invalid'))
+
   def test_navigationd_starts_for_persisted_stops(self):
     params = Params({'NavStopList': [stop()]})
 
