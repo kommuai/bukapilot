@@ -1,0 +1,9 @@
+bringing up nodes...
+bringing up nodes...
+
+.                                                                        [100%]
+============================= slowest 10 durations =============================
+0.73s call     system/loggerd/tests/test_mpp_encoder.py::test_mpp_encoder_dma_buf_validation
+0.17s setup    system/loggerd/tests/test_mpp_encoder.py::test_mpp_encoder_dma_buf_validation
+0.01s teardown system/loggerd/tests/test_mpp_encoder.py::test_mpp_encoder_dma_buf_validation
+1 passed in 8.79s

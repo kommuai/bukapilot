@@ -1,0 +1,12 @@
+Dirty root checkout snapshot after three-way merge; this is not the clean build candidate.
+Hashes were re-read on 2026-10-30. Existing unrelated dirty paths were preserved.
+6457b2db2d6bb826374c0a3d6319853a1cdded57ebd1a32bc0ff701894038064  common/params_pyx.so
+8acf03301e91b17750a65ad21d5c783ec0815e35fb8bce28c1d9ab6fbe5466a3  selfdrive/appbridged/appbridged.py
+512fb48a4f6b449209bc2738392b91ccc68ea144ed41b8b3f0ee99dc7ad75329  system/loggerd/encoder/mpp_encoder.cc
+deeab724e17eee824b8b97ab1bb1598bc23d75ca44a01ce176a55ea414f43afa  system/loggerd/encoder/mpp_encoder.h
+7c05efe9159fdd0dcb9e30a5540941b2c22fc7d83413b4f58011a3d2d511953f  system/loggerd/encoder/mpp_encoder_input.h
+37e72f8678e0585cc26dc7b15301254166a8d7279c0a1a983ec56791f0a2d72f  system/loggerd/encoderd.cc
+19e7eed8658f2d5a8141dc770bfc17ee9d11c3754323c43b12aaf643ad83e7e0  system/loggerd/loggerd.cc
+1ee228dc484f4af8724e09ca8a73f3d0790279d4d20a86c9c7edcb09016501b9  system/loggerd/tests/test_loggerd.py
+68d6ad08fa4a8b44df103fca82b701c97837a2560861f13b00fb97a227544a12  system/loggerd/tests/test_mpp_encoder.cc
+155ce3a252319a4baec661549f4a55472b820c744ff182a4819952d1c8280b15  system/loggerd/tests/test_mpp_encoder.py

@@ -1,0 +1,75 @@
+{
+  "boundary": "design-to-build",
+  "revision": "r8",
+  "submission_id": "loggerd-ka2-efficiency-20261029-design-r8",
+  "gate": "gatekeeper-design",
+  "verdict": "APPROVED",
+  "intake": {
+    "artifact": "../intake/report_grilling.md"
+  },
+  "findings": [
+    {
+      "id": "J-1",
+      "key": "interfaces",
+      "owner": "architect",
+      "severity": "Info",
+      "basis": {
+        "kind": "contract",
+        "ref": "conditional API endpoint artifact is required only when endpoints are in scope",
+        "source": "design/gatekeeper-design/SKILL.md"
+      },
+      "evidence": [
+        "manifest:evidence.interfaces",
+        "reports/report_interfaces_r8.md"
+      ],
+      "statement": "The shape check reports the API endpoint contract as UNCHECKED. It is out of scope: the hashed interface inventory contains only internal Params, C++ encoder, media lifecycle, and test-fixture contracts; it declares no public endpoints or cereal schema changes."
+    },
+    {
+      "id": "J-2",
+      "key": "ui_evidence",
+      "owner": "architect",
+      "severity": "Info",
+      "basis": {
+        "kind": "contract",
+        "ref": "conditional frontend/UI handoff applies only when a user-facing surface exists",
+        "source": "design/gatekeeper-design/SKILL.md"
+      },
+      "evidence": [
+        "manifest:evidence.ui_evidence",
+        "artifacts/ui_evidence_r8.json"
+      ],
+      "statement": "The shape check reports the frontend/UI handoff as UNCHECKED. This is a backend recording-path change with no user-facing surface, and the manifest carries the architect's sanctioned typed no-surface applicability record."
+    },
+    {
+      "id": "J-3",
+      "key": null,
+      "owner": "commander",
+      "severity": "Info",
+      "basis": {
+        "kind": "contract",
+        "ref": "design gate package-path containment check",
+        "source": "design/gatekeeper-design/references/workflow.md"
+      },
+      "evidence": [],
+      "statement": "The canonical shape-check path resolves through skillset-saves to /data/media, outside /data/openpilot, so the validator refuses that path before reading it. A fresh in-project mirror of the current r8 package artifacts passed the shape check with zero failures and the two expected conditional findings; the boundary validator independently checked the canonical manifest and all artifact hashes. The mirror only worked around the path containment rule and did not replace the submitted artifacts."
+    },
+    {
+      "id": "J-4",
+      "key": "architecture",
+      "owner": "architect",
+      "severity": "Info",
+      "basis": {
+        "kind": "contract",
+        "ref": "Calibration",
+        "source": "contracts/evidence-standards.md"
+      },
+      "evidence": [
+        "reports/report_architecture_r8.md",
+        "reports/delivery-plan_r8.md"
+      ],
+      "statement": "The real KA2 V4L2 exporter, DMA-BUF fence behavior, and live camera buffer reuse remain unqualified. The package correctly limits its proof to isolated synthetic DMA-BUF tests and records live-camera qualification as deferred under D-29; build evidence must not claim those live-source guarantees."
+    }
+  ],
+  "by_owner": {},
+  "escalation": null
+}

@@ -1,0 +1,135 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-9.0.2, pluggy-1.6.0 -- /usr/local/venv/bin/python3
+cachedir: .pytest_cache
+Using --randomly-seed=4288161247
+rootdir: /data/openpilot
+configfile: pyproject.toml
+plugins: timeout-2.4.0, repeat-0.9.4, xdist-3.7.1.dev24+g2b4372bd6, randomly-4.0.1, asyncio-1.3.0, mock-3.15.1, cpp-2.6.0
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=function, asyncio_default_test_loop_scope=function
+collecting ... collected 11 items
+
+system/loggerd/tests/test_mpp_encoder.py::test_mpp_encoder_dma_buf_validation native compile: /usr/bin/clang++ -std=c++1z -I/data/openpilot -I/data/openpilot/third_party/linux/include -I/usr/local/include/rockchip /data/openpilot/system/loggerd/tests/test_mpp_encoder.cc -o /tmp/pytest-of-kommu/pytest-29/test_mpp_encoder_dma_buf_valid0/mpp_encoder_helper_test
+native dynamic dependencies: 
+Dynamic section at offset 0xfda0 contains 29 entries:
+  Tag        Type                         Name/Value
+ 0x0000000000000001 (NEEDED)             Shared library: [libstdc++.so.6]
+ 0x0000000000000001 (NEEDED)             Shared library: [libm.so.6]
+ 0x0000000000000001 (NEEDED)             Shared library: [libgcc_s.so.1]
+ 0x0000000000000001 (NEEDED)             Shared library: [libc.so.6]
+ 0x000000000000000c (INIT)               0x778
+ 0x000000000000000d (FINI)               0xc08
+ 0x0000000000000019 (INIT_ARRAY)         0x1fd90
+ 0x000000000000001b (INIT_ARRAYSZ)       8 (bytes)
+ 0x000000000000001a (FINI_ARRAY)         0x1fd98
+ 0x000000000000001c (FINI_ARRAYSZ)       8 (bytes)
+ 0x000000006ffffef5 (GNU_HASH)           0x298
+ 0x0000000000000005 (STRTAB)             0x450
+ 0x0000000000000006 (SYMTAB)             0x2b8
+ 0x000000000000000a (STRSZ)              239 (bytes)
+ 0x000000000000000b (SYMENT)             24 (bytes)
+ 0x0000000000000015 (DEBUG)              0x0
+ 0x0000000000000003 (PLTGOT)             0x1ffe8
+ 0x0000000000000002 (PLTRELSZ)           264 (bytes)
+ 0x0000000000000014 (PLTREL)             RELA
+ 0x0000000000000017 (JMPREL)             0x670
+ 0x0000000000000007 (RELA)               0x598
+ 0x0000000000000008 (RELASZ)             216 (bytes)
+ 0x0000000000000009 (RELAENT)            24 (bytes)
+ 0x000000006ffffffb (FLAGS_1)            Flags: PIE
+ 0x000000006ffffffe (VERNEED)            0x568
+ 0x000000006fffffff (VERNEEDNUM)         1
+ 0x000000006ffffff0 (VERSYM)             0x540
+ 0x000000006ffffff9 (RELACOUNT)          4
+ 0x0000000000000000 (NULL)               0x0
+
+native run: /tmp/pytest-of-kommu/pytest-29/test_mpp_encoder_dma_buf_valid0/mpp_encoder_helper_test
+MPP encoder DMA-BUF validation tests passed
+PASSED
+system/loggerd/tests/test_loggerd_rotation.py::test_loggerd_rotation_clock_report_and_audio_contracts rotation helper build: /usr/local/venv/bin/scons -Q --ccflags=-DLOGGERD_TEST_BUILD build/system/loggerd/tests/test_loggerd_rotation
+scons: `build/system/loggerd/tests/test_loggerd_rotation' is up to date.
+preflight pgrep -x camerad: no active process
+preflight pgrep -x encoderd: no active process
+preflight pgrep -x loggerd: no active process
+preflight fuser -v /dev/media0: exit=1 preflight fuser -v /dev/media1: exit=1 preflight fuser -v /dev/media2: exit=1 preflight fuser -v /dev/media3: exit=1 preflight fuser -v /dev/media4: exit=1 preflight fuser -v /dev/media5: exit=1 preflight fuser -v /dev/mpp_service: exit=1 preflight fuser -v /dev/rga: exit=1 preflight fuser -v /dev/v4l-subdev0: exit=1 preflight fuser -v /dev/v4l-subdev1: exit=1 preflight fuser -v /dev/v4l-subdev10: exit=1 preflight fuser -v /dev/v4l-subdev11: exit=1 preflight fuser -v /dev/v4l-subdev12: exit=1 preflight fuser -v /dev/v4l-subdev13: exit=1 preflight fuser -v /dev/v4l-subdev14: exit=1 preflight fuser -v /dev/v4l-subdev2: exit=1 preflight fuser -v /dev/v4l-subdev3: exit=1 preflight fuser -v /dev/v4l-subdev4: exit=1 preflight fuser -v /dev/v4l-subdev5: exit=1 preflight fuser -v /dev/v4l-subdev6: exit=1 preflight fuser -v /dev/v4l-subdev7: exit=1 preflight fuser -v /dev/v4l-subdev8: exit=1 preflight fuser -v /dev/v4l-subdev9: exit=1 preflight fuser -v /dev/video0: exit=1 preflight fuser -v /dev/video1: exit=1 preflight fuser -v /dev/video10: exit=1 preflight fuser -v /dev/video11: exit=1 preflight fuser -v /dev/video12: exit=1 preflight fuser -v /dev/video13: exit=1 preflight fuser -v /dev/video14: exit=1 preflight fuser -v /dev/video15: exit=1 preflight fuser -v /dev/video16: exit=1 preflight fuser -v /dev/video17: exit=1 preflight fuser -v /dev/video18: exit=1 preflight fuser -v /dev/video19: exit=1 preflight fuser -v /dev/video2: exit=1 preflight fuser -v /dev/video20: exit=1 preflight fuser -v /dev/video21: exit=1 preflight fuser -v /dev/video22: exit=1 preflight fuser -v /dev/video23: exit=1 preflight fuser -v /dev/video24: exit=1 preflight fuser -v /dev/video25: exit=1 preflight fuser -v /dev/video26: exit=1 preflight fuser -v /dev/video27: exit=1 preflight fuser -v /dev/video28: exit=1 preflight fuser -v /dev/video29: exit=1 preflight fuser -v /dev/video3: exit=1 preflight fuser -v /dev/video30: exit=1 preflight fuser -v /dev/video31: exit=1 preflight fuser -v /dev/video32: exit=1 preflight fuser -v /dev/video33: exit=1 preflight fuser -v /dev/video34: exit=1 preflight fuser -v /dev/video35: exit=1 preflight fuser -v /dev/video36: exit=1 preflight fuser -v /dev/video37: exit=1 preflight fuser -v /dev/video38: exit=1 preflight fuser -v /dev/video39: exit=1 preflight fuser -v /dev/video4: exit=1 preflight fuser -v /dev/video40: exit=1 preflight fuser -v /dev/video41: exit=1 preflight fuser -v /dev/video42: exit=1 preflight fuser -v /dev/video43: exit=1 preflight fuser -v /dev/video44: exit=1 preflight fuser -v /dev/video45: exit=1 preflight fuser -v /dev/video46: exit=1 preflight fuser -v /dev/video47: exit=1 preflight fuser -v /dev/video48: exit=1 preflight fuser -v /dev/video49: exit=1 preflight fuser -v /dev/video5: exit=1 preflight fuser -v /dev/video50: exit=1 preflight fuser -v /dev/video51: exit=1 preflight fuser -v /dev/video52: exit=1 preflight fuser -v /dev/video53: exit=1 preflight fuser -v /dev/video54: exit=1 preflight fuser -v /dev/video55: exit=1 preflight fuser -v /dev/video56: exit=1 preflight fuser -v /dev/video57: exit=1 preflight fuser -v /dev/video58: exit=1 preflight fuser -v /dev/video59: exit=1 preflight fuser -v /dev/video6: exit=1 preflight fuser -v /dev/video7: exit=1 preflight fuser -v /dev/video8: exit=1 preflight fuser -v /dev/video9: exit=1 ./system/loggerd/loggerd.cc: logging to /tmp/pytest-of-kommu/pytest-29/test_loggerd_rotation_clock_re0/logs/2026-10-31--09-14-50--0
+./system/loggerd/loggerd.cc: logging to /tmp/pytest-of-kommu/pytest-29/test_loggerd_rotation_clock_re0/logs/2026-10-31--09-14-50--0
+./system/loggerd/loggerd.cc: rotated to /tmp/pytest-of-kommu/pytest-29/test_loggerd_rotation_clock_re0/logs/2026-10-31--09-14-50--1
+./system/loggerd/loggerd.cc: logging to /tmp/pytest-of-kommu/pytest-29/test_loggerd_rotation_clock_re0/logs/2026-10-31--09-14-50--0
+./system/loggerd/loggerd.cc: rotated to /tmp/pytest-of-kommu/pytest-29/test_loggerd_rotation_clock_re0/logs/2026-10-31--09-14-50--1
+MISSING_REPORT 
+loggerd rotation contract failure: missing-stream report must preserve configured order and exact names
+FAILED
+
+=================================== FAILURES ===================================
+____________ test_loggerd_rotation_clock_report_and_audio_contracts ____________
+
+tmp_path = PosixPath('/tmp/pytest-of-kommu/pytest-29/test_loggerd_rotation_clock_re0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f6eb79190>
+
+    @pytest.mark.xdist_group("loggerd_tests")
+    def test_loggerd_rotation_clock_report_and_audio_contracts(tmp_path, monkeypatch):
+      try:
+>       _run_loggerd_rotation_clock_report_and_audio_contracts(tmp_path, monkeypatch)
+
+system/loggerd/tests/test_loggerd_rotation.py:107: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+tmp_path = PosixPath('/tmp/pytest-of-kommu/pytest-29/test_loggerd_rotation_clock_re0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f6eb79190>
+
+    def _run_loggerd_rotation_clock_report_and_audio_contracts(tmp_path, monkeypatch):
+      if not KA2:
+        pytest.skip("deterministic rotation contracts require the RK3588 target")
+      repo_root = Path(__file__).resolve().parents[3]
+      binary = _build_rotation_helper(repo_root)
+    
+      log_root = (tmp_path / "logs").resolve()
+      params_root = (tmp_path / "params").resolve()
+      log_root.mkdir(parents=True)
+      params_root.mkdir(parents=True)
+      prefix = f"loggerd_rotation_{os.getpid()}_{uuid.uuid4().hex[:8]}"
+      env = os.environ.copy()
+      env.update({
+        "LOG_ROOT": str(log_root),
+        "PARAMS_ROOT": str(params_root),
+        "OPENPILOT_PREFIX": prefix,
+        "LOGGERD_TEST": "1",
+        "LOGGERD_TEST_DETERMINISTIC": "1",
+        "LOGGERD_SEGMENT_LENGTH": "5",
+        "ENCODERD_DETERMINISTIC_DISABLE": "0",
+      })
+      for key in ("LOG_ROOT", "PARAMS_ROOT", "OPENPILOT_PREFIX", "LOGGERD_TEST",
+                  "LOGGERD_TEST_DETERMINISTIC", "LOGGERD_SEGMENT_LENGTH", "ENCODERD_DETERMINISTIC_DISABLE"):
+        monkeypatch.setenv(key, env[key])
+    
+      msgq_dir = Path("/dev/shm") / f"msgq_{prefix}"
+      assert not msgq_dir.exists(), f"isolated MSGQ directory already exists: {msgq_dir}"
+      msgq_dir.mkdir(mode=0o700)
+      try:
+        _assert_camera_stack_idle()
+        result = subprocess.run([str(binary)], cwd=repo_root, env=env, text=True,
+                                capture_output=True, check=False, timeout=30)
+        print(result.stdout, end="")
+        print(result.stderr, end="")
+>       assert result.returncode == 0, f"loggerd rotation helper exited {result.returncode}: {result.stdout}{result.stderr}"
+E       AssertionError: loggerd rotation helper exited 1: ./system/loggerd/loggerd.cc: logging to /tmp/pytest-of-kommu/pytest-29/test_loggerd_rotation_clock_re0/logs/2026-10-31--09-14-50--0
+E         ./system/loggerd/loggerd.cc: logging to /tmp/pytest-of-kommu/pytest-29/test_loggerd_rotation_clock_re0/logs/2026-10-31--09-14-50--0
+E         ./system/loggerd/loggerd.cc: rotated to /tmp/pytest-of-kommu/pytest-29/test_loggerd_rotation_clock_re0/logs/2026-10-31--09-14-50--1
+E         ./system/loggerd/loggerd.cc: logging to /tmp/pytest-of-kommu/pytest-29/test_loggerd_rotation_clock_re0/logs/2026-10-31--09-14-50--0
+E         ./system/loggerd/loggerd.cc: rotated to /tmp/pytest-of-kommu/pytest-29/test_loggerd_rotation_clock_re0/logs/2026-10-31--09-14-50--1
+E         MISSING_REPORT 
+E         loggerd rotation contract failure: missing-stream report must preserve configured order and exact names
+E         
+E       assert 1 == 0
+E        +  where 1 = CompletedProcess(args=['/data/openpilot/build/system/loggerd/tests/test_loggerd_rotation'], returncode=1, stdout='./system/loggerd/loggerd.cc: logging to /tmp/pytest-of-kommu/pytest-29/test_loggerd_rotation_clock_re0/logs/2026-10-31--09-14-50--0\n./system/loggerd/loggerd.cc: logging to /tmp/pytest-of-kommu/pytest-29/test_loggerd_rotation_clock_re0/logs/2026-10-31--09-14-50--0\n./system/loggerd/loggerd.cc: rotated to /tmp/pytest-of-kommu/pytest-29/test_loggerd_rotation_clock_re0/logs/2026-10-31--09-14-50--1\n./system/loggerd/loggerd.cc: logging to /tmp/pytest-of-kommu/pytest-29/test_loggerd_rotation_clock_re0/logs/2026-10-31--09-14-50--0\n./system/loggerd/loggerd.cc: rotated to /tmp/pytest-of-kommu/pytest-29/test_loggerd_rotation_clock_re0/logs/2026-10-31--09-14-50--1\nMISSING_REPORT \n', stderr='loggerd rotation contract failure: missing-stream report must preserve configured order and exact names\n').returncode
+
+system/loggerd/tests/test_loggerd_rotation.py:66: AssertionError
+============================= slowest 10 durations =============================
+6.65s call     system/loggerd/tests/test_loggerd_rotation.py::test_loggerd_rotation_clock_report_and_audio_contracts
+0.31s call     system/loggerd/tests/test_mpp_encoder.py::test_mpp_encoder_dma_buf_validation
+0.01s teardown system/loggerd/tests/test_mpp_encoder.py::test_mpp_encoder_dma_buf_validation
+
+(3 durations < 0.005s hidden.  Use -vv to show these durations.)
+=========================== short test summary info ============================
+FAILED system/loggerd/tests/test_loggerd_rotation.py::test_loggerd_rotation_clock_report_and_audio_contracts
+!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!
+========================= 1 failed, 1 passed in 7.55s ==========================

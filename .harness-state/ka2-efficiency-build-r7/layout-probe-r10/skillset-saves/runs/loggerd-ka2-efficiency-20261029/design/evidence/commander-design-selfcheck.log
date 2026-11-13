@@ -1,0 +1,78 @@
+{
+  "boundary": "design-to-build",
+  "changed_evidence": [
+    "acceptance",
+    "architecture",
+    "interfaces",
+    "plan",
+    "security_seed"
+  ],
+  "checked_at": "2026-10-30T07:27:41.970149+00:00",
+  "declared_schema_version": 2,
+  "evidence_digests": {
+    "acceptance": "2cc71c89c416eadfce696be910731131a8d6bcc2c4ab5ab3e393eadb78d768ec",
+    "architecture": "d9fc6c70889858a8cdf97e54a67cda346a69ade624c68a33ff84f41eec4ddc2d",
+    "decisions": "8338179da0a0f82333f4c76309286078718b1afd1184f7639352f74e0c97baf9",
+    "interfaces": "9e636af4ff19583930d5f9caf3dcccaa6c24f74084811bb28205a642ed17762e",
+    "plan": "2cc71c89c416eadfce696be910731131a8d6bcc2c4ab5ab3e393eadb78d768ec",
+    "security_seed": "2598f30db3f85cde0bd46b256cd867f77b1c831093802eee8a0c8719796242b0",
+    "stack_lock": "e80e04e2361f105b4317eb5748f9ea2736b0eb911458fd737c68a87918e200ed",
+    "taste_snapshot": "0933860231044ee342454a13ea77ecd47ce137a8cc7257803d5f0d9dd8308045",
+    "ui_evidence": "4f70edbbcabf601978f136426fdbe18ea01e244039d7a5a2a440504e1891944b"
+  },
+  "evidence_root": "/data/media/supremeteam/42c6eb550c629191187c/skillset-saves/runs/loggerd-ka2-efficiency-20261029",
+  "evidence_root_kind": "run",
+  "failures": [
+    "artifact hash mismatch: ../build/evidence/loggerd-expected-emitted-frame-ledger.csv",
+    "artifact hash mismatch: ../build/evidence/rerun_20261030_023059/frame_ledger.csv"
+  ],
+  "gate_spec_digest": "b2995ffa29a827c2bf101391788bf1228eb38869ad7c0a601a4126734ee6c7c1",
+  "gate_spec_is_shipped": true,
+  "idempotency_drift": false,
+  "judgment": null,
+  "judgment_failures": [],
+  "manifest": "manifest.json",
+  "manifest_schema_version": 2,
+  "mechanical_only": true,
+  "missing": [],
+  "mixed_revisions": false,
+  "owner": "commander",
+  "package_fingerprint": "12782d5d497d8b9db66306bb3b08799dfda3196751bfe92e4f46976c219c53b1",
+  "pass": false,
+  "prior_record": {
+    "gate_spec_digest": "b2995ffa29a827c2bf101391788bf1228eb38869ad7c0a601a4126734ee6c7c1",
+    "gate_spec_is_shipped": true,
+    "judgment": {
+      "gate": "gatekeeper-design",
+      "valid": true,
+      "verdict": "REVISE"
+    },
+    "path": "/data/media/supremeteam/42c6eb550c629191187c/skillset-saves/runs/loggerd-ka2-efficiency-20261029/design/verdict_design-to-build.json"
+  },
+  "prior_reusable": null,
+  "registry_is_shipped": true,
+  "revise_packet": {
+    "by_key": {},
+    "by_owner": {
+      "commander": [
+        "artifact hash mismatch: ../build/evidence/loggerd-expected-emitted-frame-ledger.csv",
+        "artifact hash mismatch: ../build/evidence/rerun_20261030_023059/frame_ledger.csv"
+      ]
+    },
+    "unassigned": [
+      "artifact hash mismatch: ../build/evidence/loggerd-expected-emitted-frame-ledger.csv",
+      "artifact hash mismatch: ../build/evidence/rerun_20261030_023059/frame_ledger.csv"
+    ]
+  },
+  "revision": "r5",
+  "run_id": "loggerd-ka2-efficiency-20261029",
+  "submission_id": "loggerd-ka2-efficiency-20261029-design-r5",
+  "unchanged_evidence": [
+    "decisions",
+    "stack_lock",
+    "taste_snapshot",
+    "ui_evidence"
+  ],
+  "verdict_id": "09a9714e3e4cf21a9f01e4d5d34d8ba017091edc761856999b4a03d790007f74",
+  "warnings": []
+}

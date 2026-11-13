@@ -1,0 +1,4 @@
+postflight=PASS
+test-owned VisionIPC socket absent
+isolated MSGQ directory removed
+no camera/logger/encoder processes or users of video/media/subdev/MPP/RGA nodes

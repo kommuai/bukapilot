@@ -1,0 +1,149 @@
+{
+  "boundary": "design phase-exit",
+  "canonical_package": "/data/openpilot/skillset-saves/runs/loggerd-ka2-efficiency-20261029/design/reports",
+  "canonical_path_result": {
+    "exit_code": 2,
+    "stderr": "ERROR: <package-dir> /data/media/supremeteam/42c6eb550c629191187c/skillset-saves/runs/loggerd-ka2-efficiency-20261029/design/reports is outside the project /data/openpilot; run the gate from the project that holds the package. Refusing to read it.\n",
+    "stdout": ""
+  },
+  "canonical_resolved_path": "/data/media/supremeteam/42c6eb550c629191187c/skillset-saves/runs/loggerd-ka2-efficiency-20261029/design/reports",
+  "conditional_resolution": {
+    "api_contracts": "Not in scope: r9 adds only internal coordination and a test fixture; no endpoint.",
+    "ui_handoff": "Not applicable: backend-only loggerd/encoderd design; typed no-surface applicability record is in manifest."
+  },
+  "file_count": 10,
+  "file_sha256": {
+    "delivery-plan.md": "32515ef83487806ec57310c36a85ca21450f6ba24ac17406c04c56c87816ed88",
+    "design-package.md": "b9d51a2b57899267f842322a40b6f9693906b045fc27bf3e494f03f94f2581b8",
+    "implementation-spec.md": "e3d7eb4e0599ff1aab0ba02f3260d481ea6a820e85da7f52cb89b7c66e33b5fb",
+    "manifest.json": "f6a7e61ea1e2fae2347beaaa3f123a2ae13aaa0d6c248eee8e91c1462a20bac1",
+    "report_architecture.md": "a788e36c49a30aceb4e8bacaa97040db7eb20c5c0d5340f33fe878fc9a68b886",
+    "report_interfaces.md": "2ef10c8c8964203da994dd6d1b4a47db238820c3210ec365ca700f35365f007c",
+    "report_research.md": "97fc4095c0e72f59c1309f87abe17ccefaf908ba823b24924dc58276c09bb684",
+    "report_security-seed.md": "ac1eedf1769adb8d0378439b955ffe17af593bee5f9dfa6d80fcb38f60b68378",
+    "report_stack-lock.md": "a3f1765e1ad60b4afaa03e0e579421d61217fcf0a21a5580394ae6092579bf71",
+    "report_taste-snapshot.md": "b5248f776634c864f2f24771d1c653e14a55f4f7a71d8f956ca200b6e3e24ca8"
+  },
+  "files_byte_identical_to_sources": true,
+  "mirror_tree_sha256": "7e3ab45d30421b28963e7cca6437e0b5db6eec5566772e41e8a317c385a64f20",
+  "path_limitation": "The run save path resolves through skillset-saves to /data/media, outside /data/openpilot; the shape validator refuses the canonical path.",
+  "removed_after_validation": true,
+  "shape_check": {
+    "exit_code": 0,
+    "report": {
+      "boundary": "design phase-exit",
+      "checks_run": [
+        "package_links",
+        "required_artifacts",
+        "lineage",
+        "skip_records",
+        "blocked_phrases",
+        "idempotency",
+        "harness_doctrine"
+      ],
+      "counts": {
+        "fail": 0,
+        "total": 13,
+        "unchecked": 2
+      },
+      "findings": [
+        {
+          "code": "ARTIFACT_PRESENT",
+          "location": "report_research.md",
+          "message": "research evidence present.",
+          "severity": "info",
+          "status": "PASS"
+        },
+        {
+          "code": "ARTIFACT_PRESENT",
+          "location": "delivery-plan.md",
+          "message": "project plan present.",
+          "severity": "info",
+          "status": "PASS"
+        },
+        {
+          "code": "ARTIFACT_PRESENT",
+          "location": "report_architecture.md",
+          "message": "architecture decisions (ADRs) present.",
+          "severity": "info",
+          "status": "PASS"
+        },
+        {
+          "code": "ARTIFACT_PRESENT",
+          "location": "report_stack-lock.md",
+          "message": "locked technology choices / stack locks present.",
+          "severity": "info",
+          "status": "PASS"
+        },
+        {
+          "code": "ARTIFACT_PRESENT",
+          "location": "report_taste-snapshot.md",
+          "message": "effective Taste profile snapshot present.",
+          "severity": "info",
+          "status": "PASS"
+        },
+        {
+          "code": "ARTIFACT_PRESENT",
+          "location": "implementation-spec.md",
+          "message": "implementation specification present.",
+          "severity": "info",
+          "status": "PASS"
+        },
+        {
+          "code": "ARTIFACT_CONDITIONAL",
+          "location": "package",
+          "message": "API endpoint contracts (api-endpoint-design.md shape) not found. This artifact is required only when in scope \u2014 confirm whether this submission needs it.",
+          "severity": "info",
+          "status": "UNCHECKED"
+        },
+        {
+          "code": "ARTIFACT_CONDITIONAL",
+          "location": "package",
+          "message": "frontend/UI handoff (shadcn template + UI/UX handoff) not found. pipelines.yaml runs interface-and-design-system only when \"user-facing surface\". Confirm that condition was false for this submission, or that a valid _skip-record.md or the sanctioned waiver covers it.",
+          "severity": "info",
+          "status": "UNCHECKED"
+        },
+        {
+          "code": "REVISION_COHERENT",
+          "location": "package",
+          "message": "All revision-bearing artifacts agree on revision r9.",
+          "severity": "info",
+          "status": "PASS"
+        },
+        {
+          "code": "NO_SKIP_RECORDS",
+          "location": "package",
+          "message": "No skip records in package (none claimed).",
+          "severity": "info",
+          "status": "PASS"
+        },
+        {
+          "code": "BLOCKED_PHRASE_CLEAN",
+          "location": "package",
+          "message": "No blocked phrases or contamination markers found.",
+          "severity": "info",
+          "status": "PASS"
+        },
+        {
+          "code": "NO_PRIOR_VERDICT",
+          "location": "package",
+          "message": "No prior verdict supplied; treating as a first submission.",
+          "severity": "info",
+          "status": "PASS"
+        },
+        {
+          "code": "NO_RUNTIME_INTERVENTION",
+          "location": "package",
+          "message": "Package does not add or change a cross-cutting runtime intervention; harness-doctrine \u00a75 not engaged.",
+          "severity": "info",
+          "status": "PASS"
+        }
+      ],
+      "gate_status": "NEEDS_JUDGMENT",
+      "package_path": "/data/openpilot/ka2-r9-design-shape-lag9xcxt/package"
+    },
+    "stderr": ""
+  },
+  "shape_check_command": "/data/kommu/.codex/python/cpython-3.13-linux-aarch64-gnu/bin/python3 /data/kommu/.codex/skills/design/gatekeeper-design/scripts/check.py /data/openpilot/ka2-r9-design-shape-lag9xcxt/package --json",
+  "temporary_in_project_path": "/data/openpilot/ka2-r9-design-shape-lag9xcxt/package"
+}

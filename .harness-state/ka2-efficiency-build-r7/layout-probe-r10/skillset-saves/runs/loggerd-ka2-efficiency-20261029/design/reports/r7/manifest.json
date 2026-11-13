@@ -1,0 +1,64 @@
+{
+  "artifact_hashes": {
+    "../../../build/reports/report_s0_feasibility.md": "f48809a66ed98351d5a3a3da396d275499e703b3c6fa235b0b775f0665851200",
+    "../../../intake/report_grilling.md": "f4de6dc6f661c758f6327c2de1995f702b046b063c9b2572a3a05cfa4aa369bc",
+    "../../../intake/reports/report_ka2_encoder_efficiency_intake.md": "e6b57bc38fb611e587ecd344848447ea320997e1e005fbcbadee07aa67c8f39c",
+    "../../artifacts/r7/interface_set.json": "02c172a239b164a10d087f34a9e4de7eba4bf92ad25334c30d488525e4cb8506",
+    "../../artifacts/r7/security_seed.json": "1329311510eeaa61a6eb8a954dc368af3f06c3e2b5b44205d4c6e799e32013b4",
+    "../../artifacts/r7/ui_evidence.json": "dc7657e0edea0b57484d4cb5e53df3c70161d535c1b24c1e626f17d1cf0a9d8c",
+    "../../artifacts/taste_snapshot_r7.json": "c00f0f0b84d28ee46a08f1342c5e755247a706a155d662f5aa94537085fe11da",
+    "delivery-plan.md": "c18d0370ac40cdb4f1844b23c2b7dbc38591bdb89a76f8356ebb4666d95c4d34",
+    "design-package.md": "a752317288218add10b3bc61d841508a5bb330c04e4cc6dcc46b33ba3470cf56",
+    "implementation-spec.md": "a7f06c00f8c671aa8c6a980c75e1abe1ae6b62f11df8db5bb66651033bfcb347",
+    "report_architecture.md": "51198630b43ee77daf23900a5316866b98dca5abf4ebe766362c1c5972aa144e",
+    "report_interfaces.md": "2d979a9b3ba8b53f65a466ea6be68a3a56c18c76eb2b94fa53f557738e8bbfc2",
+    "report_research.md": "82cb8b338014e3aff6c58b73c87259a4755fcbb33f80210fec8940c07f7868ce",
+    "report_security-seed.md": "17507b9a8a910d7d07b7352e889ea918f67072f94c89a5b481958eb4c60a7e3d",
+    "report_stack-lock.md": "f06420579dfc40d734d17540f756436e55158905c76da7bf088594688ff99479",
+    "report_taste-snapshot.md": "5f31c2d2d1828adf4c15aef834290160b490efff988b4c76f24c1fef0dbc067a"
+  },
+  "boundary": "design-to-build",
+  "evidence": {
+    "acceptance": "delivery-plan.md",
+    "architecture": "report_architecture.md",
+    "decisions": "../../../intake/report_grilling.md",
+    "interfaces": {
+      "artifacts": [
+        "report_interfaces.md",
+        "report_architecture.md"
+      ],
+      "change": "none",
+      "items": []
+    },
+    "plan": "delivery-plan.md",
+    "security_seed": {
+      "applicable": false,
+      "architecture_revision": "r7; report_architecture.md sha256 51198630b43ee77daf23900a5316866b98dca5abf4ebe766362c1c5972aa144e",
+      "boundaries": [],
+      "decided_by": "build/security-builder",
+      "reason": "The candidate changes which local buffer allocation MPP reads and its lifetime/ownership handling, but it adds no external actor, network or public service entry point, credential flow, schema, or privilege boundary. The same encoder-to-MPP processing boundary already handles frame content in copy mode, and this revision tests synthetic frames in isolated roots. Therefore no new or moved adversarial trust boundary is identified in this scope. This is not an independent security assessment or a claim that the current MPP implementation, DMA lifetime, or driver is secure. Imported-buffer reuse before MPP completion can corrupt output, and empty or malformed packets can harm recording integrity or consume resources; keep copy mode as default and gate the candidate on same-image testing of fallback, buffer lifetime symptoms, decoded content, output usability, and resource limits. Reassess if the path becomes production-default, accepts attacker-controlled frames, changes privilege/interface exposure, or moves to a different MPP/driver image.",
+      "scope": "KA2/RK3588 r7 encoder-efficiency design: isolated synthetic A/B of the existing ENCODER_ZERO_COPY MPP DMA-import path for full-resolution road, wideRoad, and driver streams, with immediate copy fallback on import failure; qRoad unchanged; best-effort recording semantics."
+    },
+    "stack_lock": {
+      "applicable": false,
+      "decided_by": "commander",
+      "reason": "no new runtime or framework - existing stack unchanged",
+      "scope": "design-to-build"
+    },
+    "taste_snapshot": "../../artifacts/taste_snapshot_r7.json",
+    "ui_evidence": {
+      "applicable": false,
+      "decided_by": "design/architect",
+      "reason": "no user-facing surface - design system not engaged",
+      "scope": "KA2/RK3588 MPP encoder backend efficiency"
+    }
+  },
+  "owner": "commander",
+  "revision": "r7",
+  "revisions": [
+    "r7"
+  ],
+  "run_id": "loggerd-ka2-efficiency-20261029",
+  "schema_version": 2,
+  "submission_id": "loggerd-ka2-efficiency-20261029-design-r7"
+}

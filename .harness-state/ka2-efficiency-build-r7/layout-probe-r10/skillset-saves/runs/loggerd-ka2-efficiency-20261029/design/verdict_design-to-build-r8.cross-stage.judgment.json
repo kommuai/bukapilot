@@ -1,0 +1,34 @@
+{
+  "boundary": "design-to-build",
+  "revision": "r8",
+  "submission_id": "loggerd-ka2-efficiency-20261029-design-r8",
+  "gate": "gatekeeper-admiral",
+  "verdict": "REVISE",
+  "intake": {
+    "artifact": "../intake/report_grilling.md"
+  },
+  "findings": [
+    {
+      "id": "X-1",
+      "key": null,
+      "owner": "commander",
+      "severity": "Major",
+      "basis": {
+        "kind": "contract",
+        "ref": "States and transitions",
+        "source": "contracts/workflow-protocol.md"
+      },
+      "evidence": [
+        "manifest:evidence.plan",
+        "reports/delivery-plan_r8.md"
+      ],
+      "statement": "The approved r8 design package is ready for DESIGN -> BUILD, but the active delivery handoff still submits revision r7 and names the r7 manifest and approvals. The next consumer would therefore receive a different design contract than the one approved in this submission.",
+      "expected": "The delivery handoff and delivery summary identify the r8 design manifest and its matching phase and cross-stage approval records.",
+      "observed": "The delivery package-shape check passes structurally but reports its handoff and delivery summary at revision r7; the handoff cites the r7 manifest and verdicts.",
+      "remediation": "Admiral updates the delivery handoff and summary to the approved r8 package and carries the r8 open qualification limit for live V4L2 DMA-BUF behavior.",
+      "verification": "Re-run the delivery package-shape check and the design-to-build boundary validator against r8, confirming one revision, matching approval lineage, and no blocked phrases."
+    }
+  ],
+  "by_owner": {},
+  "escalation": null
+}

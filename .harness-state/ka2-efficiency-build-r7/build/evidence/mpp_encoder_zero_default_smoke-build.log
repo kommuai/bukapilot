@@ -1,0 +1,7 @@
+skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/mpp_encoder_zero_default_smoke.cc:334:72: warning: format specifies type 'long long' but the argument has type 'rep' (aka 'long') [-Wformat]
+  333 |   std::printf("cpu_sample_ns=%llu wall_total_ms=%lld peak_rss_kb=%ld\n",
+      |                                                 ~~~~
+      |                                                 %ld
+  334 |               static_cast<unsigned long long>(cpu_after - cpu_before), wall_ms, usage.ru_maxrss);
+      |                                                                        ^~~~~~~
+1 warning generated.

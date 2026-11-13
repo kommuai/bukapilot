@@ -1,0 +1,44 @@
+Focused KA2 loggerd rotation regression: failure history and evidence
+
+Evidence provenance
+- The execution details below come from the parent agent's user-authorized KA2 runs and durable run artifacts. Original pytest stdout/stderr was not saved, so this file is an evidence index and handoff record, not a byte-for-byte console transcript.
+- The 01:25 parser-mismatch run's raw qlog/rlog output is preserved in `raw_rotation_failure/`.
+- The corrected 02:30 run's structured summary, ledger, and raw qlog/rlog are preserved in `rerun_20261030_023059/`.
+- Target preflight and postflight for the corrected run are in its JSON summary: aarch64, `/KA2` marker, MPP device present, and no loggerd/encoderd/camerad process or MPP holder before or after. The parent reports explicit user authorization and idle target.
+
+Commands and attempts
+- Focused command: `pytest system/loggerd/tests/test_loggerd.py::TestLoggerd::test_ka2_deterministic_rotation_alignment -q`.
+- Initial attempt failed during harness setup due a redundant `OPENPILOT_PREFIX` override. The test-only override was removed before the first process run.
+- 2026-10-30 01:25 run: loggerd and regular encoderd started, crossed segment 0 to 1, and the pre-correction test failed because it searched for `*EncodeData` while qlogs contain `*EncodeIdx`. The attempted call took 8.83 seconds. Its raw output logs are preserved in `raw_rotation_failure/`.
+- 2026-10-30 02:30 UTC corrected run: the exact-ID test executed with the correct `*EncodeIdx` parser and failed the exact-set assertion at wideRoad. Pytest exit code 1; total 12.77 seconds, test call 8.83 seconds. Remaining streams were independently parsed offline from the saved qlogs. No production fix was applied.
+- The exact build command was not retained. The parent reports rebuilding `system/loggerd/loggerd` before the earlier run; the corrected run's executable hashes are recorded in `rerun_20261030_023059/test_run_summary.json`.
+- No device run was performed during this build-owner report update.
+
+Corrected-run identities
+- Test source SHA-256: `fc55ae0129598d5a0dff0e62160522bffa86502410392dbd37202d4ca01cf6ac`.
+- loggerd executable SHA-256: `6c6c13656f4f5abd1de1f31b9c3acb4debc6cc58c4d1aab9a790c46b5b367ed8`.
+- encoderd executable SHA-256: `a46f1c853094b8cf85cfd6533f874cb65047d6c99fd87e215aa0c762ba860b6d`.
+- Structured run summary SHA-256: `3c4cd258f8b8a5f9e0f7d4c1f8d7087c0967491338d71af2b2198a97f6a75179`.
+- 580-row input/output ledger SHA-256: `27625d6c70829ffd8fb8b46cfceaa5843d712cc3bc5ed6946598a70a6d0557c5`.
+
+Corrected-run behavior
+- Inputs: 145 IDs, 1..145, for each of roadCameraState, wideRoadCameraState, and driverCameraState; 145 rawAudioData events.
+- Every output emitted 137 unique indices, with no duplicates or extras. Per-output segment counts were 97 in segment 0 and 40 in segment 1.
+- Missing IDs: road `[1,2,100,101,102,104,105,106]`; driver `[1,2,100,101,102,104,105,106]`; qRoad `[1,2,100,101,102,104,105,106]`; wideRoad `[1,2,100,101,102,103,105,106]`.
+- Pytest stopped at the wideRoad assertion. The remaining stream counts/sets are from offline parsing as recorded in JSON/CSV, not additional assertion results.
+- The input camera-event distribution between segments varies by stream in this elapsed-time-triggered run; the summary explicitly cautions against treating segment membership as a predeclared frame schedule.
+
+Corrected-run raw file SHA-256
+- `rerun_20261030_023059/qlog_segment_0.zst`: `3963ce90ab1b7b0467bad4b33f751575ddb79ed22e7d8a529b15229dba4811eb`.
+- `rerun_20261030_023059/rlog_segment_0.zst`: `d230da0e3db0a3a3a1601226c9039235e984d5dcffb3744a5eef2e7928ebdd49`.
+- `rerun_20261030_023059/qlog_segment_1.zst`: `5cb35dc234dd97e0d1c878e5b70f29fb917f1f024efcfb0c8bef0ddbc276ef93`.
+- `rerun_20261030_023059/rlog_segment_1.zst`: `568429bbe5ed79ffaba50081bfb2ebe10798e88a608a97297097ee8794656dfa`.
+
+Earlier 01:25 run evidence
+- The test source for that run has SHA-256 `49d96b5c4b71d4b10407af5f30db02bc4a6d8b3367d5967bb85b11e1711e44b0`, reconstructed by reversing the current test correction; that hash was not captured during execution.
+- Inputs were 144 IDs per camera service and 144 audio events. Each output emitted 138 IDs. Missing road/driver/qRoad: `[1,2,99,101,102,103]`; wideRoad: `[1,2,99,100,102,103]`.
+- Earlier summary/timing artifacts remain in `loggerd-rotation-frame-id-summary.txt`, `loggerd-expected-emitted-frame-ledger.csv`, and `loggerd-rotation-boundary-timeline.txt`.
+
+Disposition
+- The corrected exact-ID regression failed on real output loss. No zero-drop or regression-free result is claimed.
+- No runtime fix or efficiency benchmark was performed. Commander owns the revised production design scope; details from source review are in `../reports/report_rotation-gap.md`.

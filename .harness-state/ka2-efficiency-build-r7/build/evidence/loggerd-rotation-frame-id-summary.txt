@@ -1,0 +1,50 @@
+Offline parse of the raw synthetic loggerd output from the failed focused rotation run.
+This is log analysis, not a pytest rerun and not a passing behavior result.
+
+Segment inputs and emitted EncodeIndex counts:
+  segment 0: qlog_events=402, rlog_events=783, rawAudioData=99, EncodeIdx={'driverEncodeIdx': 96, 'qRoadEncodeIdx': 96, 'roadEncodeIdx': 96, 'wideRoadEncodeIdx': 96}, cameraState={'driverCameraState': 99, 'roadCameraState': 99, 'wideRoadCameraState': 99}, segment_assignment_mismatches=0
+  segment 1: qlog_events=180, rlog_events=351, rawAudioData=45, EncodeIdx={'driverEncodeIdx': 42, 'qRoadEncodeIdx': 42, 'roadEncodeIdx': 42, 'wideRoadEncodeIdx': 42}, cameraState={'driverCameraState': 45, 'roadCameraState': 45, 'wideRoadCameraState': 45}, segment_assignment_mismatches=0
+
+Combined output frame IDs (per stream):
+  roadEncodeIdx: total=138, unique=138, missing=[1, 2, 99, 101, 102, 103], extra=[], duplicates=[]
+    segment-0=96 ids 3..98; segment-1=42 ids 100..144
+  wideRoadEncodeIdx: total=138, unique=138, missing=[1, 2, 99, 100, 102, 103], extra=[], duplicates=[]
+    segment-0=96 ids 3..98; segment-1=42 ids 101..144
+  driverEncodeIdx: total=138, unique=138, missing=[1, 2, 99, 101, 102, 103], extra=[], duplicates=[]
+    segment-0=96 ids 3..98; segment-1=42 ids 100..144
+  qRoadEncodeIdx: total=138, unique=138, missing=[1, 2, 99, 101, 102, 103], extra=[], duplicates=[]
+    segment-0=96 ids 3..98; segment-1=42 ids 100..144
+
+Input totals: rawAudioData=144;
+  roadCameraState: 144 messages, IDs 1..144
+  wideRoadCameraState: 144 messages, IDs 1..144
+  driverCameraState: 144 messages, IDs 1..144
+
+Expected frame-ID set for every output stream: 1..144 (144 IDs).
+Expected/emitted count per stream is 144/138; each stream emits 138 of 144 input IDs, with the first two startup IDs absent.
+Rotation-window omissions: road/driver/qRoad = 99,101,102,103; wideRoad = 99,100,102,103.
+
+Run timeline from raw event timestamps
+- Route directory timestamp: 2026-10-30--01-25-30.
+- `Event.logMonoTime` values below are CLOCK_BOOTTIME nanoseconds; offsets use the startOfRoute sentinel as zero.
+- startOfRoute: 61364661451044 (offset 0 ns).
+- First roadCameraState input, frame 1: 61364760370971 (+98919927 ns).
+- Last old-segment roadCameraState input, frame 99: 61369660319588 (+4998868544 ns).
+- Segment 0 endOfSegment: 61369662304065 (+5000853021 ns).
+- Segment 1 startOfSegment: 61369706688505 (+5045237461 ns).
+- First new-segment roadCameraState input, frame 100: 61369710333713 (+5048882669 ns).
+- First roadEncodeIdx output in segment 1, frame 100: 61369713684340 (+5052233296 ns).
+- roadCameraState input frame 144: 61371910314722 (+7248863678 ns).
+- endOfRoute: 61372913364821 (+8251913777 ns).
+- Synthetic producer timestamp is `frame_id * 50,000,000 ns`: frame 99 = 4,950,000,000 ns; frame 100 = 5,000,000,000 ns.
+
+Raw qlog/rlog SHA-256
+- `raw_rotation_failure/segment-0-qlog.zst`: `9ce0a8969cf96c62f98766381022b1f629af5bc31f914259511a9ac64aa84ae6`.
+- `raw_rotation_failure/segment-0-rlog.zst`: `3c790fbbd294e0b0ad39e4fa59d6931013db3777ea369a54217cdadfb6db78b8`.
+- `raw_rotation_failure/segment-1-qlog.zst`: `973191e75d9e566657c9d3891b56e98a73aae15aeeaef6f0c4d3228e61c57f41`.
+- `raw_rotation_failure/segment-1-rlog.zst`: `04ce519cc227361cf52b8abdbb9fcf6f13e4204f6dcd61a776cef9da2fa397c1`.
+
+Expected/emitted ledger
+- `loggerd-expected-emitted-frame-ledger.csv` contains 576 rows: 144 expected frame IDs for each of road, wideRoad, driver, and qRoad, with input/output segment and monotonic timestamp fields.
+- SHA-256: `7b07ddd4252a7ef8ea15212d1e7ff9ae038495579580cd42a5a52de929e6f015`.
+- Detailed raw timestamps are also preserved in `loggerd-rotation-boundary-timeline.txt` (SHA-256 `04ff6f97b12a711a6cb59461532bba1f3e70e7267bf86562e6767297d7aaeeb1`).

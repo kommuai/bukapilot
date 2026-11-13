@@ -1,0 +1,6 @@
+{
+  "applicable": false,
+  "decided_by": "taste",
+  "reason": "no saved Taste profile available",
+  "scope": "KA2 loggerd/encoderd rotation liveness design r8"
+}

@@ -1,0 +1,92 @@
+{
+  "boundary": "design-to-build",
+  "submission_id": "loggerd-ka2-efficiency-20261029-design-r10-mpp-segment-recovery-contract",
+  "revision": "r10",
+  "gate": "gatekeeper-design",
+  "verdict": "APPROVED",
+  "intake": {
+    "artifact": "../intake/report_grilling.md"
+  },
+  "findings": [
+    {
+      "id": "J-1",
+      "key": "interfaces",
+      "owner": "architect",
+      "severity": "Info",
+      "statement": "The package-shape check reports API endpoint contracts as UNCHECKED. They are out of scope: the r10 interface inventory defines internal process coordination, C++ encoder status, media lifecycle, and a test fixture, and declares no public endpoints or cereal schema changes.",
+      "basis": {
+        "kind": "contract",
+        "ref": "conditional API endpoint artifact is required only when endpoints are in scope",
+        "source": "design/gatekeeper-design/SKILL.md"
+      },
+      "evidence": [
+        "manifest:evidence.interfaces",
+        "reports/report_interfaces_r10.md"
+      ]
+    },
+    {
+      "id": "J-2",
+      "key": "ui_evidence",
+      "owner": "architect",
+      "severity": "Info",
+      "statement": "The package-shape check reports the frontend/UI handoff as UNCHECKED. This is a backend-only loggerd/encoderd change with no user-facing surface, and the manifest carries the typed no-surface applicability record.",
+      "basis": {
+        "kind": "contract",
+        "ref": "conditional frontend/UI handoff applies only when a user-facing surface exists",
+        "source": "design/gatekeeper-design/SKILL.md"
+      },
+      "evidence": [
+        "manifest:evidence.ui_evidence",
+        "artifacts/ui_evidence_r8.json"
+      ]
+    },
+    {
+      "id": "J-3",
+      "key": null,
+      "owner": "commander",
+      "severity": "Info",
+      "statement": "The canonical package path resolves through skillset-saves to /data/media, outside /data/openpilot, so the shape validator refuses that path. The saved byte-identical in-project mirror passed with zero failures and the two expected conditional findings; the boundary validator independently checked the canonical r10 manifest and artifact hashes.",
+      "basis": {
+        "kind": "contract",
+        "ref": "package-shape validator requires an in-project package directory",
+        "source": "design/gatekeeper-design/references/workflow.md"
+      },
+      "evidence": []
+    },
+    {
+      "id": "J-4",
+      "key": "architecture",
+      "owner": "architect",
+      "severity": "Info",
+      "statement": "The deployed MPP version/build is not pinned, so safe post-EOS context continuation is unqualified. The r10 design correctly avoids treating the IDR command as proof of EOS-context reuse and retains the established planned close/open for healthy outputs; no in-place continuation guarantee should be inferred from this package.",
+      "basis": {
+        "kind": "contract",
+        "ref": "Calibration",
+        "source": "contracts/evidence-standards.md"
+      },
+      "evidence": [
+        "reports/report_architecture_r10.md",
+        "reports/report_interfaces_r10.md",
+        "reports/implementation-spec_r10.md"
+      ]
+    },
+    {
+      "id": "J-5",
+      "key": "architecture",
+      "owner": "architect",
+      "severity": "Info",
+      "statement": "Live RK3588 V4L2 DMA-BUF exporter behavior, fences/synchronization, live-camera MPP import, and buffer reuse remain unqualified. The carried M0 DMA-heap fixture evidence proves VisionIPC transport and fixture-owned lifetime only, not MPP import or full loggerd/encoderd rotation. The package keeps that limit explicit and makes no live-camera qualification claim.",
+      "basis": {
+        "kind": "contract",
+        "ref": "Calibration",
+        "source": "contracts/evidence-standards.md"
+      },
+      "evidence": [
+        "reports/report_architecture_r10.md",
+        "reports/delivery-plan_r10.md",
+        "evidence/r9/prior_report_dmabuf_fixture_r8.md"
+      ]
+    }
+  ],
+  "escalation": null
+}

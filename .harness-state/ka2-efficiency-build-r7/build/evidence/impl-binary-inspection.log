@@ -1,0 +1,89 @@
+Final binary inspection only; neither encoderd binary was launched.
+
+## /tmp/ka2-efficiency-r7/system/loggerd/encoderd
+$ sha256sum /tmp/ka2-efficiency-r7/system/loggerd/encoderd
+655d3449384899c05f33ac98955a96671e1aae9fe1883b91946f98d416a44798  /tmp/ka2-efficiency-r7/system/loggerd/encoderd
+[exit 0]
+$ readelf -n /tmp/ka2-efficiency-r7/system/loggerd/encoderd
+
+Displaying notes found in: .note.gnu.build-id
+  Owner                Data size 	Description
+  GNU                  0x00000014	NT_GNU_BUILD_ID (unique build ID bitstring)
+    Build ID: f9eea4e181c7d0bfad3ddb5d41c5e9f1ff169723
+
+Displaying notes found in: .note.ABI-tag
+  Owner                Data size 	Description
+  GNU                  0x00000010	NT_GNU_ABI_TAG (ABI version tag)
+    OS: Linux, ABI: 3.7.0
+[exit 0]
+$ ldd -r /tmp/ka2-efficiency-r7/system/loggerd/encoderd
+	linux-vdso.so.1 (0x0000007f854d0000)
+	libzmq.so.5 => /lib/aarch64-linux-gnu/libzmq.so.5 (0x0000007f85350000)
+	libcapnp-1.0.2.so => /usr/local/lib/libcapnp-1.0.2.so (0x0000007f85280000)
+	libkj-1.0.2.so => /usr/local/lib/libkj-1.0.2.so (0x0000007f851d0000)
+	libOpenCL.so.1 => /lib/aarch64-linux-gnu/libOpenCL.so.1 (0x0000007f85190000)
+	librockchip_mpp.so.1 => /lib/aarch64-linux-gnu/librockchip_mpp.so.1 (0x0000007f84f60000)
+	librga.so.2 => /lib/aarch64-linux-gnu/librga.so.2 (0x0000007f84f10000)
+	libjpeg.so.8 => /lib/aarch64-linux-gnu/libjpeg.so.8 (0x0000007f84e90000)
+	libstdc++.so.6 => /lib/aarch64-linux-gnu/libstdc++.so.6 (0x0000007f84c00000)
+	libgcc_s.so.1 => /lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000007f84bc0000)
+	libc.so.6 => /lib/aarch64-linux-gnu/libc.so.6 (0x0000007f84a00000)
+	libbsd.so.0 => /lib/aarch64-linux-gnu/libbsd.so.0 (0x0000007f849c0000)
+	libsodium.so.23 => /lib/aarch64-linux-gnu/libsodium.so.23 (0x0000007f84960000)
+	libpgm-5.3.so.0 => /lib/aarch64-linux-gnu/libpgm-5.3.so.0 (0x0000007f848f0000)
+	libnorm.so.1 => /lib/aarch64-linux-gnu/libnorm.so.1 (0x0000007f847c0000)
+	libgssapi_krb5.so.2 => /lib/aarch64-linux-gnu/libgssapi_krb5.so.2 (0x0000007f84750000)
+	/lib/ld-linux-aarch64.so.1 (0x0000007f85493000)
+	libm.so.6 => /lib/aarch64-linux-gnu/libm.so.6 (0x0000007f846a0000)
+	libmd.so.0 => /lib/aarch64-linux-gnu/libmd.so.0 (0x0000007f84670000)
+	libkrb5.so.3 => /lib/aarch64-linux-gnu/libkrb5.so.3 (0x0000007f84590000)
+	libk5crypto.so.3 => /lib/aarch64-linux-gnu/libk5crypto.so.3 (0x0000007f84540000)
+	libcom_err.so.2 => /lib/aarch64-linux-gnu/libcom_err.so.2 (0x0000007f84510000)
+	libkrb5support.so.0 => /lib/aarch64-linux-gnu/libkrb5support.so.0 (0x0000007f844e0000)
+	libkeyutils.so.1 => /lib/aarch64-linux-gnu/libkeyutils.so.1 (0x0000007f844b0000)
+	libresolv.so.2 => /lib/aarch64-linux-gnu/libresolv.so.2 (0x0000007f84480000)
+[exit 0]
+
+## /tmp/ka2-efficiency-r7-mergecheck/system/loggerd/encoderd
+$ sha256sum /tmp/ka2-efficiency-r7-mergecheck/system/loggerd/encoderd
+c30b920d13b072d271122408822192e6e427b8ecac4ed289e3cecd64b7d37b47  /tmp/ka2-efficiency-r7-mergecheck/system/loggerd/encoderd
+[exit 0]
+$ readelf -n /tmp/ka2-efficiency-r7-mergecheck/system/loggerd/encoderd
+
+Displaying notes found in: .note.gnu.build-id
+  Owner                Data size 	Description
+  GNU                  0x00000014	NT_GNU_BUILD_ID (unique build ID bitstring)
+    Build ID: a956b9960bf8e8ebb08b7e560570ff4c85449b1d
+
+Displaying notes found in: .note.ABI-tag
+  Owner                Data size 	Description
+  GNU                  0x00000010	NT_GNU_ABI_TAG (ABI version tag)
+    OS: Linux, ABI: 3.7.0
+[exit 0]
+$ ldd -r /tmp/ka2-efficiency-r7-mergecheck/system/loggerd/encoderd
+	linux-vdso.so.1 (0x0000007f916ec000)
+	libzmq.so.5 => /lib/aarch64-linux-gnu/libzmq.so.5 (0x0000007f91560000)
+	libcapnp-1.0.2.so => /usr/local/lib/libcapnp-1.0.2.so (0x0000007f91490000)
+	libkj-1.0.2.so => /usr/local/lib/libkj-1.0.2.so (0x0000007f913e0000)
+	libOpenCL.so.1 => /lib/aarch64-linux-gnu/libOpenCL.so.1 (0x0000007f913a0000)
+	librockchip_mpp.so.1 => /lib/aarch64-linux-gnu/librockchip_mpp.so.1 (0x0000007f91170000)
+	librga.so.2 => /lib/aarch64-linux-gnu/librga.so.2 (0x0000007f91120000)
+	libjpeg.so.8 => /lib/aarch64-linux-gnu/libjpeg.so.8 (0x0000007f910a0000)
+	libstdc++.so.6 => /lib/aarch64-linux-gnu/libstdc++.so.6 (0x0000007f90e10000)
+	libgcc_s.so.1 => /lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000007f90dd0000)
+	libc.so.6 => /lib/aarch64-linux-gnu/libc.so.6 (0x0000007f90c10000)
+	libbsd.so.0 => /lib/aarch64-linux-gnu/libbsd.so.0 (0x0000007f90bd0000)
+	libsodium.so.23 => /lib/aarch64-linux-gnu/libsodium.so.23 (0x0000007f90b70000)
+	libpgm-5.3.so.0 => /lib/aarch64-linux-gnu/libpgm-5.3.so.0 (0x0000007f90b00000)
+	libnorm.so.1 => /lib/aarch64-linux-gnu/libnorm.so.1 (0x0000007f909d0000)
+	libgssapi_krb5.so.2 => /lib/aarch64-linux-gnu/libgssapi_krb5.so.2 (0x0000007f90960000)
+	/lib/ld-linux-aarch64.so.1 (0x0000007f916af000)
+	libm.so.6 => /lib/aarch64-linux-gnu/libm.so.6 (0x0000007f908b0000)
+	libmd.so.0 => /lib/aarch64-linux-gnu/libmd.so.0 (0x0000007f90880000)
+	libkrb5.so.3 => /lib/aarch64-linux-gnu/libkrb5.so.3 (0x0000007f907a0000)
+	libk5crypto.so.3 => /lib/aarch64-linux-gnu/libk5crypto.so.3 (0x0000007f90750000)
+	libcom_err.so.2 => /lib/aarch64-linux-gnu/libcom_err.so.2 (0x0000007f90720000)
+	libkrb5support.so.0 => /lib/aarch64-linux-gnu/libkrb5support.so.0 (0x0000007f906f0000)
+	libkeyutils.so.1 => /lib/aarch64-linux-gnu/libkeyutils.so.1 (0x0000007f906c0000)
+	libresolv.so.2 => /lib/aarch64-linux-gnu/libresolv.so.2 (0x0000007f90690000)
+[exit 0]

@@ -1,0 +1,6 @@
+   5.220s readiness progression: LoggerdSegment=0; process_alive=true
+   5.220s 2s liveness poll: loggerd=alive encoderd=alive segment=0
+   7.221s 2s liveness poll: loggerd=alive encoderd=alive segment=0
+   7.414s readiness progression: LoggerdSegment=1; process_alive=true
+   9.265s 2s liveness poll: loggerd=alive encoderd=alive segment=1
+   9.420s readiness progression: LoggerdSegment=2; process_alive=true

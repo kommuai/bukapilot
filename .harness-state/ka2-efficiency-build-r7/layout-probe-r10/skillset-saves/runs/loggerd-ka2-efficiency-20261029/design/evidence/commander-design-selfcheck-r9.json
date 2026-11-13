@@ -1,0 +1,18 @@
+{
+  "boundary": "design-to-build",
+  "check_command": "/data/kommu/.codex/python/cpython-3.13-linux-aarch64-gnu/bin/python3 /data/kommu/.codex/skills/harness/gatekeeper/check.py --boundary design-to-build --package skillset-saves/runs/loggerd-ka2-efficiency-20261029/design/manifest.json",
+  "checked_at": "2026-10-31T06:15:28.824056+00:00",
+  "exit_code": 0,
+  "failures": [],
+  "judgment": null,
+  "manifest_sha256": "f6a7e61ea1e2fae2347beaaa3f123a2ae13aaa0d6c248eee8e91c1462a20bac1",
+  "mechanical_only": true,
+  "missing": [],
+  "mixed_revisions": false,
+  "note": "Self-check only; this is not phase approval.",
+  "package_fingerprint": "3e476e7562e5cadc35f855d5fc06f66df697eb1917adcb9c4480acc5b4fd5643",
+  "pass": true,
+  "revision": "r9",
+  "submission_id": "loggerd-ka2-efficiency-20261029-design-r9-report-contract",
+  "verdict_out_used": false
+}

@@ -1,0 +1,59 @@
+command=python3 /data/kommu/.codex/skills/scripts/check_runtime.py --project-root . --detect-start-command --json
+exit=1
+stdout:
+{
+  "errors": [
+    "Python 3.12 is below required 3.13",
+    "project inspection: project inspection total-byte limit exceeded; the walk stopped early and the inspection is incomplete: manifests and stacks beyond that point were not examined (narrow it with --project-root)"
+  ],
+  "launchers": {
+    "claude_code": "host-selected Python interpreter",
+    "codex": "bundled Python runtime path supplied by the host",
+    "copilot": "host-selected Python interpreter",
+    "macos_linux": "python3",
+    "windows": "py -3"
+  },
+  "ok": false,
+  "optional_dependencies": [
+    {
+      "available": false,
+      "fallback": "skills/scripts/data_formats.py",
+      "name": "PyYAML",
+      "version": null
+    }
+  ],
+  "project_inspection": {
+    "ambiguities": [],
+    "classification": null,
+    "classification_evidence": [],
+    "configs": [],
+    "errors": [
+      "project inspection total-byte limit exceeded; the walk stopped early and the inspection is incomplete: manifests and stacks beyond that point were not examined (narrow it with --project-root)"
+    ],
+    "manifests": [
+      {
+        "kind": "Python package manifest",
+        "path": "pyproject.toml"
+      }
+    ],
+    "ok": false,
+    "root": "/data/openpilot",
+    "stacks": [],
+    "start_commands": [],
+    "warnings": [
+      "msgq: skipped, reparse points are not inspected",
+      "opendbc: skipped, reparse points are not inspected",
+      "rednose: skipped, reparse points are not inspected",
+      "skillset-saves: skipped, reparse points are not inspected",
+      "teleoprtc: skipped, reparse points are not inspected",
+      "tinygrad: skipped, reparse points are not inspected"
+    ]
+  },
+  "python": {
+    "current": "3.12.3",
+    "minimum": "3.13",
+    "status": "too_old"
+  }
+}
+
+stderr:

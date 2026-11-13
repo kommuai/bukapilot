@@ -1,0 +1,55 @@
+{
+  "boundary": "design-to-build",
+  "findings": [
+    {
+      "basis": {
+        "kind": "contract",
+        "ref": "conditional API endpoint artifacts are required only when in scope",
+        "source": "design/gatekeeper-design/SKILL.md"
+      },
+      "evidence": [
+        "manifest:evidence.interfaces"
+      ],
+      "id": "J-1",
+      "key": "interfaces",
+      "owner": "architect",
+      "severity": "Info",
+      "statement": "The shape validator reported the conditional API endpoint contract as UNCHECKED. It is out of scope here: the hashed interface inventory says change none and contains no interface items, and the architecture retains the existing internal encoder-to-MPP path without adding an endpoint or message contract."
+    },
+    {
+      "basis": {
+        "kind": "contract",
+        "ref": "conditional frontend/UI handoff applies when a user-facing surface exists",
+        "source": "design/gatekeeper-design/SKILL.md"
+      },
+      "evidence": [
+        "manifest:evidence.ui_evidence"
+      ],
+      "id": "J-2",
+      "key": "ui_evidence",
+      "owner": "architect",
+      "severity": "Info",
+      "statement": "The shape validator reported the conditional frontend/UI handoff as UNCHECKED. The design is a backend encoder-path change with no user-facing surface; the architect records the sanctioned no-surface applicability value in ui_evidence."
+    },
+    {
+      "basis": {
+        "kind": "contract",
+        "ref": "deterministic pre-check package containment",
+        "source": "design/gatekeeper-design/SKILL.md"
+      },
+      "evidence": [],
+      "id": "J-3",
+      "key": null,
+      "owner": "commander",
+      "severity": "Info",
+      "statement": "The canonical shape-check invocation was refused before reading because the authorized skillset-saves link resolves the package to /data/media outside /data/openpilot. The in-project mirror contained the same 10 files byte-for-byte, with matching tree SHA-256 f08ca184492e9c0f7bdf6808bcedfc48597e2968ae9aa3fe87a22ca147b79c00, and its shape check exited 0 with zero failures. This path limitation is preserved; the mirror result is used only for package-content validation."
+    }
+  ],
+  "gate": "gatekeeper-design",
+  "intake": {
+    "artifact": "../../../intake/report_grilling.md"
+  },
+  "revision": "r7",
+  "submission_id": "loggerd-ka2-efficiency-20261029-design-r7",
+  "verdict": "APPROVED"
+}

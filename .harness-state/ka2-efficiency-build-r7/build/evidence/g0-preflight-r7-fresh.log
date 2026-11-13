@@ -1,0 +1,283 @@
+Fresh read-only G0 snapshot; no encoder, camera, sensor, or MPP API call was made.
+Captured at 2026-10-30T18:15:32.995977+00:00
+
+## board identity and storage
+$ date -u +%Y-%m-%d %H:%M:%S UTC
+2026-10-30 18:15:32 UTC
+[exit 0]
+$ uname -a
+Linux kommu-870ce22d4093b701 5.10.198 #24 SMP Tue Sep 1 08:26:21 UTC 2026 aarch64 aarch64 aarch64 GNU/Linux
+[exit 0]
+$ cat /etc/os-release
+PRETTY_NAME="Ubuntu 24.04.4 LTS"
+NAME="Ubuntu"
+VERSION_ID="24.04"
+VERSION="24.04.4 LTS (Noble Numbat)"
+VERSION_CODENAME=noble
+ID=ubuntu
+ID_LIKE=debian
+HOME_URL="https://www.ubuntu.com/"
+SUPPORT_URL="https://help.ubuntu.com/"
+BUG_REPORT_URL="https://bugs.launchpad.net/ubuntu/"
+PRIVACY_POLICY_URL="https://www.ubuntu.com/legal/terms-and-policies/privacy-policy"
+UBUNTU_CODENAME=noble
+LOGO=ubuntu-logo
+[exit 0]
+model /proc/device-tree/model: Firefly AIO-3588Q HDMI(Linux)
+compatible /proc/device-tree/compatible: rockchip,rk3588-firefly-aio-3588q rockchip,rk3588
+$ df -h /data /data/media
+Filesystem       Size  Used Avail Use% Mounted on
+/dev/mmcblk0p12  8.2G  6.0G  1.8G  78% /data
+/dev/mmcblk1p1    58G   49G  5.8G  90% /data/media
+[exit 0]
+
+## RAM and CMA
+sample 1: MemFree:          306376 kB; MemAvailable:    2026244 kB; CmaTotal:         262144 kB; CmaFree:               0 kB; nr_free_cma=nr_free_cma  0,nr_free_cma  0
+sample 2: MemFree:          306124 kB; MemAvailable:    2025992 kB; CmaTotal:         262144 kB; CmaFree:               0 kB; nr_free_cma=nr_free_cma  0,nr_free_cma  0
+sample 3: MemFree:          305872 kB; MemAvailable:    2025740 kB; CmaTotal:         262144 kB; CmaFree:               0 kB; nr_free_cma=nr_free_cma  0,nr_free_cma  0
+sample 4: MemFree:          305620 kB; MemAvailable:    2025488 kB; CmaTotal:         262144 kB; CmaFree:               0 kB; nr_free_cma=nr_free_cma  0,nr_free_cma  0
+sample 5: MemFree:          305620 kB; MemAvailable:    2025488 kB; CmaTotal:         262144 kB; CmaFree:               0 kB; nr_free_cma=nr_free_cma  0,nr_free_cma  0
+
+## live competing processes
+234 comm=irq/34-rga3_cor cmd=
+235 comm=irq/35-rga3_cor cmd=
+236 comm=irq/36-rga2 cmd=
+3574 comm=system.loggerd. cmd=system.loggerd.deleter
+3592 comm=python3 cmd=python3 -m system.loggerd.uploader
+
+## device nodes and device users
+/dev/mpp_service mode=0o660 rdev=61696
+/dev/dri/renderD128 mode=0o660 rdev=57984
+/dev/dri/renderD129 mode=0o660 rdev=57985
+/dev/video-dec0 mode=0o660 rdev=0
+/dev/video-enc0 mode=0o660 rdev=0
+/dev/video0 mode=0o660 rdev=20736
+/dev/video1 mode=0o660 rdev=20737
+/dev/video10 mode=0o660 rdev=20746
+/dev/video11 mode=0o660 rdev=20747
+/dev/video12 mode=0o660 rdev=20748
+/dev/video13 mode=0o660 rdev=20749
+/dev/video14 mode=0o660 rdev=20750
+/dev/video15 mode=0o660 rdev=20751
+/dev/video16 mode=0o660 rdev=20752
+/dev/video17 mode=0o660 rdev=20753
+/dev/video18 mode=0o660 rdev=20754
+/dev/video19 mode=0o660 rdev=20755
+/dev/video2 mode=0o660 rdev=20738
+/dev/video20 mode=0o660 rdev=20756
+/dev/video21 mode=0o660 rdev=20757
+/dev/video22 mode=0o660 rdev=20758
+/dev/video23 mode=0o660 rdev=20759
+/dev/video24 mode=0o660 rdev=20760
+/dev/video25 mode=0o660 rdev=20761
+/dev/video26 mode=0o660 rdev=20762
+/dev/video27 mode=0o660 rdev=20763
+/dev/video28 mode=0o660 rdev=20764
+/dev/video29 mode=0o660 rdev=20765
+/dev/video3 mode=0o660 rdev=20739
+/dev/video30 mode=0o660 rdev=20766
+/dev/video31 mode=0o660 rdev=20767
+/dev/video32 mode=0o660 rdev=20768
+/dev/video33 mode=0o660 rdev=20769
+/dev/video34 mode=0o660 rdev=20770
+/dev/video35 mode=0o660 rdev=20771
+/dev/video36 mode=0o660 rdev=20772
+/dev/video37 mode=0o660 rdev=20773
+/dev/video38 mode=0o660 rdev=20774
+/dev/video39 mode=0o660 rdev=20775
+/dev/video4 mode=0o660 rdev=20740
+/dev/video40 mode=0o660 rdev=20776
+/dev/video41 mode=0o660 rdev=20777
+/dev/video42 mode=0o660 rdev=20778
+/dev/video43 mode=0o660 rdev=20779
+/dev/video44 mode=0o660 rdev=20780
+/dev/video45 mode=0o660 rdev=20781
+/dev/video46 mode=0o660 rdev=20782
+/dev/video47 mode=0o660 rdev=20783
+/dev/video48 mode=0o660 rdev=20784
+/dev/video49 mode=0o660 rdev=20785
+/dev/video5 mode=0o660 rdev=20741
+/dev/video50 mode=0o660 rdev=20786
+/dev/video51 mode=0o660 rdev=20787
+/dev/video52 mode=0o660 rdev=20788
+/dev/video53 mode=0o660 rdev=20789
+/dev/video54 mode=0o660 rdev=20790
+/dev/video55 mode=0o660 rdev=20791
+/dev/video56 mode=0o660 rdev=20792
+/dev/video57 mode=0o660 rdev=20793
+/dev/video58 mode=0o660 rdev=20794
+/dev/video59 mode=0o660 rdev=20795
+/dev/video6 mode=0o660 rdev=20742
+/dev/video7 mode=0o660 rdev=20743
+/dev/video8 mode=0o660 rdev=20744
+/dev/video9 mode=0o660 rdev=20745
+/dev/v4l-subdev0 mode=0o660 rdev=20796
+/dev/v4l-subdev1 mode=0o660 rdev=20797
+/dev/v4l-subdev10 mode=0o660 rdev=20806
+/dev/v4l-subdev11 mode=0o660 rdev=20807
+/dev/v4l-subdev12 mode=0o660 rdev=20808
+/dev/v4l-subdev13 mode=0o660 rdev=20809
+/dev/v4l-subdev14 mode=0o660 rdev=20810
+/dev/v4l-subdev2 mode=0o660 rdev=20798
+/dev/v4l-subdev3 mode=0o660 rdev=20799
+/dev/v4l-subdev4 mode=0o660 rdev=20800
+/dev/v4l-subdev5 mode=0o660 rdev=20801
+/dev/v4l-subdev6 mode=0o660 rdev=20802
+/dev/v4l-subdev7 mode=0o660 rdev=20803
+/dev/v4l-subdev8 mode=0o660 rdev=20804
+/dev/v4l-subdev9 mode=0o660 rdev=20805
+$ fuser -v /dev/mpp_service /dev/dri/renderD128 /dev/dri/renderD129 /dev/video-dec0 /dev/video-enc0 /dev/video0 /dev/video1 /dev/video10 /dev/video11 /dev/video12 /dev/video13 /dev/video14 /dev/video15 /dev/video16 /dev/video17 /dev/video18 /dev/video19 /dev/video2 /dev/video20 /dev/video21 /dev/video22 /dev/video23 /dev/video24 /dev/video25 /dev/video26 /dev/video27 /dev/video28 /dev/video29 /dev/video3 /dev/video30 /dev/video31 /dev/video32 /dev/video33 /dev/video34 /dev/video35 /dev/video36 /dev/video37 /dev/video38 /dev/video39 /dev/video4 /dev/video40 /dev/video41 /dev/video42 /dev/video43 /dev/video44 /dev/video45 /dev/video46 /dev/video47 /dev/video48 /dev/video49 /dev/video5 /dev/video50 /dev/video51 /dev/video52 /dev/video53 /dev/video54 /dev/video55 /dev/video56 /dev/video57 /dev/video58 /dev/video59 /dev/video6 /dev/video7 /dev/video8 /dev/video9 /dev/v4l-subdev0 /dev/v4l-subdev1 /dev/v4l-subdev10 /dev/v4l-subdev11 /dev/v4l-subdev12 /dev/v4l-subdev13 /dev/v4l-subdev14 /dev/v4l-subdev2 /dev/v4l-subdev3 /dev/v4l-subdev4 /dev/v4l-subdev5 /dev/v4l-subdev6 /dev/v4l-subdev7 /dev/v4l-subdev8 /dev/v4l-subdev9
+(no output)
+[exit 1]
+
+## MPP driver indicators
+/dev/mpp_service: exists=True symlink=-
+/sys/class/misc/mpp_service/dev: exists=False symlink=-
+/sys/bus/platform/drivers/mpp_service: exists=True symlink=-
+/sys/bus/platform/drivers/mpp_rkvenc2: exists=True symlink=-
+/sys/module/mpp_service: exists=False symlink=-
+/sys/module/mpp_rkvenc2: exists=False symlink=-
+/sys/module/rga: exists=False symlink=-
+$ bash -lc dmesg --ctime 2>/dev/null | rg -i 'mpp|rkvenc|venc|rga|iommu|cma' | tail -80
+[Fri Oct 30 12:35:19 2026] mpp_rkvdec2 fdc38100.rkvdec-core: probing finish
+[Fri Oct 30 12:35:19 2026] mpp_rkvdec2 fdc48100.rkvdec-core: Adding to iommu group 13
+[Fri Oct 30 12:35:19 2026] iommu: Failed to allocate default IOMMU domain of type 4 for group (null) - Falling back to IOMMU_DOMAIN_DMA
+[Fri Oct 30 12:35:19 2026] mpp_rkvdec2 fdc48100.rkvdec-core: rkvdec-core, probing start
+[Fri Oct 30 12:35:19 2026] mpp_rkvdec2 fdc48100.rkvdec-core: shared_niu_a is not found!
+[Fri Oct 30 12:35:19 2026] mpp_rkvdec2 fdc48100.rkvdec-core: shared_niu_h is not found!
+[Fri Oct 30 12:35:19 2026] mpp_rkvdec2 fdc48100.rkvdec-core: no regulator, devfreq is disabled
+[Fri Oct 30 12:35:19 2026] mpp_rkvdec2 fdc48100.rkvdec-core: core_mask=00020002
+[Fri Oct 30 12:35:19 2026] mpp_rkvdec2 fdc48100.rkvdec-core: attach ccu as core 1
+[Fri Oct 30 12:35:19 2026] mpp_rkvdec2 fdc48100.rkvdec-core: sram_start 0x00000000ff079000
+[Fri Oct 30 12:35:19 2026] mpp_rkvdec2 fdc48100.rkvdec-core: rcb_iova 0x00000000ffe00000
+[Fri Oct 30 12:35:19 2026] mpp_rkvdec2 fdc48100.rkvdec-core: sram_size 487424
+[Fri Oct 30 12:35:19 2026] mpp_rkvdec2 fdc48100.rkvdec-core: rcb_size 1048576
+[Fri Oct 30 12:35:19 2026] mpp_rkvdec2 fdc48100.rkvdec-core: min_width 512
+[Fri Oct 30 12:35:19 2026] mpp_rkvdec2 fdc48100.rkvdec-core: rcb_info_count 20
+[Fri Oct 30 12:35:19 2026] mpp_rkvdec2 fdc48100.rkvdec-core: [136, 24576]
+[Fri Oct 30 12:35:19 2026] mpp_rkvdec2 fdc48100.rkvdec-core: [137, 49152]
+[Fri Oct 30 12:35:19 2026] mpp_rkvdec2 fdc48100.rkvdec-core: [141, 90112]
+[Fri Oct 30 12:35:19 2026] mpp_rkvdec2 fdc48100.rkvdec-core: [140, 49152]
+[Fri Oct 30 12:35:19 2026] mpp_rkvdec2 fdc48100.rkvdec-core: [139, 180224]
+[Fri Oct 30 12:35:19 2026] mpp_rkvdec2 fdc48100.rkvdec-core: [133, 49152]
+[Fri Oct 30 12:35:19 2026] mpp_rkvdec2 fdc48100.rkvdec-core: [134, 8192]
+[Fri Oct 30 12:35:19 2026] mpp_rkvdec2 fdc48100.rkvdec-core: [135, 4352]
+[Fri Oct 30 12:35:19 2026] mpp_rkvdec2 fdc48100.rkvdec-core: [138, 13056]
+[Fri Oct 30 12:35:19 2026] mpp_rkvdec2 fdc48100.rkvdec-core: [142, 291584]
+[Fri Oct 30 12:35:19 2026] mpp_rkvdec2 fdc48100.rkvdec-core: probing finish
+[Fri Oct 30 12:35:19 2026] mpp_rkvenc2 rkvenc-ccu: probing start
+[Fri Oct 30 12:35:19 2026] mpp_rkvenc2 rkvenc-ccu: probing finish
+[Fri Oct 30 12:35:19 2026] mpp_rkvenc2 fdbd0000.rkvenc-core: Adding to iommu group 10
+[Fri Oct 30 12:35:19 2026] iommu: Failed to allocate default IOMMU domain of type 4 for group (null) - Falling back to IOMMU_DOMAIN_DMA
+[Fri Oct 30 12:35:19 2026] mpp_rkvenc2 fdbd0000.rkvenc-core: probing start
+[Fri Oct 30 12:35:19 2026] mpp_rkvenc2 fdbd0000.rkvenc-core: dev_pm_opp_set_regulators: no regulator (venc) found: -19
+[Fri Oct 30 12:35:19 2026] rkvenc_init:1905: failed to add venc devfreq
+[Fri Oct 30 12:35:19 2026] mpp_rkvenc2 fdbd0000.rkvenc-core: attach ccu as core 0
+[Fri Oct 30 12:35:19 2026] mpp_rkvenc2 fdbd0000.rkvenc-core: probing finish
+[Fri Oct 30 12:35:19 2026] mpp_rkvenc2 fdbe0000.rkvenc-core: Adding to iommu group 11
+[Fri Oct 30 12:35:19 2026] iommu: Failed to allocate default IOMMU domain of type 4 for group (null) - Falling back to IOMMU_DOMAIN_DMA
+[Fri Oct 30 12:35:19 2026] mpp_rkvenc2 fdbe0000.rkvenc-core: probing start
+[Fri Oct 30 12:35:19 2026] mpp_rkvenc2 fdbe0000.rkvenc-core: dev_pm_opp_set_regulators: no regulator (venc) found: -19
+[Fri Oct 30 12:35:19 2026] rkvenc_init:1905: failed to add venc devfreq
+[Fri Oct 30 12:35:19 2026] mpp_rkvenc2 fdbe0000.rkvenc-core: attach ccu as core 1
+[Fri Oct 30 12:35:19 2026] mpp_rkvenc2 fdbe0000.rkvenc-core: probing finish
+[Fri Oct 30 12:35:19 2026] mpp_av1dec: Adding child /av1d@fdc70000
+[Fri Oct 30 12:35:19 2026] mpp_av1dec: register device av1d-master
+[Fri Oct 30 12:35:19 2026] mpp_av1dec av1d-master: av1_iommu_of_xlate,784
+[Fri Oct 30 12:35:19 2026] av1_iommu_probe_device,736, consumer : av1d-master, supplier : fdca0000.iommu
+[Fri Oct 30 12:35:19 2026] mpp_av1dec av1d-master: Adding to iommu group 18
+[Fri Oct 30 12:35:19 2026] iommu: Failed to allocate default IOMMU domain of type 4 for group (null) - Falling back to IOMMU_DOMAIN_DMA
+[Fri Oct 30 12:35:19 2026] mpp_av1dec av1d-master: probing start
+[Fri Oct 30 12:35:19 2026] mpp_av1dec av1d-master: probing finish
+[Fri Oct 30 12:35:19 2026] mpp_service mpp-srv: probe success
+[Fri Oct 30 12:35:19 2026] rockchip-vop2 fdd90000.vop: Adding to iommu group 17
+[Fri Oct 30 12:35:19 2026] iommu: Failed to allocate default IOMMU domain of type 4 for group (null) - Falling back to IOMMU_DOMAIN_DMA
+[Fri Oct 30 12:35:20 2026] rkcifhw fdce0000.rkcif: Adding to iommu group 16
+[Fri Oct 30 12:35:20 2026] iommu: Failed to allocate default IOMMU domain of type 4 for group (null) - Falling back to IOMMU_DOMAIN_DMA
+[Fri Oct 30 12:35:20 2026] rkcif rkcif-mipi-lvds: Adding to iommu group 16
+[Fri Oct 30 12:35:20 2026] rkcif rkcif-mipi-lvds2: Adding to iommu group 16
+[Fri Oct 30 12:35:20 2026] rkcif rkcif-mipi-lvds4: Adding to iommu group 16
+[Fri Oct 30 12:35:20 2026] rkisp_hw fdcb0000.rkisp: Adding to iommu group 14
+[Fri Oct 30 12:35:20 2026] iommu: Failed to allocate default IOMMU domain of type 4 for group (null) - Falling back to IOMMU_DOMAIN_DMA
+[Fri Oct 30 12:35:20 2026] rkisp_hw fdcc0000.rkisp: Adding to iommu group 15
+[Fri Oct 30 12:35:20 2026] iommu: Failed to allocate default IOMMU domain of type 4 for group (null) - Falling back to IOMMU_DOMAIN_DMA
+[Fri Oct 30 12:35:20 2026] rga3_core0 fdb60000.rga: Adding to iommu group 2
+[Fri Oct 30 12:35:20 2026] iommu: Failed to allocate default IOMMU domain of type 4 for group (null) - Falling back to IOMMU_DOMAIN_DMA
+[Fri Oct 30 12:35:20 2026] rga: rga3_core0, irq = 34, match scheduler
+[Fri Oct 30 12:35:20 2026] rga: rga3_core0 hardware loaded successfully, hw_version:3.0.76831.
+[Fri Oct 30 12:35:20 2026] rga: rga3_core0 probe successfully
+[Fri Oct 30 12:35:20 2026] rga3_core1 fdb70000.rga: Adding to iommu group 3
+[Fri Oct 30 12:35:20 2026] iommu: Failed to allocate default IOMMU domain of type 4 for group (null) - Falling back to IOMMU_DOMAIN_DMA
+[Fri Oct 30 12:35:20 2026] rga: rga3_core1, irq = 35, match scheduler
+[Fri Oct 30 12:35:20 2026] rga: rga3_core1 hardware loaded successfully, hw_version:3.0.76831.
+[Fri Oct 30 12:35:20 2026] rga: rga3_core1 probe successfully
+[Fri Oct 30 12:35:20 2026] rga: rga2, irq = 36, match scheduler
+[Fri Oct 30 12:35:20 2026] rga: rga2 hardware loaded successfully, hw_version:3.2.63318.
+[Fri Oct 30 12:35:20 2026] rga: rga2 probe successfully
+[Fri Oct 30 12:35:20 2026] rga_iommu: IOMMU binding successfully, default mapping core[0x1]
+[Fri Oct 30 12:35:20 2026] rga: Module initialized. v1.3.1
+[Fri Oct 30 12:35:22 2026] RKNPU fdab0000.npu: Adding to iommu group 0
+[Fri Oct 30 12:35:22 2026] iommu: Failed to allocate default IOMMU domain of type 4 for group (null) - Falling back to IOMMU_DOMAIN_DMA
+[Fri Oct 30 12:35:22 2026] RKNPU fdab0000.npu: RKNPU: rknpu iommu is enabled, using iommu mode
+[exit 0]
+
+## candidate binary and exact runtime MPP library
+$ sha256sum /tmp/ka2-efficiency-r7-mergecheck/system/loggerd/encoderd
+c30b920d13b072d271122408822192e6e427b8ecac4ed289e3cecd64b7d37b47  /tmp/ka2-efficiency-r7-mergecheck/system/loggerd/encoderd
+[exit 0]
+$ bash -lc readelf -n '/tmp/ka2-efficiency-r7-mergecheck/system/loggerd/encoderd' | rg -A1 'Build ID'
+    Build ID: a956b9960bf8e8ebb08b7e560570ff4c85449b1d
+[exit 0]
+$ env -u LD_LIBRARY_PATH -u LD_PRELOAD ldd -r /tmp/ka2-efficiency-r7-mergecheck/system/loggerd/encoderd
+	linux-vdso.so.1 (0x0000007faea06000)
+	libzmq.so.5 => /lib/aarch64-linux-gnu/libzmq.so.5 (0x0000007fae880000)
+	libcapnp-1.0.2.so => /usr/local/lib/libcapnp-1.0.2.so (0x0000007fae7b0000)
+	libkj-1.0.2.so => /usr/local/lib/libkj-1.0.2.so (0x0000007fae700000)
+	libOpenCL.so.1 => /lib/aarch64-linux-gnu/libOpenCL.so.1 (0x0000007fae6c0000)
+	librockchip_mpp.so.1 => /lib/aarch64-linux-gnu/librockchip_mpp.so.1 (0x0000007fae490000)
+	librga.so.2 => /lib/aarch64-linux-gnu/librga.so.2 (0x0000007fae440000)
+	libjpeg.so.8 => /lib/aarch64-linux-gnu/libjpeg.so.8 (0x0000007fae3c0000)
+	libstdc++.so.6 => /lib/aarch64-linux-gnu/libstdc++.so.6 (0x0000007fae130000)
+	libgcc_s.so.1 => /lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000007fae0f0000)
+	libc.so.6 => /lib/aarch64-linux-gnu/libc.so.6 (0x0000007fadf30000)
+	libbsd.so.0 => /lib/aarch64-linux-gnu/libbsd.so.0 (0x0000007fadef0000)
+	libsodium.so.23 => /lib/aarch64-linux-gnu/libsodium.so.23 (0x0000007fade90000)
+	libpgm-5.3.so.0 => /lib/aarch64-linux-gnu/libpgm-5.3.so.0 (0x0000007fade20000)
+	libnorm.so.1 => /lib/aarch64-linux-gnu/libnorm.so.1 (0x0000007fadcf0000)
+	libgssapi_krb5.so.2 => /lib/aarch64-linux-gnu/libgssapi_krb5.so.2 (0x0000007fadc80000)
+	/lib/ld-linux-aarch64.so.1 (0x0000007fae9c9000)
+	libm.so.6 => /lib/aarch64-linux-gnu/libm.so.6 (0x0000007fadbd0000)
+	libmd.so.0 => /lib/aarch64-linux-gnu/libmd.so.0 (0x0000007fadba0000)
+	libkrb5.so.3 => /lib/aarch64-linux-gnu/libkrb5.so.3 (0x0000007fadac0000)
+	libk5crypto.so.3 => /lib/aarch64-linux-gnu/libk5crypto.so.3 (0x0000007fada70000)
+	libcom_err.so.2 => /lib/aarch64-linux-gnu/libcom_err.so.2 (0x0000007fada40000)
+	libkrb5support.so.0 => /lib/aarch64-linux-gnu/libkrb5support.so.0 (0x0000007fada10000)
+	libkeyutils.so.1 => /lib/aarch64-linux-gnu/libkeyutils.so.1 (0x0000007fad9e0000)
+	libresolv.so.2 => /lib/aarch64-linux-gnu/libresolv.so.2 (0x0000007fad9b0000)
+[exit 0]
+/lib/aarch64-linux-gnu/librockchip_mpp.so.1 realpath=/usr/lib/aarch64-linux-gnu/librockchip_mpp.so.0
+$ sha256sum /lib/aarch64-linux-gnu/librockchip_mpp.so.1
+ea762b7da71b63a73cdf14d053d84b091654aee5e5c4f26ceb1449b8fb8d92f9  /lib/aarch64-linux-gnu/librockchip_mpp.so.1
+[exit 0]
+$ bash -lc readelf -n '/lib/aarch64-linux-gnu/librockchip_mpp.so.1' | rg -A1 'Build ID'
+    Build ID: b333b160bf1f80ad4f935d9794d2b8956b90bb14
+[exit 0]
+/usr/lib/aarch64-linux-gnu/librockchip_mpp.so.0 realpath=/usr/lib/aarch64-linux-gnu/librockchip_mpp.so.0
+$ sha256sum /usr/lib/aarch64-linux-gnu/librockchip_mpp.so.0
+ea762b7da71b63a73cdf14d053d84b091654aee5e5c4f26ceb1449b8fb8d92f9  /usr/lib/aarch64-linux-gnu/librockchip_mpp.so.0
+[exit 0]
+$ bash -lc readelf -n '/usr/lib/aarch64-linux-gnu/librockchip_mpp.so.0' | rg -A1 'Build ID'
+    Build ID: b333b160bf1f80ad4f935d9794d2b8956b90bb14
+[exit 0]
+/usr/local/lib/librockchip_mpp.so.0 realpath=/usr/local/lib/librockchip_mpp.so.0
+$ sha256sum /usr/local/lib/librockchip_mpp.so.0
+b2a64906d97585475a2f1130b7de3276ae712100772ef412cb991c7198c9fe20  /usr/local/lib/librockchip_mpp.so.0
+[exit 0]
+$ bash -lc readelf -n '/usr/local/lib/librockchip_mpp.so.0' | rg -A1 'Build ID'
+    Build ID: 665b598627076bffe4e6cedebc7c4baa73e5c739
+[exit 0]
+$ dpkg-query -S /usr/lib/aarch64-linux-gnu/librockchip_mpp.so.0 /usr/local/lib/librockchip_mpp.so.0
+dpkg-query: no path found matching pattern /usr/lib/aarch64-linux-gnu/librockchip_mpp.so.0
+dpkg-query: no path found matching pattern /usr/local/lib/librockchip_mpp.so.0
+[exit 1]
+No userspace MPP version/API probe was run: the exact loader resolves the older system MPP build and the source/header ABI pairing has not been proven; CMA availability is zero.

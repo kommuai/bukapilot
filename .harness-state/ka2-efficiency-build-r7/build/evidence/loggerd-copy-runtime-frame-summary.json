@@ -1,0 +1,123 @@
+{
+  "inputs": {
+    "driverCameraState": {
+      "count": 148,
+      "duplicates": [],
+      "first": 1,
+      "last": 148,
+      "missing_from_contiguous_1_to_max": [],
+      "unique": 148
+    },
+    "roadCameraState": {
+      "count": 148,
+      "duplicates": [],
+      "first": 1,
+      "last": 148,
+      "missing_from_contiguous_1_to_max": [],
+      "unique": 148
+    },
+    "wideRoadCameraState": {
+      "count": 148,
+      "duplicates": [],
+      "first": 1,
+      "last": 148,
+      "missing_from_contiguous_1_to_max": [],
+      "unique": 148
+    }
+  },
+  "outputs": {
+    "driverEncodeIdx": {
+      "count": 148,
+      "duplicates": [],
+      "first": 1,
+      "first_frame_flags": 8,
+      "last": 148,
+      "missing_from_contiguous_1_to_max": [],
+      "segment_counts": {
+        "0": 100,
+        "1": 48
+      },
+      "unique": 148
+    },
+    "qRoadEncodeIdx": {
+      "count": 148,
+      "duplicates": [],
+      "first": 1,
+      "first_frame_flags": 8,
+      "last": 148,
+      "missing_from_contiguous_1_to_max": [],
+      "segment_counts": {
+        "0": 100,
+        "1": 48
+      },
+      "unique": 148
+    },
+    "roadEncodeIdx": {
+      "count": 148,
+      "duplicates": [],
+      "first": 1,
+      "first_frame_flags": 8,
+      "last": 148,
+      "missing_from_contiguous_1_to_max": [],
+      "segment_counts": {
+        "0": 100,
+        "1": 48
+      },
+      "unique": 148
+    },
+    "wideRoadEncodeIdx": {
+      "count": 148,
+      "duplicates": [],
+      "first": 1,
+      "first_frame_flags": 8,
+      "last": 148,
+      "missing_from_contiguous_1_to_max": [],
+      "segment_counts": {
+        "0": 100,
+        "1": 48
+      },
+      "unique": 148
+    }
+  },
+  "raw_audio_events": 148,
+  "route_dirs": [
+    "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/loggerd-copy-runtime-r1-data/popen-gw1/test_ka2_deterministic_rotatio0/logs/2026-10-30--06-24-37--0",
+    "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/loggerd-copy-runtime-r1-data/popen-gw1/test_ka2_deterministic_rotatio0/logs/2026-10-30--06-24-37--1"
+  ],
+  "segments": [
+    {
+      "encode_counts": {
+        "driverEncodeIdx": 100,
+        "qRoadEncodeIdx": 100,
+        "roadEncodeIdx": 100,
+        "wideRoadEncodeIdx": 100
+      },
+      "input_counts": {
+        "driverCameraState": 101,
+        "roadCameraState": 101,
+        "wideRoadCameraState": 101
+      },
+      "path": "2026-10-30--06-24-37--0",
+      "qlog_messages": 421,
+      "rlog_messages": 807,
+      "segment_num": 0
+    },
+    {
+      "encode_counts": {
+        "driverEncodeIdx": 48,
+        "qRoadEncodeIdx": 48,
+        "roadEncodeIdx": 48,
+        "wideRoadEncodeIdx": 48
+      },
+      "input_counts": {
+        "driverCameraState": 47,
+        "roadCameraState": 47,
+        "wideRoadCameraState": 47
+      },
+      "path": "2026-10-30--06-24-37--1",
+      "qlog_messages": 201,
+      "rlog_messages": 383,
+      "segment_num": 1
+    }
+  ]
+}

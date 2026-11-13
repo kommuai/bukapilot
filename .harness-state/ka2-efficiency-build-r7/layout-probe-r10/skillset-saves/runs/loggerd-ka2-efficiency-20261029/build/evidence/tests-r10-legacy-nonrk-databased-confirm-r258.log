@@ -1,0 +1,141 @@
+bringing up nodes...
+bringing up nodes...
+
+F
+=================================== FAILURES ===================================
+___________ test_non_rk3588_hardware_pc_legacy_lifecycle_on_ka2_host ___________
+[gw1] linux -- Python 3.12.3 /usr/local/venv/bin/python3
+
+tmp_path = PosixPath('/data/openpilot/.harness-state/r10-lifecycle-basetemp/popen-gw1/test_non_rk3588_hardware_pc_le0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f80319190>
+
+    @pytest.mark.xdist_group("loggerd_tests")
+    def test_non_rk3588_hardware_pc_legacy_lifecycle_on_ka2_host(tmp_path, monkeypatch):
+      if not KA2:
+        pytest.skip("isolated non-RK3588 software-branch qualification requires the pinned KA2 host")
+      repo_root = Path(__file__).resolve().parents[3]
+      publisher = _build_test_binaries(repo_root)["publisher"]
+      legacy_binaries = _build_legacy_pc_binaries(repo_root)
+      binaries = {**legacy_binaries, "publisher": publisher}
+>     _run_lifecycle_and_cleanup(tmp_path / "legacy_non_rk", monkeypatch, binaries, "legacy_non_rk")
+
+system/loggerd/tests/test_loggerd_liveness.py:585: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+system/loggerd/tests/test_loggerd_liveness.py:539: in _run_lifecycle_and_cleanup
+    _run_lifecycle(tmp_path, monkeypatch, binaries, scenario)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+tmp_path = PosixPath('/data/openpilot/.harness-state/r10-lifecycle-basetemp/popen-gw1/test_non_rk3588_hardware_pc_le0/legacy_non_rk')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f80319190>
+binaries = {'encoderd': PosixPath('/data/openpilot/build/system/loggerd/tests/encoderd_non_rk3588'), 'loggerd': PosixPath('/data/.../loggerd_non_rk3588'), 'publisher': PosixPath('/data/openpilot/build/system/loggerd/tests/visionipc_dmabuf_publisher')}
+scenario = 'legacy_non_rk'
+
+    def _run_lifecycle(tmp_path: Path, monkeypatch, binaries: dict[str, Path], scenario: str) -> None:
+      if not KA2:
+        pytest.skip("full MPP lifecycle requires KA2")
+    
+      _assert_camera_stack_idle()
+      fault_mode = None if scenario in ("valid", "legacy", "legacy_non_rk", "shm") else scenario
+      env, prefix, params, msgq_dir = _make_params_and_environment(
+        tmp_path, monkeypatch, fault_mode, legacy_mode=(scenario in ("legacy", "legacy_non_rk")))
+      repo_root = Path(__file__).resolve().parents[3]
+      fixture_binary = binaries["publisher"]
+      assert fixture_binary.is_file()
+      vipc_socket = Path(f"/tmp/{prefix}_visionipc_camerad")
+      assert not vipc_socket.exists(), f"isolated VisionIPC socket already exists: {vipc_socket}"
+    
+      publisher = None
+      loggerd = None
+      encoderd = None
+      pm = None
+      publisher_stdout = None
+      loggerd_output = None
+      encoderd_output = None
+      loggerd_log_path = Path(env["LOG_ROOT"]).parent / "loggerd.stdout.log"
+      encoderd_log_path = Path(env["LOG_ROOT"]).parent / "encoderd.stdout.log"
+      reports: dict[int, dict] = {}
+      observed_segment_times: dict[int, float] = {}
+      last_frame_id = 0
+      try:
+        _assert_camera_stack_idle()
+        publisher_mode = "--serve-shm" if scenario == "shm" else "--serve"
+        publisher = subprocess.Popen([str(fixture_binary), publisher_mode], cwd=repo_root, env=env,
+                                     stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                                     stderr=subprocess.STDOUT, text=True, bufsize=1)
+        backing = "shm" if scenario == "shm" else "dma_heap"
+        _wait_matching_line(
+          publisher,
+          f"READY streams=road,driver,wideRoad width=1920 height=1200 stride=1920 "
+          f"uv_offset=2304000 buffers=4 backing={backing}",
+          10,
+        )
+        pm = messaging.PubMaster([state for _, state in CAMERAS] + ["rawAudioData"])
+    
+        loggerd_output = loggerd_log_path.open("w")
+        encoderd_output = encoderd_log_path.open("w")
+        loggerd = subprocess.Popen([str(binaries["loggerd"])], cwd=repo_root, env=env,
+                                   stdout=loggerd_output, stderr=subprocess.STDOUT, text=True)
+        encoderd = subprocess.Popen([str(binaries["encoderd"])], cwd=repo_root, env=env,
+                                    stdout=encoderd_output, stderr=subprocess.STDOUT, text=True)
+    
+        for _, state_name in CAMERAS:
+          assert pm.wait_for_readers_to_update(state_name, timeout=10), f"loggerd/encoderd did not subscribe to {state_name}"
+        assert pm.wait_for_readers_to_update("rawAudioData", timeout=10), "loggerd did not subscribe to rawAudioData"
+        assert _read_param(params, "LoggerdSegment", timeout=10) == "0"
+        observed_segment_times[0] = time.monotonic()
+    
+        frame = time.monotonic()
+        audio_samples = (b"\xe8\x03\x18\xfc" * 400)
+        post_segment_two = 0
+        deadline = time.monotonic() + 24
+        while time.monotonic() < deadline:
+          last_frame_id += 1
+          target = frame + last_frame_id / FPS
+          delay = target - time.monotonic()
+          if delay > 0:
+            time.sleep(delay)
+          timestamp = last_frame_id * FRAME_DURATION_NS
+          for stream_type, state_name in CAMERAS:
+            _send_frame(publisher, int(stream_type), last_frame_id, timestamp, timestamp + FRAME_DURATION_NS // 2)
+            camera_state = messaging.new_message(state_name)
+            getattr(camera_state, state_name).frameId = last_frame_id
+            pm.send(state_name, camera_state)
+          audio = messaging.new_message("rawAudioData")
+          audio.rawAudioData.data = audio_samples
+          audio.rawAudioData.sampleRate = 16000
+          pm.send("rawAudioData", audio)
+    
+          segment_value = _read_param(params, "LoggerdSegment", timeout=0.1)
+          if segment_value is not None:
+            segment = int(segment_value)
+            observed_segment_times.setdefault(segment, time.monotonic())
+            if segment >= 1:
+              report_text = _read_raw_param(params, "LoggerdRotationReport", timeout=0.05)
+              if report_text:
+                try:
+                  report = json.loads(report_text)
+                  if report.get("segment") == segment:
+                    reports[segment] = report
+                except json.JSONDecodeError:
+                  pass
+            if segment >= 2:
+              post_segment_two += 1
+              if post_segment_two >= 20:
+                break
+    
+          _wait_process_started(loggerd, "loggerd")
+          _wait_process_started(encoderd, "encoderd")
+          _wait_process_started(publisher, "SHM publisher" if scenario == "shm" else "DMA-BUF publisher")
+        else:
+>         raise AssertionError(f"loggerd did not complete two rotations; reports={reports}")
+E         AssertionError: loggerd did not complete two rotations; reports={}
+
+system/loggerd/tests/test_loggerd_liveness.py:478: AssertionError
+============================= slowest 10 durations =============================
+38.66s call     system/loggerd/tests/test_loggerd_liveness.py::test_non_rk3588_hardware_pc_legacy_lifecycle_on_ka2_host@loggerd_tests
+0.06s setup    system/loggerd/tests/test_loggerd_liveness.py::test_non_rk3588_hardware_pc_legacy_lifecycle_on_ka2_host@loggerd_tests
+
+(1 durations < 0.005s hidden.  Use -vv to show these durations.)
+=========================== short test summary info ============================
+FAILED system/loggerd/tests/test_loggerd_liveness.py::test_non_rk3588_hardware_pc_legacy_lifecycle_on_ka2_host@loggerd_tests
+1 failed in 43.56s

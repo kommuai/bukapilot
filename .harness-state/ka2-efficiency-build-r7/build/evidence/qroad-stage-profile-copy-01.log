@@ -1,0 +1,323 @@
+phase=profile mode=copy repetition=01 started_utc=2026-10-31T03:26:08Z mem_before_kb=1887236 shm_used_bytes=12492800
+thermal_cooling_state /sys/class/thermal/cooling_device0/cur_state=0
+thermal_cooling_state /sys/class/thermal/cooling_device1/cur_state=0
+thermal_cooling_state /sys/class/thermal/cooling_device2/cur_state=0
+thermal_cooling_state /sys/class/thermal/cooling_device4/cur_state=0
+cpu_frequency /sys/devices/system/cpu/cpufreq/policy0/scaling_cur_freq=1608000
+cpu_frequency /sys/devices/system/cpu/cpufreq/policy4/scaling_cur_freq=1200000
+cpu_frequency /sys/devices/system/cpu/cpufreq/policy6/scaling_cur_freq=408000
+investigation_mode=copy binary_class=MppEncoder dma_heap=system streams=road+qRoad fps=20 frames=100 buffers=24
+memory_snapshot=after_open road_pool_buffers=6 road_pool_bytes=20736000 qroad_pool_buffers=6 qroad_pool_bytes=1596672 road_import_handles=0 road_import_handle_bytes=0 dma_buf_objects=1 dma_buf_total_bytes=266240 vmrss='	   22868 kB' vmhwm='	   22868 kB' memavailable='    1765384 kB' cmafree='               0 kB'
+rga_api version 1.10.0_[8]
+stage_latency stream=roadEncodeData frame=1 downscale=0 total_us=8557 input_pre_submit_us=1112 rga_us=0 mpp_submit_us=4897 pre_drain_us=0 packet_drain_us=2546
+stage_latency stream=qRoadEncodeData frame=1 downscale=1 total_us=4158 input_pre_submit_us=3088 rga_us=3048 mpp_submit_us=898 pre_drain_us=0 packet_drain_us=169
+stage_latency stream=roadEncodeData frame=2 downscale=0 total_us=6369 input_pre_submit_us=1090 rga_us=0 mpp_submit_us=5207 pre_drain_us=0 packet_drain_us=70
+stage_latency stream=qRoadEncodeData frame=2 downscale=1 total_us=4819 input_pre_submit_us=3286 rga_us=3238 mpp_submit_us=1472 pre_drain_us=0 packet_drain_us=60
+stage_latency stream=roadEncodeData frame=3 downscale=0 total_us=6416 input_pre_submit_us=1132 rga_us=0 mpp_submit_us=5201 pre_drain_us=0 packet_drain_us=81
+stage_latency stream=qRoadEncodeData frame=3 downscale=1 total_us=4621 input_pre_submit_us=3691 rga_us=3617 mpp_submit_us=895 pre_drain_us=0 packet_drain_us=33
+stage_latency stream=roadEncodeData frame=4 downscale=0 total_us=9151 input_pre_submit_us=4397 rga_us=0 mpp_submit_us=4684 pre_drain_us=0 packet_drain_us=67
+stage_latency stream=qRoadEncodeData frame=4 downscale=1 total_us=3742 input_pre_submit_us=2759 rga_us=2712 mpp_submit_us=933 pre_drain_us=0 packet_drain_us=48
+stage_latency stream=roadEncodeData frame=5 downscale=0 total_us=7625 input_pre_submit_us=2854 rga_us=0 mpp_submit_us=4715 pre_drain_us=0 packet_drain_us=54
+stage_latency stream=qRoadEncodeData frame=5 downscale=1 total_us=3941 input_pre_submit_us=2624 rga_us=2580 mpp_submit_us=1234 pre_drain_us=0 packet_drain_us=80
+stage_latency stream=roadEncodeData frame=6 downscale=0 total_us=7130 input_pre_submit_us=2042 rga_us=0 mpp_submit_us=4889 pre_drain_us=0 packet_drain_us=197
+stage_latency stream=qRoadEncodeData frame=6 downscale=1 total_us=5284 input_pre_submit_us=3827 rga_us=3749 mpp_submit_us=1367 pre_drain_us=0 packet_drain_us=87
+stage_latency stream=roadEncodeData frame=7 downscale=0 total_us=6257 input_pre_submit_us=1300 rga_us=0 mpp_submit_us=4800 pre_drain_us=0 packet_drain_us=155
+stage_latency stream=qRoadEncodeData frame=7 downscale=1 total_us=4584 input_pre_submit_us=3388 rga_us=3382 mpp_submit_us=1123 pre_drain_us=0 packet_drain_us=69
+stage_latency stream=roadEncodeData frame=8 downscale=0 total_us=5296 input_pre_submit_us=628 rga_us=0 mpp_submit_us=4566 pre_drain_us=0 packet_drain_us=100
+stage_latency stream=qRoadEncodeData frame=8 downscale=1 total_us=3314 input_pre_submit_us=2519 rga_us=2514 mpp_submit_us=741 pre_drain_us=0 packet_drain_us=52
+stage_latency stream=roadEncodeData frame=9 downscale=0 total_us=5683 input_pre_submit_us=875 rga_us=0 mpp_submit_us=4690 pre_drain_us=0 packet_drain_us=115
+stage_latency stream=qRoadEncodeData frame=9 downscale=1 total_us=3560 input_pre_submit_us=2616 rga_us=2612 mpp_submit_us=891 pre_drain_us=0 packet_drain_us=49
+stage_latency stream=roadEncodeData frame=10 downscale=0 total_us=5619 input_pre_submit_us=878 rga_us=0 mpp_submit_us=4622 pre_drain_us=0 packet_drain_us=116
+stage_latency stream=qRoadEncodeData frame=10 downscale=1 total_us=3940 input_pre_submit_us=2924 rga_us=2919 mpp_submit_us=952 pre_drain_us=0 packet_drain_us=61
+stage_latency stream=roadEncodeData frame=11 downscale=0 total_us=6989 input_pre_submit_us=1953 rga_us=0 mpp_submit_us=4841 pre_drain_us=0 packet_drain_us=193
+stage_latency stream=qRoadEncodeData frame=11 downscale=1 total_us=4646 input_pre_submit_us=3683 rga_us=3678 mpp_submit_us=910 pre_drain_us=0 packet_drain_us=50
+stage_latency stream=roadEncodeData frame=12 downscale=0 total_us=5404 input_pre_submit_us=662 rga_us=0 mpp_submit_us=4625 pre_drain_us=0 packet_drain_us=115
+stage_latency stream=qRoadEncodeData frame=12 downscale=1 total_us=3287 input_pre_submit_us=2545 rga_us=2540 mpp_submit_us=662 pre_drain_us=0 packet_drain_us=77
+stage_latency stream=roadEncodeData frame=13 downscale=0 total_us=5247 input_pre_submit_us=641 rga_us=0 mpp_submit_us=4507 pre_drain_us=0 packet_drain_us=97
+stage_latency stream=qRoadEncodeData frame=13 downscale=1 total_us=3387 input_pre_submit_us=2561 rga_us=2557 mpp_submit_us=770 pre_drain_us=0 packet_drain_us=53
+stage_latency stream=roadEncodeData frame=14 downscale=0 total_us=5375 input_pre_submit_us=661 rga_us=0 mpp_submit_us=4598 pre_drain_us=0 packet_drain_us=114
+stage_latency stream=qRoadEncodeData frame=14 downscale=1 total_us=3660 input_pre_submit_us=2687 rga_us=2684 mpp_submit_us=917 pre_drain_us=0 packet_drain_us=53
+stage_latency stream=roadEncodeData frame=15 downscale=0 total_us=5857 input_pre_submit_us=884 rga_us=0 mpp_submit_us=4854 pre_drain_us=0 packet_drain_us=117
+stage_latency stream=qRoadEncodeData frame=15 downscale=1 total_us=3533 input_pre_submit_us=2612 rga_us=2608 mpp_submit_us=849 pre_drain_us=0 packet_drain_us=70
+stage_latency stream=roadEncodeData frame=16 downscale=0 total_us=7770 input_pre_submit_us=1781 rga_us=0 mpp_submit_us=5518 pre_drain_us=0 packet_drain_us=463
+stage_latency stream=qRoadEncodeData frame=16 downscale=1 total_us=3597 input_pre_submit_us=2841 rga_us=2836 mpp_submit_us=713 pre_drain_us=0 packet_drain_us=40
+stage_latency stream=roadEncodeData frame=17 downscale=0 total_us=5476 input_pre_submit_us=640 rga_us=0 mpp_submit_us=4493 pre_drain_us=0 packet_drain_us=341
+stage_latency stream=qRoadEncodeData frame=17 downscale=1 total_us=3669 input_pre_submit_us=2619 rga_us=2615 mpp_submit_us=989 pre_drain_us=0 packet_drain_us=59
+stage_latency stream=roadEncodeData frame=18 downscale=0 total_us=7608 input_pre_submit_us=1883 rga_us=0 mpp_submit_us=5582 pre_drain_us=0 packet_drain_us=140
+stage_latency stream=qRoadEncodeData frame=18 downscale=1 total_us=4012 input_pre_submit_us=2915 rga_us=2909 mpp_submit_us=1024 pre_drain_us=0 packet_drain_us=71
+stage_latency stream=roadEncodeData frame=19 downscale=0 total_us=7778 input_pre_submit_us=2903 rga_us=0 mpp_submit_us=4703 pre_drain_us=0 packet_drain_us=170
+stage_latency stream=qRoadEncodeData frame=19 downscale=1 total_us=3611 input_pre_submit_us=2606 rga_us=2602 mpp_submit_us=951 pre_drain_us=0 packet_drain_us=52
+stage_latency stream=roadEncodeData frame=20 downscale=0 total_us=5982 input_pre_submit_us=943 rga_us=0 mpp_submit_us=4748 pre_drain_us=0 packet_drain_us=289
+stage_latency stream=qRoadEncodeData frame=20 downscale=1 total_us=4406 input_pre_submit_us=3348 rga_us=3342 mpp_submit_us=940 pre_drain_us=0 packet_drain_us=115
+stage_latency stream=roadEncodeData frame=21 downscale=0 total_us=6625 input_pre_submit_us=1340 rga_us=0 mpp_submit_us=4926 pre_drain_us=0 packet_drain_us=357
+stage_latency stream=qRoadEncodeData frame=21 downscale=1 total_us=4537 input_pre_submit_us=3303 rga_us=3298 mpp_submit_us=1117 pre_drain_us=0 packet_drain_us=115
+stage_latency stream=roadEncodeData frame=22 downscale=0 total_us=7333 input_pre_submit_us=1926 rga_us=0 mpp_submit_us=4958 pre_drain_us=0 packet_drain_us=445
+stage_latency stream=qRoadEncodeData frame=22 downscale=1 total_us=4711 input_pre_submit_us=3536 rga_us=3531 mpp_submit_us=1102 pre_drain_us=0 packet_drain_us=70
+stage_latency stream=roadEncodeData frame=23 downscale=0 total_us=6488 input_pre_submit_us=1467 rga_us=0 mpp_submit_us=4804 pre_drain_us=0 packet_drain_us=214
+stage_latency stream=qRoadEncodeData frame=23 downscale=1 total_us=4650 input_pre_submit_us=3356 rga_us=3349 mpp_submit_us=1222 pre_drain_us=0 packet_drain_us=68
+stage_latency stream=roadEncodeData frame=24 downscale=0 total_us=7696 input_pre_submit_us=2637 rga_us=0 mpp_submit_us=4944 pre_drain_us=0 packet_drain_us=112
+stage_latency stream=qRoadEncodeData frame=24 downscale=1 total_us=3814 input_pre_submit_us=2775 rga_us=2770 mpp_submit_us=963 pre_drain_us=0 packet_drain_us=73
+stage_latency stream=roadEncodeData frame=25 downscale=0 total_us=5243 input_pre_submit_us=628 rga_us=0 mpp_submit_us=4496 pre_drain_us=0 packet_drain_us=117
+stage_latency stream=qRoadEncodeData frame=25 downscale=1 total_us=4053 input_pre_submit_us=2804 rga_us=2798 mpp_submit_us=1182 pre_drain_us=0 packet_drain_us=64
+stage_latency stream=roadEncodeData frame=26 downscale=0 total_us=5576 input_pre_submit_us=836 rga_us=0 mpp_submit_us=4621 pre_drain_us=0 packet_drain_us=117
+stage_latency stream=qRoadEncodeData frame=26 downscale=1 total_us=4097 input_pre_submit_us=3033 rga_us=3028 mpp_submit_us=1000 pre_drain_us=0 packet_drain_us=61
+stage_latency stream=roadEncodeData frame=27 downscale=0 total_us=5979 input_pre_submit_us=941 rga_us=0 mpp_submit_us=4864 pre_drain_us=0 packet_drain_us=172
+stage_latency stream=qRoadEncodeData frame=27 downscale=1 total_us=5248 input_pre_submit_us=3815 rga_us=3808 mpp_submit_us=1288 pre_drain_us=0 packet_drain_us=142
+stage_latency stream=roadEncodeData frame=28 downscale=0 total_us=7285 input_pre_submit_us=1921 rga_us=0 mpp_submit_us=5169 pre_drain_us=0 packet_drain_us=193
+stage_latency stream=qRoadEncodeData frame=28 downscale=1 total_us=4982 input_pre_submit_us=3756 rga_us=3750 mpp_submit_us=1151 pre_drain_us=0 packet_drain_us=71
+stage_latency stream=roadEncodeData frame=29 downscale=0 total_us=5665 input_pre_submit_us=656 rga_us=0 mpp_submit_us=4889 pre_drain_us=0 packet_drain_us=118
+stage_latency stream=qRoadEncodeData frame=29 downscale=1 total_us=5383 input_pre_submit_us=3977 rga_us=3972 mpp_submit_us=1306 pre_drain_us=0 packet_drain_us=96
+stage_latency stream=roadEncodeData frame=30 downscale=0 total_us=8197 input_pre_submit_us=2577 rga_us=0 mpp_submit_us=5362 pre_drain_us=0 packet_drain_us=255
+stage_latency stream=qRoadEncodeData frame=30 downscale=1 total_us=3814 input_pre_submit_us=2739 rga_us=2732 mpp_submit_us=1017 pre_drain_us=0 packet_drain_us=55
+stage_latency stream=roadEncodeData frame=31 downscale=0 total_us=5929 input_pre_submit_us=1175 rga_us=0 mpp_submit_us=4640 pre_drain_us=0 packet_drain_us=112
+stage_latency stream=qRoadEncodeData frame=31 downscale=1 total_us=4034 input_pre_submit_us=2912 rga_us=2907 mpp_submit_us=1023 pre_drain_us=0 packet_drain_us=96
+stage_latency stream=roadEncodeData frame=32 downscale=0 total_us=5617 input_pre_submit_us=864 rga_us=0 mpp_submit_us=4670 pre_drain_us=0 packet_drain_us=78
+stage_latency stream=qRoadEncodeData frame=32 downscale=1 total_us=4141 input_pre_submit_us=3038 rga_us=3033 mpp_submit_us=1031 pre_drain_us=0 packet_drain_us=67
+stage_latency stream=roadEncodeData frame=33 downscale=0 total_us=5731 input_pre_submit_us=955 rga_us=0 mpp_submit_us=4679 pre_drain_us=0 packet_drain_us=95
+stage_latency stream=qRoadEncodeData frame=33 downscale=1 total_us=4132 input_pre_submit_us=2939 rga_us=2934 mpp_submit_us=1112 pre_drain_us=0 packet_drain_us=78
+stage_latency stream=roadEncodeData frame=34 downscale=0 total_us=5686 input_pre_submit_us=994 rga_us=0 mpp_submit_us=4619 pre_drain_us=0 packet_drain_us=71
+stage_latency stream=qRoadEncodeData frame=34 downscale=1 total_us=3400 input_pre_submit_us=2737 rga_us=2732 mpp_submit_us=633 pre_drain_us=0 packet_drain_us=29
+stage_latency stream=roadEncodeData frame=35 downscale=0 total_us=5298 input_pre_submit_us=633 rga_us=0 mpp_submit_us=4603 pre_drain_us=0 packet_drain_us=60
+stage_latency stream=qRoadEncodeData frame=35 downscale=1 total_us=3478 input_pre_submit_us=2642 rga_us=2638 mpp_submit_us=739 pre_drain_us=0 packet_drain_us=95
+stage_latency stream=roadEncodeData frame=36 downscale=0 total_us=5422 input_pre_submit_us=701 rga_us=0 mpp_submit_us=4593 pre_drain_us=0 packet_drain_us=125
+stage_latency stream=qRoadEncodeData frame=36 downscale=1 total_us=4169 input_pre_submit_us=3170 rga_us=3165 mpp_submit_us=926 pre_drain_us=0 packet_drain_us=71
+stage_latency stream=roadEncodeData frame=37 downscale=0 total_us=5247 input_pre_submit_us=650 rga_us=0 mpp_submit_us=4531 pre_drain_us=0 packet_drain_us=65
+stage_latency stream=qRoadEncodeData frame=37 downscale=1 total_us=3371 input_pre_submit_us=2527 rga_us=2523 mpp_submit_us=799 pre_drain_us=0 packet_drain_us=43
+stage_latency stream=roadEncodeData frame=38 downscale=0 total_us=7011 input_pre_submit_us=1778 rga_us=0 mpp_submit_us=5082 pre_drain_us=0 packet_drain_us=148
+stage_latency stream=qRoadEncodeData frame=38 downscale=1 total_us=4431 input_pre_submit_us=3318 rga_us=3312 mpp_submit_us=1051 pre_drain_us=0 packet_drain_us=60
+stage_latency stream=roadEncodeData frame=39 downscale=0 total_us=7217 input_pre_submit_us=1854 rga_us=0 mpp_submit_us=5245 pre_drain_us=0 packet_drain_us=116
+stage_latency stream=qRoadEncodeData frame=39 downscale=1 total_us=4373 input_pre_submit_us=3140 rga_us=3112 mpp_submit_us=1155 pre_drain_us=0 packet_drain_us=75
+stage_latency stream=roadEncodeData frame=40 downscale=0 total_us=6284 input_pre_submit_us=1298 rga_us=0 mpp_submit_us=4887 pre_drain_us=0 packet_drain_us=96
+stage_latency stream=qRoadEncodeData frame=40 downscale=1 total_us=4577 input_pre_submit_us=3445 rga_us=3439 mpp_submit_us=1003 pre_drain_us=0 packet_drain_us=126
+stage_latency stream=roadEncodeData frame=41 downscale=0 total_us=6363 input_pre_submit_us=1291 rga_us=0 mpp_submit_us=4981 pre_drain_us=0 packet_drain_us=88
+stage_latency stream=qRoadEncodeData frame=41 downscale=1 total_us=3701 input_pre_submit_us=2766 rga_us=2762 mpp_submit_us=883 pre_drain_us=0 packet_drain_us=49
+stage_latency stream=roadEncodeData frame=42 downscale=0 total_us=5309 input_pre_submit_us=642 rga_us=0 mpp_submit_us=4618 pre_drain_us=0 packet_drain_us=48
+stage_latency stream=qRoadEncodeData frame=42 downscale=1 total_us=3451 input_pre_submit_us=2540 rga_us=2536 mpp_submit_us=849 pre_drain_us=0 packet_drain_us=59
+stage_latency stream=roadEncodeData frame=43 downscale=0 total_us=5872 input_pre_submit_us=861 rga_us=0 mpp_submit_us=4890 pre_drain_us=0 packet_drain_us=119
+stage_latency stream=qRoadEncodeData frame=43 downscale=1 total_us=4562 input_pre_submit_us=3285 rga_us=3280 mpp_submit_us=1211 pre_drain_us=0 packet_drain_us=63
+stage_latency stream=roadEncodeData frame=44 downscale=0 total_us=6620 input_pre_submit_us=1435 rga_us=0 mpp_submit_us=5074 pre_drain_us=0 packet_drain_us=109
+stage_latency stream=qRoadEncodeData frame=44 downscale=1 total_us=5248 input_pre_submit_us=3970 rga_us=3964 mpp_submit_us=1153 pre_drain_us=0 packet_drain_us=122
+stage_latency stream=roadEncodeData frame=45 downscale=0 total_us=8196 input_pre_submit_us=2653 rga_us=0 mpp_submit_us=5455 pre_drain_us=0 packet_drain_us=84
+stage_latency stream=qRoadEncodeData frame=45 downscale=1 total_us=4286 input_pre_submit_us=3077 rga_us=3072 mpp_submit_us=1136 pre_drain_us=0 packet_drain_us=70
+stage_latency stream=roadEncodeData frame=46 downscale=0 total_us=6357 input_pre_submit_us=1397 rga_us=0 mpp_submit_us=4874 pre_drain_us=0 packet_drain_us=84
+stage_latency stream=qRoadEncodeData frame=46 downscale=1 total_us=4075 input_pre_submit_us=3132 rga_us=3127 mpp_submit_us=837 pre_drain_us=0 packet_drain_us=104
+stage_latency stream=roadEncodeData frame=47 downscale=0 total_us=5513 input_pre_submit_us=765 rga_us=0 mpp_submit_us=4692 pre_drain_us=0 packet_drain_us=54
+stage_latency stream=qRoadEncodeData frame=47 downscale=1 total_us=3785 input_pre_submit_us=2859 rga_us=2853 mpp_submit_us=873 pre_drain_us=0 packet_drain_us=51
+stage_latency stream=roadEncodeData frame=48 downscale=0 total_us=5354 input_pre_submit_us=688 rga_us=0 mpp_submit_us=4581 pre_drain_us=0 packet_drain_us=81
+stage_latency stream=qRoadEncodeData frame=48 downscale=1 total_us=3549 input_pre_submit_us=2527 rga_us=2523 mpp_submit_us=961 pre_drain_us=0 packet_drain_us=57
+stage_latency stream=roadEncodeData frame=49 downscale=0 total_us=5309 input_pre_submit_us=686 rga_us=0 mpp_submit_us=4567 pre_drain_us=0 packet_drain_us=54
+stage_latency stream=qRoadEncodeData frame=49 downscale=1 total_us=3705 input_pre_submit_us=2745 rga_us=2741 mpp_submit_us=881 pre_drain_us=0 packet_drain_us=77
+stage_latency stream=roadEncodeData frame=50 downscale=0 total_us=5840 input_pre_submit_us=1076 rga_us=0 mpp_submit_us=4697 pre_drain_us=0 packet_drain_us=65
+stage_latency stream=qRoadEncodeData frame=50 downscale=1 total_us=3824 input_pre_submit_us=2952 rga_us=2947 mpp_submit_us=827 pre_drain_us=0 packet_drain_us=42
+stage_latency stream=roadEncodeData frame=51 downscale=0 total_us=8346 input_pre_submit_us=2797 rga_us=0 mpp_submit_us=5394 pre_drain_us=0 packet_drain_us=151
+stage_latency stream=qRoadEncodeData frame=51 downscale=1 total_us=4114 input_pre_submit_us=3024 rga_us=3018 mpp_submit_us=1019 pre_drain_us=0 packet_drain_us=68
+stage_latency stream=roadEncodeData frame=52 downscale=0 total_us=7228 input_pre_submit_us=1867 rga_us=0 mpp_submit_us=5200 pre_drain_us=0 packet_drain_us=158
+stage_latency stream=qRoadEncodeData frame=52 downscale=1 total_us=5099 input_pre_submit_us=3751 rga_us=3745 mpp_submit_us=1286 pre_drain_us=0 packet_drain_us=58
+stage_latency stream=roadEncodeData frame=53 downscale=0 total_us=6680 input_pre_submit_us=1736 rga_us=0 mpp_submit_us=4881 pre_drain_us=0 packet_drain_us=60
+stage_latency stream=qRoadEncodeData frame=53 downscale=1 total_us=3474 input_pre_submit_us=2730 rga_us=2725 mpp_submit_us=687 pre_drain_us=0 packet_drain_us=54
+stage_latency stream=roadEncodeData frame=54 downscale=0 total_us=5983 input_pre_submit_us=1050 rga_us=0 mpp_submit_us=4861 pre_drain_us=0 packet_drain_us=70
+stage_latency stream=qRoadEncodeData frame=54 downscale=1 total_us=3846 input_pre_submit_us=2919 rga_us=2914 mpp_submit_us=871 pre_drain_us=0 packet_drain_us=54
+stage_latency stream=roadEncodeData frame=55 downscale=0 total_us=5563 input_pre_submit_us=889 rga_us=0 mpp_submit_us=4626 pre_drain_us=0 packet_drain_us=46
+stage_latency stream=qRoadEncodeData frame=55 downscale=1 total_us=3263 input_pre_submit_us=2375 rga_us=2372 mpp_submit_us=789 pre_drain_us=0 packet_drain_us=97
+stage_latency stream=roadEncodeData frame=56 downscale=0 total_us=5333 input_pre_submit_us=716 rga_us=0 mpp_submit_us=4545 pre_drain_us=0 packet_drain_us=70
+stage_latency stream=qRoadEncodeData frame=56 downscale=1 total_us=3326 input_pre_submit_us=2571 rga_us=2565 mpp_submit_us=688 pre_drain_us=0 packet_drain_us=64
+stage_latency stream=roadEncodeData frame=57 downscale=0 total_us=5938 input_pre_submit_us=1054 rga_us=0 mpp_submit_us=4827 pre_drain_us=0 packet_drain_us=55
+stage_latency stream=qRoadEncodeData frame=57 downscale=1 total_us=3579 input_pre_submit_us=2622 rga_us=2617 mpp_submit_us=875 pre_drain_us=0 packet_drain_us=79
+stage_latency stream=roadEncodeData frame=58 downscale=0 total_us=5370 input_pre_submit_us=683 rga_us=0 mpp_submit_us=4611 pre_drain_us=0 packet_drain_us=74
+stage_latency stream=qRoadEncodeData frame=58 downscale=1 total_us=4184 input_pre_submit_us=3123 rga_us=3118 mpp_submit_us=985 pre_drain_us=0 packet_drain_us=73
+stage_latency stream=roadEncodeData frame=59 downscale=0 total_us=5630 input_pre_submit_us=786 rga_us=0 mpp_submit_us=4765 pre_drain_us=0 packet_drain_us=77
+stage_latency stream=qRoadEncodeData frame=59 downscale=1 total_us=4599 input_pre_submit_us=3480 rga_us=3475 mpp_submit_us=964 pre_drain_us=0 packet_drain_us=152
+stage_latency stream=roadEncodeData frame=60 downscale=0 total_us=5413 input_pre_submit_us=673 rga_us=0 mpp_submit_us=4655 pre_drain_us=0 packet_drain_us=83
+stage_latency stream=qRoadEncodeData frame=60 downscale=1 total_us=3443 input_pre_submit_us=2533 rga_us=2529 mpp_submit_us=834 pre_drain_us=0 packet_drain_us=74
+stage_latency stream=roadEncodeData frame=61 downscale=0 total_us=5443 input_pre_submit_us=705 rga_us=0 mpp_submit_us=4680 pre_drain_us=0 packet_drain_us=56
+stage_latency stream=qRoadEncodeData frame=61 downscale=1 total_us=3436 input_pre_submit_us=2554 rga_us=2549 mpp_submit_us=826 pre_drain_us=0 packet_drain_us=54
+stage_latency stream=roadEncodeData frame=62 downscale=0 total_us=6011 input_pre_submit_us=1201 rga_us=0 mpp_submit_us=4754 pre_drain_us=0 packet_drain_us=54
+stage_latency stream=qRoadEncodeData frame=62 downscale=1 total_us=3400 input_pre_submit_us=2552 rga_us=2548 mpp_submit_us=798 pre_drain_us=0 packet_drain_us=47
+stage_latency stream=roadEncodeData frame=63 downscale=0 total_us=7141 input_pre_submit_us=1888 rga_us=0 mpp_submit_us=5162 pre_drain_us=0 packet_drain_us=88
+stage_latency stream=qRoadEncodeData frame=63 downscale=1 total_us=4581 input_pre_submit_us=3372 rga_us=3365 mpp_submit_us=1129 pre_drain_us=0 packet_drain_us=78
+stage_latency stream=roadEncodeData frame=64 downscale=0 total_us=7150 input_pre_submit_us=1919 rga_us=0 mpp_submit_us=5158 pre_drain_us=0 packet_drain_us=68
+stage_latency stream=qRoadEncodeData frame=64 downscale=1 total_us=3648 input_pre_submit_us=2641 rga_us=2636 mpp_submit_us=917 pre_drain_us=0 packet_drain_us=86
+stage_latency stream=roadEncodeData frame=65 downscale=0 total_us=5903 input_pre_submit_us=1238 rga_us=0 mpp_submit_us=4608 pre_drain_us=0 packet_drain_us=54
+stage_latency stream=qRoadEncodeData frame=65 downscale=1 total_us=3400 input_pre_submit_us=2516 rga_us=2512 mpp_submit_us=838 pre_drain_us=0 packet_drain_us=44
+stage_latency stream=roadEncodeData frame=66 downscale=0 total_us=5611 input_pre_submit_us=827 rga_us=0 mpp_submit_us=4716 pre_drain_us=0 packet_drain_us=66
+stage_latency stream=qRoadEncodeData frame=66 downscale=1 total_us=4232 input_pre_submit_us=3084 rga_us=3079 mpp_submit_us=1084 pre_drain_us=0 packet_drain_us=62
+stage_latency stream=roadEncodeData frame=67 downscale=0 total_us=6103 input_pre_submit_us=1122 rga_us=0 mpp_submit_us=4906 pre_drain_us=0 packet_drain_us=73
+stage_latency stream=qRoadEncodeData frame=67 downscale=1 total_us=4651 input_pre_submit_us=3489 rga_us=3483 mpp_submit_us=1093 pre_drain_us=0 packet_drain_us=66
+stage_latency stream=roadEncodeData frame=68 downscale=0 total_us=8103 input_pre_submit_us=2633 rga_us=0 mpp_submit_us=5381 pre_drain_us=0 packet_drain_us=86
+stage_latency stream=qRoadEncodeData frame=68 downscale=1 total_us=4577 input_pre_submit_us=3353 rga_us=3347 mpp_submit_us=1139 pre_drain_us=0 packet_drain_us=82
+stage_latency stream=roadEncodeData frame=69 downscale=0 total_us=8425 input_pre_submit_us=2576 rga_us=0 mpp_submit_us=5614 pre_drain_us=0 packet_drain_us=232
+stage_latency stream=qRoadEncodeData frame=69 downscale=1 total_us=4143 input_pre_submit_us=3115 rga_us=3109 mpp_submit_us=962 pre_drain_us=0 packet_drain_us=62
+stage_latency stream=roadEncodeData frame=70 downscale=0 total_us=6777 input_pre_submit_us=1827 rga_us=0 mpp_submit_us=4883 pre_drain_us=0 packet_drain_us=65
+stage_latency stream=qRoadEncodeData frame=70 downscale=1 total_us=3637 input_pre_submit_us=2721 rga_us=2716 mpp_submit_us=803 pre_drain_us=0 packet_drain_us=111
+stage_latency stream=roadEncodeData frame=71 downscale=0 total_us=5907 input_pre_submit_us=1082 rga_us=0 mpp_submit_us=4765 pre_drain_us=0 packet_drain_us=58
+stage_latency stream=qRoadEncodeData frame=71 downscale=1 total_us=3636 input_pre_submit_us=2719 rga_us=2715 mpp_submit_us=864 pre_drain_us=0 packet_drain_us=51
+stage_latency stream=roadEncodeData frame=72 downscale=0 total_us=6408 input_pre_submit_us=1373 rga_us=0 mpp_submit_us=4946 pre_drain_us=0 packet_drain_us=87
+stage_latency stream=qRoadEncodeData frame=72 downscale=1 total_us=4903 input_pre_submit_us=3468 rga_us=3461 mpp_submit_us=1360 pre_drain_us=0 packet_drain_us=72
+stage_latency stream=roadEncodeData frame=73 downscale=0 total_us=6488 input_pre_submit_us=1440 rga_us=0 mpp_submit_us=4950 pre_drain_us=0 packet_drain_us=95
+stage_latency stream=qRoadEncodeData frame=73 downscale=1 total_us=4588 input_pre_submit_us=3328 rga_us=3322 mpp_submit_us=1180 pre_drain_us=0 packet_drain_us=77
+stage_latency stream=roadEncodeData frame=74 downscale=0 total_us=6836 input_pre_submit_us=1786 rga_us=0 mpp_submit_us=4939 pre_drain_us=0 packet_drain_us=108
+stage_latency stream=qRoadEncodeData frame=74 downscale=1 total_us=4438 input_pre_submit_us=3287 rga_us=3281 mpp_submit_us=1076 pre_drain_us=0 packet_drain_us=73
+stage_latency stream=roadEncodeData frame=75 downscale=0 total_us=6263 input_pre_submit_us=1354 rga_us=0 mpp_submit_us=4837 pre_drain_us=0 packet_drain_us=70
+stage_latency stream=qRoadEncodeData frame=75 downscale=1 total_us=3853 input_pre_submit_us=2868 rga_us=2863 mpp_submit_us=889 pre_drain_us=0 packet_drain_us=93
+stage_latency stream=roadEncodeData frame=76 downscale=0 total_us=5543 input_pre_submit_us=757 rga_us=0 mpp_submit_us=4693 pre_drain_us=0 packet_drain_us=91
+stage_latency stream=qRoadEncodeData frame=76 downscale=1 total_us=3964 input_pre_submit_us=2972 rga_us=2968 mpp_submit_us=932 pre_drain_us=0 packet_drain_us=57
+stage_latency stream=roadEncodeData frame=77 downscale=0 total_us=5311 input_pre_submit_us=629 rga_us=0 mpp_submit_us=4612 pre_drain_us=0 packet_drain_us=68
+stage_latency stream=qRoadEncodeData frame=77 downscale=1 total_us=3581 input_pre_submit_us=2705 rga_us=2701 mpp_submit_us=826 pre_drain_us=0 packet_drain_us=48
+stage_latency stream=roadEncodeData frame=78 downscale=0 total_us=5469 input_pre_submit_us=764 rga_us=0 mpp_submit_us=4651 pre_drain_us=0 packet_drain_us=53
+stage_latency stream=qRoadEncodeData frame=78 downscale=1 total_us=3474 input_pre_submit_us=2670 rga_us=2665 mpp_submit_us=745 pre_drain_us=0 packet_drain_us=56
+stage_latency stream=roadEncodeData frame=79 downscale=0 total_us=6910 input_pre_submit_us=1906 rga_us=0 mpp_submit_us=4924 pre_drain_us=0 packet_drain_us=78
+stage_latency stream=qRoadEncodeData frame=79 downscale=1 total_us=3444 input_pre_submit_us=2592 rga_us=2587 mpp_submit_us=802 pre_drain_us=0 packet_drain_us=49
+stage_latency stream=roadEncodeData frame=80 downscale=0 total_us=5704 input_pre_submit_us=962 rga_us=0 mpp_submit_us=4686 pre_drain_us=0 packet_drain_us=51
+stage_latency stream=qRoadEncodeData frame=80 downscale=1 total_us=3902 input_pre_submit_us=2848 rga_us=2844 mpp_submit_us=969 pre_drain_us=0 packet_drain_us=80
+stage_latency stream=roadEncodeData frame=81 downscale=0 total_us=5973 input_pre_submit_us=1097 rga_us=0 mpp_submit_us=4811 pre_drain_us=0 packet_drain_us=63
+stage_latency stream=qRoadEncodeData frame=81 downscale=1 total_us=4209 input_pre_submit_us=3111 rga_us=3106 mpp_submit_us=1024 pre_drain_us=0 packet_drain_us=72
+stage_latency stream=roadEncodeData frame=82 downscale=0 total_us=6920 input_pre_submit_us=1809 rga_us=0 mpp_submit_us=5014 pre_drain_us=0 packet_drain_us=94
+stage_latency stream=qRoadEncodeData frame=82 downscale=1 total_us=4898 input_pre_submit_us=3907 rga_us=3872 mpp_submit_us=936 pre_drain_us=0 packet_drain_us=52
+stage_latency stream=roadEncodeData frame=83 downscale=0 total_us=6786 input_pre_submit_us=1751 rga_us=0 mpp_submit_us=4952 pre_drain_us=0 packet_drain_us=80
+stage_latency stream=qRoadEncodeData frame=83 downscale=1 total_us=4253 input_pre_submit_us=3161 rga_us=3156 mpp_submit_us=1015 pre_drain_us=0 packet_drain_us=74
+stage_latency stream=roadEncodeData frame=84 downscale=0 total_us=6316 input_pre_submit_us=1366 rga_us=0 mpp_submit_us=4876 pre_drain_us=0 packet_drain_us=72
+stage_latency stream=qRoadEncodeData frame=84 downscale=1 total_us=4121 input_pre_submit_us=3085 rga_us=3080 mpp_submit_us=904 pre_drain_us=0 packet_drain_us=128
+stage_latency stream=roadEncodeData frame=85 downscale=0 total_us=5851 input_pre_submit_us=1163 rga_us=0 mpp_submit_us=4627 pre_drain_us=0 packet_drain_us=59
+stage_latency stream=qRoadEncodeData frame=85 downscale=1 total_us=3656 input_pre_submit_us=2726 rga_us=2722 mpp_submit_us=843 pre_drain_us=0 packet_drain_us=84
+stage_latency stream=roadEncodeData frame=86 downscale=0 total_us=7408 input_pre_submit_us=1883 rga_us=0 mpp_submit_us=5349 pre_drain_us=0 packet_drain_us=172
+stage_latency stream=qRoadEncodeData frame=86 downscale=1 total_us=5021 input_pre_submit_us=3715 rga_us=3708 mpp_submit_us=1239 pre_drain_us=0 packet_drain_us=65
+stage_latency stream=roadEncodeData frame=87 downscale=0 total_us=8045 input_pre_submit_us=2515 rga_us=0 mpp_submit_us=5389 pre_drain_us=0 packet_drain_us=139
+stage_latency stream=qRoadEncodeData frame=87 downscale=1 total_us=5631 input_pre_submit_us=4596 rga_us=4590 mpp_submit_us=969 pre_drain_us=0 packet_drain_us=62
+stage_latency stream=roadEncodeData frame=88 downscale=0 total_us=6834 input_pre_submit_us=1774 rga_us=0 mpp_submit_us=4969 pre_drain_us=0 packet_drain_us=88
+stage_latency stream=qRoadEncodeData frame=88 downscale=1 total_us=4678 input_pre_submit_us=3522 rga_us=3516 mpp_submit_us=1071 pre_drain_us=0 packet_drain_us=82
+stage_latency stream=roadEncodeData frame=89 downscale=0 total_us=5938 input_pre_submit_us=1124 rga_us=0 mpp_submit_us=4757 pre_drain_us=0 packet_drain_us=56
+stage_latency stream=qRoadEncodeData frame=89 downscale=1 total_us=3578 input_pre_submit_us=2585 rga_us=2580 mpp_submit_us=947 pre_drain_us=0 packet_drain_us=43
+stage_latency stream=roadEncodeData frame=90 downscale=0 total_us=5272 input_pre_submit_us=680 rga_us=0 mpp_submit_us=4541 pre_drain_us=0 packet_drain_us=49
+stage_latency stream=qRoadEncodeData frame=90 downscale=1 total_us=4022 input_pre_submit_us=2795 rga_us=2790 mpp_submit_us=1159 pre_drain_us=0 packet_drain_us=66
+stage_latency stream=roadEncodeData frame=91 downscale=0 total_us=10274 input_pre_submit_us=625 rga_us=0 mpp_submit_us=4479 pre_drain_us=0 packet_drain_us=5168
+stage_latency stream=qRoadEncodeData frame=91 downscale=1 total_us=4229 input_pre_submit_us=2897 rga_us=2892 mpp_submit_us=1080 pre_drain_us=0 packet_drain_us=248
+stage_latency stream=roadEncodeData frame=92 downscale=0 total_us=5684 input_pre_submit_us=784 rga_us=0 mpp_submit_us=4463 pre_drain_us=0 packet_drain_us=435
+stage_latency stream=qRoadEncodeData frame=92 downscale=1 total_us=3448 input_pre_submit_us=2513 rga_us=2508 mpp_submit_us=867 pre_drain_us=0 packet_drain_us=65
+stage_latency stream=roadEncodeData frame=93 downscale=0 total_us=5320 input_pre_submit_us=666 rga_us=0 mpp_submit_us=4408 pre_drain_us=0 packet_drain_us=245
+stage_latency stream=qRoadEncodeData frame=93 downscale=1 total_us=3245 input_pre_submit_us=2478 rga_us=2474 mpp_submit_us=710 pre_drain_us=0 packet_drain_us=55
+stage_latency stream=roadEncodeData frame=94 downscale=0 total_us=5552 input_pre_submit_us=867 rga_us=0 mpp_submit_us=4540 pre_drain_us=0 packet_drain_us=143
+stage_latency stream=qRoadEncodeData frame=94 downscale=1 total_us=3811 input_pre_submit_us=2686 rga_us=2681 mpp_submit_us=1041 pre_drain_us=0 packet_drain_us=82
+stage_latency stream=roadEncodeData frame=95 downscale=0 total_us=5952 input_pre_submit_us=1098 rga_us=0 mpp_submit_us=4698 pre_drain_us=0 packet_drain_us=153
+stage_latency stream=qRoadEncodeData frame=95 downscale=1 total_us=3957 input_pre_submit_us=3000 rga_us=2995 mpp_submit_us=879 pre_drain_us=0 packet_drain_us=75
+stage_latency stream=roadEncodeData frame=96 downscale=0 total_us=5263 input_pre_submit_us=656 rga_us=0 mpp_submit_us=4497 pre_drain_us=0 packet_drain_us=106
+stage_latency stream=qRoadEncodeData frame=96 downscale=1 total_us=3452 input_pre_submit_us=2593 rga_us=2589 mpp_submit_us=808 pre_drain_us=0 packet_drain_us=47
+stage_latency stream=roadEncodeData frame=97 downscale=0 total_us=5238 input_pre_submit_us=636 rga_us=0 mpp_submit_us=4500 pre_drain_us=0 packet_drain_us=100
+stage_latency stream=qRoadEncodeData frame=97 downscale=1 total_us=3671 input_pre_submit_us=2603 rga_us=2598 mpp_submit_us=995 pre_drain_us=0 packet_drain_us=70
+stage_latency stream=roadEncodeData frame=98 downscale=0 total_us=6815 input_pre_submit_us=733 rga_us=0 mpp_submit_us=5982 pre_drain_us=0 packet_drain_us=99
+stage_latency stream=qRoadEncodeData frame=98 downscale=1 total_us=3288 input_pre_submit_us=2573 rga_us=2568 mpp_submit_us=676 pre_drain_us=0 packet_drain_us=37
+stage_latency stream=roadEncodeData frame=99 downscale=0 total_us=5657 input_pre_submit_us=826 rga_us=0 mpp_submit_us=4734 pre_drain_us=0 packet_drain_us=96
+stage_latency stream=qRoadEncodeData frame=99 downscale=1 total_us=3293 input_pre_submit_us=2523 rga_us=2519 mpp_submit_us=698 pre_drain_us=0 packet_drain_us=69
+stage_latency stream=roadEncodeData frame=100 downscale=0 total_us=5342 input_pre_submit_us=660 rga_us=0 mpp_submit_us=4585 pre_drain_us=0 packet_drain_us=95
+stage_latency stream=qRoadEncodeData frame=100 downscale=1 total_us=3364 input_pre_submit_us=2568 rga_us=2564 mpp_submit_us=739 pre_drain_us=0 packet_drain_us=54
+frame_latency mode=copy frame=1 road_us=8558 qroad_us=4159
+frame_latency mode=copy frame=2 road_us=6371 qroad_us=4820
+frame_latency mode=copy frame=3 road_us=6418 qroad_us=4623
+frame_latency mode=copy frame=4 road_us=9154 qroad_us=3744
+frame_latency mode=copy frame=5 road_us=7627 qroad_us=3943
+frame_latency mode=copy frame=6 road_us=7132 qroad_us=5287
+frame_latency mode=copy frame=7 road_us=6259 qroad_us=4586
+frame_latency mode=copy frame=8 road_us=5298 qroad_us=3315
+frame_latency mode=copy frame=9 road_us=5684 qroad_us=3562
+frame_latency mode=copy frame=10 road_us=5621 qroad_us=3941
+frame_latency mode=copy frame=11 road_us=6992 qroad_us=4648
+frame_latency mode=copy frame=12 road_us=5406 qroad_us=3288
+frame_latency mode=copy frame=13 road_us=5249 qroad_us=3388
+frame_latency mode=copy frame=14 road_us=5377 qroad_us=3662
+frame_latency mode=copy frame=15 road_us=5859 qroad_us=3534
+frame_latency mode=copy frame=16 road_us=7773 qroad_us=3599
+frame_latency mode=copy frame=17 road_us=5478 qroad_us=3671
+frame_latency mode=copy frame=18 road_us=7610 qroad_us=4014
+frame_latency mode=copy frame=19 road_us=7781 qroad_us=3612
+frame_latency mode=copy frame=20 road_us=5984 qroad_us=4408
+frame_latency mode=copy frame=21 road_us=6628 qroad_us=4539
+frame_latency mode=copy frame=22 road_us=7336 qroad_us=4713
+frame_latency mode=copy frame=23 road_us=6490 qroad_us=4652
+frame_latency mode=copy frame=24 road_us=7699 qroad_us=3815
+frame_latency mode=copy frame=25 road_us=5244 qroad_us=4054
+frame_latency mode=copy frame=26 road_us=5577 qroad_us=4099
+frame_latency mode=copy frame=27 road_us=5981 qroad_us=5250
+frame_latency mode=copy frame=28 road_us=7288 qroad_us=4984
+frame_latency mode=copy frame=29 road_us=5667 qroad_us=5385
+frame_latency mode=copy frame=30 road_us=8201 qroad_us=3816
+frame_latency mode=copy frame=31 road_us=5931 qroad_us=4047
+frame_latency mode=copy frame=32 road_us=5619 qroad_us=4143
+frame_latency mode=copy frame=33 road_us=5733 qroad_us=4133
+frame_latency mode=copy frame=34 road_us=5688 qroad_us=3401
+frame_latency mode=copy frame=35 road_us=5300 qroad_us=3480
+frame_latency mode=copy frame=36 road_us=5423 qroad_us=4171
+frame_latency mode=copy frame=37 road_us=5249 qroad_us=3373
+frame_latency mode=copy frame=38 road_us=7014 qroad_us=4433
+frame_latency mode=copy frame=39 road_us=7220 qroad_us=4375
+frame_latency mode=copy frame=40 road_us=6287 qroad_us=4579
+frame_latency mode=copy frame=41 road_us=6365 qroad_us=3703
+frame_latency mode=copy frame=42 road_us=5311 qroad_us=3453
+frame_latency mode=copy frame=43 road_us=5874 qroad_us=4563
+frame_latency mode=copy frame=44 road_us=6622 qroad_us=5250
+frame_latency mode=copy frame=45 road_us=8199 qroad_us=4288
+frame_latency mode=copy frame=46 road_us=6359 qroad_us=4077
+frame_latency mode=copy frame=47 road_us=5515 qroad_us=3786
+frame_latency mode=copy frame=48 road_us=5356 qroad_us=3550
+frame_latency mode=copy frame=49 road_us=5311 qroad_us=3706
+frame_latency mode=copy frame=50 road_us=5842 qroad_us=3825
+frame_latency mode=copy frame=51 road_us=8348 qroad_us=4116
+frame_latency mode=copy frame=52 road_us=7231 qroad_us=5101
+frame_latency mode=copy frame=53 road_us=6683 qroad_us=3475
+frame_latency mode=copy frame=54 road_us=5985 qroad_us=3848
+frame_latency mode=copy frame=55 road_us=5564 qroad_us=3264
+frame_latency mode=copy frame=56 road_us=5335 qroad_us=3327
+frame_latency mode=copy frame=57 road_us=5941 qroad_us=3580
+frame_latency mode=copy frame=58 road_us=5372 qroad_us=4186
+frame_latency mode=copy frame=59 road_us=5632 qroad_us=4601
+frame_latency mode=copy frame=60 road_us=5415 qroad_us=3445
+frame_latency mode=copy frame=61 road_us=5445 qroad_us=3437
+frame_latency mode=copy frame=62 road_us=6013 qroad_us=3401
+frame_latency mode=copy frame=63 road_us=7144 qroad_us=4611
+frame_latency mode=copy frame=64 road_us=7153 qroad_us=3649
+frame_latency mode=copy frame=65 road_us=5905 qroad_us=3401
+frame_latency mode=copy frame=66 road_us=5613 qroad_us=4234
+frame_latency mode=copy frame=67 road_us=6105 qroad_us=4652
+frame_latency mode=copy frame=68 road_us=8106 qroad_us=4580
+frame_latency mode=copy frame=69 road_us=8429 qroad_us=4145
+frame_latency mode=copy frame=70 road_us=6780 qroad_us=3639
+frame_latency mode=copy frame=71 road_us=5908 qroad_us=3637
+frame_latency mode=copy frame=72 road_us=6410 qroad_us=4904
+frame_latency mode=copy frame=73 road_us=6491 qroad_us=4590
+frame_latency mode=copy frame=74 road_us=6839 qroad_us=4441
+frame_latency mode=copy frame=75 road_us=6265 qroad_us=3854
+frame_latency mode=copy frame=76 road_us=5544 qroad_us=3966
+frame_latency mode=copy frame=77 road_us=5313 qroad_us=3583
+frame_latency mode=copy frame=78 road_us=5471 qroad_us=3475
+frame_latency mode=copy frame=79 road_us=6912 qroad_us=3446
+frame_latency mode=copy frame=80 road_us=5706 qroad_us=3904
+frame_latency mode=copy frame=81 road_us=5975 qroad_us=4211
+frame_latency mode=copy frame=82 road_us=6922 qroad_us=4901
+frame_latency mode=copy frame=83 road_us=6788 qroad_us=4255
+frame_latency mode=copy frame=84 road_us=6319 qroad_us=4122
+frame_latency mode=copy frame=85 road_us=5853 qroad_us=3657
+frame_latency mode=copy frame=86 road_us=7411 qroad_us=5023
+frame_latency mode=copy frame=87 road_us=8049 qroad_us=5633
+frame_latency mode=copy frame=88 road_us=6836 qroad_us=4680
+frame_latency mode=copy frame=89 road_us=5940 qroad_us=3579
+frame_latency mode=copy frame=90 road_us=5273 qroad_us=4024
+frame_latency mode=copy frame=91 road_us=10276 qroad_us=4231
+frame_latency mode=copy frame=92 road_us=5686 qroad_us=3449
+frame_latency mode=copy frame=93 road_us=5322 qroad_us=3247
+frame_latency mode=copy frame=94 road_us=5554 qroad_us=3813
+frame_latency mode=copy frame=95 road_us=5954 qroad_us=3979
+frame_latency mode=copy frame=96 road_us=5266 qroad_us=3454
+frame_latency mode=copy frame=97 road_us=5240 qroad_us=3673
+frame_latency mode=copy frame=98 road_us=6817 qroad_us=3289
+frame_latency mode=copy frame=99 road_us=5659 qroad_us=3294
+frame_latency mode=copy frame=100 road_us=5344 qroad_us=3365
+memory_snapshot=after_timed_frames road_pool_buffers=6 road_pool_bytes=20736000 qroad_pool_buffers=6 qroad_pool_bytes=1596672 road_import_handles=0 road_import_handle_bytes=0 dma_buf_objects=1 dma_buf_total_bytes=180224 vmrss='	   27840 kB' vmhwm='	   28748 kB' memavailable='    1755156 kB' cmafree='               0 kB'
+road_route_configured_zero_copy=0 road_imported_fds=0 road_import_failures=0 road_fallback_logged=0 qroad_route_configured_zero_copy=0 qroad_imported_fds=0 qroad_import_failures=0 qroad_fallback_logged=0
+memory_snapshot=before_close road_pool_buffers=6 road_pool_bytes=20736000 qroad_pool_buffers=6 qroad_pool_bytes=1596672 road_import_handles=0 road_import_handle_bytes=0 dma_buf_objects=1 dma_buf_total_bytes=180224 vmrss='	   27840 kB' vmhwm='	   28748 kB' memavailable='    1755156 kB' cmafree='               0 kB'
+memory_snapshot=after_close road_pool_buffers=0 road_pool_bytes=0 qroad_pool_buffers=0 qroad_pool_bytes=0 road_import_handles=0 road_import_handle_bytes=0 dma_buf_objects=1 dma_buf_total_bytes=266240 vmrss='	   28456 kB' vmhwm='	   28748 kB' memavailable='    1774252 kB' cmafree='               0 kB'
+road_submit_us_median=5975 p95=8201 p99=9154 n=100
+qroad_submit_us_median=3943 p95=5101 p99=5385 n=100
+road_accepted=100 road_failures=0 road_packets=100 road_payload_bytes=1215073 road_stream_bytes=1215239
+qroad_accepted=100 qroad_failures=0 qroad_packets=100 qroad_payload_bytes=105434
+preimport_us=0 cpu_sample_ns=366965828 wall_total_ms=5035 peak_rss_kb=28748 vmrss='	   28456 kB' vmhwm='	   28748 kB'
+memory_snapshot=before_input_release road_pool_buffers=0 road_pool_bytes=0 qroad_pool_buffers=0 qroad_pool_bytes=0 road_import_handles=0 road_import_handle_bytes=0 dma_buf_objects=1 dma_buf_total_bytes=266240 vmrss='	   28456 kB' vmhwm='	   28748 kB' memavailable='    1782008 kB' cmafree='               0 kB'
+process_final_rss vmrss='	   28456 kB' vmhwm='	   28748 kB' memavailable='    1795836 kB' cmafree='               0 kB'
+launch_exit_code=0 completed_utc=2026-10-31T03:26:13Z mem_after_kb=1881136

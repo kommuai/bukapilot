@@ -1,0 +1,23 @@
+# Gate check — design phase-exit
+
+- Package: `/data/media/supremeteam/42c6eb550c629191187c/skillset-saves/runs/loggerd-ka2-efficiency-20261029/design`
+- Deterministic gate status: **NEEDS_JUDGMENT**
+- Checks run: package_links, required_artifacts, lineage, skip_records, blocked_phrases, idempotency, harness_doctrine
+- Failures: 0 | Needs judgment: 2
+
+> This is a deterministic structural report, **not a verdict**. The gatekeeper skill combines it with judgment to issue APPROVED / REVISE / ESCALATE.
+
+- **[UNCHECKED/info] ARTIFACT_CONDITIONAL** — `package`: API endpoint contracts (api-endpoint-design.md shape) not found. This artifact is required only when in scope — confirm whether this submission needs it.
+- **[UNCHECKED/info] ARTIFACT_CONDITIONAL** — `package`: frontend/UI handoff (shadcn template + UI/UX handoff) not found. pipelines.yaml runs interface-and-design-system only when "user-facing surface". Confirm that condition was false for this submission, or that a valid _skip-record.md or the sanctioned waiver covers it.
+- **[PASS/info] ARTIFACT_PRESENT** — `reports/report_research.md`: research evidence present.
+- **[PASS/info] ARTIFACT_PRESENT** — `reports/delivery-plan.md`: project plan present.
+- **[PASS/info] ARTIFACT_PRESENT** — `reports/report_architecture.md`: architecture decisions (ADRs) present.
+- **[PASS/info] ARTIFACT_PRESENT** — `reports/report_stack-lock.md`: locked technology choices / stack locks present.
+- **[PASS/info] ARTIFACT_PRESENT** — `reports/report_taste-snapshot.md`: effective Taste profile snapshot present.
+- **[PASS/info] ARTIFACT_PRESENT** — `reports/implementation-spec.md`: implementation specification present.
+- **[PASS/info] REVISION_COHERENT** — `package`: All revision-bearing artifacts agree on revision r6.
+- **[PASS/info] NO_SKIP_RECORDS** — `package`: No skip records in package (none claimed).
+- **[PASS/info] BLOCKED_PHRASE_CLEAN** — `package`: No blocked phrases or contamination markers found.
+- **[PASS/info] NO_PRIOR_VERDICT** — `package`: No prior verdict supplied; treating as a first submission.
+- **[PASS/info] NO_RUNTIME_INTERVENTION** — `package`: Package does not add or change a cross-cutting runtime intervention; harness-doctrine §5 not engaged.
+

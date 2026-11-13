@@ -1,0 +1,55 @@
+{
+  "directories": {
+    "/home/kommu/.agents/skills/harness/hooks": {
+      "files": {
+        "_bootstrap.py": "c8abb7917797b12423eb9956863b3580041aab94a048508b69a12a43cd57014a",
+        "_cmdscan.py": "bad3901ded8f5c1467355d89985139816987a80ecfbc4f63710bfcb790ba62f6",
+        "_fsutil.py": "5820f1a44085694dd88bee571059533cf9b96133959c4676943d101093d551dc",
+        "_paths.py": "3d7b2fd6f0d809e631df2b5afecfedb861d8607be1b8c7e1f7bfd1ccfba9090c",
+        "_program_paths.py": "15480404a75b8f2e7cf04ae63b9962a14cc7b06ed4b34ab2c7560379d0244657",
+        "_saves.py": "2bc793d7c701897aadc2813d01dbe75751b7c07658244d0b233fa391733011f3",
+        "_state.py": "55181fa3bdc863d7cd29000001abbc599636c0a6684bfd36b99ca12080eba56e",
+        "audit_improve.py": "729558c0630d8dc2dcad7a6abb49a38b331459aa045ab4905208c7f5c8b8cc0e",
+        "check_readiness.py": "8f5aeb058c214037712a6ada2d7ee8998023c5eac00f9b1f3e3125f2b2c921f5",
+        "gate_watch.py": "53d93c95f75aabd150afbe7c04fa1d5f4c9a094bc64533aee5497da92a777d90",
+        "guard_hook.py": "92f0c9740c75b3d88c98fc94237dcb12ac408590e7283cf271321312339ba352",
+        "guard_state.py": "2e65490d487c2a74b7648706e4597302e7afe06ae2890f579573d7abd2857734",
+        "post_tool_use.py": "605d0532ec94c4b1962c87f66562f155c843aa955fdac542f05a393850790e8e",
+        "pre_tool_use.py": "60818d715000e4ccc2fd24ec68a94054b74769ca05cfe872d17de41fda335bb5",
+        "repair_registration.py": "729078f19c80542118cf8cefbff5026cdbcf816a68c0b9824aebb1863dec4702",
+        "run_heartbeat.py": "9793064ee507e6e87c840c5d70b5b916eb7c790759f482c7e833228f368ae86a",
+        "save_run.py": "a58da1855750b8027f105ac834982c477683b349dc2e2bc47d4e53ba5c3e1fcd",
+        "scripts/data_formats.py": "2b475d977084dcf187091c8d10551617aa1703f738957fab5b2f5539d5118a53",
+        "scripts/save_location.py": "67adfbd02603449cc1edb2a4e1696364f762c3a2aef6eef5b0eaa47fffdfd766",
+        "scripts/save_taxonomy.py": "2efbda18c5346b00f48a36bae21bfba288458b3be241207949ddb93e29fbca34",
+        "size_audit.py": "4f9549568c4746d2223fa37e76e80812449d2d0d486851b079ba567967fd07b9",
+        "user_prompt_submit.py": "74dee8eb7ddb8e89a653f677f9a1195914ed6deb75158c775d3eb02db99cfbf5",
+        "verify_registration.py": "a67fccdc049fe0b6e579005223b537ec6529059142ccbd8b6ab6edfad5560665"
+      },
+      "host": "codex",
+      "path": "/home/kommu/.agents/skills/harness/hooks",
+      "recorded_at": "2026-10-29T07:19:15+00:00"
+    }
+  },
+  "hooks": {
+    "/home/kommu/.agents/skills/harness/hooks/post_tool_use.py": {
+      "host": "codex",
+      "path": "/home/kommu/.agents/skills/harness/hooks/post_tool_use.py",
+      "recorded_at": "2026-10-29T07:19:15+00:00",
+      "sha256": "605d0532ec94c4b1962c87f66562f155c843aa955fdac542f05a393850790e8e"
+    },
+    "/home/kommu/.agents/skills/harness/hooks/pre_tool_use.py": {
+      "host": "codex",
+      "path": "/home/kommu/.agents/skills/harness/hooks/pre_tool_use.py",
+      "recorded_at": "2026-10-29T07:19:15+00:00",
+      "sha256": "60818d715000e4ccc2fd24ec68a94054b74769ca05cfe872d17de41fda335bb5"
+    },
+    "/home/kommu/.agents/skills/harness/hooks/user_prompt_submit.py": {
+      "host": "codex",
+      "path": "/home/kommu/.agents/skills/harness/hooks/user_prompt_submit.py",
+      "recorded_at": "2026-10-29T07:19:15+00:00",
+      "sha256": "74dee8eb7ddb8e89a653f677f9a1195914ed6deb75158c775d3eb02db99cfbf5"
+    }
+  },
+  "schema_version": 1
+}

@@ -1,0 +1,55 @@
+target=local KA2/RK3588 board, isolated synthetic DMA-heap VisionIPC
+production_binaries=/data/openpilot/system/loggerd/loggerd,/data/openpilot/system/loggerd/encoderd
+LOGGERD_TEST=1 LOGGERD_SEGMENT_LENGTH=2 (runtime test override only)
+test-only hooks/counters/fault injection compiled out; no fault selectors set
+readiness_window=10s for subscriptions and segment 0; lifecycle_window=24s for segments 1 and 2
+predicate=both processes alive; camera/audio subscriptions present; reports 1/2 healthy; three segments have all six files; qRoad H264+audio decode
+probe_result=fail
+error=RuntimeError: segment 2 file set mismatch: ['dcamera.hevc.lock', 'ecamera.hevc.lock', 'fcamera.hevc.lock', 'qcamera.ts.lock', 'rlog.lock']; postflight=pass
+   4.853s fresh board preflight passed: no active camera/logger/encoder processes and no device users
+   4.854s dependencies present: /dev/dma_heap/system, /dev/mpp_service, /dev/rga
+   4.855s created isolated test MSGQ path /dev/shm/msgq_loggerd_runtime_3679328_e0961bb1
+   4.864s DMA-heap VisionIPC publisher ready: READY streams=road,driver,wideRoad width=1920 height=1200 stride=1920 uv_offset=2304000 buffers=4
+   4.865s PubMaster for camera states and rawAudioData initialized before daemon launch
+   4.869s production loggerd started pid=3679724; command=/data/openpilot/system/loggerd/loggerd
+   4.869s production encoderd started pid=3679725; command=/data/openpilot/system/loggerd/encoderd
+   4.969s startup ready: subscribed reader for roadCameraState
+   4.969s startup ready: subscribed reader for driverCameraState
+   4.969s startup ready: subscribed reader for wideRoadCameraState
+   4.969s startup ready: subscribed reader for rawAudioData
+   5.020s startup ready: LoggerdSegment=0; loggerd and encoderd still alive
+   5.082s readiness progression: LoggerdSegment=0; process_alive=true
+   5.082s 2s liveness poll: loggerd=alive encoderd=alive segment=0
+   7.135s 2s liveness poll: loggerd=alive encoderd=alive segment=0
+   7.230s readiness progression: LoggerdSegment=1; process_alive=true
+   9.135s 2s liveness poll: loggerd=alive encoderd=alive segment=1
+   9.379s readiness progression: LoggerdSegment=2; process_alive=true
+  10.332s smoke flow complete: frames_sent=106; reports_seen=[1, 2]
+  10.332s healthy rotation report segment=1: elapsed_ms=156 missing=[] drops=0
+  10.332s healthy rotation report segment=2: elapsed_ms=121 missing=[] drops=0
+  10.556s segment 0 artifacts verified: all six files nonempty; qRoad H264+audio decodable; audio_samples=34816
+  10.786s segment 1 artifacts verified: all six files nonempty; qRoad H264+audio decodable; audio_samples=36864
+  10.786s FAIL: RuntimeError: segment 2 file set mismatch: ['dcamera.hevc.lock', 'ecamera.hevc.lock', 'fcamera.hevc.lock', 'qcamera.ts.lock', 'rlog.lock']
+  10.790s Traceback (most recent call last): |   File "/tmp/runtime_smoke_r10.py", line 265, in <module> |     raise RuntimeError(f'segment {segment_num} file set mismatch: {sorted(files ^ EXPECTED_FILES)}') | RuntimeError: segment 2 file set mismatch: ['dcamera.hevc.lock', 'ecamera.hevc.lock', 'fcamera.hevc.lock', 'qcamera.ts.lock', 'rlog.lock'] | 
+  11.068s encoderd stopped returncode=0
+  11.233s loggerd stopped returncode=0
+  11.409s DMA-heap publisher stopped returncode=0; CLEANUP_OK
+  11.409s loggerd stdout follows:
+LOGGERD system/loggerd/loggerd.cc: logging to /tmp/loggerd_runtime_r10_3679328_dko161f0/logs/2026-10-31--09-42-05--0
+LOGGERD system/loggerd/loggerd.cc: rotated to /tmp/loggerd_runtime_r10_3679328_dko161f0/logs/2026-10-31--09-42-05--1
+LOGGERD system/loggerd/loggerd.cc: rotated to /tmp/loggerd_runtime_r10_3679328_dko161f0/logs/2026-10-31--09-42-05--2
+LOGGERD system/loggerd/loggerd.cc: closing logger
+  11.410s encoderd stdout follows:
+ENCODERD system/loggerd/encoderd.cc: encoder road_cam_encoder init 1920x1200
+ENCODERD system/loggerd/encoderd.cc: encoder wide_road_cam_encoder init 1920x1200
+ENCODERD system/loggerd/encoderd.cc: encoder driver_cam_encoder init 1920x1200
+ENCODERD rga_api version 1.10.0_[8]
+ENCODERD system/loggerd/encoderd.cc: encoder road_cam_encoder applying global segment catch-up 0 -> 1 phase=pre_rotate_barrier loggerd_state=started epoch=1
+ENCODERD system/loggerd/encoderd.cc: encoder driver_cam_encoder applying global segment catch-up 0 -> 1 phase=pre_rotate_barrier loggerd_state=started epoch=1
+ENCODERD system/loggerd/encoderd.cc: encoder wide_road_cam_encoder applying global segment catch-up 0 -> 1 phase=pre_rotate_barrier loggerd_state=started epoch=1
+ENCODERD system/loggerd/encoderd.cc: encoder road_cam_encoder applying global segment catch-up 1 -> 2 phase=pre_rotate_barrier loggerd_state=started epoch=2
+ENCODERD system/loggerd/encoderd.cc: encoder driver_cam_encoder applying global segment catch-up 1 -> 2 phase=pre_rotate_barrier loggerd_state=started epoch=2
+ENCODERD system/loggerd/encoderd.cc: encoder wide_road_cam_encoder applying global segment catch-up 1 -> 2 phase=pre_rotate_barrier loggerd_state=started epoch=2
+PUBLISHER READY streams=road,driver,wideRoad width=1920 height=1200 stride=1920 uv_offset=2304000 buffers=4
+PUBLISHER CLEANUP_OK
+  15.638s postflight passed: isolated socket/MSGQ removed and board device nodes idle

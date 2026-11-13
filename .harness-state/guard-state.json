@@ -1,0 +1,52 @@
+{
+  "read_only": [
+    {
+      "allow": [
+        "skillset-saves/runs/sensord-refactor-20261029/**"
+      ],
+      "created_at": "2026-10-29T09:37:05Z",
+      "owner": "cross-check-build-confirm",
+      "release_reason": "Completeness pass returned and its report is saved; build-management is resolving the implementation diff evidence gap.",
+      "released_at": "2026-10-29T09:40:47Z",
+      "released_by": "cross-check-build-confirm",
+      "run_id": "sensord-refactor-20261029",
+      "scope": "build evidence completeness pass; product source and tests are read-only"
+    },
+    {
+      "allow": [
+        "skillset-saves/runs/sensord-refactor-20261029/**"
+      ],
+      "created_at": "2026-10-29T09:43:12Z",
+      "owner": "cross-check-build-confirm",
+      "release_reason": "Completeness recheck returned and its report is saved; build phase is awaiting an authorized runtime target.",
+      "released_at": "2026-10-29T09:44:44Z",
+      "released_by": "cross-check-build-confirm",
+      "run_id": "sensord-refactor-20261029",
+      "scope": "second build evidence completeness pass; product source and tests are read-only"
+    },
+    {
+      "allow": [
+        "skillset-saves/runs/loggerd-ka2-efficiency-20261029/**"
+      ],
+      "created_at": "2026-10-30T17:48:15Z",
+      "owner": "build/cross-check-build-confirm",
+      "release_reason": "Completeness cross-check is complete; read-only review boundary has ended.",
+      "released_at": "2026-10-30T17:53:51Z",
+      "released_by": "build/cross-check-build-confirm",
+      "run_id": "loggerd-ka2-efficiency-20261029",
+      "scope": "read-only run"
+    },
+    {
+      "allow": [
+        "skillset-saves/runs/loggerd-ka2-efficiency-20261029/**"
+      ],
+      "created_at": "2026-10-31T10:35:11Z",
+      "owner": "cross-check-build-confirm",
+      "release_reason": "The read-only cross-check completed and returned its hashed completeness report.",
+      "released_at": "2026-10-31T10:40:15Z",
+      "released_by": "cross-check-build-confirm",
+      "run_id": "loggerd-ka2-efficiency-20261029",
+      "scope": "read-only run"
+    }
+  ]
+}

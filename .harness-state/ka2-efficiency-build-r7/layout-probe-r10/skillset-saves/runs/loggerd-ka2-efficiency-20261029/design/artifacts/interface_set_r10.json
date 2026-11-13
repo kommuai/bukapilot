@@ -1,0 +1,29 @@
+{
+  "artifacts": [
+    "reports/report_interfaces_r10.md",
+    "reports/report_architecture_r10.md"
+  ],
+  "change": "changed",
+  "items": [
+    {
+      "id": "IF-1",
+      "kind": "internal-process-coordination",
+      "name": "deterministic-KA2 loggerd-to-encoderd segment authority and exact seven-field runtime diagnostic report via Params"
+    },
+    {
+      "id": "IF-2",
+      "kind": "internal-cpp-status",
+      "name": "deterministic-KA2 per-output encoder health, packet progress, pending identities, and distinct planned-segment versus failure-recovery reopen/retry counters"
+    },
+    {
+      "id": "IF-3",
+      "kind": "test-fixture",
+      "name": "C++ DMA-heap-backed VisionIPC external-buffer publisher"
+    },
+    {
+      "id": "IF-4",
+      "kind": "loggerd-media-lifecycle",
+      "name": "deterministic-KA2 runtime-commit writer finalization and bounded audio queue with atomic newest-event capacity drops"
+    }
+  ]
+}

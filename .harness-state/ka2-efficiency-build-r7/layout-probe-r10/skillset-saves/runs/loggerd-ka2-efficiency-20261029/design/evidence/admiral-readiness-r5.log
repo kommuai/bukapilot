@@ -1,0 +1,28 @@
+Supreme Team runtime readiness check
+Python: ok - Python 3.13.15 satisfies >= 3.13
+Hooks: missing - verifier exit 1 (hosts: codex; optional)
+Saves: active - latest run loggerd-ka2-efficiency-20261029 is coherent and pinned
+Capabilities: python_runtime=True, hooks_configured=False, hooks_executable=False, hooks_coverage=unverified, hooks_interpreter=unverified, hooks_observed=unverified, hooks_faults=0, saves_readable=True, active_run=True, deterministic_validators=True
+
+Hook verifier output:
+Supreme Team harness hook registration check
+Selected host scope: auto -> codex (environment signal and config found)
+
+[codex]
+Config files inspected:
+  - /data/kommu/.codex/hooks.json  [read]
+  - /data/openpilot/.codex/hooks.json  [absent]
+  [MISSING] PreToolUse -> pre_tool_use.py  (configured=false resolvable=false; no command registered)
+  [MISSING] PostToolUse -> post_tool_use.py  (configured=false resolvable=false; no command registered)
+  [MISSING] UserPromptSubmit -> user_prompt_submit.py  (configured=false resolvable=false; no command registered)
+  observed: unverified - host firing is not proven by config inspection
+  status: MISSING
+
+REGISTER_PROMPT: Supreme Team harness hooks are not fully registered for the selected host scope.
+Register the 3 commands in the active host's native hook configuration.
+The scripts live in skills/harness/hooks/; see that directory's README.md for exact examples,
+or preview a scoped repair with: /usr/local/uv/python/cpython-3.13.15-linux-aarch64-gnu/bin/python3.13 /data/kommu/.codex/skills/harness/hooks/repair_registration.py --host codex --scope project
+
+Repair (read-only preview): /usr/local/uv/python/cpython-3.13.15-linux-aarch64-gnu/bin/python3.13 /data/kommu/.codex/skills/harness/hooks/repair_registration.py --host codex --scope project (dry run; add --apply only with owner authorization)
+
+Ready: yes

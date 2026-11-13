@@ -1,0 +1,49 @@
+target=local KA2/RK3588 board, isolated synthetic DMA-heap VisionIPC
+production_binaries=/data/openpilot/system/loggerd/loggerd,/data/openpilot/system/loggerd/encoderd
+LOGGERD_TEST=1 LOGGERD_SEGMENT_LENGTH=2 (runtime test override only)
+test-only hooks/counters/fault injection compiled out; no fault selectors set
+readiness_window=10s for subscriptions and segment 0; lifecycle_window=24s for segments 1 and 2
+predicate=both processes alive; camera/audio subscriptions present; reports 1/2 healthy; three segments have all six files; qRoad H264+audio decode
+probe_result=fail
+error=RuntimeError: roadCameraState subscription was not ready within the 10s startup window; postflight=pass
+   4.742s fresh board preflight passed: no active camera/logger/encoder processes and no device users
+   4.742s dependencies present: /dev/dma_heap/system, /dev/mpp_service, /dev/rga
+   4.744s created isolated test MSGQ path /dev/shm/msgq_loggerd_runtime_3676938_28da2468
+   4.753s DMA-heap VisionIPC publisher ready: READY streams=road,driver,wideRoad width=1920 height=1200 stride=1920 uv_offset=2304000 buffers=4
+   4.753s PubMaster for camera states and rawAudioData initialized before daemon launch
+   4.757s production loggerd started pid=3677295; command=/data/openpilot/system/loggerd/loggerd
+   4.757s production encoderd started pid=3677296; command=/data/openpilot/system/loggerd/encoderd
+  14.735s FAIL: RuntimeError: roadCameraState subscription was not ready within the 10s startup window
+  14.739s Traceback (most recent call last): |   File "/tmp/runtime_smoke_r10.py", line 169, in <module> |     raise RuntimeError(f'{service} subscription was not ready within the 10s startup window') | RuntimeError: roadCameraState subscription was not ready within the 10s startup window | 
+  15.018s encoderd stopped returncode=0
+  15.183s loggerd stopped returncode=0
+  15.306s DMA-heap publisher stopped returncode=0; CLEANUP_OK
+  15.306s loggerd stdout follows:
+LOGGERD system/loggerd/loggerd.cc: logging to /tmp/loggerd_runtime_r10_3676938_t5btz_0g/logs/2026-10-31--09-41-23--0
+LOGGERD system/loggerd/loggerd.cc: rotated to /tmp/loggerd_runtime_r10_3676938_t5btz_0g/logs/2026-10-31--09-41-23--1
+LOGGERD system/loggerd/loggerd.cc: closing logger
+  15.306s encoderd stdout follows:
+ENCODERD system/loggerd/encoderd.cc: encoder driver_cam_encoder init 1920x1200
+ENCODERD system/loggerd/encoderd.cc: encoder wide_road_cam_encoder init 1920x1200
+ENCODERD system/loggerd/encoderd.cc: encoder road_cam_encoder init 1920x1200
+ENCODERD system/loggerd/encoderd.cc: encoder driver_cam_encoder reconnecting vipc (stalled, no frame for 3003.7 ms)
+ENCODERD system/loggerd/encoderd.cc: encoder wide_road_cam_encoder reconnecting vipc (stalled, no frame for 3001.6 ms)
+ENCODERD system/loggerd/encoderd.cc: encoder road_cam_encoder reconnecting vipc (stalled, no frame for 3003.0 ms)
+ENCODERD system/loggerd/encoderd.cc: encoder driver_cam_encoder init 1920x1200
+ENCODERD system/loggerd/encoderd.cc: encoder wide_road_cam_encoder init 1920x1200
+ENCODERD system/loggerd/encoderd.cc: encoder road_cam_encoder init 1920x1200
+ENCODERD system/loggerd/encoderd.cc: encoder driver_cam_encoder reconnecting vipc (stalled, no frame for 3003.2 ms)
+ENCODERD system/loggerd/encoderd.cc: encoder wide_road_cam_encoder reconnecting vipc (stalled, no frame for 3001.7 ms)
+ENCODERD system/loggerd/encoderd.cc: encoder road_cam_encoder reconnecting vipc (stalled, no frame for 3003.0 ms)
+ENCODERD system/loggerd/encoderd.cc: encoder driver_cam_encoder init 1920x1200
+ENCODERD system/loggerd/encoderd.cc: encoder wide_road_cam_encoder init 1920x1200
+ENCODERD system/loggerd/encoderd.cc: encoder road_cam_encoder init 1920x1200
+ENCODERD system/loggerd/encoderd.cc: encoder driver_cam_encoder reconnecting vipc (stalled, no frame for 3002.2 ms)
+ENCODERD system/loggerd/encoderd.cc: encoder wide_road_cam_encoder reconnecting vipc (stalled, no frame for 3001.4 ms)
+ENCODERD system/loggerd/encoderd.cc: encoder road_cam_encoder reconnecting vipc (stalled, no frame for 3002.6 ms)
+ENCODERD system/loggerd/encoderd.cc: encoder driver_cam_encoder init 1920x1200
+ENCODERD system/loggerd/encoderd.cc: encoder wide_road_cam_encoder init 1920x1200
+ENCODERD system/loggerd/encoderd.cc: encoder road_cam_encoder init 1920x1200
+PUBLISHER READY streams=road,driver,wideRoad width=1920 height=1200 stride=1920 uv_offset=2304000 buffers=4
+PUBLISHER CLEANUP_OK
+  19.566s postflight passed: isolated socket/MSGQ removed and board device nodes idle

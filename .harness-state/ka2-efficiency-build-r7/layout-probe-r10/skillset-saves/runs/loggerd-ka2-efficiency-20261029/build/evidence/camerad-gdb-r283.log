@@ -1,0 +1,50 @@
+
+This GDB supports auto-downloading debuginfo from the following URLs:
+  <https://debuginfod.ubuntu.com>
+Enable debuginfod for this session? (y or [n]) [answered N; input not from terminal]
+Debuginfod has been disabled.
+To make this setting permanent, add 'set debuginfod enabled off' to .gdbinit.
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/aarch64-linux-gnu/libthread_db.so.1".
+[New Thread 0x7ff703eae0 (LWP 397974)]
+[New Thread 0x7ff682eae0 (LWP 397975)]
+
+Thread 1 "camerad" received signal SIGSEGV, Segmentation fault.
+0x0000007fe9ab61ac in ?? () from /usr/lib/aarch64-linux-gnu/libmali-x11/libmali-valhall-g610-g13p0-x11-wayland-gbm.so
+
+Thread 3 (Thread 0x7ff682eae0 (LWP 397975) "ZMQbg/IO/0"):
+#0  0x0000007ff75fbd34 in epoll_pwait () from /lib/aarch64-linux-gnu/libc.so.6
+No symbol table info available.
+#1  0x0000007ff7f36338 in ?? () from /lib/aarch64-linux-gnu/libzmq.so.5
+No symbol table info available.
+#2  0x0000007ff7f669a0 in ?? () from /lib/aarch64-linux-gnu/libzmq.so.5
+No symbol table info available.
+#3  0x0000007ff759582c in ?? () from /lib/aarch64-linux-gnu/libc.so.6
+No symbol table info available.
+#4  0x0000007ff75fba0c in ?? () from /lib/aarch64-linux-gnu/libc.so.6
+No symbol table info available.
+
+Thread 2 (Thread 0x7ff703eae0 (LWP 397974) "ZMQbg/Reaper"):
+#0  0x0000007ff75fbd34 in epoll_pwait () from /lib/aarch64-linux-gnu/libc.so.6
+No symbol table info available.
+#1  0x0000007ff7f36338 in ?? () from /lib/aarch64-linux-gnu/libzmq.so.5
+No symbol table info available.
+#2  0x0000007ff7f669a0 in ?? () from /lib/aarch64-linux-gnu/libzmq.so.5
+No symbol table info available.
+#3  0x0000007ff759582c in ?? () from /lib/aarch64-linux-gnu/libc.so.6
+No symbol table info available.
+#4  0x0000007ff75fba0c in ?? () from /lib/aarch64-linux-gnu/libc.so.6
+No symbol table info available.
+
+Thread 1 (Thread 0x7ff7fb7020 (LWP 397455) "camerad"):
+#0  0x0000007fe9ab61ac in ?? () from /usr/lib/aarch64-linux-gnu/libmali-x11/libmali-valhall-g610-g13p0-x11-wayland-gbm.so
+No symbol table info available.
+#1  0x0000007fffffeb40 in ?? ()
+No symbol table info available.
+Backtrace stopped: previous frame inner to this frame (corrupt stack?)
+warning: Loadable section "" outside of ELF segments
+  in /usr/lib/aarch64-linux-gnu/libmali-x11/libmali-valhall-g610-g13p0-x11-wayland-gbm.so
+warning: Loadable section "" outside of ELF segments
+  in /usr/lib/aarch64-linux-gnu/libmali-x11/libmali-valhall-g610-g13p0-x11-wayland-gbm.so
+Failed creating base context during opening of kernel driver.
+Kernel module may not have been loaded

@@ -1,0 +1,8 @@
+   4.992s DMA-heap VisionIPC publisher ready: READY streams=road,driver,wideRoad width=1920 height=1200 stride=1920 uv_offset=2304000 buffers=4 backing=dma_heap
+   4.995s production loggerd started pid=225994; command=/data/openpilot/system/loggerd/loggerd
+   4.995s production encoderd started pid=225995; command=/data/openpilot/system/loggerd/encoderd
+   5.046s startup ready: subscribed reader for roadCameraState
+   5.046s startup ready: subscribed reader for driverCameraState
+   5.046s startup ready: subscribed reader for wideRoadCameraState
+   5.046s startup ready: subscribed reader for rawAudioData
+   5.096s startup ready: LoggerdSegment=0; loggerd and encoderd still alive

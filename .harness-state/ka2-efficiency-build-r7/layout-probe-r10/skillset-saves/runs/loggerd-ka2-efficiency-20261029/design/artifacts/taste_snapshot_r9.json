@@ -1,0 +1,22 @@
+{
+  "applicable": false,
+  "reason": "no saved Taste profile available",
+  "scope": "KA2 loggerd/encoderd rotation liveness and report-contract correction design r9",
+  "decided_by": "taste",
+  "canonical_digest": null,
+  "source_revisions": {
+    "project": 0,
+    "global": 0
+  },
+  "source_states": {
+    "project": "absent",
+    "global": "absent"
+  },
+  "store_status_digests": {
+    "project": "sha256:83ee2f5f3818f5ad0ed3ed28c8ef8ce040001c47db6998f92b8ac1b921bd3f8e",
+    "global": "sha256:1b2be0b665bc443fa7aa5e8d64ec5c0d62dbcc5406ff16ea2dc4a9498ceca4cc"
+  },
+  "resolved_entries": [],
+  "shadowed_entries": [],
+  "unresolved_conflicts": []
+}

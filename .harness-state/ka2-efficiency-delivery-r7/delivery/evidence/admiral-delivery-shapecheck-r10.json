@@ -1,0 +1,70 @@
+{
+  "boundary": "cross-stage handoff (admiral)",
+  "checks_run": [
+    "package_links",
+    "required_artifacts",
+    "lineage",
+    "skip_records",
+    "blocked_phrases",
+    "idempotency",
+    "harness_doctrine"
+  ],
+  "counts": {
+    "fail": 0,
+    "total": 7,
+    "unchecked": 0
+  },
+  "findings": [
+    {
+      "code": "ARTIFACT_PRESENT",
+      "location": "reports/handoff_design-to-build.md",
+      "message": "cross-stage handoff record with submission/verdict frontmatter present.",
+      "severity": "info",
+      "status": "PASS"
+    },
+    {
+      "code": "ARTIFACT_PRESENT",
+      "location": "reports/delivery-package.md",
+      "message": "package or delivery summary the next consumer reads present.",
+      "severity": "info",
+      "status": "PASS"
+    },
+    {
+      "code": "REVISION_COHERENT",
+      "location": "package",
+      "message": "All revision-bearing artifacts agree on revision r10.",
+      "severity": "info",
+      "status": "PASS"
+    },
+    {
+      "code": "NO_SKIP_RECORDS",
+      "location": "package",
+      "message": "No skip records in package (none claimed).",
+      "severity": "info",
+      "status": "PASS"
+    },
+    {
+      "code": "BLOCKED_PHRASE_CLEAN",
+      "location": "package",
+      "message": "No blocked phrases or contamination markers found.",
+      "severity": "info",
+      "status": "PASS"
+    },
+    {
+      "code": "NEW_SUBMISSION",
+      "location": "/data/media/supremeteam/42c6eb550c629191187c/skillset-saves/runs/loggerd-ka2-efficiency-20261029/design/verdict_design-to-build-r9.cross-stage.json",
+      "message": "Submission id/revision differ from the prior verdict; evaluating as a fresh submission.",
+      "severity": "info",
+      "status": "PASS"
+    },
+    {
+      "code": "NO_RUNTIME_INTERVENTION",
+      "location": "package",
+      "message": "Package does not add or change a cross-cutting runtime intervention; harness-doctrine \u00a75 not engaged.",
+      "severity": "info",
+      "status": "PASS"
+    }
+  ],
+  "gate_status": "STRUCTURE_OK",
+  "package_path": "/data/openpilot/.harness-state/ka2-efficiency-delivery-r7/delivery"
+}

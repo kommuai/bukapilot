@@ -1,0 +1,55 @@
+target=local KA2/RK3588 board, isolated synthetic DMA-heap VisionIPC
+production_binaries=/data/openpilot/system/loggerd/loggerd,/data/openpilot/system/loggerd/encoderd
+LOGGERD_TEST=1 LOGGERD_SEGMENT_LENGTH=2 (runtime test override only)
+test-only hooks/counters/fault injection compiled out; no fault selectors set
+readiness_window=10s for subscriptions and segment 0; lifecycle_window=24s for segments 1 and 2
+predicate=both processes alive; camera/audio subscriptions present; reports 1/2 healthy; three segments have all six files; qRoad H264+audio decode
+probe_result=pass
+error=none; postflight=pass
+   4.936s fresh board preflight passed: no active camera/logger/encoder processes and no device users
+   4.936s dependencies present: /dev/dma_heap/system, /dev/mpp_service, /dev/rga
+   4.938s created isolated test MSGQ path /dev/shm/msgq_loggerd_runtime_3681696_9828fd4f
+   4.946s DMA-heap VisionIPC publisher ready: READY streams=road,driver,wideRoad width=1920 height=1200 stride=1920 uv_offset=2304000 buffers=4
+   4.947s PubMaster for camera states and rawAudioData initialized before daemon launch
+   4.949s production loggerd started pid=3682073; command=/data/openpilot/system/loggerd/loggerd
+   4.949s production encoderd started pid=3682074; command=/data/openpilot/system/loggerd/encoderd
+   5.049s startup ready: subscribed reader for roadCameraState
+   5.049s startup ready: subscribed reader for driverCameraState
+   5.049s startup ready: subscribed reader for wideRoadCameraState
+   5.049s startup ready: subscribed reader for rawAudioData
+   5.100s startup ready: LoggerdSegment=0; loggerd and encoderd still alive
+   5.160s readiness progression: LoggerdSegment=0; process_alive=true
+   5.160s 2s liveness poll: loggerd=alive encoderd=alive segment=0
+   7.161s 2s liveness poll: loggerd=alive encoderd=alive segment=0
+   7.216s readiness progression: LoggerdSegment=1; process_alive=true
+   9.166s 2s liveness poll: loggerd=alive encoderd=alive segment=1
+   9.366s readiness progression: LoggerdSegment=2; process_alive=true
+  10.314s smoke flow complete: frames_sent=104; reports_seen=[1, 2]
+  10.529s encoderd stopped returncode=0
+  10.744s loggerd stopped returncode=0
+  10.744s healthy rotation report segment=1: elapsed_ms=68 missing=[] drops=0
+  10.744s healthy rotation report segment=2: elapsed_ms=119 missing=[] drops=0
+  10.947s segment 0 artifacts verified: all six files nonempty; qRoad H264+audio decodable; audio_samples=33792
+  11.187s segment 1 artifacts verified: all six files nonempty; qRoad H264+audio decodable; audio_samples=36864
+  11.401s segment 2 artifacts verified: all six files nonempty; qRoad H264+audio decodable; audio_samples=17408
+  11.401s runtime readiness PASS for synthetic DMA-BUF board target; live V4L2 export was not exercised
+  11.579s DMA-heap publisher stopped returncode=0; CLEANUP_OK
+  11.579s loggerd stdout follows:
+LOGGERD system/loggerd/loggerd.cc: logging to /tmp/loggerd_runtime_r10_3681696_y5k35dkj/logs/2026-10-31--09-42-45--0
+LOGGERD system/loggerd/loggerd.cc: rotated to /tmp/loggerd_runtime_r10_3681696_y5k35dkj/logs/2026-10-31--09-42-45--1
+LOGGERD system/loggerd/loggerd.cc: rotated to /tmp/loggerd_runtime_r10_3681696_y5k35dkj/logs/2026-10-31--09-42-45--2
+LOGGERD system/loggerd/loggerd.cc: closing logger
+  11.579s encoderd stdout follows:
+ENCODERD system/loggerd/encoderd.cc: encoder driver_cam_encoder init 1920x1200
+ENCODERD system/loggerd/encoderd.cc: encoder road_cam_encoder init 1920x1200
+ENCODERD system/loggerd/encoderd.cc: encoder wide_road_cam_encoder init 1920x1200
+ENCODERD rga_api version 1.10.0_[8]
+ENCODERD system/loggerd/encoderd.cc: encoder road_cam_encoder applying global segment catch-up 0 -> 1 phase=pre_rotate_barrier loggerd_state=started epoch=1
+ENCODERD system/loggerd/encoderd.cc: encoder driver_cam_encoder applying global segment catch-up 0 -> 1 phase=pre_rotate_barrier loggerd_state=started epoch=1
+ENCODERD system/loggerd/encoderd.cc: encoder wide_road_cam_encoder applying global segment catch-up 0 -> 1 phase=pre_rotate_barrier loggerd_state=started epoch=1
+ENCODERD system/loggerd/encoderd.cc: encoder road_cam_encoder applying global segment catch-up 1 -> 2 phase=pre_rotate_barrier loggerd_state=started epoch=2
+ENCODERD system/loggerd/encoderd.cc: encoder driver_cam_encoder applying global segment catch-up 1 -> 2 phase=pre_rotate_barrier loggerd_state=committed epoch=2
+ENCODERD system/loggerd/encoderd.cc: encoder wide_road_cam_encoder applying global segment catch-up 1 -> 2 phase=pre_rotate_barrier loggerd_state=started epoch=2
+PUBLISHER READY streams=road,driver,wideRoad width=1920 height=1200 stride=1920 uv_offset=2304000 buffers=4
+PUBLISHER CLEANUP_OK
+  15.879s postflight passed: isolated socket/MSGQ removed and board device nodes idle

@@ -1,0 +1,1 @@
+ERROR: <package-dir> /data/media/supremeteam/42c6eb550c629191187c/skillset-saves/runs/loggerd-ka2-efficiency-20261029/design is outside the project /data/openpilot; run the gate from the project that holds the package. Refusing to read it.

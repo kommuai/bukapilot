@@ -1,0 +1,6 @@
+*.o
+*.pyc
+__pycache__/
+params_dumps/
+*.bak*
+phase0_spike

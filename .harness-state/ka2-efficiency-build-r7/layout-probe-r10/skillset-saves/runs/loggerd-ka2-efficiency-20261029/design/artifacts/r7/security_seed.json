@@ -1,0 +1,8 @@
+{
+  "applicable": false,
+  "scope": "KA2/RK3588 r7 encoder-efficiency design: isolated synthetic A/B of the existing ENCODER_ZERO_COPY MPP DMA-import path for full-resolution road, wideRoad, and driver streams, with immediate copy fallback on import failure; qRoad unchanged; best-effort recording semantics.",
+  "decided_by": "build/security-builder",
+  "architecture_revision": "r7; report_architecture.md sha256 51198630b43ee77daf23900a5316866b98dca5abf4ebe766362c1c5972aa144e",
+  "reason": "The candidate changes which local buffer allocation MPP reads and its lifetime/ownership handling, but it adds no external actor, network or public service entry point, credential flow, schema, or privilege boundary. The same encoder-to-MPP processing boundary already handles frame content in copy mode, and this revision tests synthetic frames in isolated roots. Therefore no new or moved adversarial trust boundary is identified in this scope. This is not an independent security assessment or a claim that the current MPP implementation, DMA lifetime, or driver is secure. Imported-buffer reuse before MPP completion can corrupt output, and empty or malformed packets can harm recording integrity or consume resources; keep copy mode as default and gate the candidate on same-image testing of fallback, buffer lifetime symptoms, decoded content, output usability, and resource limits. Reassess if the path becomes production-default, accepts attacker-controlled frames, changes privilege/interface exposure, or moves to a different MPP/driver image.",
+  "boundaries": []
+}

@@ -1,0 +1,47 @@
+preflight_binary_sha=c30b920d13b072d271122408822192e6e427b8ecac4ed289e3cecd64b7d37b47 mpp_sha=ea762b7da71b63a73cdf14d053d84b091654aee5e5c4f26ceb1449b8fb8d92f9 mem_available_kb=2024236 data_free_kb=1815532
+2026-10-30T18:35:39+00:00
+temporary_stream=/dev/shm/ka2-r7-mpp-encode.7UCHOLaWIk
+probe=single_synthetic_dmabuf_hevc_encode
+geometry=1920x1200 stride=1920x1200 uv_offset=2304000 nv12_bytes=3456000
+heap=/dev/dma_heap/system fd=12 allocated_bytes=3456000
+dma_buf_sync_start_rc=0 errno=0
+dma_buf_sync_end_rc=0 errno=0
+dma_buf_identity=/dmabuf:1053654-g0-mpp-encode-p
+mpp_create=0
+mpp_init_hevc=0
+fd_size_import_ret=0 imported=present
+ptr_retry_import=not_needed
+mpp_enc_cfg_init=0
+MPP_ENC_GET_CFG=0
+MPP_ENC_SET_CFG=0
+MPP_ENC_SET_HEADER_MODE=0
+MPP_ENC_GET_HDR_SYNC=0 header_bytes=83
+MPP_SET_OUTPUT_TIMEOUT=0
+encode_put_frame=0
+encode_put_eos=0
+encode_get_packet=0 packet=present bytes=11617 eos=0
+encode_get_packet=0 packet=present bytes=0 eos=1
+saw_eos=true packet_and_header_bytes=11700
+stream_write_ok bytes=11700
+mpp_buffer_put=0
+mpp_enc_cfg_deinit=0
+mpp_destroy=0
+frames_submitted=1 eos_markers=1 output_stream_bytes=11700 result=0
+mpp_probe_timeout_wrapper_exit=0
+stream_bytes=11700
+bfc5a7b328a1ee6b33d185102242a5f143472a7bc5808915e40482953786077d  /dev/shm/ka2-r7-mpp-encode.7UCHOLaWIk
+ffprobe_exit=0 decoded_frame_count=1
+ffmpeg_decode_exit=0
+temporary_stream_removed=true
+post_processes:
+   3574 system.loggerd. system.loggerd.deleter
+   3592 python3         python3 -m system.loggerd.uploader
+1053613 bash            /bin/bash -c bash skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/g0-mpp-encode-probe-run.sh > skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/g0-mpp-encode-probe-run.log 2>&1
+1053614 bash            bash skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/g0-mpp-encode-probe-run.sh
+post_device_users:
+post_resources:
+MemAvailable:    2001264 kB
+CmaTotal:         262144 kB
+CmaFree:               0 kB
+/dev/mmcblk0p12     8525148 6254968   1815528      78% /data
+tmpfs              1865488 12148   1853340       1% /dev/shm

@@ -1,0 +1,16 @@
+target=local KA2/RK3588 board, isolated synthetic DMA-heap VisionIPC
+production_binaries=/data/openpilot/system/loggerd/loggerd,/data/openpilot/system/loggerd/encoderd
+LOGGERD_TEST=1 LOGGERD_SEGMENT_LENGTH=2 (runtime test override only)
+test-only hooks/counters/fault injection compiled out; no fault selectors set
+readiness_window=10s for subscriptions and segment 0; lifecycle_window=24s for segments 1 and 2
+predicate=both processes alive; camera/audio subscriptions present; reports 1/2 healthy; three segments have all six files; qRoad H264+audio decode
+probe_result=fail
+error=AssertionError: publisher did not produce output within 9.997252817003755s; returncode=None; postflight=pass
+   4.923s fresh board preflight passed: no active camera/logger/encoder processes and no device users
+   4.924s dependencies present: /dev/dma_heap/system, /dev/mpp_service, /dev/rga
+   4.925s created isolated test MSGQ path /dev/shm/msgq_loggerd_runtime_3787942_2a81bc7a
+  14.936s FAIL: AssertionError: publisher did not produce output within 9.997252817003755s; returncode=None
+  14.941s Traceback (most recent call last): |   File "/data/openpilot/skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/runtime-r10-smoke-runner-r231.py", line 150, in <module> |     ready = _wait_matching_line( |             ^^^^^^^^^^^^^^^^^^^^ |   File "/data/pythonpath/openpilot/system/loggerd/tests/test_dmabuf_fixture.py", line 69, in _wait_matching_line |     line = _wait_line(process, max(0.0, deadline - time.monotonic())) |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ |   File "/data/pythonpath/openpilot/system/loggerd/tests/test_dmabuf_fixture.py", line 59, in _wait_line |     raise AssertionError(f"publisher did not produce output within {timeout}s; returncode={process.poll()}") | AssertionError: publisher did not produce output within 9.997252817003755s; returncode=None | 
+  15.159s DMA-heap publisher stopped returncode=0; CLEANUP_OK
+PUBLISHER CLEANUP_OK
+  19.353s postflight passed: isolated socket/MSGQ removed and board device nodes idle

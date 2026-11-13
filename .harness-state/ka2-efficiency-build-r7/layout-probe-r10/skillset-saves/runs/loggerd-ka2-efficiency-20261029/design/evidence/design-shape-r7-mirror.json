@@ -1,0 +1,146 @@
+{
+  "canonical_package": "/data/openpilot/skillset-saves/runs/loggerd-ka2-efficiency-20261029/design/reports/r7",
+  "canonical_path_result": {
+    "exit_code": 2,
+    "stderr": "ERROR: <package-dir> /data/media/supremeteam/42c6eb550c629191187c/skillset-saves/runs/loggerd-ka2-efficiency-20261029/design/reports/r7 is outside the project /data/openpilot; run the gate from the project that holds the package. Refusing to read it.\n",
+    "stdout": ""
+  },
+  "canonical_resolved_path": "/data/media/supremeteam/42c6eb550c629191187c/skillset-saves/runs/loggerd-ka2-efficiency-20261029/design/reports/r7",
+  "mirror": {
+    "canonical_tree_sha256": "f08ca184492e9c0f7bdf6808bcedfc48597e2968ae9aa3fe87a22ca147b79c00",
+    "file_count": 10,
+    "file_sha256": {
+      "delivery-plan.md": "c18d0370ac40cdb4f1844b23c2b7dbc38591bdb89a76f8356ebb4666d95c4d34",
+      "design-package.md": "a752317288218add10b3bc61d841508a5bb330c04e4cc6dcc46b33ba3470cf56",
+      "implementation-spec.md": "a7f06c00f8c671aa8c6a980c75e1abe1ae6b62f11df8db5bb66651033bfcb347",
+      "manifest.json": "d25c3feea446eea7768922e55d942ac698a1305e099e8cc113f979c9f62ec0f4",
+      "report_architecture.md": "51198630b43ee77daf23900a5316866b98dca5abf4ebe766362c1c5972aa144e",
+      "report_interfaces.md": "2d979a9b3ba8b53f65a466ea6be68a3a56c18c76eb2b94fa53f557738e8bbfc2",
+      "report_research.md": "82cb8b338014e3aff6c58b73c87259a4755fcbb33f80210fec8940c07f7868ce",
+      "report_security-seed.md": "17507b9a8a910d7d07b7352e889ea918f67072f94c89a5b481958eb4c60a7e3d",
+      "report_stack-lock.md": "f06420579dfc40d734d17540f756436e55158905c76da7bf088594688ff99479",
+      "report_taste-snapshot.md": "5f31c2d2d1828adf4c15aef834290160b490efff988b4c76f24c1fef0dbc067a"
+    },
+    "files_byte_identical": true,
+    "mirror_tree_sha256": "f08ca184492e9c0f7bdf6808bcedfc48597e2968ae9aa3fe87a22ca147b79c00",
+    "removed_after_validation": true,
+    "temporary_in_project_path": "/data/openpilot/ka2-r7-design-shape-31il5zoj/package"
+  },
+  "path_limitation": "The canonical package resolves through skillset-saves to /data/media and is rejected by resolve_package_dir because it is outside the /data/openpilot project root. The validator has no project-root override.",
+  "shape_check": {
+    "command": "/data/openpilot/.harness-state/test-work/python313/cpython-3.13.15-linux-aarch64-gnu/bin/python3.13 /data/kommu/.codex/skills/design/gatekeeper-design/scripts/check.py <temporary byte-identical mirror> --json",
+    "exit_code": 0,
+    "report": {
+      "boundary": "design phase-exit",
+      "checks_run": [
+        "package_links",
+        "required_artifacts",
+        "lineage",
+        "skip_records",
+        "blocked_phrases",
+        "idempotency",
+        "harness_doctrine"
+      ],
+      "counts": {
+        "fail": 0,
+        "total": 13,
+        "unchecked": 2
+      },
+      "findings": [
+        {
+          "code": "ARTIFACT_PRESENT",
+          "location": "report_research.md",
+          "message": "research evidence present.",
+          "severity": "info",
+          "status": "PASS"
+        },
+        {
+          "code": "ARTIFACT_PRESENT",
+          "location": "delivery-plan.md",
+          "message": "project plan present.",
+          "severity": "info",
+          "status": "PASS"
+        },
+        {
+          "code": "ARTIFACT_PRESENT",
+          "location": "report_architecture.md",
+          "message": "architecture decisions (ADRs) present.",
+          "severity": "info",
+          "status": "PASS"
+        },
+        {
+          "code": "ARTIFACT_PRESENT",
+          "location": "report_stack-lock.md",
+          "message": "locked technology choices / stack locks present.",
+          "severity": "info",
+          "status": "PASS"
+        },
+        {
+          "code": "ARTIFACT_PRESENT",
+          "location": "report_taste-snapshot.md",
+          "message": "effective Taste profile snapshot present.",
+          "severity": "info",
+          "status": "PASS"
+        },
+        {
+          "code": "ARTIFACT_PRESENT",
+          "location": "implementation-spec.md",
+          "message": "implementation specification present.",
+          "severity": "info",
+          "status": "PASS"
+        },
+        {
+          "code": "ARTIFACT_CONDITIONAL",
+          "location": "package",
+          "message": "API endpoint contracts (api-endpoint-design.md shape) not found. This artifact is required only when in scope \u2014 confirm whether this submission needs it.",
+          "severity": "info",
+          "status": "UNCHECKED"
+        },
+        {
+          "code": "ARTIFACT_CONDITIONAL",
+          "location": "package",
+          "message": "frontend/UI handoff (shadcn template + UI/UX handoff) not found. pipelines.yaml runs interface-and-design-system only when \"user-facing surface\". Confirm that condition was false for this submission, or that a valid _skip-record.md or the sanctioned waiver covers it.",
+          "severity": "info",
+          "status": "UNCHECKED"
+        },
+        {
+          "code": "REVISION_COHERENT",
+          "location": "package",
+          "message": "All revision-bearing artifacts agree on revision r7.",
+          "severity": "info",
+          "status": "PASS"
+        },
+        {
+          "code": "NO_SKIP_RECORDS",
+          "location": "package",
+          "message": "No skip records in package (none claimed).",
+          "severity": "info",
+          "status": "PASS"
+        },
+        {
+          "code": "BLOCKED_PHRASE_CLEAN",
+          "location": "package",
+          "message": "No blocked phrases or contamination markers found.",
+          "severity": "info",
+          "status": "PASS"
+        },
+        {
+          "code": "NO_PRIOR_VERDICT",
+          "location": "package",
+          "message": "No prior verdict supplied; treating as a first submission.",
+          "severity": "info",
+          "status": "PASS"
+        },
+        {
+          "code": "NO_RUNTIME_INTERVENTION",
+          "location": "package",
+          "message": "Package does not add or change a cross-cutting runtime intervention; harness-doctrine \u00a75 not engaged.",
+          "severity": "info",
+          "status": "PASS"
+        }
+      ],
+      "gate_status": "NEEDS_JUDGMENT",
+      "package_path": "/data/openpilot/ka2-r7-design-shape-31il5zoj/package"
+    }
+  }
+}

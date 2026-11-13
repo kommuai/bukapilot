@@ -1,0 +1,18 @@
+2026-10-30T18:33:47+00:00
+hostname=kommu-870ce22d4093b701
+c30b920d13b072d271122408822192e6e427b8ecac4ed289e3cecd64b7d37b47  /tmp/ka2-efficiency-r7-mergecheck/system/loggerd/encoderd
+ea762b7da71b63a73cdf14d053d84b091654aee5e5c4f26ceb1449b8fb8d92f9  /lib/aarch64-linux-gnu/librockchip_mpp.so.1
+	librockchip_mpp.so.1 => /lib/aarch64-linux-gnu/librockchip_mpp.so.1 (0x0000007f97860000)
+
+processes:
+   3574 system.loggerd. system.loggerd.deleter
+   3592 python3         python3 -m system.loggerd.uploader
+
+users of MPP/DMA/DRM nodes:
+
+resources:
+MemAvailable:    2025480 kB
+CmaTotal:         262144 kB
+CmaFree:               0 kB
+/dev/mmcblk0p12     8525148 6254608   1815888      78% /data
+tmpfs              1865488 12148   1853340       1% /dev/shm

@@ -1,0 +1,27 @@
+{
+  "artifacts": [
+    "evidence/dmabuf_fixture_smoke_r8.log",
+    "evidence/dmabuf_fixture_xdist_r8.log"
+  ],
+  "result": {
+    "status": "pass"
+  },
+  "exit_code": 0,
+  "tool": "pytest 9.0.2; SCons; clang++ 18.1.3",
+  "command": "pytest -q -s -n 0 system/loggerd/tests/test_dmabuf_fixture.py::test_visionipc_dmabuf_fixture; pytest -q -s -n 1 system/loggerd/tests/test_dmabuf_fixture.py::test_visionipc_dmabuf_fixture",
+  "observed_at": "2026-10-31T05:53:16Z",
+  "inputs": [
+    {
+      "path": "system/loggerd/SConscript",
+      "sha256": "fd193f0302d79f3d0a8bc09c683bda3b1ac54c22bf1db9e8b56c3b4b21180f45"
+    },
+    {
+      "path": "system/loggerd/tests/visionipc_dmabuf_publisher.cc",
+      "sha256": "18bc9128b67b83f397ac32a9675cc3f37173c0a23cedbedc0c7f695738ab0443"
+    },
+    {
+      "path": "system/loggerd/tests/test_dmabuf_fixture.py",
+      "sha256": "02eb27a13c44c995433816c77a64ca30fbd6cf9307feefaf1211a9f3ce586449"
+    }
+  ]
+}

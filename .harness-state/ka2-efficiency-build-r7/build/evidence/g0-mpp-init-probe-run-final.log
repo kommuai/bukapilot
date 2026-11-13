@@ -1,0 +1,20 @@
+One bounded MPP encoder-context init/destroy probe; no input frame, packet, camera/sensor data, Params, IPC, or encode call.
+Executable: `build/evidence/g0-mpp-init-probe`; SHA-256 2a0c028ab4c457db0e19eb54921fefa6ae4b1a1dca29f691ee6fcd6876bb5da5.
+Compiled against `/usr/local/include/rockchip/rk_mpi.h`, explicitly linked to `/lib/aarch64-linux-gnu/librockchip_mpp.so.1` SHA `ea762b7da71b63a73cdf14d053d84b091654aee5e5c4f26ceb1449b8fb8d92f9`; ldd verified same runtime dependency.
+Time ceiling: 10 seconds, then TERM with 2-second KILL grace; one init/destroy, zero frames. This is readiness only, not A/B authorization.
+## pre-run idle/resource/device check at 2026-10-30T18:20:24.414575+00:00
+No competing userspace camera/loggerd/encoder/sensor/MPP/RGA process. Kernel RGA IRQ workers excluded; loggerd deleter/uploader are non-recording background services.
+resources: MemAvailable:    2030924 kB; CmaTotal:         262144 kB; CmaFree:               0 kB; nr_free_cma  0,nr_free_cma  0
+fuser: (no users reported) [exit 1]
+$ timeout --signal=TERM --kill-after=2s 10s /data/openpilot/skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/g0-mpp-init-probe
+mpp_create=0 ctx=present api=present
+mpp_init_encoder_hevc=0
+mpp_destroy=0
+frames_submitted=0
+probe_exit=0
+## post-run cleanup check at 2026-10-30T18:20:24.506247+00:00
+No competing userspace camera/loggerd/encoder/sensor/MPP/RGA process. Kernel RGA IRQ workers excluded; loggerd deleter/uploader are non-recording background services.
+resources: MemAvailable:    2030680 kB; CmaTotal:         262144 kB; CmaFree:               0 kB; nr_free_cma  0,nr_free_cma  0
+fuser: (no users reported) [exit 1]
+post-run idle/device check: clear
+The probe calls mpp_destroy for any created context. No MPP process is intentionally left running.

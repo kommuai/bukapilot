@@ -1,0 +1,28 @@
+2026-10-31T03:09:49Z
+kommu-870ce22d4093b701
+aarch64
+5.10.198
+d462479b5e3178db9ae1c978feda5f39719f558eb4f9c068a5df5823a1dd01a8  skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-memory-harness
+22661dd50b0dd635dac2d5625d0598205a85c47bac799bdc0046710eb132a294  skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-memory-harness.cc
+991024bd6c713f4bd3910df1ed3f904e9dcc356d82163bb44191ad24e81e3801  /tmp/ka2-efficiency-r7-mergecheck/system/loggerd/liblogger.a
+ea762b7da71b63a73cdf14d053d84b091654aee5e5c4f26ceb1449b8fb8d92f9  /lib/aarch64-linux-gnu/librockchip_mpp.so.1
+MemAvailable:    1935108 kB
+CmaTotal:         262144 kB
+CmaFree:               0 kB
+
+Dma-buf Objects:
+size    	flags   	mode    	count   	exp_name	ino     
+
+Total 0 objects, 0 bytes
+    PID COMMAND         COMMAND
+2469897 bash            /bin/bash -c { date -u +%FT%TZ; hostname -s; uname -m; uname -r; sha256sum skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-memory-harness skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-memory-harness.cc /tmp/ka2-efficiency-r7-mergecheck/system/loggerd/liblogger.a /lib/aarch64-linux-gnu/librockchip_mpp.so.1; grep -E '^(MemAvailable|CmaTotal|CmaFree):' /proc/meminfo; cat /sys/kernel/debug/dma_buf/bufinfo; fuser -v /dev/mpp_service /dev/dma_heap/system 2>&1 || true; ps -eo pid,comm,args | rg '(^ *PID|encoderd|camerad|sensord|mpp_encoder_direct|qroad-tail-memory-harness)'; for f in /sys/class/thermal/cooling_device*/cur_state; do [[ -r "$f" ]] && printf '%s=%s\n' "$f" "$(cat "$f")"; done; for f in /sys/devices/system/cpu/cpufreq/policy*/scaling_cur_freq; do [[ -r "$f" ]] && printf '%s=%s\n' "$f" "$(cat "$f")"; done; df -B1 --output=used /dev/shm; } > skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-memory-preflight.log
+2469909 rg              rg (^ *PID|encoderd|camerad|sensord|mpp_encoder_direct|qroad-tail-memory-harness)
+/sys/class/thermal/cooling_device0/cur_state=0
+/sys/class/thermal/cooling_device1/cur_state=0
+/sys/class/thermal/cooling_device2/cur_state=0
+/sys/class/thermal/cooling_device4/cur_state=0
+/sys/devices/system/cpu/cpufreq/policy0/scaling_cur_freq=1800000
+/sys/devices/system/cpu/cpufreq/policy4/scaling_cur_freq=1608000
+/sys/devices/system/cpu/cpufreq/policy6/scaling_cur_freq=408000
+    Used
+12488704

@@ -1,0 +1,177 @@
+{
+  "boundary": "design-to-build",
+  "events": [
+    {
+      "boundary": "design-to-build",
+      "changed_evidence": null,
+      "checked_at": "2026-10-30T14:08:10.330914+00:00",
+      "judgment": {
+        "by_owner": {},
+        "escalation": null,
+        "findings": [
+          {
+            "basis": {
+              "kind": "contract",
+              "ref": "conditional API endpoint artifacts are required only when in scope",
+              "source": "design/gatekeeper-design/SKILL.md"
+            },
+            "evidence": [
+              "manifest:evidence.interfaces"
+            ],
+            "id": "J-1",
+            "key": "interfaces",
+            "owner": "architect",
+            "severity": "Info",
+            "statement": "The shape validator reported the conditional API endpoint contract as UNCHECKED. It is out of scope here: the hashed interface inventory says change none and contains no interface items, and the architecture retains the existing internal encoder-to-MPP path without adding an endpoint or message contract."
+          },
+          {
+            "basis": {
+              "kind": "contract",
+              "ref": "conditional frontend/UI handoff applies when a user-facing surface exists",
+              "source": "design/gatekeeper-design/SKILL.md"
+            },
+            "evidence": [
+              "manifest:evidence.ui_evidence"
+            ],
+            "id": "J-2",
+            "key": "ui_evidence",
+            "owner": "architect",
+            "severity": "Info",
+            "statement": "The shape validator reported the conditional frontend/UI handoff as UNCHECKED. The design is a backend encoder-path change with no user-facing surface; the architect records the sanctioned no-surface applicability value in ui_evidence."
+          },
+          {
+            "basis": {
+              "kind": "contract",
+              "ref": "deterministic pre-check package containment",
+              "source": "design/gatekeeper-design/SKILL.md"
+            },
+            "evidence": [],
+            "id": "J-3",
+            "key": null,
+            "owner": "commander",
+            "severity": "Info",
+            "statement": "The canonical shape-check invocation was refused before reading because the authorized skillset-saves link resolves the package to /data/media outside /data/openpilot. The in-project mirror contained the same 10 files byte-for-byte, with matching tree SHA-256 f08ca184492e9c0f7bdf6808bcedfc48597e2968ae9aa3fe87a22ca147b79c00, and its shape check exited 0 with zero failures. This path limitation is preserved; the mirror result is used only for package-content validation."
+          }
+        ],
+        "gate": "gatekeeper-design",
+        "intake": {
+          "artifact": "../../../intake/report_grilling.md"
+        },
+        "valid": true,
+        "verdict": "APPROVED"
+      },
+      "package_fingerprint": "d9734548b19fa4d8a8c6cec296e7706ddc4343fa44577e390b024276be2961d1",
+      "revise_packet": {
+        "actions_by_owner": {},
+        "by_key": {},
+        "by_owner": {},
+        "judgment_by_owner": {},
+        "unassigned": []
+      },
+      "revision": "r7",
+      "signature": [
+        "gatekeeper-design",
+        "r7",
+        "d9734548b19fa4d8a8c6cec296e7706ddc4343fa44577e390b024276be2961d1",
+        "APPROVED"
+      ],
+      "submission_id": "loggerd-ka2-efficiency-20261029-design-r7",
+      "unchanged_evidence": null
+    },
+    {
+      "boundary": "design-to-build",
+      "changed_evidence": [],
+      "checked_at": "2026-10-30T14:13:55.756835+00:00",
+      "judgment": {
+        "by_owner": {},
+        "escalation": {
+          "reason": "The boundary evidence check passes, but the mandatory cross-stage package-shape check refuses the active delivery package: its canonical path resolves to /data/media/supremeteam/42c6eb550c629191187c/skillset-saves/runs/loggerd-ka2-efficiency-20261029/delivery, outside the project root /data/openpilot. Gatekeeper-admiral explicitly requires ESCALATE on this path rejection and forbids retrying through a mirror. The current reachable delivery handoff is also still r6. No r7 cross-stage handoff can be approved until the authorized save/package location is made project-contained and Admiral submits a current r7 handoff.",
+          "to": "Admiral"
+        },
+        "findings": [],
+        "gate": "gatekeeper-admiral",
+        "intake": {
+          "artifact": "../../../intake/report_grilling.md"
+        },
+        "valid": true,
+        "verdict": "ESCALATE"
+      },
+      "package_fingerprint": "d9734548b19fa4d8a8c6cec296e7706ddc4343fa44577e390b024276be2961d1",
+      "revise_packet": {
+        "actions_by_owner": {},
+        "by_key": {},
+        "by_owner": {},
+        "judgment_by_owner": {},
+        "unassigned": []
+      },
+      "revision": "r7",
+      "signature": [
+        "gatekeeper-admiral",
+        "r7",
+        "d9734548b19fa4d8a8c6cec296e7706ddc4343fa44577e390b024276be2961d1",
+        "ESCALATE"
+      ],
+      "submission_id": "loggerd-ka2-efficiency-20261029-design-r7",
+      "unchanged_evidence": [
+        "acceptance",
+        "architecture",
+        "decisions",
+        "interfaces",
+        "plan",
+        "security_seed",
+        "stack_lock",
+        "taste_snapshot",
+        "ui_evidence"
+      ]
+    },
+    {
+      "boundary": "design-to-build",
+      "changed_evidence": [],
+      "checked_at": "2026-10-30T16:43:47.578432+00:00",
+      "judgment": {
+        "by_owner": {},
+        "escalation": null,
+        "findings": [],
+        "gate": "gatekeeper-admiral",
+        "intake": {
+          "artifact": "../../../intake/report_grilling.md"
+        },
+        "valid": true,
+        "verdict": "APPROVED"
+      },
+      "package_fingerprint": "d9734548b19fa4d8a8c6cec296e7706ddc4343fa44577e390b024276be2961d1",
+      "revise_packet": {
+        "actions_by_owner": {},
+        "by_key": {},
+        "by_owner": {},
+        "judgment_by_owner": {},
+        "unassigned": []
+      },
+      "revision": "r7",
+      "signature": [
+        "gatekeeper-admiral",
+        "r7",
+        "d9734548b19fa4d8a8c6cec296e7706ddc4343fa44577e390b024276be2961d1",
+        "APPROVED"
+      ],
+      "submission_id": "loggerd-ka2-efficiency-20261029-design-r7",
+      "unchanged_evidence": [
+        "acceptance",
+        "architecture",
+        "decisions",
+        "interfaces",
+        "plan",
+        "security_seed",
+        "stack_lock",
+        "taste_snapshot",
+        "ui_evidence"
+      ]
+    }
+  ],
+  "gates": {},
+  "held": false,
+  "reopen_refs": [],
+  "rounds": [],
+  "run_id": "loggerd-ka2-efficiency-20261029",
+  "schema_version": 1
+}

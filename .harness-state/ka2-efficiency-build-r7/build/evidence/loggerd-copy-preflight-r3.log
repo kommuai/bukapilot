@@ -1,0 +1,20 @@
+preflight_timestamp_utc=2026-10-30T06:40:13.006897+00:00
+input=synthetic VisionIPC camera frames and synthetic audio
+isolation_basetemp=skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/loggerd-copy-runtime-r3-data/pytest-temp
+wall_timeout_seconds=60
+generated_output_limit_bytes=805306368
+thermal_stop_celsius=80
+memory_stop_percent_used=80
+arch_aarch64=PASS:aarch64
+ka2_marker=PASS:True
+mpp_device_present=PASS:True
+preexisting_loggerd_encoderd_camerad_none=PASS:[]
+preexisting_mpp_holders_none=PASS:user_rc=1 stderr=
+data_free_over_768_mib=PASS:2032500736
+memory_below_80_percent=PASS:26.11% used
+thermal_below_80C=PASS:47.153 C
+basetemp_path_absent=PASS:False
+temporary_log_params_roots=PASS:True
+cumulative_output_below_768_mib=PASS:286095
+production_log_params_roots_touched=false
+preflight_result=PASS

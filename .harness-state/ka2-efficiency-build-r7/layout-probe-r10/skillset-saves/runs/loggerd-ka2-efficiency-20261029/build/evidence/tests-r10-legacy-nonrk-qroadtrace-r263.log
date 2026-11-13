@@ -1,0 +1,573 @@
+KA2 test-build command: /usr/local/venv/bin/scons -Q -j2 --ccflags=-DLOGGERD_TEST_BUILD system/loggerd/loggerd system/loggerd/encoderd build/system/loggerd/tests/visionipc_dmabuf_publisher
+scons: `system/loggerd/loggerd' is up to date.
+scons: `system/loggerd/encoderd' is up to date.
+scons: `build/system/loggerd/tests/visionipc_dmabuf_publisher' is up to date.
+KA2-host non-RK3588/HardwarePC test-build command: /usr/local/venv/bin/scons -Q --ccflags=-DLOGGERD_TEST_BUILD build/system/loggerd/tests/loggerd_non_rk3588 build/system/loggerd/tests/encoderd_non_rk3588
+hardware identity is untouched; dedicated SCons targets compile with -URK3588, without __TICI__
+clang++ -o system/loggerd/encoder/ffmpeg_encoder.non_rk3588.o -c -std=c++1z -DRK3588 -URK3588 -g -fPIC -O2 -Wunused -Werror -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -DRK3588 -DLOGGERD_TEST_BUILD -URK3588 -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include -Ithird_party/opencl/include -Ithird_party/rknpu/include -I/usr/include/rockchip -I/usr/local/include/rockchip system/loggerd/encoder/ffmpeg_encoder.cc
+ar rc build/system/loggerd/tests/liblogger_non_rk3588.a system/loggerd/logger.non_rk3588.o system/loggerd/zstd_writer.non_rk3588.o system/loggerd/memory_pressure.non_rk3588.o system/loggerd/video_writer.non_rk3588.o system/loggerd/encoder/encoder.non_rk3588.o system/loggerd/encoder/v4l_encoder.non_rk3588.o system/loggerd/encoder/jpeg_encoder.non_rk3588.o system/loggerd/encoder/ffmpeg_encoder.non_rk3588.o
+ranlib build/system/loggerd/tests/liblogger_non_rk3588.a
+clang++ -o build/system/loggerd/tests/encoderd_non_rk3588 -Wl,--as-needed -Wl,--no-undefined system/loggerd/encoderd.non_rk3588.o -Lcommon -Lmsgq_repo -Lthird_party -Lselfdrive/pandad -Lrednose/helpers -Lthird_party/libyuv/larch64/lib -Lthird_party/acados/larch64/lib -L/usr/local/lib -L/system/vendor/lib64 -L/usr/lib/aarch64-linux-gnu -Lthird_party/rknpu/larch64 build/system/loggerd/tests/liblogger_non_rk3588.a common/libcommon.a -ljson11 -lzmq cereal/libsocketmaster.a msgq_repo/libmsgq.a -lcapnp -lkj msgq_repo/libvisionipc.a -lavformat -lavcodec -lavutil -lyuv -lOpenCL -lpthread -lzstd -ljpeg
+clang++ -o build/system/loggerd/tests/loggerd_non_rk3588 -Wl,--as-needed -Wl,--no-undefined system/loggerd/loggerd.non_rk3588.o -Lcommon -Lmsgq_repo -Lthird_party -Lselfdrive/pandad -Lrednose/helpers -Lthird_party/libyuv/larch64/lib -Lthird_party/acados/larch64/lib -L/usr/local/lib -L/system/vendor/lib64 -L/usr/lib/aarch64-linux-gnu -Lthird_party/rknpu/larch64 build/system/loggerd/tests/liblogger_non_rk3588.a common/libcommon.a -ljson11 -lzmq cereal/libsocketmaster.a msgq_repo/libmsgq.a -lcapnp -lkj msgq_repo/libvisionipc.a -lavformat -lavcodec -lavutil -lyuv -lOpenCL -lpthread -lzstd
+preflight pgrep -x camerad: no active process
+preflight pgrep -x encoderd: no active process
+preflight pgrep -x loggerd: no active process
+preflight fuser -v /dev/media0: exit=1 preflight fuser -v /dev/media1: exit=1 preflight fuser -v /dev/media2: exit=1 preflight fuser -v /dev/media3: exit=1 preflight fuser -v /dev/media4: exit=1 preflight fuser -v /dev/media5: exit=1 preflight fuser -v /dev/mpp_service: exit=1 preflight fuser -v /dev/rga: exit=1 preflight fuser -v /dev/v4l-subdev0: exit=1 preflight fuser -v /dev/v4l-subdev1: exit=1 preflight fuser -v /dev/v4l-subdev10: exit=1 preflight fuser -v /dev/v4l-subdev11: exit=1 preflight fuser -v /dev/v4l-subdev12: exit=1 preflight fuser -v /dev/v4l-subdev13: exit=1 preflight fuser -v /dev/v4l-subdev14: exit=1 preflight fuser -v /dev/v4l-subdev2: exit=1 preflight fuser -v /dev/v4l-subdev3: exit=1 preflight fuser -v /dev/v4l-subdev4: exit=1 preflight fuser -v /dev/v4l-subdev5: exit=1 preflight fuser -v /dev/v4l-subdev6: exit=1 preflight fuser -v /dev/v4l-subdev7: exit=1 preflight fuser -v /dev/v4l-subdev8: exit=1 preflight fuser -v /dev/v4l-subdev9: exit=1 preflight fuser -v /dev/video0: exit=1 preflight fuser -v /dev/video1: exit=1 preflight fuser -v /dev/video10: exit=1 preflight fuser -v /dev/video11: exit=1 preflight fuser -v /dev/video12: exit=1 preflight fuser -v /dev/video13: exit=1 preflight fuser -v /dev/video14: exit=1 preflight fuser -v /dev/video15: exit=1 preflight fuser -v /dev/video16: exit=1 preflight fuser -v /dev/video17: exit=1 preflight fuser -v /dev/video18: exit=1 preflight fuser -v /dev/video19: exit=1 preflight fuser -v /dev/video2: exit=1 preflight fuser -v /dev/video20: exit=1 preflight fuser -v /dev/video21: exit=1 preflight fuser -v /dev/video22: exit=1 preflight fuser -v /dev/video23: exit=1 preflight fuser -v /dev/video24: exit=1 preflight fuser -v /dev/video25: exit=1 preflight fuser -v /dev/video26: exit=1 preflight fuser -v /dev/video27: exit=1 preflight fuser -v /dev/video28: exit=1 preflight fuser -v /dev/video29: exit=1 preflight fuser -v /dev/video3: exit=1 preflight fuser -v /dev/video30: exit=1 preflight fuser -v /dev/video31: exit=1 preflight fuser -v /dev/video32: exit=1 preflight fuser -v /dev/video33: exit=1 preflight fuser -v /dev/video34: exit=1 preflight fuser -v /dev/video35: exit=1 preflight fuser -v /dev/video36: exit=1 preflight fuser -v /dev/video37: exit=1 preflight fuser -v /dev/video38: exit=1 preflight fuser -v /dev/video39: exit=1 preflight fuser -v /dev/video4: exit=1 preflight fuser -v /dev/video40: exit=1 preflight fuser -v /dev/video41: exit=1 preflight fuser -v /dev/video42: exit=1 preflight fuser -v /dev/video43: exit=1 preflight fuser -v /dev/video44: exit=1 preflight fuser -v /dev/video45: exit=1 preflight fuser -v /dev/video46: exit=1 preflight fuser -v /dev/video47: exit=1 preflight fuser -v /dev/video48: exit=1 preflight fuser -v /dev/video49: exit=1 preflight fuser -v /dev/video5: exit=1 preflight fuser -v /dev/video50: exit=1 preflight fuser -v /dev/video51: exit=1 preflight fuser -v /dev/video52: exit=1 preflight fuser -v /dev/video53: exit=1 preflight fuser -v /dev/video54: exit=1 preflight fuser -v /dev/video55: exit=1 preflight fuser -v /dev/video56: exit=1 preflight fuser -v /dev/video57: exit=1 preflight fuser -v /dev/video58: exit=1 preflight fuser -v /dev/video59: exit=1 preflight fuser -v /dev/video6: exit=1 preflight fuser -v /dev/video7: exit=1 preflight fuser -v /dev/video8: exit=1 preflight fuser -v /dev/video9: exit=1 preflight pgrep -x camerad: no active process
+preflight pgrep -x encoderd: no active process
+preflight pgrep -x loggerd: no active process
+preflight fuser -v /dev/media0: exit=1 preflight fuser -v /dev/media1: exit=1 preflight fuser -v /dev/media2: exit=1 preflight fuser -v /dev/media3: exit=1 preflight fuser -v /dev/media4: exit=1 preflight fuser -v /dev/media5: exit=1 preflight fuser -v /dev/mpp_service: exit=1 preflight fuser -v /dev/rga: exit=1 preflight fuser -v /dev/v4l-subdev0: exit=1 preflight fuser -v /dev/v4l-subdev1: exit=1 preflight fuser -v /dev/v4l-subdev10: exit=1 preflight fuser -v /dev/v4l-subdev11: exit=1 preflight fuser -v /dev/v4l-subdev12: exit=1 preflight fuser -v /dev/v4l-subdev13: exit=1 preflight fuser -v /dev/v4l-subdev14: exit=1 preflight fuser -v /dev/v4l-subdev2: exit=1 preflight fuser -v /dev/v4l-subdev3: exit=1 preflight fuser -v /dev/v4l-subdev4: exit=1 preflight fuser -v /dev/v4l-subdev5: exit=1 preflight fuser -v /dev/v4l-subdev6: exit=1 preflight fuser -v /dev/v4l-subdev7: exit=1 preflight fuser -v /dev/v4l-subdev8: exit=1 preflight fuser -v /dev/v4l-subdev9: exit=1 preflight fuser -v /dev/video0: exit=1 preflight fuser -v /dev/video1: exit=1 preflight fuser -v /dev/video10: exit=1 preflight fuser -v /dev/video11: exit=1 preflight fuser -v /dev/video12: exit=1 preflight fuser -v /dev/video13: exit=1 preflight fuser -v /dev/video14: exit=1 preflight fuser -v /dev/video15: exit=1 preflight fuser -v /dev/video16: exit=1 preflight fuser -v /dev/video17: exit=1 preflight fuser -v /dev/video18: exit=1 preflight fuser -v /dev/video19: exit=1 preflight fuser -v /dev/video2: exit=1 preflight fuser -v /dev/video20: exit=1 preflight fuser -v /dev/video21: exit=1 preflight fuser -v /dev/video22: exit=1 preflight fuser -v /dev/video23: exit=1 preflight fuser -v /dev/video24: exit=1 preflight fuser -v /dev/video25: exit=1 preflight fuser -v /dev/video26: exit=1 preflight fuser -v /dev/video27: exit=1 preflight fuser -v /dev/video28: exit=1 preflight fuser -v /dev/video29: exit=1 preflight fuser -v /dev/video3: exit=1 preflight fuser -v /dev/video30: exit=1 preflight fuser -v /dev/video31: exit=1 preflight fuser -v /dev/video32: exit=1 preflight fuser -v /dev/video33: exit=1 preflight fuser -v /dev/video34: exit=1 preflight fuser -v /dev/video35: exit=1 preflight fuser -v /dev/video36: exit=1 preflight fuser -v /dev/video37: exit=1 preflight fuser -v /dev/video38: exit=1 preflight fuser -v /dev/video39: exit=1 preflight fuser -v /dev/video4: exit=1 preflight fuser -v /dev/video40: exit=1 preflight fuser -v /dev/video41: exit=1 preflight fuser -v /dev/video42: exit=1 preflight fuser -v /dev/video43: exit=1 preflight fuser -v /dev/video44: exit=1 preflight fuser -v /dev/video45: exit=1 preflight fuser -v /dev/video46: exit=1 preflight fuser -v /dev/video47: exit=1 preflight fuser -v /dev/video48: exit=1 preflight fuser -v /dev/video49: exit=1 preflight fuser -v /dev/video5: exit=1 preflight fuser -v /dev/video50: exit=1 preflight fuser -v /dev/video51: exit=1 preflight fuser -v /dev/video52: exit=1 preflight fuser -v /dev/video53: exit=1 preflight fuser -v /dev/video54: exit=1 preflight fuser -v /dev/video55: exit=1 preflight fuser -v /dev/video56: exit=1 preflight fuser -v /dev/video57: exit=1 preflight fuser -v /dev/video58: exit=1 preflight fuser -v /dev/video59: exit=1 preflight fuser -v /dev/video6: exit=1 preflight fuser -v /dev/video7: exit=1 preflight fuser -v /dev/video8: exit=1 preflight fuser -v /dev/video9: exit=1 publisher stdout after command reads:
+ (no remaining output)
+complete loggerd stdout:
+ system/loggerd/loggerd.cc: logging to /data/openpilot/.harness-state/r10-lifecycle-qroadtrace-basetemp/test_non_rk3588_hardware_pc_le0/legacy_non_rk/logs/2026-10-31--12-54-34--0
+system/loggerd/loggerd.cc: closing logger
+
+complete encoderd stdout:
+ [libx264 @ 0x7f74003540] using cpu capabilities: ARMv8 NEON
+[libx264 @ 0x7f74003540] profile High, level 2.1, 4:2:0, 8-bit
+qRoad input frame=3 pts=0 packet_count=0
+qRoad receive EAGAIN frame=3 pts=0
+qRoad input frame=4 pts=1 packet_count=0
+qRoad receive EAGAIN frame=4 pts=1
+qRoad input frame=5 pts=2 packet_count=0
+qRoad receive EAGAIN frame=5 pts=2
+qRoad input frame=6 pts=3 packet_count=0
+qRoad receive EAGAIN frame=6 pts=3
+qRoad input frame=7 pts=4 packet_count=0
+qRoad receive EAGAIN frame=7 pts=4
+qRoad input frame=8 pts=5 packet_count=0
+qRoad receive EAGAIN frame=8 pts=5
+qRoad input frame=9 pts=6 packet_count=0
+qRoad receive EAGAIN frame=9 pts=6
+qRoad input frame=10 pts=7 packet_count=0
+qRoad receive EAGAIN frame=10 pts=7
+qRoad input frame=11 pts=8 packet_count=0
+qRoad receive EAGAIN frame=11 pts=8
+qRoad input frame=12 pts=9 packet_count=0
+qRoad receive EAGAIN frame=12 pts=9
+qRoad input frame=13 pts=10 packet_count=0
+qRoad receive EAGAIN frame=13 pts=10
+qRoad input frame=14 pts=11 packet_count=0
+qRoad receive EAGAIN frame=14 pts=11
+qRoad input frame=15 pts=12 packet_count=0
+qRoad receive EAGAIN frame=15 pts=12
+qRoad input frame=16 pts=13 packet_count=0
+qRoad receive EAGAIN frame=16 pts=13
+qRoad input frame=17 pts=14 packet_count=0
+qRoad receive EAGAIN frame=17 pts=14
+qRoad input frame=18 pts=15 packet_count=0
+qRoad receive EAGAIN frame=18 pts=15
+qRoad input frame=19 pts=16 packet_count=0
+qRoad receive EAGAIN frame=19 pts=16
+system/loggerd/encoderd.cc: encoder driver_cam_encoder init 1920x1200
+system/loggerd/encoderd.cc: encoder wide_road_cam_encoder init 1920x1200
+system/loggerd/encoderd.cc: encoder road_cam_encoder init 1920x1200
+      roadEncodeData got   864004 bytes flags        1 idx    0 id        3
+    driverEncodeData got   864004 bytes flags        1 idx    0 id        3
+  wideRoadEncodeData got   864004 bytes flags        1 idx    0 id        3
+      roadEncodeData got   864004 bytes flags        1 idx    1 id        4
+    driverEncodeData got   864004 bytes flags        1 idx    1 id        4
+  wideRoadEncodeData got   864004 bytes flags        1 idx    1 id        4
+    driverEncodeData got   864004 bytes flags        1 idx    2 id        5
+  wideRoadEncodeData got   864004 bytes flags        1 idx    2 id        5
+      roadEncodeData got   864004 bytes flags        1 idx    2 id        5
+      roadEncodeData got   864004 bytes flags        1 idx    3 id        6
+  wideRoadEncodeData got   864004 bytes flags        1 idx    3 id        6
+    driverEncodeData got   864004 bytes flags        1 idx    3 id        6
+      roadEncodeData got   864004 bytes flags        1 idx    4 id        7
+    driverEncodeData got   864004 bytes flags        1 idx    4 id        7
+  wideRoadEncodeData got   864004 bytes flags        1 idx    4 id        7
+      roadEncodeData got   864004 bytes flags        1 idx    5 id        8
+    driverEncodeData got   864004 bytes flags        1 idx    5 id        8
+  wideRoadEncodeData got   864004 bytes flags        1 idx    5 id        8
+      roadEncodeData got   864004 bytes flags        1 idx    6 id        9
+  wideRoadEncodeData got   864004 bytes flags        1 idx    6 id        9
+    driverEncodeData got   864004 bytes flags        1 idx    6 id        9
+      roadEncodeData got   864004 bytes flags        1 idx    7 id       10
+    driverEncodeData got   864004 bytes flags        1 idx    7 id       10
+  wideRoadEncodeData got   864004 bytes flags        1 idx    7 id       10
+      roadEncodeData got   864004 bytes flags        1 idx    8 id       11
+    driverEncodeData got   864004 bytes flags        1 idx    8 id       11
+  wideRoadEncodeData got   864004 bytes flags        1 idx    8 id       11
+      roadEncodeData got   864004 bytes flags        1 idx    9 id       12
+  wideRoadEncodeData got   864004 bytes flags        1 idx    9 id       12
+    driverEncodeData got   864004 bytes flags        1 idx    9 id       12
+      roadEncodeData got   864004 bytes flags        1 idx   10 id       13
+    driverEncodeData got   864004 bytes flags        1 idx   10 id       13
+  wideRoadEncodeData got   864004 bytes flags        1 idx   10 id       13
+      roadEncodeData got   864004 bytes flags        1 idx   11 id       14
+  wideRoadEncodeData got   864004 bytes flags        1 idx   11 id       14
+    driverEncodeData got   864004 bytes flags        1 idx   11 id       14
+      roadEncodeData got   864004 bytes flags        1 idx   12 id       15
+    driverEncodeData got   864004 bytes flags        1 idx   12 id       15
+  wideRoadEncodeData got   864004 bytes flags        1 idx   12 id       15
+    driverEncodeData got   864004 bytes flags        1 idx   13 id       16
+  wideRoadEncodeData got   864004 bytes flags        1 idx   13 id       16
+      roadEncodeData got   864004 bytes flags        1 idx   13 id       16
+      roadEncodeData got   864004 bytes flags        1 idx   14 id       17
+  wideRoadEncodeData got   864004 bytes flags        1 idx   14 id       17
+    driverEncodeData got   864004 bytes flags        1 idx   14 id       17
+      roadEncodeData got   864004 bytes flags        1 idx   15 id       18
+    driverEncodeData got   864004 bytes flags        1 idx   15 id       18
+  wideRoadEncodeData got   864004 bytes flags        1 idx   15 id       18
+      roadEncodeData got   864004 bytes flags        1 idx   16 id       19
+  wideRoadEncodeData got   864004 bytes flags        1 idx   16 id       19
+    driverEncodeData got   864004 bytes flags        1 idx   16 id       19
+      roaqRoad input frame=20 pts=17 packet_count=0
+qRoad receive EAGAIN frame=20 pts=17
+qRoad input frame=21 pts=18 packet_count=0
+qRoad receive EAGAIN frame=21 pts=18
+qRoad input frame=22 pts=19 packet_count=0
+qRoad receive EAGAIN frame=22 pts=19
+qRoad input frame=23 pts=20 packet_count=0
+qRoad receive EAGAIN frame=23 pts=20
+qRoad input frame=24 pts=21 packet_count=0
+qRoad receive EAGAIN frame=24 pts=21
+qRoad input frame=25 pts=22 packet_count=0
+qRoad receive EAGAIN frame=25 pts=22
+qRoad input frame=26 pts=23 packet_count=0
+qRoad receive EAGAIN frame=26 pts=23
+qRoad input frame=27 pts=24 packet_count=0
+qRoad receive EAGAIN frame=27 pts=24
+qRoad input frame=28 pts=25 packet_count=0
+qRoad receive EAGAIN frame=28 pts=25
+qRoad input frame=29 pts=26 packet_count=0
+qRoad receive EAGAIN frame=29 pts=26
+qRoad input frame=30 pts=27 packet_count=0
+qRoad receive EAGAIN frame=30 pts=27
+qRoad input frame=31 pts=28 packet_count=0
+qRoad receive EAGAIN frame=31 pts=28
+qRoad input frame=32 pts=29 packet_count=0
+qRoad receive EAGAIN frame=32 pts=29
+qRoad input frame=33 pts=30 packet_count=0
+qRoad receive EAGAIN frame=33 pts=30
+qRoad input frame=34 pts=31 packet_count=0
+qRoad receive EAGAIN frame=34 pts=31
+qRoad input frame=35 pts=32 packet_count=0
+qRoad receive EAGAIN frame=35 pts=32
+qRoad input frame=36 pts=33 packet_count=0
+qRoad receive EAGAIN frame=36 pts=33
+qRoad input frame=37 pts=34 packet_count=0
+qRoad receive EAGAIN frame=37 pts=34
+dEncodeData got   864004 bytes flags        1 idx   17 id       20
+    driverEncodeData got   864004 bytes flags        1 idx   17 id       20
+  wideRoadEncodeData got   864004 bytes flags        1 idx   17 id       20
+      roadEncodeData got   864004 bytes flags        1 idx   18 id       21
+  wideRoadEncodeData got   864004 bytes flags        1 idx   18 id       21
+    driverEncodeData got   864004 bytes flags        1 idx   18 id       21
+    driverEncodeData got   864004 bytes flags        1 idx   19 id       22
+  wideRoadEncodeData got   864004 bytes flags        1 idx   19 id       22
+      roadEncodeData got   864004 bytes flags        1 idx   19 id       22
+      roadEncodeData got   864004 bytes flags        1 idx   20 id       23
+  wideRoadEncodeData got   864004 bytes flags        1 idx   20 id       23
+    driverEncodeData got   864004 bytes flags        1 idx   20 id       23
+      roadEncodeData got   864004 bytes flags        1 idx   21 id       24
+    driverEncodeData got   864004 bytes flags        1 idx   21 id       24
+  wideRoadEncodeData got   864004 bytes flags        1 idx   21 id       24
+      roadEncodeData got   864004 bytes flags        1 idx   22 id       25
+  wideRoadEncodeData got   864004 bytes flags        1 idx   22 id       25
+    driverEncodeData got   864004 bytes flags        1 idx   22 id       25
+      roadEncodeData got   864004 bytes flags        1 idx   23 id       26
+    driverEncodeData got   864004 bytes flags        1 idx   23 id       26
+  wideRoadEncodeData got   864004 bytes flags        1 idx   23 id       26
+      roadEncodeData got   864004 bytes flags        1 idx   24 id       27
+    driverEncodeData got   864004 bytes flags        1 idx   24 id       27
+  wideRoadEncodeData got   864004 bytes flags        1 idx   24 id       27
+      roadEncodeData got   864004 bytes flags        1 idx   25 id       28
+  wideRoadEncodeData got   864004 bytes flags        1 idx   25 id       28
+    driverEncodeData got   864004 bytes flags        1 idx   25 id       28
+      roadEncodeData got   864004 bytes flags        1 idx   26 id       29
+    driverEncodeData got   864004 bytes flags        1 idx   26 id       29
+  wideRoadEncodeData got   864004 bytes flags        1 idx   26 id       29
+      roadEncodeData got   864004 bytes flags        1 idx   27 id       30
+    driverEncodeData got   864004 bytes flags        1 idx   27 id       30
+  wideRoadEncodeData got   864004 bytes flags        1 idx   27 id       30
+      roadEncodeData got   864004 bytes flags        1 idx   28 id       31
+  wideRoadEncodeData got   864004 bytes flags        1 idx   28 id       31
+    driverEncodeData got   864004 bytes flags        1 idx   28 id       31
+      roadEncodeData got   864004 bytes flags        1 idx   29 id       32
+    driverEncodeData got   864004 bytes flags        1 idx   29 id       32
+  wideRoadEncodeData got   864004 bytes flags        1 idx   29 id       32
+      roadEncodeData got   864004 bytes flags        1 idx   30 id       33
+    driverEncodeData got   864004 bytes flags        1 idx   30 id       33
+  wideRoadEncodeData got   864004 bytes flags        1 idx   30 id       33
+      roadEncodeData got   864004 bytes flags        1 idx   31 id       34
+  wideRoadEncodeData got   864004 bytes flags        1 idx   31 id       34
+    driverEncodeData got   864004 bytes flags        1 idx   31 id       34
+  wideRoadEncodeData got   864004 bytes flags        1 idx   32 id       35
+      roadEncodeData got   864004 bytes flags        1 idx   32 id       35
+    driverEncodeData got   864004 bytes flags        1 idx   32 id       35
+  wideRoadEncodeData got   864004 bytes flags        1 idx   33 id       36
+    driverEncodeData got   864004 bytes flags        1 idx   33 id       36
+      roadEncodeData got   864004 bytes flags        1 idx   33 id       36
+    driverEncodeData got   864004 bytes flags        1 idx   34 id       37
+      roadEncodeData got   864004 bytes flags        1 idx   34 id       37
+  wideRoadEncodeData got   864004 bytes flags        1 idx   34 id       37
+ qRoad input frame=38 pts=35 packet_count=0
+qRoad receive EAGAIN frame=38 pts=35
+qRoad input frame=39 pts=36 packet_count=0
+qRoad receive EAGAIN frame=39 pts=36
+qRoad input frame=40 pts=37 packet_count=0
+qRoad receive EAGAIN frame=40 pts=37
+qRoad input frame=41 pts=38 packet_count=0
+qRoad receive EAGAIN frame=41 pts=38
+qRoad input frame=42 pts=39 packet_count=0
+qRoad receive EAGAIN frame=42 pts=39
+[libx264 @ 0x7f74003540] using cpu capabilities: ARMv8 NEON
+[libx264 @ 0x7f74003540] profile High, level 2.1, 4:2:0, 8-bit
+qRoad input frame=43 pts=0 packet_count=0
+qRoad receive EAGAIN frame=43 pts=0
+qRoad input frame=44 pts=1 packet_count=0
+qRoad receive EAGAIN frame=44 pts=1
+qRoad input frame=45 pts=2 packet_count=0
+qRoad receive EAGAIN frame=45 pts=2
+qRoad input frame=46 pts=3 packet_count=0
+qRoad receive EAGAIN frame=46 pts=3
+qRoad input frame=47 pts=4 packet_count=0
+qRoad receive EAGAIN frame=47 pts=4
+qRoad input frame=48 pts=5 packet_count=0
+qRoad receive EAGAIN frame=48 pts=5
+qRoad input frame=49 pts=6 packet_count=0
+qRoad receive EAGAIN frame=49 pts=6
+qRoad input frame=50 pts=7 packet_count=0
+qRoad receive EAGAIN frame=50 pts=7
+qRoad input frame=51 pts=8 packet_count=0
+qRoad receive EAGAIN frame=51 pts=8
+qRoad input frame=52 pts=9 packet_count=0
+qRoad receive EAGAIN frame=52 pts=9
+qRoad input frame=53 pts=10 packet_count=0
+qRoad receive EAGAIN frame=53 pts=10
+qRoad input frame=54 pts=11 packet_count=0
+qRoad receive EAGAIN frame=54 pts=11
+qRoad input frame=55 pts=12 packet_count=0
+qRoad receive EAGAIN frame=55 pts=12
+     roadEncodeData got   864004 bytes flags        1 idx   35 id       38
+  wideRoadEncodeData got   864004 bytes flags        1 idx   35 id       38
+    driverEncodeData got   864004 bytes flags        1 idx   35 id       38
+      roadEncodeData got   864004 bytes flags        1 idx   36 id       39
+  wideRoadEncodeData got   864004 bytes flags        1 idx   36 id       39
+    driverEncodeData got   864004 bytes flags        1 idx   36 id       39
+      roadEncodeData got   864004 bytes flags        1 idx   37 id       40
+    driverEncodeData got   864004 bytes flags        1 idx   37 id       40
+  wideRoadEncodeData got   864004 bytes flags        1 idx   37 id       40
+      roadEncodeData got   864004 bytes flags        1 idx   38 id       41
+  wideRoadEncodeData got   864004 bytes flags        1 idx   38 id       41
+    driverEncodeData got   864004 bytes flags        1 idx   38 id       41
+      roadEncodeData got   864004 bytes flags        1 idx   39 id       42
+    driverEncodeData got   864004 bytes flags        1 idx   39 id       42
+  wideRoadEncodeData got   864004 bytes flags        1 idx   39 id       42
+    driverEncodeData got   864004 bytes flags        1 idx    0 id       43
+  wideRoadEncodeData got   864004 bytes flags        1 idx    0 id       43
+  wideRoadEncodeData got   864004 bytes flags        1 idx    1 id       44
+  wideRoadEncodeData got   864004 bytes flags        1 idx    2 id       45
+    driverEncodeData got   864004 bytes flags        1 idx    1 id       44
+    driverEncodeData got   864004 bytes flags        1 idx    2 id       45
+    driverEncodeData got   864004 bytes flags        1 idx    3 id       46
+      roadEncodeData got   864004 bytes flags        1 idx    0 id       43
+  wideRoadEncodeData got   864004 bytes flags        1 idx    3 id       46
+      roadEncodeData got   864004 bytes flags        1 idx    1 id       44
+      roadEncodeData got   864004 bytes flags        1 idx    2 id       45
+      roadEncodeData got   864004 bytes flags        1 idx    3 id       46
+      roadEncodeData got   864004 bytes flags        1 idx    4 id       47
+    driverEncodeData got   864004 bytes flags        1 idx    4 id       47
+  wideRoadEncodeData got   864004 bytes flags        1 idx    4 id       47
+      roadEncodeData got   864004 bytes flags        1 idx    5 id       48
+    driverEncodeData got   864004 bytes flags        1 idx    5 id       48
+  wideRoadEncodeData got   864004 bytes flags        1 idx    5 id       48
+    driverEncodeData got   864004 bytes flags        1 idx    6 id       49
+  wideRoadEncodeData got   864004 bytes flags        1 idx    6 id       49
+      roadEncodeData got   864004 bytes flags        1 idx    6 id       49
+      roadEncodeData got   864004 bytes flags        1 idx    7 id       50
+  wideRoadEncodeData got   864004 bytes flags        1 idx    7 id       50
+    driverEncodeData got   864004 bytes flags        1 idx    7 id       50
+      roadEncodeData got   864004 bytes flags        1 idx    8 id       51
+    driverEncodeData got   864004 bytes flags        1 idx    8 id       51
+  wideRoadEncodeData got   864004 bytes flags        1 idx    8 id       51
+      roadEncodeData got   864004 bytes flags        1 idx    9 id       52
+  wideRoadEncodeData got   864004 bytes flags        1 idx    9 id       52
+    driverEncodeData got   864004 bytes flags        1 idx    9 id       52
+      roadEncodeData got   864004 bytes flags        1 idx   10 id       53
+    driverEncodeData got   864004 bytes flags        1 idx   10 id       53
+  wideRoadEncodeData got   864004 bytes flags        1 idx   10 id       53
+      roadEncodeData got   864004 bytes flags        1 idx   11 id       54
+  wideRoadEncodeData got   864004 bytes flags        1 idx   11 id       54
+    driverEncodeData got   864004 bytes flags        1 idx   11 id       54
+      roadEncodeData got   864004 bytes flags        1 idx   12 id       55
+    driverEncodeData got   864004 bytes flags        1 idx   12 id       55
+  wideRoadEncodeData got   864004 bytes flags        1 idx   12 id   qRoad input frame=56 pts=13 packet_count=0
+qRoad receive EAGAIN frame=56 pts=13
+qRoad input frame=57 pts=14 packet_count=0
+qRoad receive EAGAIN frame=57 pts=14
+qRoad input frame=58 pts=15 packet_count=0
+qRoad receive EAGAIN frame=58 pts=15
+qRoad input frame=59 pts=16 packet_count=0
+qRoad receive EAGAIN frame=59 pts=16
+qRoad input frame=60 pts=17 packet_count=0
+qRoad receive EAGAIN frame=60 pts=17
+qRoad input frame=61 pts=18 packet_count=0
+qRoad receive EAGAIN frame=61 pts=18
+qRoad input frame=62 pts=19 packet_count=0
+qRoad receive EAGAIN frame=62 pts=19
+qRoad input frame=63 pts=20 packet_count=0
+qRoad receive EAGAIN frame=63 pts=20
+qRoad input frame=64 pts=21 packet_count=0
+qRoad receive EAGAIN frame=64 pts=21
+qRoad input frame=65 pts=22 packet_count=0
+qRoad receive EAGAIN frame=65 pts=22
+qRoad input frame=66 pts=23 packet_count=0
+qRoad receive EAGAIN frame=66 pts=23
+qRoad input frame=67 pts=24 packet_count=0
+qRoad receive EAGAIN frame=67 pts=24
+qRoad input frame=68 pts=25 packet_count=0
+qRoad receive EAGAIN frame=68 pts=25
+qRoad input frame=69 pts=26 packet_count=0
+qRoad receive EAGAIN frame=69 pts=26
+qRoad input frame=70 pts=27 packet_count=0
+qRoad receive EAGAIN frame=70 pts=27
+qRoad input frame=71 pts=28 packet_count=0
+qRoad receive EAGAIN frame=71 pts=28
+qRoad input frame=72 pts=29 packet_count=0
+qRoad receive EAGAIN frame=72 pts=29
+qRoad input frame=73 pts=30 packet_count=0
+qRoad receive EAGAIN frame=73 pts=30
+    55
+      roadEncodeData got   864004 bytes flags        1 idx   13 id       56
+  wideRoadEncodeData got   864004 bytes flags        1 idx   13 id       56
+    driverEncodeData got   864004 bytes flags        1 idx   13 id       56
+      roadEncodeData got   864004 bytes flags        1 idx   14 id       57
+    driverEncodeData got   864004 bytes flags        1 idx   14 id       57
+  wideRoadEncodeData got   864004 bytes flags        1 idx   14 id       57
+    driverEncodeData got   864004 bytes flags        1 idx   15 id       58
+      roadEncodeData got   864004 bytes flags        1 idx   15 id       58
+  wideRoadEncodeData got   864004 bytes flags        1 idx   15 id       58
+      roadEncodeData got   864004 bytes flags        1 idx   16 id       59
+  wideRoadEncodeData got   864004 bytes flags        1 idx   16 id       59
+    driverEncodeData got   864004 bytes flags        1 idx   16 id       59
+      roadEncodeData got   864004 bytes flags        1 idx   17 id       60
+    driverEncodeData got   864004 bytes flags        1 idx   17 id       60
+  wideRoadEncodeData got   864004 bytes flags        1 idx   17 id       60
+      roadEncodeData got   864004 bytes flags        1 idx   18 id       61
+    driverEncodeData got   864004 bytes flags        1 idx   18 id       61
+  wideRoadEncodeData got   864004 bytes flags        1 idx   18 id       61
+      roadEncodeData got   864004 bytes flags        1 idx   19 id       62
+  wideRoadEncodeData got   864004 bytes flags        1 idx   19 id       62
+    driverEncodeData got   864004 bytes flags        1 idx   19 id       62
+      roadEncodeData got   864004 bytes flags        1 idx   20 id       63
+    driverEncodeData got   864004 bytes flags        1 idx   20 id       63
+  wideRoadEncodeData got   864004 bytes flags        1 idx   20 id       63
+      roadEncodeData got   864004 bytes flags        1 idx   21 id       64
+  wideRoadEncodeData got   864004 bytes flags        1 idx   21 id       64
+    driverEncodeData got   864004 bytes flags        1 idx   21 id       64
+      roadEncodeData got   864004 bytes flags        1 idx   22 id       65
+    driverEncodeData got   864004 bytes flags        1 idx   22 id       65
+  wideRoadEncodeData got   864004 bytes flags        1 idx   22 id       65
+      roadEncodeData got   864004 bytes flags        1 idx   23 id       66
+    driverEncodeData got   864004 bytes flags        1 idx   23 id       66
+  wideRoadEncodeData got   864004 bytes flags        1 idx   23 id       66
+      roadEncodeData got   864004 bytes flags        1 idx   24 id       67
+  wideRoadEncodeData got   864004 bytes flags        1 idx   24 id       67
+    driverEncodeData got   864004 bytes flags        1 idx   24 id       67
+      roadEncodeData got   864004 bytes flags        1 idx   25 id       68
+    driverEncodeData got   864004 bytes flags        1 idx   25 id       68
+  wideRoadEncodeData got   864004 bytes flags        1 idx   25 id       68
+      roadEncodeData got   864004 bytes flags        1 idx   26 id       69
+    driverEncodeData got   864004 bytes flags        1 idx   26 id       69
+  wideRoadEncodeData got   864004 bytes flags        1 idx   26 id       69
+      roadEncodeData got   864004 bytes flags        1 idx   27 id       70
+  wideRoadEncodeData got   864004 bytes flags        1 idx   27 id       70
+    driverEncodeData got   864004 bytes flags        1 idx   27 id       70
+      roadEncodeData got   864004 bytes flags        1 idx   28 id       71
+    driverEncodeData got   864004 bytes flags        1 idx   28 id       71
+  wideRoadEncodeData got   864004 bytes flags        1 idx   28 id       71
+      roadEncodeData got   864004 bytes flags        1 idx   29 id       72
+    driverEncodeData got   864004 bytes flags        1 idx   29 id       72
+  wideRoadEncodeData got   864004 bytes flags        1 idx   29 id       72
+      roadEncodeData got   864004 bytes flags        1 idx   30 id       73
+  wideRoadEncodeData got   864004 bytes flags        1 idx   30 id       73
+    driverEncodeData got   864004 bytes flags        1 idx   qRoad input frame=74 pts=31 packet_count=0
+qRoad receive EAGAIN frame=74 pts=31
+qRoad input frame=75 pts=32 packet_count=0
+qRoad receive EAGAIN frame=75 pts=32
+qRoad input frame=76 pts=33 packet_count=0
+qRoad receive EAGAIN frame=76 pts=33
+qRoad input frame=77 pts=34 packet_count=0
+qRoad receive EAGAIN frame=77 pts=34
+qRoad input frame=78 pts=35 packet_count=0
+qRoad receive EAGAIN frame=78 pts=35
+qRoad input frame=79 pts=36 packet_count=0
+qRoad receive EAGAIN frame=79 pts=36
+qRoad input frame=80 pts=37 packet_count=0
+qRoad receive EAGAIN frame=80 pts=37
+qRoad input frame=81 pts=38 packet_count=0
+qRoad receive EAGAIN frame=81 pts=38
+qRoad input frame=82 pts=39 packet_count=0
+qRoad receive EAGAIN frame=82 pts=39
+[libx264 @ 0x7f74003540] using cpu capabilities: ARMv8 NEON
+[libx264 @ 0x7f74003540] profile High, level 2.1, 4:2:0, 8-bit
+qRoad input frame=83 pts=0 packet_count=0
+qRoad receive EAGAIN frame=83 pts=0
+30 id       73
+      roadEncodeData got   864004 bytes flags        1 idx   31 id       74
+    driverEncodeData got   864004 bytes flags        1 idx   31 id       74
+  wideRoadEncodeData got   864004 bytes flags        1 idx   31 id       74
+  wideRoadEncodeData got   864004 bytes flags        1 idx   32 id       75
+    driverEncodeData got   864004 bytes flags        1 idx   32 id       75
+      roadEncodeData got   864004 bytes flags        1 idx   32 id       75
+      roadEncodeData got   864004 bytes flags        1 idx   33 id       76
+    driverEncodeData got   864004 bytes flags        1 idx   33 id       76
+  wideRoadEncodeData got   864004 bytes flags        1 idx   33 id       76
+      roadEncodeData got   864004 bytes flags        1 idx   34 id       77
+    driverEncodeData got   864004 bytes flags        1 idx   34 id       77
+  wideRoadEncodeData got   864004 bytes flags        1 idx   34 id       77
+      roadEncodeData got   864004 bytes flags        1 idx   35 id       78
+  wideRoadEncodeData got   864004 bytes flags        1 idx   35 id       78
+    driverEncodeData got   864004 bytes flags        1 idx   35 id       78
+      roadEncodeData got   864004 bytes flags        1 idx   36 id       79
+    driverEncodeData got   864004 bytes flags        1 idx   36 id       79
+  wideRoadEncodeData got   864004 bytes flags        1 idx   36 id       79
+      roadEncodeData got   864004 bytes flags        1 idx   37 id       80
+  wideRoadEncodeData got   864004 bytes flags        1 idx   37 id       80
+    driverEncodeData got   864004 bytes flags        1 idx   37 id       80
+      roadEncodeData got   864004 bytes flags        1 idx   38 id       81
+    driverEncodeData got   864004 bytes flags        1 idx   38 id       81
+  wideRoadEncodeData got   864004 bytes flags        1 idx   38 id       81
+      roadEncodeData got   864004 bytes flags        1 idx   39 id       82
+  wideRoadEncodeData got   864004 bytes flags        1 idx   39 id       82
+    driverEncodeData got   864004 bytes flags        1 idx   39 id       82
+    driverEncodeData got   864004 bytes flags        1 idx    0 id       83
+  wideRoadEncodeData got   864004 bytes flags        1 idx    0 id       83
+      roadEncodeData got   864004 bytes flags        1 idx    0 id       83
+
+isolated Params at cleanup: {"CurrentRoute": "2026-10-31--12-54-34", "LoggerdRotateState": "committed", "LoggerdRotationReport": null, "LoggerdSegment": "0", "LoggerdSegmentEpoch": "1"}
+isolated segment files at cleanup: [["2026-10-31--12-54-34--0", [["dcamera.hevc", 34562586], ["ecamera.hevc", 34562586], ["fcamera.hevc", 34562586], ["qlog.zst", 3418], ["rlog.zst", 16297]]]]
+F
+=================================== FAILURES ===================================
+___________ test_non_rk3588_hardware_pc_legacy_lifecycle_on_ka2_host ___________
+
+tmp_path = PosixPath('/data/openpilot/.harness-state/r10-lifecycle-qroadtrace-basetemp/test_non_rk3588_hardware_pc_le0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f8874f0e0>
+
+    @pytest.mark.xdist_group("loggerd_tests")
+    def test_non_rk3588_hardware_pc_legacy_lifecycle_on_ka2_host(tmp_path, monkeypatch):
+      if not KA2:
+        pytest.skip("isolated non-RK3588 software-branch qualification requires the pinned KA2 host")
+      repo_root = Path(__file__).resolve().parents[3]
+      publisher = _build_test_binaries(repo_root)["publisher"]
+      legacy_binaries = _build_legacy_pc_binaries(repo_root)
+      binaries = {**legacy_binaries, "publisher": publisher}
+>     _run_lifecycle_and_cleanup(tmp_path / "legacy_non_rk", monkeypatch, binaries, "legacy_non_rk")
+
+system/loggerd/tests/test_loggerd_liveness.py:585: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+system/loggerd/tests/test_loggerd_liveness.py:539: in _run_lifecycle_and_cleanup
+    _run_lifecycle(tmp_path, monkeypatch, binaries, scenario)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+tmp_path = PosixPath('/data/openpilot/.harness-state/r10-lifecycle-qroadtrace-basetemp/test_non_rk3588_hardware_pc_le0/legacy_non_rk')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f8874f0e0>
+binaries = {'encoderd': PosixPath('/data/openpilot/build/system/loggerd/tests/encoderd_non_rk3588'), 'loggerd': PosixPath('/data/.../loggerd_non_rk3588'), 'publisher': PosixPath('/data/openpilot/build/system/loggerd/tests/visionipc_dmabuf_publisher')}
+scenario = 'legacy_non_rk'
+
+    def _run_lifecycle(tmp_path: Path, monkeypatch, binaries: dict[str, Path], scenario: str) -> None:
+      if not KA2:
+        pytest.skip("full MPP lifecycle requires KA2")
+    
+      _assert_camera_stack_idle()
+      fault_mode = None if scenario in ("valid", "legacy", "legacy_non_rk", "shm") else scenario
+      env, prefix, params, msgq_dir = _make_params_and_environment(
+        tmp_path, monkeypatch, fault_mode, legacy_mode=(scenario in ("legacy", "legacy_non_rk")))
+      repo_root = Path(__file__).resolve().parents[3]
+      fixture_binary = binaries["publisher"]
+      assert fixture_binary.is_file()
+      vipc_socket = Path(f"/tmp/{prefix}_visionipc_camerad")
+      assert not vipc_socket.exists(), f"isolated VisionIPC socket already exists: {vipc_socket}"
+    
+      publisher = None
+      loggerd = None
+      encoderd = None
+      pm = None
+      publisher_stdout = None
+      loggerd_output = None
+      encoderd_output = None
+      loggerd_log_path = Path(env["LOG_ROOT"]).parent / "loggerd.stdout.log"
+      encoderd_log_path = Path(env["LOG_ROOT"]).parent / "encoderd.stdout.log"
+      reports: dict[int, dict] = {}
+      observed_segment_times: dict[int, float] = {}
+      last_frame_id = 0
+      try:
+        _assert_camera_stack_idle()
+        publisher_mode = "--serve-shm" if scenario == "shm" else "--serve"
+        publisher = subprocess.Popen([str(fixture_binary), publisher_mode], cwd=repo_root, env=env,
+                                     stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                                     stderr=subprocess.STDOUT, text=True, bufsize=1)
+        backing = "shm" if scenario == "shm" else "dma_heap"
+        _wait_matching_line(
+          publisher,
+          f"READY streams=road,driver,wideRoad width=1920 height=1200 stride=1920 "
+          f"uv_offset=2304000 buffers=4 backing={backing}",
+          10,
+        )
+        pm = messaging.PubMaster([state for _, state in CAMERAS] + ["rawAudioData"])
+    
+        loggerd_output = loggerd_log_path.open("w")
+        encoderd_output = encoderd_log_path.open("w")
+        loggerd = subprocess.Popen([str(binaries["loggerd"])], cwd=repo_root, env=env,
+                                   stdout=loggerd_output, stderr=subprocess.STDOUT, text=True)
+        encoderd = subprocess.Popen([str(binaries["encoderd"])], cwd=repo_root, env=env,
+                                    stdout=encoderd_output, stderr=subprocess.STDOUT, text=True)
+    
+        for _, state_name in CAMERAS:
+          assert pm.wait_for_readers_to_update(state_name, timeout=10), f"loggerd/encoderd did not subscribe to {state_name}"
+        assert pm.wait_for_readers_to_update("rawAudioData", timeout=10), "loggerd did not subscribe to rawAudioData"
+        assert _read_param(params, "LoggerdSegment", timeout=10) == "0"
+        observed_segment_times[0] = time.monotonic()
+    
+        frame = time.monotonic()
+        audio_samples = (b"\xe8\x03\x18\xfc" * 400)
+        post_segment_two = 0
+        deadline = time.monotonic() + 24
+        while time.monotonic() < deadline:
+          last_frame_id += 1
+          target = frame + last_frame_id / FPS
+          delay = target - time.monotonic()
+          if delay > 0:
+            time.sleep(delay)
+          timestamp = last_frame_id * FRAME_DURATION_NS
+          for stream_type, state_name in CAMERAS:
+            _send_frame(publisher, int(stream_type), last_frame_id, timestamp, timestamp + FRAME_DURATION_NS // 2)
+            camera_state = messaging.new_message(state_name)
+            getattr(camera_state, state_name).frameId = last_frame_id
+            pm.send(state_name, camera_state)
+          audio = messaging.new_message("rawAudioData")
+          audio.rawAudioData.data = audio_samples
+          audio.rawAudioData.sampleRate = 16000
+          pm.send("rawAudioData", audio)
+    
+          segment_value = _read_param(params, "LoggerdSegment", timeout=0.1)
+          if segment_value is not None:
+            segment = int(segment_value)
+            observed_segment_times.setdefault(segment, time.monotonic())
+            if segment >= 1:
+              report_text = _read_raw_param(params, "LoggerdRotationReport", timeout=0.05)
+              if report_text:
+                try:
+                  report = json.loads(report_text)
+                  if report.get("segment") == segment:
+                    reports[segment] = report
+                except json.JSONDecodeError:
+                  pass
+            if segment >= 2:
+              post_segment_two += 1
+              if post_segment_two >= 20:
+                break
+    
+          _wait_process_started(loggerd, "loggerd")
+          _wait_process_started(encoderd, "encoderd")
+          _wait_process_started(publisher, "SHM publisher" if scenario == "shm" else "DMA-BUF publisher")
+        else:
+>         raise AssertionError(f"loggerd did not complete two rotations; reports={reports}")
+E         AssertionError: loggerd did not complete two rotations; reports={}
+
+system/loggerd/tests/test_loggerd_liveness.py:478: AssertionError
+=========================== short test summary info ============================
+FAILED system/loggerd/tests/test_loggerd_liveness.py::test_non_rk3588_hardware_pc_legacy_lifecycle_on_ka2_host
+1 failed in 45.83s

@@ -1,0 +1,12 @@
+bringing up nodes...
+bringing up nodes...
+
+ssss                                                                     [100%]
+============================= slowest 10 durations =============================
+0.07s setup    system/loggerd/tests/test_loggerd.py::TestLoggerd::test_rotation@loggerd_tests
+0.01s teardown system/loggerd/tests/test_loggerd.py::TestLoggerd::test_rotation@loggerd_tests
+0.01s teardown system/loggerd/tests/test_loggerd.py::TestLoggerd::test_record_front[False]@loggerd_tests
+0.01s setup    system/loggerd/tests/test_loggerd.py::TestLoggerd::test_ka2_deterministic_rotation_alignment@loggerd_tests
+
+(6 durations < 0.005s hidden.  Use -vv to show these durations.)
+4 skipped in 7.18s

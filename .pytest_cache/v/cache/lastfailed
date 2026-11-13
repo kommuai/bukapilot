@@ -1,0 +1,7 @@
+{
+  "system/loggerd/tests/test_encoder.py": true,
+  "system/manager/test/test_manager.py::TestManager::test_manager_prepare": true,
+  "system/manager/test/test_manager.py::TestManager::test_set_params_with_default_value": true,
+  "system/loggerd/tests/test_loggerd_liveness.py::test_non_rk3588_hardware_pc_legacy_lifecycle_on_ka2_host@loggerd_tests": true,
+  "system/loggerd/tests/test_loggerd.py::TestLoggerd::test_not_preserving_nonbookmarked_segments@loggerd_tests": true
+}

@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "run_id": "loggerd-ka2-efficiency-20261029",
+  "review_submission_id": "loggerd-ka2-efficiency-20261029-review-r10",
+  "review_package_revision": 281,
+  "approved_source_revision": 266,
+  "boundary": "review-to-delivery",
+  "executed_lenses": [
+    {
+      "stage": "review/bug-review",
+      "status": "ran",
+      "finding_count": 0,
+      "report": "reports/deliverable_bug-review.md",
+      "sha256": "ce15c86debe1843d6853f7615b8aeb6e6e985b7bbe3758616e6e6720df9238b7"
+    },
+    {
+      "stage": "review/code-review",
+      "status": "ran",
+      "finding_count": 2,
+      "report": "reports/deliverable_code-review.md",
+      "sha256": "9cfbe47e87b230c53314c5cc330dbc6d40133bac75d522c958e7fc7434a941c0"
+    },
+    {
+      "stage": "review/quality-review",
+      "status": "ran",
+      "finding_count": 1,
+      "report": "reports/deliverable_quality-review.md",
+      "sha256": "17c3962570cfc270173a71020d3d0a4dc261e0b1cdc61875b0826da3fa978a85"
+    }
+  ],
+  "conditional_lenses": [
+    {
+      "stage": "review/security-review",
+      "condition": "trust boundary changed",
+      "applicable": false,
+      "reason": "The approved build package carries a typed no-trust-boundary-change determination. No external actor, endpoint, credential, privilege boundary, or cereal schema changed."
+    },
+    {
+      "stage": "review/mr-robot",
+      "condition": "exploitable surface exists",
+      "applicable": false,
+      "reason": "The change adds no public or untrusted entry point. It remains within the trusted local camerad-to-encoderd pipeline; malformed DMA-BUF inputs are covered as correctness cases."
+    },
+    {
+      "stage": "review/frontier",
+      "condition": "visible behavior changed",
+      "applicable": false,
+      "reason": "The scoped changes are backend loggerd, encoderd, MPP, and internal test code; no frontend behavior changed."
+    },
+    {
+      "stage": "review/design-qa",
+      "condition": "visible surface changed",
+      "applicable": false,
+      "reason": "No user-visible surface or UI assets changed."
+    },
+    {
+      "stage": "review/devex-review",
+      "condition": "developer-facing surface changed",
+      "applicable": false,
+      "reason": "No onboarding, CLI, SDK, public integration, or developer workflow changed; added fixtures are internal tests."
+    }
+  ],
+  "scope_limit": "The approval is bounded to the reviewed source revision and synthetic DMA-heap test/smoke path. It does not qualify live V4L2 buffer ownership, capture fences, deployed MPP post-EOS, or other hardware."
+}

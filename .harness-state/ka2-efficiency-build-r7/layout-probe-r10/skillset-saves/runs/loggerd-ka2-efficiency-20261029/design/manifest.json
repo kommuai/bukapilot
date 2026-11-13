@@ -1,0 +1,117 @@
+{
+  "artifact_hashes": {
+    "../intake/intake-brief.md": "d8f313c8b58294f02ae4a840a223cbc0501de6f9d6d66535d1355dc9a4d3e3fe",
+    "../intake/report_grilling.md": "be2b70d7df1922b807604d970a8101bab4034d6c7a36832be00267fa5df24e1f",
+    "artifacts/interface_set.json": "aa031f73013890199ca60b2d57d786d6750a2a453aff3c13f21d39fefb846b8f",
+    "artifacts/interface_set_r10.json": "aa031f73013890199ca60b2d57d786d6750a2a453aff3c13f21d39fefb846b8f",
+    "artifacts/interface_set_r9.json": "694c2b7a2b54aede04c7ec10f1f8c7aa84caa4b1a200b85e7c08569aabc475f9",
+    "artifacts/security_seed.json": "02ffba1aa0ebc6810e16d287619a7cea8cebb3eb895b07bad452cbe470d1e420",
+    "artifacts/security_seed_r10.json": "02ffba1aa0ebc6810e16d287619a7cea8cebb3eb895b07bad452cbe470d1e420",
+    "artifacts/security_seed_r9.json": "519a2f68052384083e261eba83e9b1c4e4ddf5f479ae5b197acce08fd3a94846",
+    "artifacts/taste_snapshot.json": "f88c387118c1b228c529e658c76970d078b17acf66435bc929cde09fb818df97",
+    "artifacts/taste_snapshot_r9.json": "f88c387118c1b228c529e658c76970d078b17acf66435bc929cde09fb818df97",
+    "artifacts/ui_evidence.json": "70d9a61e65c1f8042a6c4a934fa041806e067a603cc9f7b445ea6d2abeb8d2e3",
+    "artifacts/ui_evidence_r8.json": "70d9a61e65c1f8042a6c4a934fa041806e067a603cc9f7b445ea6d2abeb8d2e3",
+    "evidence/r8/prior_loggerd_shm_rotation_not_applicable_pytest.log": "2b38aaa91ac3ecd6afa9cacb2c644b35970b55b99a76f36a2c04fa0e88966343",
+    "evidence/r8/prior_mpp_encoder_no_fallback_smoke.log": "d0908f9f38bf444b855aa89f213df4fc75fa771b1a9adc23fa514e16fe24a3eb",
+    "evidence/r9/prior_report_dmabuf_fixture_r8.md": "85905c38f551867c6b80619cf4c139aa866ebd20aa210ec23b1a29a1fa9b2a45",
+    "evidence/taste-drift-recheck-r10.json": "0e8507d0b4eb47cb7316754a23c05ef2c59527064a5aad3478fa1287acda3e05",
+    "evidence/taste-drift-recheck-r9.json": "e4ea1ea283baf0f574ee0a9e053989d7a672a82233718f1297c97938c6465b92",
+    "packages/design-r8-approved-before-r9.tar.gz": "b502cb0dc872a352cb34c8f84dba3cc57d8ec5f9daf030b0df44447f06166c39",
+    "packages/design-r9-approved-before-r10.tar.gz": "06ca8b15925e51cbd447dea9e8a029e3dd00085a2015e3a6f6eac60c83ff5810",
+    "reports/delivery-plan.md": "8089708235dd82e888a08f53576c7973bc0544e0cfcf12f670ca004ab9277d70",
+    "reports/delivery-plan_r10.md": "8089708235dd82e888a08f53576c7973bc0544e0cfcf12f670ca004ab9277d70",
+    "reports/delivery-plan_r9.md": "32515ef83487806ec57310c36a85ca21450f6ba24ac17406c04c56c87816ed88",
+    "reports/design-package.md": "e2e2a2c374919a436a548f7fb5e623e74ab42e8e224da50a84b3a83438d967da",
+    "reports/design-package_r10.md": "e2e2a2c374919a436a548f7fb5e623e74ab42e8e224da50a84b3a83438d967da",
+    "reports/design-package_r9.md": "b9d51a2b57899267f842322a40b6f9693906b045fc27bf3e494f03f94f2581b8",
+    "reports/implementation-spec.md": "0252b47af9ceb493a520ca0919c0f47c43039d74799047d77b2c8a692622f998",
+    "reports/implementation-spec_r10.md": "0252b47af9ceb493a520ca0919c0f47c43039d74799047d77b2c8a692622f998",
+    "reports/implementation-spec_r9.md": "e3d7eb4e0599ff1aab0ba02f3260d481ea6a820e85da7f52cb89b7c66e33b5fb",
+    "reports/report_architecture.md": "c16611d69d733e0f4cc5e0011842497f9ec75fe5db4eb61fcbf70c9a7969d189",
+    "reports/report_architecture_r10.md": "c16611d69d733e0f4cc5e0011842497f9ec75fe5db4eb61fcbf70c9a7969d189",
+    "reports/report_architecture_r9.md": "a788e36c49a30aceb4e8bacaa97040db7eb20c5c0d5340f33fe878fc9a68b886",
+    "reports/report_interfaces.md": "eb46c44219eec740f2d0a9df2614716418a7f3d22888cb3675a024d9dc8622c4",
+    "reports/report_interfaces_r10.md": "eb46c44219eec740f2d0a9df2614716418a7f3d22888cb3675a024d9dc8622c4",
+    "reports/report_interfaces_r9.md": "2ef10c8c8964203da994dd6d1b4a47db238820c3210ec365ca700f35365f007c",
+    "reports/report_research.md": "97fc4095c0e72f59c1309f87abe17ccefaf908ba823b24924dc58276c09bb684",
+    "reports/report_research_r8.md": "b89553772eb8c1a829a68f54d0b8db759dd7a3976a88c3e8045446dd983cb1ab",
+    "reports/report_research_r9.md": "97fc4095c0e72f59c1309f87abe17ccefaf908ba823b24924dc58276c09bb684",
+    "reports/report_security-seed.md": "ae9dc0d52f30fa07e8a35da42d21e957bda14b83ca6932114cccee00de33da90",
+    "reports/report_security-seed_r10.md": "ae9dc0d52f30fa07e8a35da42d21e957bda14b83ca6932114cccee00de33da90",
+    "reports/report_security-seed_r9.md": "ac1eedf1769adb8d0378439b955ffe17af593bee5f9dfa6d80fcb38f60b68378",
+    "reports/report_stack-lock.md": "dd081791507c7fe6c6f5b48f64e4492c2b062c0f1c5c48c7be4ec715d2fab93e",
+    "reports/report_stack-lock_r10.md": "dd081791507c7fe6c6f5b48f64e4492c2b062c0f1c5c48c7be4ec715d2fab93e",
+    "reports/report_stack-lock_r9.md": "a3f1765e1ad60b4afaa03e0e579421d61217fcf0a21a5580394ae6092579bf71",
+    "reports/report_taste-snapshot.md": "4ed920249f3c727ca090dc5076bde619ae6ea4b17531298b9d6c4e3f950f0391",
+    "reports/report_taste-snapshot_r10.md": "4ed920249f3c727ca090dc5076bde619ae6ea4b17531298b9d6c4e3f950f0391",
+    "reports/report_taste-snapshot_r9.md": "b5248f776634c864f2f24771d1c653e14a55f4f7a71d8f956ca200b6e3e24ca8",
+    "reports/requirements-brief.md": "97fc4095c0e72f59c1309f87abe17ccefaf908ba823b24924dc58276c09bb684"
+  },
+  "boundary": "design-to-build",
+  "evidence": {
+    "acceptance": "reports/delivery-plan_r10.md",
+    "architecture": "reports/report_architecture_r10.md",
+    "decisions": "../intake/report_grilling.md",
+    "interfaces": {
+      "artifacts": [
+        "reports/report_interfaces_r10.md",
+        "reports/report_architecture_r10.md",
+        "artifacts/interface_set_r10.json"
+      ],
+      "change": "changed",
+      "items": [
+        {
+          "id": "IF-1",
+          "kind": "internal-process-coordination",
+          "name": "deterministic-KA2 loggerd-to-encoderd segment authority and exact seven-field runtime diagnostic report via Params"
+        },
+        {
+          "id": "IF-2",
+          "kind": "internal-cpp-status",
+          "name": "deterministic-KA2 per-output encoder health, packet progress, pending identities, and distinct planned-segment versus failure-recovery reopen/retry counters"
+        },
+        {
+          "id": "IF-3",
+          "kind": "test-fixture",
+          "name": "C++ DMA-heap-backed VisionIPC external-buffer publisher"
+        },
+        {
+          "id": "IF-4",
+          "kind": "loggerd-media-lifecycle",
+          "name": "deterministic-KA2 runtime-commit writer finalization and bounded audio queue with atomic newest-event capacity drops"
+        }
+      ]
+    },
+    "plan": "reports/delivery-plan_r10.md",
+    "security_seed": {
+      "applicable": false,
+      "architecture_revision": "r10; report_architecture_r10.md sha256 c16611d69d733e0f4cc5e0011842497f9ec75fe5db4eb61fcbf70c9a7969d189; report_interfaces_r10.md sha256 eb46c44219eec740f2d0a9df2614716418a7f3d22888cb3675a024d9dc8622c4",
+      "boundaries": [],
+      "decided_by": "build/security-builder",
+      "reason": "Assessed against report_architecture_r10.md (sha256 c16611d69d733e0f4cc5e0011842497f9ec75fe5db4eb61fcbf70c9a7969d189), report_interfaces_r10.md (sha256 eb46c44219eec740f2d0a9df2614716418a7f3d22888cb3675a024d9dc8622c4), and interface_set_r10.json (sha256 aa031f73013890199ca60b2d57d786d6750a2a453aff3c13f21d39fefb846b8f). The r10 change keeps the planned ordinary deterministic-KA2 segment transition as EOS/drain followed by one close/open for each healthy MPP output. A shared drain deadline quarantines only outputs still pending, retires their frame identities once, and continues the transition; a healthy qRoad sibling has no additional failure-recovery reopen or retry attributable to that fault. These are internal availability and recovery controls on existing loggerd/encoderd, MPP, DMA-BUF, and local Params paths. They add no external actor, credential, public endpoint, privilege transition, cereal schema, or IPC mechanism, and do not move the existing local Params or DMA-BUF trust boundaries. D-28 remains mandatory: full-resolution MPP input is validated DMA-BUF with one import attempt, rejected input is dropped, and no full-resolution copy fallback or pointer retry exists; qRoad retains its existing RGA resize path. The seven-field LoggerdRotationReport remains local diagnostic data and cannot control segment authority. The DMA-heap VisionIPC publisher and fault seams remain test-only and isolated. Therefore r10 introduces or moves no adversarial trust boundary. The deployed MPP version/build and safe post-EOS encoder-context continuation remain unqualified; the local host IDR declaration is not evidence for the deployed target. Live V4L2 exporter behavior, DMA-BUF fences/synchronization, and camera-buffer reuse also remain unqualified. This assessment does not qualify those hardware or driver behaviors. Reassess if the design adds an external endpoint, changes trust boundaries or data handling, exposes diagnostics outside the existing local readers, or uses diagnostic fields for control decisions.",
+      "scope": "KA2/RK3588 deterministic loggerd/encoderd segment liveness, planned MPP close/open at segment boundaries, and per-output drain-failure isolation (r10)"
+    },
+    "stack_lock": {
+      "applicable": false,
+      "decided_by": "commander",
+      "reason": "no new runtime or framework - existing stack unchanged",
+      "scope": "design-to-build"
+    },
+    "taste_snapshot": "artifacts/taste_snapshot_r9.json",
+    "ui_evidence": {
+      "applicable": false,
+      "decided_by": "design/architect",
+      "reason": "no user-facing surface - design system not engaged",
+      "scope": "KA2 loggerd/encoderd rotation liveness and DMA-BUF failure containment"
+    }
+  },
+  "owner": "commander",
+  "revision": "r10",
+  "revisions": [
+    "r10"
+  ],
+  "run_id": "loggerd-ka2-efficiency-20261029",
+  "schema_version": 2,
+  "submission_id": "loggerd-ka2-efficiency-20261029-design-r10-mpp-segment-recovery-contract"
+}

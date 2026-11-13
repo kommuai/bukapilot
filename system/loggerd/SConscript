@@ -1,0 +1,67 @@
+Import('env', 'arch', 'device', 'cereal', 'messaging', 'common', 'visionipc')
+
+libs = [common, messaging, visionipc,
+        'avformat', 'avcodec', 'avutil',
+        'yuv', 'OpenCL', 'pthread', 'zstd']
+
+src = ['logger.cc', 'zstd_writer.cc', 'video_writer.cc', 'encoder/encoder.cc', 'encoder/v4l_encoder.cc', 'encoder/jpeg_encoder.cc']
+if arch != "larch64":
+  src += ['encoder/ffmpeg_encoder.cc']
+
+if arch == "larch64" and device == "KA2":
+  src += ['encoder/mpp_encoder.cc']
+  libs += ['rockchip_mpp', 'rga']
+
+if arch == "Darwin":
+  # fix OpenCL
+  del libs[libs.index('OpenCL')]
+  env['FRAMEWORKS'] = ['OpenCL']
+  # exclude v4l
+  del src[src.index('encoder/v4l_encoder.cc')]
+
+logger_lib = env.Library('logger', src)
+libs.insert(0, logger_lib)
+
+env.Program('loggerd', ['loggerd.cc'], LIBS=libs)
+env.Program('encoderd', ['encoderd.cc'], LIBS=libs + ["jpeg"])
+env.Program('bootlog.cc', LIBS=libs)
+
+if GetOption('extras'):
+  env.Program('tests/test_logger', ['tests/test_runner.cc', 'tests/test_logger.cc', 'tests/test_zstd_writer.cc'], LIBS=libs + ['curl', 'crypto'])
+  env.Program('#build/system/loggerd/tests/visionipc_dmabuf_publisher',
+              'tests/visionipc_dmabuf_publisher.cc',
+              LIBS=[visionipc, messaging, common, 'OpenCL', 'pthread'])
+  rotation_test_env = env.Clone()
+  rotation_test_env.Append(CPPDEFINES=['LOGGERD_TEST_BUILD'])
+  rotation_test_env.Program('#build/system/loggerd/tests/test_loggerd_rotation',
+                            'tests/test_loggerd_rotation.cc', LIBS=libs + ['curl', 'crypto'])
+  recovery_test_env = env.Clone()
+  recovery_test_env.Append(CPPDEFINES=['LOGGERD_TEST_BUILD'])
+  recovery_test_env['OBJSUFFIX'] = '.test.o'
+  recovery_test_lib = recovery_test_env.Library('#build/system/loggerd/tests/logger_test', src)
+  recovery_test_libs = libs.copy()
+  recovery_test_libs[0] = recovery_test_lib
+  recovery_test_env.Program('#build/system/loggerd/tests/test_encoderd_recovery',
+                            'tests/test_encoderd_recovery.cc', LIBS=recovery_test_libs + ['jpeg', 'curl', 'crypto'])
+
+  # Keep the legacy software branch isolated from production KA2 binaries and
+  # objects. This test-only target deliberately models a PC/non-RK3588 compile
+  # configuration while running on the pinned KA2 build host.
+  legacy_env = env.Clone()
+  legacy_env['OBJSUFFIX'] = '.non_rk3588.o'
+  legacy_env.Append(CCFLAGS=['-URK3588'])
+  legacy_env.Append(CXXFLAGS=['-URK3588'])
+  legacy_src = [
+    'logger.cc', 'zstd_writer.cc', 'video_writer.cc',
+    'encoder/encoder.cc', 'encoder/v4l_encoder.cc', 'encoder/jpeg_encoder.cc',
+    'encoder/ffmpeg_encoder.cc',
+  ]
+  legacy_logger_lib = legacy_env.Library('#build/system/loggerd/tests/logger_non_rk3588', legacy_src)
+  legacy_libs = [legacy_logger_lib, common, messaging, visionipc,
+                 'avformat', 'avcodec', 'avutil', 'yuv', 'OpenCL', 'pthread', 'zstd']
+  legacy_env.Program('#build/system/loggerd/tests/loggerd_non_rk3588', ['loggerd.cc'], LIBS=legacy_libs)
+  legacy_env.Program('#build/system/loggerd/tests/encoderd_non_rk3588', ['encoderd.cc'], LIBS=legacy_libs + ['jpeg'])
+  legacy_rotation_test_env = legacy_env.Clone()
+  legacy_rotation_test_env.Append(CPPDEFINES=['LOGGERD_TEST_BUILD'])
+  legacy_rotation_test_env.Program('#build/system/loggerd/tests/test_loggerd_rotation_non_rk3588',
+                                   'tests/test_loggerd_rotation.cc', LIBS=legacy_libs + ['curl', 'crypto'])

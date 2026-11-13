@@ -1,0 +1,7 @@
+{
+  "applicable": false,
+  "reason": "no user-facing surface - design system not engaged",
+  "scope": "KA2/RK3588 MPP encoder backend efficiency",
+  "decided_by": "design/architect"
+}
+

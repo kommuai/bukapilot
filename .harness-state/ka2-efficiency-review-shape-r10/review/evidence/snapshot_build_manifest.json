@@ -1,0 +1,535 @@
+{
+  "artifact_hashes": {
+    "../design/verdict_design-to-build-r10.cross-stage.json": "bc2d854ba4675408eb4c5329ee1252b4645f78075629aa4fe70d5f952042d75d",
+    "../intake/report_grilling.md": "be2b70d7df1922b807604d970a8101bab4034d6c7a36832be00267fa5df24e1f",
+    "artifacts/runtime-r10-probe.json": "528ab4e04f008f13fb7417646560641d1ea914727b22b9b2d1ffb5856403e82e",
+    "artifacts/tests-r10-probe.json": "52f0d8b2b178d7f26178771efff2003dbad28046cbb5baeda419ff514061bd0b",
+    "evidence/impl-r10-aggregate.diff": "f9ddb5a5f8d356e11c7cb4dc6b2a8dea325548a7df588c4723e4099fb5a562a4",
+    "evidence/impl-r10-checks.log": "a95d5ddefba4fb22de1af2c93a90569c8c627afd6714a8c141ab39d7bf4a4b8f",
+    "evidence/path-resolution-r10.md": "607047763a3ce34b2cbf8604adbdabfdefc027323f1435eef7124759d955a7f1",
+    "evidence/path-resolution-r237-evidence-relocations.json": "f4538435f665dd739e0913045fa215a5e4181fe8ddbd58862c9018338529b879",
+    "evidence/run-resume-r256-readiness.md": "94d68abed9351546eb0a31106c959795ff7f0f1b08b3670edc4b0054bce88822",
+    "evidence/runtime-r10-binary-audit-r269.log": "c6b86d4ecf089c786ce5331eb124fab899380654abe4566874fb08374604c7ae",
+    "evidence/runtime-r10-build-r269.log": "1c7706e78a0ae87a3ac6f7b3fe274a06eb56a904f0a74ba9bafa98491aae5590",
+    "evidence/runtime-r10-dependencies-r267.log": "3901fead3f3efc9923cc1c584b58fdf09a626eacf57911b79bee6d59659cb06b",
+    "evidence/runtime-r10-dependencies-r269.log": "a5c4d46d68dd77b578d8997114b80b636c0ba75a3cd161ae3ec6253590df1ec5",
+    "evidence/runtime-r10-postflight-r267.log": "0b7ccf649b8e3ec83d9e508e0cef8224c6fcc150167f1d491ce881689d2ee8ec",
+    "evidence/runtime-r10-postflight-r268.log": "0b7ccf649b8e3ec83d9e508e0cef8224c6fcc150167f1d491ce881689d2ee8ec",
+    "evidence/runtime-r10-postflight-r269.log": "0b7ccf649b8e3ec83d9e508e0cef8224c6fcc150167f1d491ce881689d2ee8ec",
+    "evidence/runtime-r10-preflight-r267.log": "afdb7d33c83bb3be615e1a025719dd34f7d48bada715c4c9772f7d56421cbe8a",
+    "evidence/runtime-r10-preflight-r269.log": "afdb7d33c83bb3be615e1a025719dd34f7d48bada715c4c9772f7d56421cbe8a",
+    "evidence/runtime-r10-probe-r268.json": "c38a6bce8811390f334440a96b6a0734c78f1e7a7913f46ebfd6ff271eac7a21",
+    "evidence/runtime-r10-readiness-r267.log": "e8d444a4dff92d1c585f070d38c6bb07d0bc71eb42897fc8d8b643b6c4f34e77",
+    "evidence/runtime-r10-readiness-r269.log": "2103534f30b35275b83841d44448a1c171cbde343d9c857af5c6127417360e13",
+    "evidence/runtime-r10-report-r268.md": "732799b2d6b29b2bca668492f4253c7a0034ee428481b4d87291bfa47b001c97",
+    "evidence/runtime-r10-smoke-r267.log": "9581fc87fbd3b8e869dd7a4145ece797800df27c81f76afc0dfa0cf64ea8494a",
+    "evidence/runtime-r10-smoke-r268.log": "6307d13b26184d1ff9c9184e850fe1064cbb38986cf55cfc4239bfd2ba791b92",
+    "evidence/runtime-r10-smoke-r269.log": "556f5ff807a2825d20034656b758e6ca5d56701dbeba388416d4e624cacbaf2f",
+    "evidence/runtime-r10-smoke-runner-r267.py": "cd07857603daa63905da97ba2e7e52b1df996e318333a9e9855754800eb5152e",
+    "evidence/runtime-r10-smoke-runner-r269.py": "39c1afee7094e3e6fed08934fd7d51181ce25d2bfdc958420f8769d03adc29a7",
+    "evidence/runtime-r10-start-discovery-r267.log": "2b48623631ffe98ce1d34c76dd4cc58ee80458136e1e6f62f0079a72d963bf3a",
+    "evidence/runtime-r10-startup-r267.log": "79e6bf53e68c805ffe2cd5ff16d9717cc4ba9f3c5eb81e19d35ab83dd2ceaa5a",
+    "evidence/runtime-r10-startup-r269.log": "3f7315dd0c803bd549f477a4b20923886a475c221605ab88c1ee6490f01d4aea",
+    "evidence/tests-r10-ac6-focused-postflight-r266.log": "37d9305b12df30221a680ea9f41115bd1afa3c411a78c13263d72579159e777d",
+    "evidence/tests-r10-ac6-focused-preflight-r266.log": "bfab475467ab9085f9a6ade360961a60f40feabc48a7de5c56558580c8694b51",
+    "evidence/tests-r10-ac6-focused-r266.log": "41d6d2d24ed85b9c8243529fef21bdea6b2f356ae8882b721e7454415ef050d8",
+    "evidence/tests-r10-ac6-full-postflight-r267.log": "65c843b7eaf7e3aef749e79df8740845ecacc55855f23a95af51c862f7e52fde",
+    "evidence/tests-r10-ac6-full-preflight-r267.log": "0d81284ff9d934b998b1b04a6aa6e2c21da1cbcab62f0786903919539f3b870c",
+    "evidence/tests-r10-ac6-full-r267.log": "1a331173847b4e933a3be4d38f4e0a4e18e027514705de8d88e9a77a89cec328",
+    "evidence/tests-r10-full-suite-r260.log": "dec86fd51f86550a55a872ed600fe94ea7030659b55bff9e3be0189b760a7614",
+    "evidence/tests-r10-gap-closure.log": "952c12929edc7fb54f8cfb9f86e64a22e3ade001aa633bb547f30bec1dfe42c9",
+    "evidence/tests-r10-run-r220.log": "fee537cafe812163ed24a2467d0a138f144cfda90c6f06634b6f1f112792a775",
+    "evidence/tests-r10-run-r229.log": "3192bac0c9edfff73d584fb81047b585939d0a0a2c74f89756be06603d983c37",
+    "reports/report_completeness.md": "b5d9052c96c69b4df5d52a486e8f23a2365ae31be440a4c90aa27248d2b19f88",
+    "reports/report_implementation_r10.md": "b0208b64f775f35c02588e380a28800538cf7fd1ef797e5f9e59a670008414aa",
+    "reports/report_runtime_health_r10.md": "da999830095353884fd24309c5bb36c17b5ba0d3accf83d3bc38f26a6fc62f84",
+    "reports/report_tests_r10.md": "81bb2b2edb12c92f647463f8668cc862d1dbe586b2bbfb97f2b9c1ae447f63d6"
+  },
+  "boundary": "build-to-review",
+  "evidence": {
+    "approved_design_revision": {
+      "revision": "r10",
+      "verdict": "../design/verdict_design-to-build-r10.cross-stage.json"
+    },
+    "implementation": {
+      "artifacts": [
+        "evidence/impl-r10-aggregate.diff"
+      ],
+      "changed_files": [
+        {
+          "path": "system/loggerd/SConscript",
+          "sha256": "9423e0b617e2b99b50ee97e592c65d89925a6bbad0af6f8944eb78fb056c2373",
+          "status": "modified"
+        },
+        {
+          "path": "system/loggerd/encoder/ffmpeg_encoder.cc",
+          "sha256": "7124dee947f6eb409e5fc0e720182f077554d470871dc5c400b6430abc1ea8de",
+          "status": "modified"
+        },
+        {
+          "path": "system/loggerd/encoder/ffmpeg_encoder.h",
+          "sha256": "ca58013144a178daf80b1e483dcfd56a231d3af72129aec5a7052e8df269f8d8",
+          "status": "modified"
+        },
+        {
+          "path": "system/loggerd/encoder/mpp_encoder.cc",
+          "sha256": "24537361363ace4fd11485fca4284938f22e9b73fdb13ff84f100dd8368d5477",
+          "status": "modified"
+        },
+        {
+          "path": "system/loggerd/encoder/mpp_encoder.h",
+          "sha256": "253c02a7c10624d0333f3360cb13281d6edb1ede10efe91e705c03ac284e8f43",
+          "status": "modified"
+        },
+        {
+          "path": "system/loggerd/encoder/mpp_encoder_input.h",
+          "sha256": "965e011ff0676341996a13974f7c86f87a26bc72441765eefc68f115ee068ce3",
+          "status": "modified"
+        },
+        {
+          "path": "system/loggerd/encoderd.cc",
+          "sha256": "fde3d8cb1adfd5308279df4c3c37989ebed7a63127a1f51ed1cbdb48e7eab8d9",
+          "status": "modified"
+        },
+        {
+          "path": "system/loggerd/loggerd.cc",
+          "sha256": "3a2e621adc50f44f727a12b0d8deb7410a4c502948ae2297069aa40b4ea8f5a9",
+          "status": "modified"
+        },
+        {
+          "path": "system/loggerd/tests/test_dmabuf_fixture.py",
+          "sha256": "cfc0baf39d00be3871f7e8359083adc86266e29333e3b2dc09cd349e175a7b9c",
+          "status": "added"
+        },
+        {
+          "path": "system/loggerd/tests/test_encoderd_recovery.cc",
+          "sha256": "38872a2c9d5ffd9a8a4d5fa4cf09941c3e768b8001cd8414bc50416feaaf88fe",
+          "status": "added"
+        },
+        {
+          "path": "system/loggerd/tests/test_encoderd_recovery.py",
+          "sha256": "685789745fdab9b6c4ebabad8f380dceba0efcb3dc1e8f25872faf068c816292",
+          "status": "added"
+        },
+        {
+          "path": "system/loggerd/tests/test_loggerd.py",
+          "sha256": "0e6404662d1dad2ff6ba1fe8ff13d41e55f3f30494fe833d41d996de44a013bb",
+          "status": "modified"
+        },
+        {
+          "path": "system/loggerd/tests/test_loggerd_liveness.py",
+          "sha256": "f4911703b8d9a6e500336106b855a1182aabd135078c1c8ca58aadb3875efea9",
+          "status": "added"
+        },
+        {
+          "path": "system/loggerd/tests/test_loggerd_rotation.cc",
+          "sha256": "bf185f8d3b9335182d347e010af35b1a20913b15bdeb8ad35a23b19edf1e7962",
+          "status": "added"
+        },
+        {
+          "path": "system/loggerd/tests/test_loggerd_rotation.py",
+          "sha256": "677f4542e47d224f593b14e25951fab2236ac5ddc030afb87399427eb2a8a867",
+          "status": "added"
+        },
+        {
+          "path": "system/loggerd/tests/test_mpp_encoder.cc",
+          "sha256": "4ba25c832faa0c5385d8cd1a5c02bac626099bcaf03635067b2501146004460d",
+          "status": "modified"
+        },
+        {
+          "path": "system/loggerd/tests/test_mpp_encoder.py",
+          "sha256": "533f179729d841dfe0386d34ebc92a282f0395e867a4f057e4ce623a6b7964b4",
+          "status": "modified"
+        },
+        {
+          "path": "system/loggerd/tests/visionipc_dmabuf_publisher.cc",
+          "sha256": "0994305f86b1c7c1481d3276ee2dd5b5fd81d033847db822a198568941fefad9",
+          "status": "added"
+        }
+      ],
+      "report": "reports/report_implementation_r10.md"
+    },
+    "runtime": {
+      "artifacts": [
+        "evidence/runtime-r10-smoke-r269.log",
+        "evidence/runtime-r10-startup-r269.log",
+        "evidence/runtime-r10-readiness-r269.log",
+        "evidence/runtime-r10-dependencies-r269.log",
+        "evidence/runtime-r10-preflight-r269.log",
+        "evidence/runtime-r10-postflight-r269.log",
+        "evidence/runtime-r10-build-r269.log",
+        "evidence/runtime-r10-binary-audit-r269.log",
+        "evidence/runtime-r10-smoke-runner-r269.py",
+        "evidence/runtime-r10-smoke-r268.log",
+        "evidence/runtime-r10-postflight-r268.log",
+        "evidence/runtime-r10-report-r268.md",
+        "evidence/runtime-r10-probe-r268.json",
+        "evidence/runtime-r10-smoke-r267.log",
+        "evidence/runtime-r10-startup-r267.log",
+        "evidence/runtime-r10-readiness-r267.log",
+        "evidence/runtime-r10-dependencies-r267.log",
+        "evidence/runtime-r10-preflight-r267.log",
+        "evidence/runtime-r10-postflight-r267.log",
+        "evidence/runtime-r10-smoke-runner-r267.py",
+        "evidence/runtime-r10-start-discovery-r267.log"
+      ],
+      "command": "/usr/local/venv/bin/scons -Q -j2 system/loggerd/loggerd system/loggerd/encoderd build/system/loggerd/tests/visionipc_dmabuf_publisher (TMPDIR=/data/.tmp-logr10-runtime-269; build evidence in evidence/runtime-r10-build-r269.log); /usr/local/venv/bin/python3 skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/runtime-r10-smoke-runner-r269.py",
+      "environment": "Local non-production KA2/RK3588 board; current production loggerd/encoderd with LOGGERD_TEST_BUILD hooks and fault injection compiled out; isolated four-buffer 1920x1200 DMA-heap VisionIPC; LOGGERD_TEST=1 and LOGGERD_SEGMENT_LENGTH=2 timing override; LOGGERD_TEST_DETERMINISTIC=1 selects production-default RK3588 rotation algorithm; ENCODERD_DETERMINISTIC_DISABLE and fault selectors unset; temp media under /data; no live camera/V4L2 or network/authenticated traffic",
+      "input_revision": 266,
+      "inputs": [
+        {
+          "path": "system/loggerd/loggerd.cc",
+          "sha256": "3a2e621adc50f44f727a12b0d8deb7410a4c502948ae2297069aa40b4ea8f5a9"
+        },
+        {
+          "path": "system/loggerd/loggerd.h",
+          "sha256": "be831a312bedac0b997eaea6a932f63f2ca265f35c5881c96c9c0a17097e1034"
+        },
+        {
+          "path": "system/loggerd/encoderd.cc",
+          "sha256": "fde3d8cb1adfd5308279df4c3c37989ebed7a63127a1f51ed1cbdb48e7eab8d9"
+        },
+        {
+          "path": "system/loggerd/encoder/ffmpeg_encoder.cc",
+          "sha256": "7124dee947f6eb409e5fc0e720182f077554d470871dc5c400b6430abc1ea8de"
+        },
+        {
+          "path": "system/loggerd/encoder/ffmpeg_encoder.h",
+          "sha256": "ca58013144a178daf80b1e483dcfd56a231d3af72129aec5a7052e8df269f8d8"
+        },
+        {
+          "path": "system/loggerd/encoder/mpp_encoder.cc",
+          "sha256": "24537361363ace4fd11485fca4284938f22e9b73fdb13ff84f100dd8368d5477"
+        },
+        {
+          "path": "system/loggerd/encoder/mpp_encoder.h",
+          "sha256": "253c02a7c10624d0333f3360cb13281d6edb1ede10efe91e705c03ac284e8f43"
+        },
+        {
+          "path": "system/loggerd/encoder/mpp_encoder_input.h",
+          "sha256": "965e011ff0676341996a13974f7c86f87a26bc72441765eefc68f115ee068ce3"
+        },
+        {
+          "path": "system/loggerd/SConscript",
+          "sha256": "9423e0b617e2b99b50ee97e592c65d89925a6bbad0af6f8944eb78fb056c2373"
+        },
+        {
+          "path": "system/loggerd/tests/visionipc_dmabuf_publisher.cc",
+          "sha256": "0994305f86b1c7c1481d3276ee2dd5b5fd81d033847db822a198568941fefad9"
+        },
+        {
+          "path": "system/loggerd/tests/test_dmabuf_fixture.py",
+          "sha256": "cfc0baf39d00be3871f7e8359083adc86266e29333e3b2dc09cd349e175a7b9c"
+        },
+        {
+          "path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/runtime-r10-smoke-runner-r269.py",
+          "sha256": "39c1afee7094e3e6fed08934fd7d51181ce25d2bfdc958420f8769d03adc29a7"
+        }
+      ],
+      "observed_at": "2026-10-31T13:39:25Z",
+      "result": {
+        "status": "pass"
+      },
+      "target_revision": "Workspace based on git HEAD 438acf545a776a63a05a70e42268f1ea32da036c; current runtime source snapshot bound by input hashes",
+      "tool": "SCons production build and Python process smoke with the synthetic DMA-heap VisionIPC fixture"
+    },
+    "security_evidence": {
+      "applicable": false,
+      "decided_by": "build/security-builder",
+      "reason": "no trust-boundary change - security-builder not engaged",
+      "scope": "All 18 changed paths are first-party system/loggerd production, build, or test files. No external actor, endpoint, credential, privilege boundary, or cereal schema changed; synthetic DMA-BUF fixtures remain isolated."
+    },
+    "tests": {
+      "artifacts": [
+        "evidence/tests-r10-ac6-full-r267.log",
+        "evidence/tests-r10-ac6-full-preflight-r267.log",
+        "evidence/tests-r10-ac6-full-postflight-r267.log",
+        "evidence/tests-r10-ac6-focused-r266.log",
+        "evidence/tests-r10-ac6-focused-preflight-r266.log",
+        "evidence/tests-r10-ac6-focused-postflight-r266.log",
+        "evidence/tests-r10-full-suite-r260.log",
+        "evidence/tests-r10-gap-closure.log",
+        "evidence/tests-r10-run-r229.log",
+        "evidence/tests-r10-run-r220.log"
+      ],
+      "command": "TMPDIR=/data/openpilot/.harness-state/ka2-efficiency-build-r7/tmp-ac6-full-r267 /usr/local/venv/bin/python3 -m pytest -s -v -n0 -x --basetemp=/data/openpilot/.harness-state/ka2-efficiency-build-r7/full-suite-ac6-r267 system/loggerd/tests/test_mpp_encoder.py system/loggerd/tests/test_loggerd_rotation.py system/loggerd/tests/test_encoderd_recovery.py system/loggerd/tests/test_dmabuf_fixture.py system/loggerd/tests/test_loggerd_liveness.py system/loggerd/tests/test_loggerd.py::TestLoggerd::test_rotation system/loggerd/tests/test_loggerd.py::TestLoggerd::test_ka2_deterministic_rotation_alignment",
+      "coverage_gaps": [
+        {
+          "reason": "Lifecycle sources are synthetic DMA-heap or memfd fixtures; no live camera capture or deployed production MPP post-EOS qualification was run.",
+          "requirement": "live V4L2 DMA-BUF export, camera fences/buffer reuse, and deployed production MPP post-EOS behavior",
+          "status": "unproven"
+        },
+        {
+          "reason": "The non-RK3588/HardwarePC software configuration passed its lifecycle on KA2/RK3588 hardware; no independent non-KA2 silicon target was available or claimed.",
+          "requirement": "non-RK3588 physical hardware qualification",
+          "status": "unproven"
+        },
+        {
+          "reason": "Error isolation, backoff, due-time gating, and progress reset are asserted with deterministic policy tests and isolated MPP fault seams rather than a live camera exporter.",
+          "requirement": "long-running live persistent V4L2 descriptor failure",
+          "status": "unproven"
+        }
+      ],
+      "environment": "KA2/RK3588 aarch64 hardware; focused drain-timeout test and full grouped suite ran serially; pytest basetemp and TMPDIR under /data; isolated temp/log/Params roots; synthetic DMA-heap and memfd fixtures; HardwarePC legacy software target compiled with -URK3588 and no __TICI__ but executed on actual KA2 hardware; test-only all-output counter gated by LOGGERD_TEST_BUILD and LOGGERD_TEST=1; no live camera/V4L2 capture or production log roots",
+      "inputs": [
+        {
+          "path": "system/loggerd/loggerd.cc",
+          "sha256": "3a2e621adc50f44f727a12b0d8deb7410a4c502948ae2297069aa40b4ea8f5a9"
+        },
+        {
+          "path": "system/loggerd/loggerd.h",
+          "sha256": "be831a312bedac0b997eaea6a932f63f2ca265f35c5881c96c9c0a17097e1034"
+        },
+        {
+          "path": "system/loggerd/encoderd.cc",
+          "sha256": "fde3d8cb1adfd5308279df4c3c37989ebed7a63127a1f51ed1cbdb48e7eab8d9"
+        },
+        {
+          "path": "system/loggerd/encoder/mpp_encoder.cc",
+          "sha256": "24537361363ace4fd11485fca4284938f22e9b73fdb13ff84f100dd8368d5477"
+        },
+        {
+          "path": "system/loggerd/encoder/mpp_encoder.h",
+          "sha256": "253c02a7c10624d0333f3360cb13281d6edb1ede10efe91e705c03ac284e8f43"
+        },
+        {
+          "path": "system/loggerd/encoder/mpp_encoder_input.h",
+          "sha256": "965e011ff0676341996a13974f7c86f87a26bc72441765eefc68f115ee068ce3"
+        },
+        {
+          "path": "system/loggerd/encoder/ffmpeg_encoder.cc",
+          "sha256": "7124dee947f6eb409e5fc0e720182f077554d470871dc5c400b6430abc1ea8de"
+        },
+        {
+          "path": "system/loggerd/encoder/ffmpeg_encoder.h",
+          "sha256": "ca58013144a178daf80b1e483dcfd56a231d3af72129aec5a7052e8df269f8d8"
+        },
+        {
+          "path": "system/loggerd/SConscript",
+          "sha256": "9423e0b617e2b99b50ee97e592c65d89925a6bbad0af6f8944eb78fb056c2373"
+        },
+        {
+          "path": "system/loggerd/tests/test_loggerd.py",
+          "sha256": "0e6404662d1dad2ff6ba1fe8ff13d41e55f3f30494fe833d41d996de44a013bb"
+        },
+        {
+          "path": "system/loggerd/tests/test_mpp_encoder.cc",
+          "sha256": "4ba25c832faa0c5385d8cd1a5c02bac626099bcaf03635067b2501146004460d"
+        },
+        {
+          "path": "system/loggerd/tests/test_mpp_encoder.py",
+          "sha256": "533f179729d841dfe0386d34ebc92a282f0395e867a4f057e4ce623a6b7964b4"
+        },
+        {
+          "path": "system/loggerd/tests/test_loggerd_rotation.cc",
+          "sha256": "bf185f8d3b9335182d347e010af35b1a20913b15bdeb8ad35a23b19edf1e7962"
+        },
+        {
+          "path": "system/loggerd/tests/test_loggerd_rotation.py",
+          "sha256": "677f4542e47d224f593b14e25951fab2236ac5ddc030afb87399427eb2a8a867"
+        },
+        {
+          "path": "system/loggerd/tests/test_encoderd_recovery.cc",
+          "sha256": "38872a2c9d5ffd9a8a4d5fa4cf09941c3e768b8001cd8414bc50416feaaf88fe"
+        },
+        {
+          "path": "system/loggerd/tests/test_encoderd_recovery.py",
+          "sha256": "685789745fdab9b6c4ebabad8f380dceba0efcb3dc1e8f25872faf068c816292"
+        },
+        {
+          "path": "system/loggerd/tests/test_dmabuf_fixture.py",
+          "sha256": "cfc0baf39d00be3871f7e8359083adc86266e29333e3b2dc09cd349e175a7b9c"
+        },
+        {
+          "path": "system/loggerd/tests/visionipc_dmabuf_publisher.cc",
+          "sha256": "0994305f86b1c7c1481d3276ee2dd5b5fd81d033847db822a198568941fefad9"
+        },
+        {
+          "path": "system/loggerd/tests/test_loggerd_liveness.py",
+          "sha256": "f4911703b8d9a6e500336106b855a1182aabd135078c1c8ca58aadb3875efea9"
+        }
+      ],
+      "observed_at": "2026-10-31T13:36:48Z",
+      "result": {
+        "status": "pass"
+      },
+      "tool": "pytest 9.0.2 via /usr/local/venv/bin/python3 -m pytest"
+    },
+    "traceability": {
+      "items": [
+        {
+          "acceptance": "AC-1",
+          "changes": [
+            "system/loggerd/loggerd.cc",
+            "system/loggerd/tests/test_loggerd.py",
+            "system/loggerd/tests/test_loggerd_rotation.cc",
+            "system/loggerd/tests/test_loggerd_rotation.py"
+          ],
+          "tests": [
+            "system/loggerd/tests/test_loggerd_rotation.py::test_loggerd_rotation_clock_report_and_audio_contracts",
+            "system/loggerd/tests/test_loggerd.py::TestLoggerd::test_rotation"
+          ]
+        },
+        {
+          "acceptance": "AC-2",
+          "changes": [
+            "system/loggerd/loggerd.cc",
+            "system/loggerd/tests/test_loggerd_rotation.cc",
+            "system/loggerd/tests/test_loggerd_rotation.py"
+          ],
+          "tests": [
+            "system/loggerd/tests/test_loggerd_rotation.py::test_loggerd_rotation_clock_report_and_audio_contracts"
+          ]
+        },
+        {
+          "acceptance": "AC-3",
+          "changes": [
+            "system/loggerd/loggerd.cc",
+            "system/loggerd/tests/test_loggerd_rotation.cc",
+            "system/loggerd/tests/test_loggerd_rotation.py"
+          ],
+          "tests": [
+            "system/loggerd/tests/test_loggerd_rotation.py::test_loggerd_rotation_clock_report_and_audio_contracts"
+          ]
+        },
+        {
+          "acceptance": "AC-4",
+          "changes": [
+            "system/loggerd/encoder/mpp_encoder.cc",
+            "system/loggerd/encoder/mpp_encoder.h",
+            "system/loggerd/encoder/mpp_encoder_input.h",
+            "system/loggerd/encoderd.cc",
+            "system/loggerd/tests/test_mpp_encoder.cc",
+            "system/loggerd/tests/test_mpp_encoder.py",
+            "system/loggerd/tests/test_encoderd_recovery.cc",
+            "system/loggerd/tests/test_encoderd_recovery.py"
+          ],
+          "tests": [
+            "system/loggerd/tests/test_mpp_encoder.py::test_mpp_encoder_dma_buf_validation",
+            "system/loggerd/tests/test_encoderd_recovery.py::test_encoderd_authority_parser_and_mpp_recovery_seams"
+          ]
+        },
+        {
+          "acceptance": "AC-5",
+          "changes": [
+            "system/loggerd/encoderd.cc",
+            "system/loggerd/tests/test_encoderd_recovery.cc",
+            "system/loggerd/tests/test_encoderd_recovery.py",
+            "system/loggerd/tests/test_loggerd_liveness.py"
+          ],
+          "tests": [
+            "system/loggerd/tests/test_encoderd_recovery.py::test_encoderd_authority_parser_and_mpp_recovery_seams",
+            "system/loggerd/tests/test_loggerd_liveness.py::test_ka2_output_fault_preserves_qroad[reject]"
+          ]
+        },
+        {
+          "acceptance": "AC-6",
+          "changes": [
+            "system/loggerd/encoderd.cc",
+            "system/loggerd/tests/test_encoderd_recovery.cc",
+            "system/loggerd/tests/test_encoderd_recovery.py",
+            "system/loggerd/tests/test_loggerd_liveness.py"
+          ],
+          "tests": [
+            "system/loggerd/tests/test_encoderd_recovery.py::test_encoderd_authority_parser_and_mpp_recovery_seams",
+            "system/loggerd/tests/test_loggerd_liveness.py::test_ka2_output_fault_preserves_qroad[drain_timeout]"
+          ]
+        },
+        {
+          "acceptance": "AC-7",
+          "changes": [
+            "system/loggerd/SConscript",
+            "system/loggerd/tests/visionipc_dmabuf_publisher.cc",
+            "system/loggerd/tests/test_dmabuf_fixture.py",
+            "system/loggerd/tests/test_loggerd_liveness.py"
+          ],
+          "tests": [
+            "system/loggerd/tests/test_dmabuf_fixture.py::test_visionipc_dmabuf_fixture",
+            "system/loggerd/tests/test_loggerd_liveness.py::test_ka2_valid_dmabuf_rotation_end_to_end"
+          ]
+        },
+        {
+          "acceptance": "AC-8",
+          "changes": [
+            "system/loggerd/encoder/mpp_encoder.cc",
+            "system/loggerd/encoder/mpp_encoder_input.h",
+            "system/loggerd/tests/test_mpp_encoder.cc",
+            "system/loggerd/tests/test_mpp_encoder.py",
+            "system/loggerd/tests/test_loggerd_liveness.py"
+          ],
+          "tests": [
+            "system/loggerd/tests/test_mpp_encoder.py::test_mpp_encoder_dma_buf_validation",
+            "system/loggerd/tests/test_loggerd_liveness.py::test_ka2_shm_rejection_preserves_qroad"
+          ]
+        },
+        {
+          "acceptance": "AC-9",
+          "changes": [
+            "system/loggerd/loggerd.cc",
+            "system/loggerd/tests/test_loggerd_rotation.cc",
+            "system/loggerd/tests/test_loggerd_rotation.py",
+            "system/loggerd/tests/test_loggerd_liveness.py"
+          ],
+          "tests": [
+            "system/loggerd/tests/test_loggerd_rotation.py::test_loggerd_rotation_clock_report_and_audio_contracts",
+            "system/loggerd/tests/test_loggerd_liveness.py::test_ka2_output_fault_preserves_qroad[drain_timeout]"
+          ]
+        },
+        {
+          "acceptance": "AC-10",
+          "changes": [
+            "system/loggerd/SConscript",
+            "system/loggerd/tests/visionipc_dmabuf_publisher.cc",
+            "system/loggerd/tests/test_dmabuf_fixture.py",
+            "system/loggerd/tests/test_loggerd_liveness.py"
+          ],
+          "tests": [
+            "system/loggerd/tests/test_dmabuf_fixture.py::test_visionipc_dmabuf_fixture",
+            "system/loggerd/tests/test_loggerd_liveness.py::test_ka2_valid_dmabuf_rotation_end_to_end"
+          ]
+        },
+        {
+          "acceptance": "AC-11",
+          "changes": [
+            "system/loggerd/encoder/mpp_encoder.cc",
+            "system/loggerd/encoder/mpp_encoder.h",
+            "system/loggerd/encoder/mpp_encoder_input.h",
+            "system/loggerd/SConscript",
+            "system/loggerd/tests/test_mpp_encoder.cc",
+            "system/loggerd/tests/test_mpp_encoder.py"
+          ],
+          "tests": [
+            "system/loggerd/tests/test_mpp_encoder.py::test_mpp_encoder_dma_buf_validation",
+            "system/loggerd/tests/test_loggerd_liveness.py::test_ka2_valid_dmabuf_rotation_end_to_end"
+          ]
+        },
+        {
+          "acceptance": "AC-12",
+          "changes": [
+            "system/loggerd/SConscript",
+            "system/loggerd/encoder/ffmpeg_encoder.cc",
+            "system/loggerd/encoder/ffmpeg_encoder.h",
+            "system/loggerd/encoderd.cc",
+            "system/loggerd/loggerd.cc",
+            "system/loggerd/tests/test_loggerd_liveness.py",
+            "system/loggerd/tests/test_loggerd_rotation.py"
+          ],
+          "tests": [
+            "system/loggerd/tests/test_loggerd_liveness.py::test_loggerd_legacy_mode_preserves_rotation_behavior",
+            "system/loggerd/tests/test_loggerd_liveness.py::test_non_rk3588_hardware_pc_legacy_lifecycle_on_ka2_host",
+            "system/loggerd/tests/test_loggerd_rotation.py::test_non_rk3588_loggerd_legacy_guard_compile_only"
+          ]
+        }
+      ],
+      "supporting": []
+    }
+  },
+  "owner": "build-management",
+  "revision": 266,
+  "revisions": [
+    266
+  ],
+  "run_id": "loggerd-ka2-efficiency-20261029",
+  "schema_version": 2,
+  "submission_id": "loggerd-ka2-efficiency-20261029-build-r10"
+}

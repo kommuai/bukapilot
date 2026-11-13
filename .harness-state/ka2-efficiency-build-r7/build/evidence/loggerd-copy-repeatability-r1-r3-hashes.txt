@@ -1,0 +1,12 @@
+e5741ba8d1574f35f499760ce865800ab79496ef872d1d53778bfe07d1979d03  skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/loggerd-copy-runtime-regression.log
+f3129876b5e611e940d581b29b5081095ae1f4ab84b89782935614233287d196  skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/loggerd-copy-runtime-frame-summary.json
+1b5c9f14201e315807a7badd471e3b2f2450654b0f675a3e70c529675f8e6f0d  skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/loggerd-copy-preflight-r2.log
+e976d2db6d10cc6f245a6a5f4beef19cb227930305e9bc4b07c9e779403538b5  skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/loggerd-copy-runtime-r2.log
+3bfa91df18d70babd0317b41ca90b5c505394f74839ec86da79d1df3e0766688  skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/loggerd-copy-runtime-r2-summary.json
+b00f54547cb16e931ca410fb5e2123a9440c8948f78832688352883eb7f957c6  skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/loggerd-copy-postflight-r2.log
+cb3e89f40558bcf7029850770605e914eb121566fc295e0b32dfaeae55f075f8  skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/loggerd-copy-preflight-r3.log
+bb5ee027fcd386a723ce207a95578a885ef21ea8de1b37874b1b6b6d40632866  skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/loggerd-copy-runtime-r3.log
+02582b830cd5046bc0906690a1cd85ea36242fa762e6bf4e88ded79afb77108a  skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/loggerd-copy-runtime-r3-summary.json
+0631b630bae2e0a19db376388704bb92787cbccbf7f1e091e5c74f14f86dcb1c  skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/loggerd-copy-postflight-r3.log
+475f196a112836c2cadc082a8ec11dd27091dc2b7efa8bdb56ba2d1e0c4e138d  skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/loggerd-copy-repeatability-comparison.json
+2e36fbbfd96d25ecd2ba6dd5a13b30c8c8d16b9ad0750311cf22eb52eb749f2d  skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/report_copy_runtime_repeatability.md
