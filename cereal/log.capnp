@@ -2610,6 +2610,12 @@ struct Event {
     bookmarkButton @148 :UserBookmark;
     audioFeedback @149 :AudioFeedback;
 
+    # Auxiliary AHD-to-USB side cameras, published by sidecamerad.
+    frontLeftCameraState @150 :FrameData;
+    frontRightCameraState @151 :FrameData;
+    backLeftCameraState @152 :FrameData;
+    backRightCameraState @153 :FrameData;
+
     # *********** debug ***********
     testJoystick @52 :Joystick;
     roadEncodeData @86 :EncodeData;

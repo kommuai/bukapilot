@@ -164,6 +164,8 @@ inline static std::unordered_map<std::string, ParamKeyAttributes> keys = {
     {"RsjSession", {PERSISTENT, STRING}},
     {"QuietMode", {PERSISTENT, BOOL}},
     {"SecOCKey", {PERSISTENT | DONT_LOG, STRING}},
+    {"SideCameraAvailability", {CLEAR_ON_MANAGER_START, JSON,
+                                "{\"frontLeftCameraState\":false,\"frontRightCameraState\":false,\"backLeftCameraState\":false,\"backRightCameraState\":false}"}},
     {"ShowDebugInfo", {PERSISTENT, BOOL}},
     {"RouteCount", {PERSISTENT, INT, "0"}},
     {"SnoozeUpdate", {CLEAR_ON_MANAGER_START | CLEAR_ON_OFFROAD_TRANSITION, BOOL}},

@@ -71,6 +71,7 @@ procs = [
   PythonProcess("logmessaged", "system.logmessaged", always_run),
 
   NativeProcess("camerad", "system/camerad", ["./camerad"], driverview, enabled=not WEBCAM),
+  PythonProcess("sidecamerad", "system.sidecamerad", driverview, enabled=os.getenv("SIDECAMERAD", "1") != "0"),
   PythonProcess("webcamerad", "tools.webcam.camerad", driverview, enabled=WEBCAM),
   PythonProcess("proclogd", "system.proclogd", only_onroad, enabled=platform.system() != "Darwin"),
   PythonProcess("journald", "system.journald", only_onroad, platform.system() != "Darwin"),

@@ -220,6 +220,7 @@ SConscript([
 
 if arch == "larch64":
   SConscript(['system/camerad/SConscript'])
+  SConscript(['system/sidecamerad/SConscript'])
 
 # Build openpilot
 SConscript(['third_party/SConscript'])
