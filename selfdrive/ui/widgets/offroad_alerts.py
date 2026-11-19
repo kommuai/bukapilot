@@ -91,20 +91,12 @@ class AbstractAlert(Widget, ABC):
     self.has_reboot_btn = has_reboot_btn
     self.dismiss_callback: Callable | None = None
 
-    def snooze_callback():
-      self.params.put_bool("SnoozeUpdate", True)
-      if self.dismiss_callback:
-        self.dismiss_callback()
-
     def excessive_actuation_callback():
       self.params.remove("Offroad_ExcessiveActuation")
       if self.dismiss_callback:
         self.dismiss_callback()
 
     self.dismiss_btn = ActionButton(lambda: tr("Close"))
-
-    self.snooze_btn = ActionButton(lambda: tr("Snooze Update"), style=ButtonStyle.DARK)
-    self.snooze_btn.set_click_callback(snooze_callback)
 
     self.excessive_actuation_btn = ActionButton(lambda: tr("Acknowledge Excessive Actuation"), style=ButtonStyle.DARK, min_width=800)
     self.excessive_actuation_btn.set_click_callback(excessive_actuation_callback)
@@ -194,11 +186,6 @@ class AbstractAlert(Widget, ABC):
       self.excessive_actuation_btn.set_position(actuation_x, footer_y)
       self.excessive_actuation_btn.render()
 
-    elif self.snooze_btn.is_visible:
-      snooze_x = rect.x + rect.width - AlertConstants.MARGIN - self.snooze_btn.rect.width
-      self.snooze_btn.set_position(snooze_x, footer_y)
-      self.snooze_btn.render()
-
 
 class OffroadAlert(AbstractAlert):
   def __init__(self):
@@ -210,7 +197,6 @@ class OffroadAlert(AbstractAlert):
       self._build_alerts()
 
     active_count = 0
-    connectivity_needed = False
     excessive_actuation = False
 
     for alert_data in self.sorted_alerts:
@@ -226,14 +212,10 @@ class OffroadAlert(AbstractAlert):
       if alert_data.visible:
         active_count += 1
 
-      if alert_data.key == "Offroad_ConnectivityNeeded" and alert_data.visible:
-        connectivity_needed = True
-
       if alert_data.key == "Offroad_ExcessiveActuation" and alert_data.visible:
         excessive_actuation = True
 
     self.excessive_actuation_btn.set_visible(excessive_actuation)
-    self.snooze_btn.set_visible(connectivity_needed and not excessive_actuation)
     return active_count
 
   def get_content_height(self) -> float:
