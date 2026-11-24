@@ -185,7 +185,7 @@ class Uploader:
     self.last_filename = ""
 
     self.immediate_folders = ["crash/", "boot/"]
-    self.immediate_priority = {"qlog": 0, "qlog.zst": 0, "qcamera.ts": 1}
+    self.immediate_priority = {"qlog": 0, "qlog.zst": 0, "qcamera.ts": 1, "fcamera.hevc": 2, "ecamera.hevc": 3}
 
     # queue stats
     self.immediate_size = 0
