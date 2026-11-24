@@ -1,0 +1,11 @@
+SideCamera per-thread schedstat correlation
+Created UTC: 2026-11-15T10:20:43.252675+00:00
+Frames requested/completed: 600/600; bytes: 829440000/829440000
+Return/error: 0/None
+Source hash before/after: 494fb8b88fda8bcf1d8301225019f4f01f4b77a0bb5cb3e69dde47ed96e1309b/494fb8b88fda8bcf1d8301225019f4f01f4b77a0bb5cb3e69dde47ed96e1309b
+schedstat available: True; child reaped: True
+Read cadence: {'count': 599, 'mean_ms': 49.992047086811354, 'median_ms': 50.341057, 'p95_ms': 64.946614, 'p99_ms': 73.22716, 'min_ms': 18.510752, 'max_ms': 80.383947, 'over_60ms': 77}
+Runqueue deltas by long/normal gap: {'long_gaps_over_60ms': 77, 'other_gaps': 522, 'long_gap_mean_total_runqueue_delay_ms': 1.4693593636363635, 'normal_gap_mean_total_runqueue_delay_ms': 1.2731825651340998, 'long_gap_mean_max_thread_runqueue_delay_ms': 0.9883674805194805, 'normal_gap_mean_max_thread_runqueue_delay_ms': 0.8483762126436781, 'long_gap_count_with_any_thread_runqueue_delay_5ms_plus': 3, 'normal_gap_count_with_any_thread_runqueue_delay_5ms_plus': 13, 'long_gap_max_total_runqueue_delay_ms': 10.867576, 'long_gap_max_thread_runqueue_delay_ms': 9.659206}
+CPU pressure after: some avg10=3.49 avg60=3.06 avg300=2.90 total=365534276
+Artifact: /data/openpilot/.harness-state/sidecam-schedstat-20261115T102012Z/schedstat-correlation.json
+Stderr: /data/openpilot/.harness-state/sidecam-schedstat-20261115T102012Z/ffmpeg-stderr.log

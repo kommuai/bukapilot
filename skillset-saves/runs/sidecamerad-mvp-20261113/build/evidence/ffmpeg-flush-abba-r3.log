@@ -1,0 +1,53 @@
+FFmpeg output-flush ABBA timing diagnostic
+run_revision=104
+/dev/video60
+source_sha256_before=494fb8b88fda8bcf1d8301225019f4f01f4b77a0bb5cb3e69dde47ed96e1309b
+source_sha256_after=494fb8b88fda8bcf1d8301225019f4f01f4b77a0bb5cb3e69dde47ed96e1309b
+source_hash_drift=False
+No frame payload captured; raw write/writev args only.
+
+[A1-default]
+FFmpeg argv: /usr/bin/ffmpeg -nostdin -hide_banner -loglevel error -thread_queue_size 1 -threads 1 -filter_threads 1 -f v4l2 -input_format mjpeg -framerate 20 -video_size 1280x720 -i /dev/video60 -an -sn -dn -vf scale=1280:720:flags=neighbor,format=nv12 -pix_fmt nv12 -threads 1 -fps_mode passthrough -frames:v 600 -f rawvideo pipe:1
+frames=600/600 bytes=829440000/829440000 return=0 error=None
+output_fd=12 writes=25800 bytes=829440000 unmatched_resumes=0 unparsed_relevant=0
+read={'count': 599, 'mean_ms': 49.95538937395659, 'median_ms': 50.192394, 'p95_ms': 68.705993, 'p99_ms': 79.196897, 'max_ms': 90.373815, 'over_60ms': 123, 'under_40ms': 124}
+boundary_start={'count': 599, 'mean_ms': 49.955322203672786, 'median_ms': 50.263, 'p95_ms': 68.729, 'p99_ms': 79.154, 'max_ms': 90.28, 'over_60ms': 122, 'under_40ms': 123}
+boundary_end={'count': 599, 'mean_ms': 49.95536393989983, 'median_ms': 50.232, 'p95_ms': 68.724, 'p99_ms': 79.162, 'max_ms': 90.334, 'over_60ms': 123, 'under_40ms': 123}
+write_duration={'count': 25800, 'mean_ms': 0.08019406976744187, 'median_ms': 0.058, 'p95_ms': 0.151, 'p99_ms': 0.247, 'max_ms': 12.11, 'over_60ms': 0, 'under_40ms': 25800}
+clock_uncertainty_ns=2625
+
+[B1-flush_packets_1]
+FFmpeg argv: /usr/bin/ffmpeg -nostdin -hide_banner -loglevel error -thread_queue_size 1 -threads 1 -filter_threads 1 -f v4l2 -input_format mjpeg -framerate 20 -video_size 1280x720 -i /dev/video60 -an -sn -dn -vf scale=1280:720:flags=neighbor,format=nv12 -pix_fmt nv12 -threads 1 -fps_mode passthrough -frames:v 600 -flush_packets 1 -f rawvideo pipe:1
+frames=600/600 bytes=829440000/829440000 return=0 error=None
+output_fd=12 writes=25800 bytes=829440000 unmatched_resumes=0 unparsed_relevant=0
+read={'count': 599, 'mean_ms': 49.96540717195325, 'median_ms': 50.643945, 'p95_ms': 69.306076, 'p99_ms': 75.749046, 'max_ms': 85.298357, 'over_60ms': 107, 'under_40ms': 118}
+boundary_start={'count': 599, 'mean_ms': 49.96527212020033, 'median_ms': 50.671, 'p95_ms': 69.232, 'p99_ms': 75.878, 'max_ms': 85.316, 'over_60ms': 108, 'under_40ms': 118}
+boundary_end={'count': 599, 'mean_ms': 49.965333889816364, 'median_ms': 50.678, 'p95_ms': 69.261, 'p99_ms': 75.784, 'max_ms': 85.341, 'over_60ms': 108, 'under_40ms': 118}
+write_duration={'count': 25800, 'mean_ms': 0.07629135658914729, 'median_ms': 0.057, 'p95_ms': 0.144, 'p99_ms': 0.229, 'max_ms': 12.04, 'over_60ms': 0, 'under_40ms': 25800}
+clock_uncertainty_ns=2042
+
+[B2-flush_packets_1]
+FFmpeg argv: /usr/bin/ffmpeg -nostdin -hide_banner -loglevel error -thread_queue_size 1 -threads 1 -filter_threads 1 -f v4l2 -input_format mjpeg -framerate 20 -video_size 1280x720 -i /dev/video60 -an -sn -dn -vf scale=1280:720:flags=neighbor,format=nv12 -pix_fmt nv12 -threads 1 -fps_mode passthrough -frames:v 600 -flush_packets 1 -f rawvideo pipe:1
+frames=600/600 bytes=829440000/829440000 return=0 error=None
+output_fd=12 writes=25800 bytes=829440000 unmatched_resumes=0 unparsed_relevant=0
+read={'count': 599, 'mean_ms': 49.95574270951586, 'median_ms': 49.924421, 'p95_ms': 69.138546, 'p99_ms': 75.912239, 'max_ms': 96.676936, 'over_60ms': 120, 'under_40ms': 110}
+boundary_start={'count': 599, 'mean_ms': 49.955921535893154, 'median_ms': 49.959, 'p95_ms': 69.158, 'p99_ms': 75.889, 'max_ms': 96.578, 'over_60ms': 120, 'under_40ms': 110}
+boundary_end={'count': 599, 'mean_ms': 49.955858096828045, 'median_ms': 49.786, 'p95_ms': 69.163, 'p99_ms': 75.906, 'max_ms': 96.644, 'over_60ms': 121, 'under_40ms': 110}
+write_duration={'count': 25800, 'mean_ms': 0.07687531007751938, 'median_ms': 0.058, 'p95_ms': 0.14, 'p99_ms': 0.228, 'max_ms': 11.794, 'over_60ms': 0, 'under_40ms': 25800}
+clock_uncertainty_ns=1530
+
+[A2-default]
+FFmpeg argv: /usr/bin/ffmpeg -nostdin -hide_banner -loglevel error -thread_queue_size 1 -threads 1 -filter_threads 1 -f v4l2 -input_format mjpeg -framerate 20 -video_size 1280x720 -i /dev/video60 -an -sn -dn -vf scale=1280:720:flags=neighbor,format=nv12 -pix_fmt nv12 -threads 1 -fps_mode passthrough -frames:v 600 -f rawvideo pipe:1
+frames=600/600 bytes=829440000/829440000 return=0 error=None
+output_fd=12 writes=25800 bytes=829440000 unmatched_resumes=0 unparsed_relevant=0
+read={'count': 599, 'mean_ms': 49.99203123372287, 'median_ms': 50.330187, 'p95_ms': 67.140702, 'p99_ms': 74.359346, 'max_ms': 81.195158, 'over_60ms': 105, 'under_40ms': 100}
+boundary_start={'count': 599, 'mean_ms': 49.99213689482471, 'median_ms': 50.263, 'p95_ms': 67.136, 'p99_ms': 74.346, 'max_ms': 81.22, 'over_60ms': 106, 'under_40ms': 99}
+boundary_end={'count': 599, 'mean_ms': 49.992095158597664, 'median_ms': 50.285, 'p95_ms': 67.134, 'p99_ms': 74.354, 'max_ms': 81.221, 'over_60ms': 105, 'under_40ms': 98}
+write_duration={'count': 25800, 'mean_ms': 0.07778178294573643, 'median_ms': 0.058, 'p95_ms': 0.149, 'p99_ms': 0.238, 'max_ms': 10.792, 'over_60ms': 0, 'under_40ms': 25800}
+clock_uncertainty_ns=1312
+
+artifact_sha256=db777e8aa2d4b63155e5595cda47cfa863367805885c270f518df3dde7389671
+ffmpeg-flush-abba-a1-r3.strace_sha256=e9609a2446d0fe009059919d8f6a363e3f73d3263b35d65b9993b9b9225be0e3
+ffmpeg-flush-abba-b1-r3.strace_sha256=4dac35c98aed5615a9ad45e32748ffd79835ce1231b3191dc3bfc215353c132a
+ffmpeg-flush-abba-b2-r3.strace_sha256=8e686f905fbf4021ab9b717d469d17d48794922a3c5c74e27e8f0649a0ae0d23
+ffmpeg-flush-abba-a2-r3.strace_sha256=6d6e937c8fc8c19a889d9311be01416cf0531d3625cf0abe1eabeba1fe784044

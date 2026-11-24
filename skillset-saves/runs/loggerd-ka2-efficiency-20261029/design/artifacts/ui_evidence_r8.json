@@ -1,0 +1,6 @@
+{
+  "applicable": false,
+  "decided_by": "design/architect",
+  "reason": "no user-facing surface - design system not engaged",
+  "scope": "KA2 loggerd/encoderd rotation liveness and DMA-BUF failure containment"
+}

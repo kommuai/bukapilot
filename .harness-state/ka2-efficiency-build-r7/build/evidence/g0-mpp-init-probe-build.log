@@ -1,0 +1,9 @@
+$ clang++ -std=c++1z -Wall -Wextra -Werror -I/usr/local/include/rockchip build/evidence/g0-mpp-init-probe.cc /lib/aarch64-linux-gnu/librockchip_mpp.so.1 -o build/evidence/g0-mpp-init-probe
+$ env -u LD_LIBRARY_PATH -u LD_PRELOAD ldd -r build/evidence/g0-mpp-init-probe
+	linux-vdso.so.1 (0x0000007fb76ad000)
+	librockchip_mpp.so.1 => /lib/aarch64-linux-gnu/librockchip_mpp.so.1 (0x0000007fb7410000)
+	libstdc++.so.6 => /lib/aarch64-linux-gnu/libstdc++.so.6 (0x0000007fb7180000)
+	libm.so.6 => /lib/aarch64-linux-gnu/libm.so.6 (0x0000007fb70d0000)
+	libgcc_s.so.1 => /lib/aarch64-linux-gnu/libgcc_s.so.1 (0x0000007fb7090000)
+	libc.so.6 => /lib/aarch64-linux-gnu/libc.so.6 (0x0000007fb6ed0000)
+	/lib/ld-linux-aarch64.so.1 (0x0000007fb7670000)

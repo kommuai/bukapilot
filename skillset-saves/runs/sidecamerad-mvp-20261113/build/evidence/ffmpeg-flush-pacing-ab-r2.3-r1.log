@@ -1,0 +1,31 @@
+Output-flush A/B diagnostic
+run_revision_at_start=93
+device=/dev/video60
+source_sha256_before=494fb8b88fda8bcf1d8301225019f4f01f4b77a0bb5cb3e69dde47ed96e1309b
+source_sha256_after=494fb8b88fda8bcf1d8301225019f4f01f4b77a0bb5cb3e69dde47ed96e1309b
+source_hash_drift=False
+No frame payload saved; strace raw write/writev args only.
+
+[default]
+FFmpeg argv: /usr/bin/ffmpeg -nostdin -hide_banner -loglevel error -thread_queue_size 1 -threads 1 -filter_threads 1 -f v4l2 -input_format mjpeg -framerate 20 -video_size 1280x720 -i /dev/video60 -an -sn -dn -vf scale=1280:720:flags=neighbor,format=nv12 -pix_fmt nv12 -threads 1 -fps_mode passthrough -frames:v 600 -f rawvideo pipe:1
+frames=600/600 bytes=829440000/829440000 return=0 error=None
+output_fd=12 writes=25800 output_bytes=829440000 unparsed_relevant=0
+read_gaps={'count': 599, 'mean_ms': 50.01252162771286, 'median_ms': 51.119084, 'p95_ms': 69.085185, 'p99_ms': 78.061077, 'max_ms': 88.425002, 'over_60ms': 122, 'under_40ms': 124}
+write_boundary_start_gaps={'count': 599, 'mean_ms': 50.0123121869783, 'median_ms': 51.173, 'p95_ms': 69.023, 'p99_ms': 77.996, 'max_ms': 88.367, 'over_60ms': 120, 'under_40ms': 125}
+write_boundary_end_gaps={'count': 599, 'mean_ms': 50.01238397328881, 'median_ms': 51.162, 'p95_ms': 69.065, 'p99_ms': 78.054, 'max_ms': 88.406, 'over_60ms': 122, 'under_40ms': 125}
+output_write_durations={'count': 25800, 'mean_ms': 0.07607011627906977, 'median_ms': 0.059, 'p95_ms': 0.144, 'p99_ms': 0.229, 'max_ms': 9.632, 'over_60ms': 0, 'under_40ms': 25800}
+clock_offset=1794726953573886685 uncertainty_ns=1895
+
+[flush_packets_1]
+FFmpeg argv: /usr/bin/ffmpeg -nostdin -hide_banner -loglevel error -thread_queue_size 1 -threads 1 -filter_threads 1 -f v4l2 -input_format mjpeg -framerate 20 -video_size 1280x720 -i /dev/video60 -an -sn -dn -vf scale=1280:720:flags=neighbor,format=nv12 -pix_fmt nv12 -threads 1 -fps_mode passthrough -frames:v 600 -flush_packets 1 -f rawvideo pipe:1
+frames=600/600 bytes=829440000/829440000 return=0 error=None
+output_fd=12 writes=25800 output_bytes=829440000 unparsed_relevant=0
+read_gaps={'count': 599, 'mean_ms': 49.975462589315526, 'median_ms': 50.337447, 'p95_ms': 67.755504, 'p99_ms': 77.073519, 'max_ms': 86.67944, 'over_60ms': 107, 'under_40ms': 110}
+write_boundary_start_gaps={'count': 599, 'mean_ms': 49.97541402337229, 'median_ms': 50.372, 'p95_ms': 67.732, 'p99_ms': 77.104, 'max_ms': 86.696, 'over_60ms': 106, 'under_40ms': 107}
+write_boundary_end_gaps={'count': 599, 'mean_ms': 49.9753856427379, 'median_ms': 50.326, 'p95_ms': 67.736, 'p99_ms': 77.094, 'max_ms': 86.65, 'over_60ms': 107, 'under_40ms': 109}
+output_write_durations={'count': 25800, 'mean_ms': 0.07859961240310077, 'median_ms': 0.059, 'p95_ms': 0.15, 'p99_ms': 0.242, 'max_ms': 11.402, 'over_60ms': 0, 'under_40ms': 25800}
+clock_offset=1794726953573886540 uncertainty_ns=1458
+
+artifact_sha256=913a57ae11491fe31ee103884b98a2c1df357b9d8dbc8f8c89c519f0d1786f3c
+default_trace_sha256=8de6089eff1a1557e552d325e8dd051774485451d69ad953c40c3ee6be1506fb
+flush_trace_sha256=cfde2108693799f2f87222ff8058a6fededba3c955c4ee09288e973f3ca4bc75

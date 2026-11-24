@@ -1,0 +1,27 @@
+{
+  "boundary": "design-to-build",
+  "findings": [
+    {
+      "basis": {
+        "artifact": "reports/delivery-plan-r2.md",
+        "kind": "acceptance",
+        "ref": "AC-8"
+      },
+      "evidence": [
+        "reports/delivery-plan-r2.md"
+      ],
+      "id": "DG-I-2",
+      "key": "plan",
+      "owner": "planner",
+      "severity": "Info",
+      "statement": "Four-camera throughput, CPU headroom, and reconnect behavior remain unverified; AC-8 requires a 30-minute four-camera soak before any four-camera performance claim."
+    }
+  ],
+  "gate": "gatekeeper-design",
+  "intake": {
+    "artifact": "../intake/report_grilling.md"
+  },
+  "revision": "r2",
+  "submission_id": "sidecamerad-mvp-20261113_design-revision-2",
+  "verdict": "APPROVED"
+}

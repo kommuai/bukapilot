@@ -1,0 +1,6 @@
+Command: git diff --check
+Exit code: 0
+
+Command: git -C msgq_repo diff --check
+Exit code: 0
+

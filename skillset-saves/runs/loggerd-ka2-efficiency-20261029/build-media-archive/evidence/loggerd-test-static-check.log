@@ -1,0 +1,12 @@
+Static checks after the test-only correction
+
+1. In-memory Python syntax parse (did not import or run the test):
+   command: `python3` with `compile(Path('system/loggerd/tests/test_loggerd.py').read_text(), 'system/loggerd/tests/test_loggerd.py', 'exec')`
+   result: exit 0
+
+2. Scoped whitespace/error check:
+   command: `git diff --check -- system/loggerd/tests/test_loggerd.py`
+   stdout: empty
+   result: exit 0
+
+No pytest, native process, MPP, runtime-health check, or performance workload was run during these static checks.

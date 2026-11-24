@@ -1,0 +1,26 @@
+{
+  "checked_at": "2026-10-31T06:15:13Z",
+  "decided_by": "design/commander",
+  "drift_basis": "Project/global existence and revisions match snapshot (absent, revision 0) and effective entries remain empty. Status digests for absent stores are not stable: taste_prefs.py creates a fresh blank record with generated_at on each read; compare absence/revision, not those ephemeral digests.",
+  "effective_command": "taste_prefs.py effective --scope both",
+  "effective_entries": 0,
+  "global": {
+    "exists": false,
+    "revision": 0,
+    "snapshot_status_digest": "sha256:1b2be0b665bc443fa7aa5e8d64ec5c0d62dbcc5406ff16ea2dc4a9498ceca4cc",
+    "state": "absent",
+    "status_digest": "sha256:7aac91e98d54e94ae917e2e0df62dc5c5cd3d06a333722a648ca6f80533f27ef"
+  },
+  "project": {
+    "exists": false,
+    "revision": 0,
+    "snapshot_status_digest": "sha256:83ee2f5f3818f5ad0ed3ed28c8ef8ce040001c47db6998f92b8ac1b921bd3f8e",
+    "state": "absent",
+    "status_digest": "sha256:aaecd3127adb2a8ba858aedba369668d84c2c8e2d736077057cb2e6d0f6ef55f"
+  },
+  "resolution_ok": true,
+  "run_id": "loggerd-ka2-efficiency-20261029",
+  "snapshot_artifact": "artifacts/taste_snapshot_r9.json",
+  "snapshot_sha256": "f88c387118c1b228c529e658c76970d078b17acf66435bc929cde09fb818df97",
+  "status_command": "taste_prefs.py status --scope both"
+}

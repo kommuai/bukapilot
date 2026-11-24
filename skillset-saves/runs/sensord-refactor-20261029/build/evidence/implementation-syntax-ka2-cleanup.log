@@ -1,0 +1,6 @@
+PASS syntax: system/sensord/sensord.py
+PASS syntax: system/manager/process_config.py
+PASS syntax: selfdrive/test/test_onroad.py
+PASS syntax: system/loggerd/tests/test_encoder.py
+command=python3 AST parse for assigned Python implementation paths
+exit_code=0

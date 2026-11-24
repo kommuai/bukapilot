@@ -1,0 +1,16 @@
+Read-only hardware probe and one-camera integration baseline (existing implementation, before default-on/Params changes)
+
+Hardware:
+- `/dev/video60`: UVC `USB Video`, bus `usb-xhci-hcd.11.auto-1`, USB VID:PID `534d:2109`, Video Capture + Streaming.
+- Current capture format: MJPEG 1280x720 at 20 fps.
+- `/dev/video61`: metadata capture only (UVCH payload header), not a second image feed.
+- `fuser -v /dev/video60 /dev/video61`: no process reported as using either node.
+
+Integration probe:
+- Launched `system.sidecamerad.main()` with `SIDECAM_FRONT_LEFT=/dev/video60`.
+- VisionIPC client connected to `sidecamerad` / `VISION_STREAM_SIDE_FRONT_LEFT`.
+- Received `frontLeftCameraState`, Event valid=true, frameId 1.
+- Received VisionIPC frame IDs 1 and 2; frame ID 1 matched the cereal state.
+- VisionIPC buffer size: 1,382,400 bytes; first 4,096 bytes contained 4,096 nonzero bytes.
+- Process remained alive during capture, then handled SIGTERM and exited 0; `/tmp/visionipc_sidecamerad` was removed.
+- Probe elapsed 0.877 s after client connect. This is functional evidence only, not a cadence or four-camera performance measurement.

@@ -1,0 +1,38 @@
+Corrected GDB-capture environment and test setup
+observed_at=2026-10-31T11:20:35.510606+00:00
+test_source_sha256=4e629bf55715eca9341dc48547757accbda5249f892ad95dcb33345135202a18
+target_binary_sha256=94b304426795d8482ed6477c82f8946252fb3bd0f4dfd2226ef2a22c5c8062ff
+temporary_plugin_sha256=6df1938d7eff53a822453c047d5609ef3f4b9e1075bba8d2046b4475fcb3ee31
+core_limits_soft_hard=(0, -1)
+core_pattern=core
+gdb_command=/usr/bin/gdb -q -batch --return-child-result; set pagination off; set debuginfod enabled off; set print frame-arguments none; set logging file <run evidence gdb-capture-corrected.log>; set logging overwrite on; set logging enabled on; handle SIGABRT stop print pass; run; info inferiors; thread apply all bt 30; continue; --args <loggerd_non_rk3588>
+fork_policy=GDB defaults: follow parent, detach child; no fork-policy override
+global_core_settings_changed=false
+gdb_version=GNU gdb (Ubuntu 15.1-1ubuntu1~24.04.1) 15.1
+loggerd_target=/data/openpilot/build/system/loggerd/tests/loggerd_non_rk3588: ELF 64-bit LSB pie executable, ARM aarch64, version 1 (SYSV), dynamically linked, interpreter /lib/ld-linux-aarch64.so.1, BuildID[sha1]=8d2286a05ba4aa5b117bcee2199de59599794f7a, for GNU/Linux 3.7.0, with debug_info, not stripped
+gdb_smoke_exit_code=255 (expected GDB return-child-result mapping for a SIGABRT inferior)
+gdb_smoke_contains_SIGABRT=True
+gdb_smoke_contains_inferior_PID=True
+gdb_smoke_log_sha256=a8db61f4b39507a82e4cf020e4fc1dd5a3232ec074b5b887a65fff0c8ce811ac
+
+GDB smoke log:
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/aarch64-linux-gnu/libthread_db.so.1".
+
+Program received signal SIGABRT, Aborted.
+0x0000007ff7decd8c in kill () from /lib/aarch64-linux-gnu/libc.so.6
+  Num  Description       Connection           Executable        
+* 1    process 4000950   1 (native)           /usr/bin/sh       
+
+Thread 1 (Thread 0x7ff7fe9020 (LWP 4000950) "sh"):
+#0  0x0000007ff7decd8c in kill () from /lib/aarch64-linux-gnu/libc.so.6
+#1  0x000000555560cdac in kill_builtin ()
+#2  0x00000055555a2910 in ?? ()
+#3  0x00000055555aa4c0 in ?? ()
+#4  0x000000555559cf1c in execute_command_internal ()
+#5  0x0000005555606410 in parse_and_execute ()
+#6  0x0000005555670504 in ?? ()
+#7  0x000000555558492c in main ()
+
+Program terminated with signal SIGABRT, Aborted.
+The program no longer exists.

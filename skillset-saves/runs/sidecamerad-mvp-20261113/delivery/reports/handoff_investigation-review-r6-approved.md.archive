@@ -1,0 +1,66 @@
+---
+submission_id: sidecamerad-mvp-20261113_handoff-4_attempt-1_2026-11-15T12:56:47Z
+revision: "6"
+package_path: skillset-saves/runs/sidecamerad-mvp-20261113/investigation/manifest.json
+submission_status: VERDICT_RECORDED
+verdict: APPROVED
+---
+
+# Cross-stage handoff: investigation review
+
+## Package
+
+- Boundary: `investigation-review` (INVESTIGATE returning to BUILD)
+- Investigation revision: `6`
+- Investigation submission: `sidecamerad-mvp-20261113_investigation-ac4-timing-r6`
+- Manifest: `skillset-saves/runs/sidecamerad-mvp-20261113/investigation/manifest.json`
+- Manifest SHA-256: `ba51870dd243d7b8469852de74c0ebc15685689648ac1b4159bcf64aadd7a5c7`
+- Report: `skillset-saves/runs/sidecamerad-mvp-20261113/investigation/reports/investigation-package.md`
+- Report SHA-256: `f7ae478899faf608b8b6296a88fc929c285fb3f113f3400165725357ab310bac`
+- Evidence chain: `skillset-saves/runs/sidecamerad-mvp-20261113/investigation/evidence/evidence-chain-r6.log`
+- Evidence-chain SHA-256: `380e84f2791cc6741d741beb18bbca36209bdcb46a262e3fa6903547f895afc2`
+- GDB feasibility report SHA-256: `7d58e08a8383fbee735c4b9cd411542801fdbbccf9a441957486304f1c4a481d`
+- GDB command log SHA-256: `eb03bdede78cd20e69b7e8dc12241fda9f087a79b2c3220ad10461fa48351732`
+- Canonical investigation self-check: passed with zero failures and warnings.
+- Revision 5's approved package is preserved at `investigation/reports/investigation-package-r5.md` (SHA-256 `e67cd4b4290b38f022bb5f1a164b3285ff0bd2f7db413bdec3024178909c5ac0`). The prior r5 approved handoff is archived at `delivery/reports/handoff_investigation-review-r5-approved.md.archive`; the r6 pending handoff is preserved at `delivery/reports/handoff_investigation-review-r6-pending.md.archive`.
+
+## Revision delta from approved revision 5
+
+The approved read-only feasibility check succeeded: GDB 15.1 attached without elevation to a disposable same-UID multithreaded Python process, produced four readable thread backtraces with 86 frame lines, and detached cleanly. One main-thread unwind warning and unavailable ptrace sysctl files are recorded. The probe did not attach to FFmpeg or capture camera data, and it establishes no SideCamera callsite or cadence cause.
+
+Revision 6 proposes a separately scoped one-run GDB sampling diagnostic for BUILD. The saved futex association remains temporal same-address correlation, not waiter identity or causal proof. AC-4 still fails on the accepted five-minute run. No product source or production argv change is proposed.
+
+## Finding and bounded BUILD path
+
+The accepted five-minute current-source reproduction remains 6,050 matched frames over 302.506666 seconds, mean 20.000523 fps, maximum EOF gap 89.163715 ms, and 753/6,049 gaps above 60 ms. This fails AC-4's maximum-gap criterion. The known jitter remains localized after V4L2 dequeue and before raw-pipe delivery inside FFmpeg processing/output; the exact internal wait/processing cause is unresolved. PTS are V4L2 SOE, not EOF; keep `timestampEof` as host-monotonic time sampled after each complete raw-frame read.
+
+**Owner:** BUILD through `build/build-management`; this revision-6 handoff is approved for the bounded diagnostic below.
+
+Run one 600-frame diagnostic on the same assigned camera using the fixed FFmpeg executable and unchanged default production argv. Keep the 1280×720 MJPEG-to-NV12 mode, one decoder thread, one filter thread, queue size 1, same camera, and same reader. Save no frame payload. After startup, arm a one-shot monotonic watchdog for each in-flight full-frame read; if it remains incomplete for more than 60 ms, take at most one GDB snapshot for that read. Re-arm only after that frame completes; allow at most three snapshots total. Verify the target PID is the live FFmpeg child and `/proc/<pid>/exe` plus its command line match the fixed executable and expected argv. Use `gdb --quiet --batch --nx --pid <pid>` with pagination and confirmation off, debuginfod disabled, `info threads`, `thread apply all bt 16`, then detach and quit. Record monotonic trigger, attach, detach, and full-read-completion times, debugger pause duration, and TID/LWP mapping. Do not use `strace` or another tracer. Abort and clean up if PID verification, attach, backtrace collection, or detach fails.
+
+GDB stops FFmpeg threads while collecting each snapshot, so these pauses perturb cadence and may extend each triggering gap. The snapshots are for callsite localization only; their timings cannot measure AC-4 and do not establish causality. This step is diagnostic only, makes no source or argv change, and does not replace a separate accepted five-minute AC-4 run.
+
+## Cross-stage verdict
+
+- Gate: `gatekeeper-admiral`
+- Verdict: **APPROVED** for `investigation-review` revision `6`.
+- Verdict ID: `f8d34038ba3b493d6bea783a41703c4aaf59104c684db6d3f10189efe68c1b0d`.
+- Durable verdict: `skillset-saves/runs/sidecamerad-mvp-20261113/investigation/verdict_investigation-review.cross-stage.json`, SHA-256 `4f9442e3f0432b39e080f7a37cdd603c71ed52ed7a345f8e7f1bde478be713b7`.
+- Judgment: `skillset-saves/runs/sidecamerad-mvp-20261113/investigation/verdict_investigation-review.cross-stage.judgment.json`, SHA-256 `b28a70baedbb4177ceae95bb7ca372d59fd6aad317f0144b505ce2aaec9af534`.
+- Cycle ledger SHA-256: `80c69a38ad4e9f205e2730a7523f17bb6ba153f92c2b391c6ea0acf517a9a828`; `held_for_user=false`.
+- Boundary validator: zero failures/warnings; changed evidence was `evidence_chain`, `fix_path`, `mechanism`, and `residual_uncertainty`; r5 was not reused.
+- Delivery shape: zero failures; revision 6 is coherent. The conditional final-summary slot is out of scope for this intermediate BUILD handoff and was resolved as Info.
+
+## Open evidence limits
+
+- AC-4 remains failed; the accepted run has 753/6,049 EOF intervals above 60 ms.
+- GDB feasibility was proven only for a disposable same-UID Python process; the host ptrace sysctl files were unavailable and one stack ended with an unwind warning.
+- Any future GDB sampling pauses FFmpeg threads and perturbs the triggering intervals; no causal claim follows from the snapshots alone.
+- Futex wait/wake evidence does not identify the awakened TID or prove causality. DQBUF counted 602 calls for 600 outputs without sequence fields, so exact dequeue-to-output identity remains unproven.
+- AC-6 reconnect/sibling continuity and AC-8 four-camera soak remain hardware deferrals; the minor FFmpeg child resource-limit finding remains open.
+
+## Next consumer
+
+Route the approved single bounded GDB sampling diagnostic to `build/build-management`; no source edit or production argv change is authorized.
+
+This is an intermediate investigation-to-BUILD handoff; a final delivery package is not in scope.

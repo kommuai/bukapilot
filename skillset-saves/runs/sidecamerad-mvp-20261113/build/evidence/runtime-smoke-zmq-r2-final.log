@@ -1,0 +1,29 @@
+
+Final probe: five-minute live UVC capture with child ZMQ=1 and local dual subscribers
+Device=/dev/v4l/by-path/platform-xhci-hcd.11.auto-usb-0:1:1.0-video-index0; parent_ZMQ_before_probe=None; child_ZMQ=1; Params root isolated
+Subscriber topics: frontLeftCameraState + VISION_STREAM_SIDE_FRONT_LEFT
+Capture window: 300 seconds from first matching frame ID
+sidecamerad_pid=1046106
+VisionIPC connected: 1280x720, stride=1280, bytes=1382400, buffers=3
+TCP listeners on 9007-9010 after startup: []
+first_matching_frame_id=1; Param_after_first_pair={"backLeftCameraState": false, "backRightCameraState": false, "frontLeftCameraState": true, "frontRightCameraState": false}
+progress_elapsed_s=60.0; vipc_unique=1201; cereal_unique=1201; matching=1201
+progress_elapsed_s=120.0; vipc_unique=2401; cereal_unique=2401; matching=2401
+progress_elapsed_s=180.0; vipc_unique=3601; cereal_unique=3600; matching=3600
+progress_elapsed_s=240.0; vipc_unique=4801; cereal_unique=4801; matching=4801
+progress_elapsed_s=300.0; vipc_unique=6000; cereal_unique=6000; matching=6000
+capture_elapsed_s=300.005
+vipc_stats={"frames": 6000, "gaps_over_60ms": 743, "max_gap_ms": 123.185415, "mean_fps": 19.999396661241942, "span_s": 299.959048846}
+cereal_stats={"frames": 6000, "gaps_over_60ms": 743, "max_gap_ms": 123.185415, "mean_fps": 19.999396661241942, "span_s": 299.959048846}
+matching_frame_count=6000; matching_sample=[1, 2, 3, 4, 5]
+payload_sample={"bytes": 1382400, "frame_id": 1, "sample_bytes": 4096, "sample_nonzero_bytes": 4096, "valid": true}
+Param_before_shutdown={"backLeftCameraState": false, "backRightCameraState": false, "frontLeftCameraState": true, "frontRightCameraState": false}
+TCP listeners on 9007-9010 before shutdown: []
+DUAL_PUBLICATION_ACCEPTANCE=PASS
+CADENCE_ACCEPTANCE=FAIL
+sidecamerad stdout/stderr:
+sidecamerad frontRightCameraState: no device configured (SIDECAM_FRONT_RIGHT); unavailable
+sidecamerad backLeftCameraState: no device configured (SIDECAM_BACK_LEFT); unavailable
+sidecamerad backRightCameraState: no device configured (SIDECAM_BACK_RIGHT); unavailable
+shutdown_exit=0; final_Param={"backLeftCameraState": false, "backRightCameraState": false, "frontLeftCameraState": false, "frontRightCameraState": false}; socket_exists=False; TCP_listeners=[]
+LIVE_CAPTURE_RESULT=FUNCTIONAL_PASS_CADENCE_LIMITED

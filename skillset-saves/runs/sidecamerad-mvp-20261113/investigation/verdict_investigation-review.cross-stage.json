@@ -1,0 +1,101 @@
+{
+  "boundary": "investigation-review",
+  "changed_evidence": [
+    "evidence_chain",
+    "fix_path",
+    "mechanism",
+    "reproduction",
+    "residual_uncertainty",
+    "scope"
+  ],
+  "checked_at": "2026-11-15T15:33:42.202031+00:00",
+  "declared_schema_version": 2,
+  "evidence_digests": {
+    "evidence_chain": "38e6fd8bc74af5b18d008dc2ea8768d709622db2b58e59bffa51702c87095533",
+    "fix_path": "758924bb79eaa95a36cd99e7ef60c70ee4e2eb654574570c01fb532c9ad5fd16",
+    "mechanism": "9a5d66486a1b3da68ac5bae0514bf167c06e1b16496d79c78e51e5dea0d6346e",
+    "reproduction": "b27b66972715fe7bb94218eb0185950ebbbbf5d78cb19569f1c37fc7ab91b135",
+    "residual_uncertainty": "62965f65fd84a5ab65f8f969a904f3e363eb0be8bb7b7566425479ccb2e51ba3",
+    "scope": "14ea4b5a003e5ce06cf2530e9e72fe6129302680e48b7c6951462b18bd2d448e"
+  },
+  "evidence_root": "/data/openpilot/skillset-saves/runs/sidecamerad-mvp-20261113",
+  "evidence_root_kind": "run",
+  "failures": [],
+  "gate_spec_digest": "b2995ffa29a827c2bf101391788bf1228eb38869ad7c0a601a4126734ee6c7c1",
+  "gate_spec_is_shipped": true,
+  "idempotency_drift": false,
+  "judgment": {
+    "by_owner": {},
+    "escalation": null,
+    "findings": [
+      {
+        "basis": {
+          "kind": "contract",
+          "ref": "Deterministic Pre-Check (two validators)",
+          "source": "gatekeeper-admiral/SKILL.md"
+        },
+        "evidence": [
+          "manifest:evidence.scope",
+          "manifest:evidence.fix_path",
+          "manifest:evidence.residual_uncertainty"
+        ],
+        "expected": "An investigation handoff identifies its scoped issue, bounded path, residual uncertainty, and BUILD consumer. A separate delivery summary is needed only when the boundary packages final delivery content.",
+        "id": "INFO-DELIVERY-SUMMARY-CONDITIONAL-RESOLVED-INVESTIGATION-R8",
+        "key": null,
+        "observed": "The r8/PENDING handoff and r8 package identify BUILD as the next consumer and keep the same-frame measurement proposal behind separate Admiral authorization. The delivery-shape validator reports zero failures, coherent revision 8 lineage and a fresh submission; only the conditional summary slot is unchecked.",
+        "owner": "investigate",
+        "remediation": "No separate delivery summary is required for this intermediate investigation-to-BUILD handoff. The proposed capture, instrumentation, and tracer remain unauthorized pending a separate Admiral decision.",
+        "severity": "Info",
+        "statement": "The conditional delivery-summary slot is out of scope because this is an intermediate investigation-review handoff returning to BUILD; the r8 handoff and package identify the BUILD consumer, bounded same-frame measurement proposal, and residual uncertainty.",
+        "verification": "The canonical investigation-review boundary validator reports no failures, missing keys, or warnings. The delivery-shape validator reports zero failures, coherent revision 8, a new submission relative to the archived r7 handoff, and only the conditional summary slot unchecked."
+      }
+    ],
+    "gate": "gatekeeper-admiral",
+    "intake": {
+      "artifact": "../intake/report_grilling.md"
+    },
+    "valid": true,
+    "verdict": "APPROVED"
+  },
+  "judgment_failures": [],
+  "manifest": "manifest.json",
+  "manifest_schema_version": 2,
+  "mechanical_only": false,
+  "missing": [],
+  "mixed_revisions": false,
+  "owner": "investigate",
+  "package_fingerprint": "ff1f4155b9e0b0243b5e80d272048ffcb0e5f6585fe0ede08a5995e7243765fd",
+  "pass": true,
+  "prior_record": {
+    "gate_spec_digest": "b2995ffa29a827c2bf101391788bf1228eb38869ad7c0a601a4126734ee6c7c1",
+    "gate_spec_is_shipped": true,
+    "judgment": {
+      "gate": "gatekeeper-admiral",
+      "valid": true,
+      "verdict": "APPROVED"
+    },
+    "path": "/data/openpilot/skillset-saves/runs/sidecamerad-mvp-20261113/investigation/artifacts/investigation-review-r7-cross-stage.archive.json"
+  },
+  "prior_reusable": null,
+  "registry_is_shipped": true,
+  "revise_packet": {
+    "actions_by_owner": {},
+    "by_key": {},
+    "by_owner": {},
+    "judgment_by_owner": {},
+    "unassigned": []
+  },
+  "revision": "8",
+  "revision_cycle": {
+    "boundary_revise_rounds": 0,
+    "consecutive_revise": 0,
+    "gate": "gatekeeper-admiral",
+    "held_for_user": false,
+    "history": "verdict_investigation-review.cycles.json"
+  },
+  "run_id": "sidecamerad-mvp-20261113",
+  "submission_id": "sidecamerad-mvp-20261113_investigation-ac4-r8_2026-11-15T14:52:54Z",
+  "unchanged_evidence": [],
+  "verdict_id": "505603e061b86731f48b4e4fdac4d487c3d6bae32c5d202a9a3452de7f9f7099",
+  "warnings": []
+}

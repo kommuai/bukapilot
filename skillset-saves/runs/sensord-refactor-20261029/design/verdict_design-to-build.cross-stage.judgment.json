@@ -1,0 +1,32 @@
+{
+  "boundary": "design-to-build",
+  "findings": [
+    {
+      "basis": {
+        "kind": "contract",
+        "ref": "boundaries.design-to-build.required_evidence",
+        "source": "gates.yaml"
+      },
+      "evidence": [
+        "reports/delivery-plan.md",
+        "reports/implementation-spec.md"
+      ],
+      "expected": "The build owner can identify the approved r4 package, D-20 change, single implementation slice, exact allowlist, acceptance criteria, proof steps, and scope limits without guessing.",
+      "id": "INFO-DELIVERY-SUMMARY-CONDITIONAL-RESOLVED",
+      "key": null,
+      "observed": "The delivery shape check found one canonical r4 handoff, coherent r4 lineage, and no structural failures; its only unchecked finding is the conditional summary slot. The handoff names design/manifest.json and the approved build slice and states that non-KA2 invocation is outside scope and unguarded. The r4 manifest hashes the delivery plan and implementation specification, which set out D-20, the allowlist, acceptance criteria, proof plan, and risk boundaries. The design-to-build evidence row in gates.yaml requires the plan and acceptance evidence but no standalone delivery-summary artifact.",
+      "owner": "commander",
+      "remediation": "No standalone delivery summary is required at this boundary. Build should consume the approved r4 design manifest and implementation specification through the canonical handoff, preserving the stated non-KA2 limitation.",
+      "severity": "Info",
+      "statement": "The delivery shape check's conditional package-or-delivery-summary slot is not in scope for this design-to-build crossing. The canonical r4 handoff identifies the approved design manifest and directs build to the hashed implementation specification. The manifest's plan and implementation specification contain the D-20 scope, the single slice and allowlist, acceptance criteria, proof steps, and explicit off-target risk; a separate delivery summary would duplicate that contract.",
+      "verification": "The delivery shape check reports zero failures, coherent r4 lineage, and only this conditional UNCHECKED finding. The boundary check passes with prior_reusable=true, changed_evidence=[], and the valid APPROVED phase judgment. The handoff package_path names design/manifest.json; actual hashes for the manifest-bound delivery-plan.md and implementation-spec.md match the r4 manifest."
+    }
+  ],
+  "gate": "gatekeeper-admiral",
+  "intake": {
+    "artifact": "../intake/report_grilling.md"
+  },
+  "revision": "r4",
+  "submission_id": "sensord-refactor-20261029-design-r4",
+  "verdict": "APPROVED"
+}

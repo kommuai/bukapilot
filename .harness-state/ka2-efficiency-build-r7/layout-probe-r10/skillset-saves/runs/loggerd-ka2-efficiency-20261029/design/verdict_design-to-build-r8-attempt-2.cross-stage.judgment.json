@@ -1,0 +1,13 @@
+{
+  "boundary": "design-to-build",
+  "revision": "r8",
+  "submission_id": "loggerd-ka2-efficiency-20261029-design-r8",
+  "gate": "gatekeeper-admiral",
+  "verdict": "APPROVED",
+  "intake": {
+    "artifact": "../intake/report_grilling.md"
+  },
+  "findings": [],
+  "by_owner": {},
+  "escalation": null
+}

@@ -1,0 +1,357 @@
+{
+  "evidence_paths": {
+    "ffmpeg_ring": "skillset-saves/runs/sidecamerad-mvp-20261113/build/evidence/ac4-pipeline-time-ffmpeg-observer-r1.bin",
+    "jsonl": "skillset-saves/runs/sidecamerad-mvp-20261113/build/evidence/ac4-pipeline-time-diagnostic-r1.jsonl",
+    "pipeline_ring": "skillset-saves/runs/sidecamerad-mvp-20261113/build/evidence/ac4-pipeline-time-api-observer-r1.bin",
+    "scale_ring": "skillset-saves/runs/sidecamerad-mvp-20261113/build/evidence/ac4-pipeline-time-scale-observer-r1.bin"
+  },
+  "execution": {
+    "argv": [
+      "/usr/bin/ffmpeg",
+      "-nostdin",
+      "-hide_banner",
+      "-loglevel",
+      "error",
+      "-thread_queue_size",
+      "1",
+      "-threads",
+      "1",
+      "-filter_threads",
+      "1",
+      "-f",
+      "v4l2",
+      "-input_format",
+      "mjpeg",
+      "-framerate",
+      "20",
+      "-video_size",
+      "1280x720",
+      "-i",
+      "/dev/video60",
+      "-an",
+      "-sn",
+      "-dn",
+      "-vf",
+      "scale=1280:720:flags=neighbor,format=nv12",
+      "-pix_fmt",
+      "nv12",
+      "-threads",
+      "1",
+      "-fps_mode",
+      "passthrough",
+      "-f",
+      "rawvideo",
+      "pipe:1"
+    ],
+    "capture_elapsed_s": 2.114556057,
+    "capture_error": null,
+    "cleanup_method": "SIGINT then close reader pipe",
+    "complete_output_frames": 28,
+    "device_by_path": "/dev/v4l/by-path/platform-xhci-hcd.11.auto-usb-0:1:1.0-video-index0",
+    "device_by_path_resolved": "/dev/video60",
+    "device_format": "1280x720 MJPEG",
+    "ffmpeg_sha256_before_after": [
+      "9af5a141b45d32f64fe7bb5cd2c939d56fb9972234705513c45575ef7a1da38e",
+      "9af5a141b45d32f64fe7bb5cd2c939d56fb9972234705513c45575ef7a1da38e"
+    ],
+    "max_complete_frames": 600,
+    "output_format": "1280x720 NV12 rawvideo",
+    "partial_frame_bytes": 0,
+    "payload_saved": false,
+    "process_returncode": 255,
+    "product_source_drift": false,
+    "requested_fps": 20,
+    "sidecamerad_sha256_before_after": [
+      "494fb8b88fda8bcf1d8301225019f4f01f4b77a0bb5cb3e69dde47ed96e1309b",
+      "494fb8b88fda8bcf1d8301225019f4f01f4b77a0bb5cb3e69dde47ed96e1309b"
+    ],
+    "stop_reason": "first post-warmup complete EOF gap over 60 ms",
+    "trigger": {
+      "from_eof_mono_ns": 35206521258963,
+      "from_frame": 27,
+      "gap_ms": 60.519965,
+      "to_eof_mono_ns": 35206581778928,
+      "to_frame": 28
+    },
+    "warmup_frames": 20
+  },
+  "limitations": [
+    "LD_PRELOAD observer overhead is not calibrated.",
+    "The direct sws_scale API does not include frame PTS; its nearest-time attribution is indicative.",
+    "A single instrumented capture localizes and compares work-versus-wait timing but is not an AC-4 acceptance run."
+  ],
+  "pipeline_call_statistics": {
+    "av_interleaved_write_frame": {
+      "calls": 29,
+      "successful_calls": 28,
+      "thread_cpu_ms_max": 3.731875,
+      "thread_cpu_ms_mean": 1.2580288965517241,
+      "thread_cpu_ms_p95": 2.354335,
+      "wall_ms_max": 5.80014,
+      "wall_ms_mean": 2.2205748275862067,
+      "wall_ms_p50": 2.358148,
+      "wall_ms_p95": 3.742411
+    },
+    "av_read_frame": {
+      "calls": 174,
+      "successful_calls": 30,
+      "thread_cpu_ms_max": 0.056875,
+      "thread_cpu_ms_mean": 0.018126919540229887,
+      "thread_cpu_ms_p95": 0.04025,
+      "wall_ms_max": 0.062709,
+      "wall_ms_mean": 0.020748747126436783,
+      "wall_ms_p50": 0.018667,
+      "wall_ms_p95": 0.043751
+    },
+    "avcodec_receive_frame": {
+      "calls": 60,
+      "successful_calls": 29,
+      "thread_cpu_ms_max": 0.008458,
+      "thread_cpu_ms_mean": 0.005458983333333334,
+      "thread_cpu_ms_p95": 0.007875,
+      "wall_ms_max": 0.030625,
+      "wall_ms_mean": 0.006897966666666667,
+      "wall_ms_p50": 0.005542,
+      "wall_ms_p95": 0.009042
+    },
+    "avcodec_send_packet": {
+      "calls": 31,
+      "successful_calls": 31,
+      "thread_cpu_ms_max": 30.791538,
+      "thread_cpu_ms_mean": 11.876846580645163,
+      "thread_cpu_ms_p95": 19.178291,
+      "wall_ms_max": 31.241597,
+      "wall_ms_mean": 12.093955258064517,
+      "wall_ms_p50": 11.184651,
+      "wall_ms_p95": 19.184021
+    },
+    "buffersink_get_frame": {
+      "calls": 58,
+      "successful_calls": 29,
+      "thread_cpu_ms_max": 0.007292,
+      "thread_cpu_ms_mean": 0.004304637931034483,
+      "thread_cpu_ms_p95": 0.007,
+      "wall_ms_max": 0.008751,
+      "wall_ms_mean": 0.0056675344827586205,
+      "wall_ms_p50": 0.006125,
+      "wall_ms_p95": 0.008167
+    },
+    "buffersrc_add_frame": {
+      "calls": 29,
+      "successful_calls": 29,
+      "thread_cpu_ms_max": 26.798917,
+      "thread_cpu_ms_mean": 20.708365172413792,
+      "thread_cpu_ms_p95": 26.497041,
+      "wall_ms_max": 26.801803,
+      "wall_ms_mean": 21.016199413793103,
+      "wall_ms_p50": 22.313884,
+      "wall_ms_p95": 26.49905
+    }
+  },
+  "reader": {
+    "gaps_over_60ms": 1,
+    "max_gap_ms": 60.519965,
+    "mean_gap_ms": 50.57045675,
+    "post_warmup_intervals": 8
+  },
+  "rings": {
+    "ffmpeg_observer": {
+      "events": 117,
+      "magic": 4702659972666835781,
+      "overflow": 0,
+      "stdout_bytes_recorded": 0
+    },
+    "pipeline_observer": {
+      "events": 381,
+      "magic": 4702659955336955212,
+      "overflow": 0
+    },
+    "scale_observer": {
+      "events": 29,
+      "magic": 4702659968120212549,
+      "overflow": 0
+    }
+  },
+  "scale_call_statistics": {
+    "sws_scale": {
+      "calls": 0,
+      "thread_cpu_ms_max": null,
+      "thread_cpu_ms_mean": null,
+      "thread_cpu_ms_p95": null,
+      "wall_ms_max": null,
+      "wall_ms_mean": null,
+      "wall_ms_p50": null,
+      "wall_ms_p95": null,
+      "wall_ms_p99": null
+    },
+    "sws_scale_frame": {
+      "calls": 29,
+      "thread_cpu_ms_max": 26.746417,
+      "thread_cpu_ms_mean": 20.539550448275865,
+      "thread_cpu_ms_p95": 26.448917,
+      "wall_ms_max": 26.749011,
+      "wall_ms_mean": 20.844033931034485,
+      "wall_ms_p50": 22.266051,
+      "wall_ms_p95": 26.451217,
+      "wall_ms_p99": 26.749011
+    }
+  },
+  "schema_version": 1,
+  "stage_counts": {
+    "av_interleaved_write_frame": 29,
+    "av_read_frame": 174,
+    "avcodec_receive_frame": 60,
+    "avcodec_send_packet": 31,
+    "buffersink_get_frame": 58,
+    "buffersrc_add_frame": 29,
+    "decoder": 29,
+    "filter_sink": 29,
+    "mux": 29,
+    "scale_frame": 29,
+    "scale_slice": 0,
+    "v4l2_dqbuf": 30
+  },
+  "trigger_timeline": {
+    "decoder_pts_matching_filter": 1460056,
+    "filter_sink_pts_near_mux": 1460056,
+    "matching_direct_sws_scale_calls_by_time": [],
+    "matching_sws_scale_frame": [
+      {
+        "dst_pts": 1460056,
+        "src_pts": 1460056,
+        "thread_cpu_ms": 23.338874,
+        "wall_minus_cpu_ms": 0.34439899999999923,
+        "wall_ms": 23.683273
+      }
+    ],
+    "mux_pts": 29,
+    "pipeline_calls_matching_decoder_pts": [
+      {
+        "begin_mono_ns": 35206538812801,
+        "dts": 1460056,
+        "end_mono_ns": 35206554810290,
+        "pts": 1460056,
+        "record_type": "avcodec_send_packet",
+        "result": 0,
+        "thread_cpu_ms": 15.99325,
+        "value": 108461,
+        "wall_ms": 15.997489
+      },
+      {
+        "begin_mono_ns": 35206554814665,
+        "dts": -9223372036854775808,
+        "end_mono_ns": 35206554823415,
+        "pts": 1460056,
+        "record_type": "avcodec_receive_frame",
+        "result": 0,
+        "thread_cpu_ms": 0.007583,
+        "value": 0,
+        "wall_ms": 0.00875
+      },
+      {
+        "begin_mono_ns": 35206554867457,
+        "dts": -9223372036854775808,
+        "end_mono_ns": 35206578597688,
+        "pts": 1460056,
+        "record_type": "buffersrc_add_frame",
+        "result": 0,
+        "thread_cpu_ms": 23.386124,
+        "value": 0,
+        "wall_ms": 23.730231
+      },
+      {
+        "begin_mono_ns": 35206578626272,
+        "dts": -9223372036854775808,
+        "end_mono_ns": 35206578633564,
+        "pts": 1460056,
+        "record_type": "buffersink_get_frame",
+        "result": 0,
+        "thread_cpu_ms": 0.006416,
+        "value": 0,
+        "wall_ms": 0.007292
+      }
+    ],
+    "pipeline_calls_near_trigger_eof": [
+      {
+        "begin_mono_ns": 35206554867457,
+        "dts": -9223372036854775808,
+        "end_mono_ns": 35206578597688,
+        "pts": 1460056,
+        "record_type": "buffersrc_add_frame",
+        "result": 0,
+        "thread_cpu_ms": 23.386124,
+        "value": 0,
+        "wall_ms": 23.730231
+      },
+      {
+        "begin_mono_ns": 35206578626272,
+        "dts": -9223372036854775808,
+        "end_mono_ns": 35206578633564,
+        "pts": 1460056,
+        "record_type": "buffersink_get_frame",
+        "result": 0,
+        "thread_cpu_ms": 0.006416,
+        "value": 0,
+        "wall_ms": 0.007292
+      },
+      {
+        "begin_mono_ns": 35206578952358,
+        "dts": -9223372036854775808,
+        "end_mono_ns": 35206578958484,
+        "pts": -9223372036854775808,
+        "record_type": "buffersink_get_frame",
+        "result": -11,
+        "thread_cpu_ms": 0.003791,
+        "value": 0,
+        "wall_ms": 0.006126
+      },
+      {
+        "begin_mono_ns": 35206579052693,
+        "dts": -9223372036854775808,
+        "end_mono_ns": 35206579067568,
+        "pts": -9223372036854775808,
+        "record_type": "av_read_frame",
+        "result": -11,
+        "thread_cpu_ms": 0.013125,
+        "value": 0,
+        "wall_ms": 0.014875
+      },
+      {
+        "begin_mono_ns": 35206578959359,
+        "dts": 29,
+        "end_mono_ns": 35206581749177,
+        "pts": 29,
+        "record_type": "av_interleaved_write_frame",
+        "result": 0,
+        "thread_cpu_ms": 1.075661,
+        "value": 1382400,
+        "wall_ms": 2.789818
+      },
+      {
+        "begin_mono_ns": 35206589185292,
+        "dts": 35206531279,
+        "end_mono_ns": 35206589221750,
+        "pts": 35206531279,
+        "record_type": "av_read_frame",
+        "result": 0,
+        "thread_cpu_ms": 0.034125,
+        "value": 108251,
+        "wall_ms": 0.036458
+      },
+      {
+        "begin_mono_ns": 35206589244792,
+        "dts": -9223372036854775808,
+        "end_mono_ns": 35206589252376,
+        "pts": -9223372036854775808,
+        "record_type": "av_read_frame",
+        "result": -11,
+        "thread_cpu_ms": 0.006708,
+        "value": 0,
+        "wall_ms": 0.007584
+      }
+    ],
+    "reader_from_frame": 27,
+    "reader_gap_ms": 60.519965,
+    "reader_to_frame": 28
+  }
+}

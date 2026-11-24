@@ -1,0 +1,58 @@
+---
+submission_id: sidecamerad-mvp-20261113_handoff-3_attempt-1_2026-11-15T12:33:56Z
+revision: "5"
+package_path: skillset-saves/runs/sidecamerad-mvp-20261113/investigation/manifest.json
+submission_status: PENDING
+verdict: PENDING
+---
+
+# Cross-stage handoff: investigation review
+
+## Package
+
+- Boundary: `investigation-review` (INVESTIGATE returning to BUILD)
+- Investigation revision: `5`
+- Investigation submission: `sidecamerad-mvp-20261113_investigation-ac4-timing-r5`
+- Manifest: `skillset-saves/runs/sidecamerad-mvp-20261113/investigation/manifest.json`
+- Manifest SHA-256: `e16aeac17d15793fd437fb4c2c2c2b8ecfbe3690081e86451d074e8bf4d24096`
+- Report: `skillset-saves/runs/sidecamerad-mvp-20261113/investigation/reports/investigation-package.md`
+- Report SHA-256: `e67cd4b4290b38f022bb5f1a164b3285ff0bd2f7db413bdec3024178909c5ac0`
+- Evidence chain: `skillset-saves/runs/sidecamerad-mvp-20261113/investigation/evidence/evidence-chain-r5.log`
+- Evidence-chain SHA-256: `88939d93590a991028c66fa788980cbfef5b572152faac320f32a38f06acdf3c`
+- Futex pairing log SHA-256: `b4da13d544b42b0acb8a1b79c2668ad1fa51af68f6bce1460ccb8f015562ceca`
+- Futex pairing JSON SHA-256: `5c69e8b7f52201fef1ec9a4958bbd3e0b485b1a3f9ec58882847e0e1fdfc07f3`
+- Canonical investigation self-check: passed with zero failures and warnings.
+- Revision 4's approved package is preserved at `investigation/reports/investigation-package-r4.md` (SHA-256 `39f762cc1f8002a5ea694cf59fe638e359a856ac8e206a8b1c52209900da08bc`). The prior approved handoff is archived at `delivery/reports/handoff_investigation-review-r4-approved.md.archive`.
+
+## Revision delta from approved revision 4
+
+This is a new cross-stage submission for investigation revision 5. It adds offline futex wait/wake analysis over the already-saved r4 syscall trace: 598 writer waits had a positive same-address wake by the FFmpeg leader during the wait interval. This is a temporal association only; the wake result does not identify which waiter was resumed, and the analysis does not prove a causal link to delayed frames. The r4 approved package and handoff remain preserved. The next diagnostic narrows to a read-only GDB/ptrace feasibility check; no FFmpeg capture or product edit is included in this revision.
+
+## Finding and bounded BUILD path
+
+The accepted five-minute current-source reproduction still fails AC-4's maximum-gap condition: 6,050 matched frames over 302.506666 seconds, mean 20.000523 fps, maximum EOF gap 89.163715 ms, and 753 of 6,049 gaps above 60 ms. Revision 5 reused this capture; it did not rerun it. The output-flush ABBA did not find a repeatable benefit from `-flush_packets 1`, so production argv remains unchanged. The surviving medium-confidence localization is after V4L2 dequeue and before raw-pipe delivery inside FFmpeg processing/output. Python reader backlog, CPU runqueue delay as the primary cause, and sustained pipe backpressure remain unsupported. PTS are V4L2 SOE, not EOF; preserve `timestampEof` as host-monotonic time sampled after the complete raw-frame read.
+
+Offline analysis of the saved syscall trace found 598 output-writer FUTEX_WAIT calls lasting at least 1 ms (592 at least 10 ms) with a positive same-address FUTEX_WAKE from FFmpeg leader TID 863769 during each wait interval. This is a temporal address association only: FUTEX_WAKE does not report which waiter it woke, and the trace does not prove that these wakes caused delayed frames or identify the condition. All 133 >60 ms read gaps overlap writer futex waits; the mechanism remains unresolved. The trace's `strace` and `/proc` observer overhead was not calibrated.
+
+The next BUILD-owned step is a bounded, read-only GDB/ptrace feasibility check on the same host and user context, not another capture. Check GDB availability and the current ptrace policy, then attempt a non-elevated GDB attach to a disposable same-user child, collect its thread backtrace, and detach cleanly. If attach is denied, the backtrace is unusable, or detach fails, stop and route the host access/symbolization decision through Admiral; do not bypass policy, substitute another tracer, or start a 600-frame capture. If it passes, return capability evidence to Admiral before preparing any separately scoped FFmpeg sampling plan. This step changes no source, production argv, or timestamp semantics; debugger pauses may perturb timing.
+
+## Cross-stage verdict
+
+- Gate: `gatekeeper-admiral`
+- Verdict: **PENDING** for `investigation-review` revision `5`.
+- The revision 4 approval is prior lineage only; this package includes changed evidence and requires a fresh cross-stage judgment.
+- The conditional final-summary slot remains out of scope for this intermediate investigation-to-BUILD handoff.
+
+## Open evidence limits
+
+- Futex wake/wait association does not identify the awakened TID or prove causality; no stack, instruction pointer, or wchan was captured.
+- GDB/ptrace feasibility is untested. A no-go stops the diagnostic; no alternate tracer is proposed.
+- The accepted five-minute reproduction still fails AC-4. The 600-frame traces are diagnostic and do not replace acceptance.
+- DQBUF counted 602 successful calls for 600 outputs without sequence fields, so exact dequeue-to-output frame identity remains unproven.
+- AC-6 reconnect/sibling continuity and AC-8 four-camera soak remain hardware deferrals; the minor FFmpeg child resource-limit finding remains open.
+
+## Next consumer
+
+Submit revision 5 to `gatekeeper-admiral`. If approved, route the read-only GDB/ptrace feasibility check to `build/build-management`; keep source and production argv unchanged, and do not claim AC-4 passes.
+
+This is an intermediate investigation-to-BUILD handoff; a final delivery package is not in scope.

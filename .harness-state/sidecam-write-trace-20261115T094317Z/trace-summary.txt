@@ -1,0 +1,16 @@
+SideCamera FFmpeg stdout write trace
+Created UTC: 2026-11-15T09:43:48.660997+00:00
+Frames requested/completed: 600/600
+Bytes read / expected: 829440000/829440000
+FFmpeg/strace return code: 0
+Error: None
+Source SHA-256 before/after: 494fb8b88fda8bcf1d8301225019f4f01f4b77a0bb5cb3e69dde47ed96e1309b / 494fb8b88fda8bcf1d8301225019f4f01f4b77a0bb5cb3e69dde47ed96e1309b
+Stdout write syscalls / traced bytes: 0 / 0
+Correlated frame byte boundaries: 0
+Realtime-monotonic offset estimate: 1794726953573886977 ns; uncertainty bound: 3479 ns
+Read interval summary ms: {'mean': 49.960514370617695, 'median': 50.637225, 'p95': 63.793668, 'p99': 69.830151, 'min': 15.303844, 'max': 77.340505, 'over_60ms': 71, 'under_40ms': 82}
+Write-end to read-completion lag ms: {'mean': None, 'median': None, 'p95': None, 'min': None, 'max': None, 'below_minus_clock_uncertainty': 0}
+Unparsed write lines: 0
+Children reaped: True
+Raw trace: /data/openpilot/.harness-state/sidecam-write-trace-20261115T094317Z/strace-writes.log
+Artifact: /data/openpilot/.harness-state/sidecam-write-trace-20261115T094317Z/trace.json

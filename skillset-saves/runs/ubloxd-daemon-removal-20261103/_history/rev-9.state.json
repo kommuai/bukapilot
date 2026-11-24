@@ -1,0 +1,53 @@
+{
+  "active_boundary": "design-to-build",
+  "active_owner": "admiral",
+  "artifact_hashes": {
+    "skillset-saves/runs/ubloxd-daemon-removal-20261103/design/artifacts/taste-snapshot.json": "f8f03c10342a4dd3544cce957c71ded99583ae0691c9c8434afd62a971f18845",
+    "skillset-saves/runs/ubloxd-daemon-removal-20261103/design/reports/architecture.md": "d586afaeef4fd3af83f32b54cbfb45664b2ce9ee9db5d9de1ceb097b8d71ac38",
+    "skillset-saves/runs/ubloxd-daemon-removal-20261103/design/reports/report_research.md": "086c8c5ce99dbe67be83f054552d260a43766f490a73ece22e5f3ee87812a928",
+    "skillset-saves/runs/ubloxd-daemon-removal-20261103/design/reports/xtra-https-probe.md": "8165e5c4935cefc56a88bb34a4dd42f64e919650d30a9d6b7c3b7c02626c64e0",
+    "skillset-saves/runs/ubloxd-daemon-removal-20261103/intake/report_grilling.md": "124d23219fb89ebd3b966b8fd81c1f9e8f0c15456ccd684b9b4383ed553297c2",
+    "skillset-saves/runs/ubloxd-daemon-removal-20261103/intake/reports/intake-brief.md": "c900d7a9d04b38baa1e8431aa96ec8f3e1f2e5faa5a1ddd1165ebab17f3c1087"
+  },
+  "delegated_to": "commander",
+  "detected_stack_status": "unverified",
+  "evidence_paths": [
+    "skillset-saves/runs/ubloxd-daemon-removal-20261103/design/artifacts/taste-snapshot.json",
+    "skillset-saves/runs/ubloxd-daemon-removal-20261103/design/reports/architecture.md",
+    "skillset-saves/runs/ubloxd-daemon-removal-20261103/design/reports/report_research.md",
+    "skillset-saves/runs/ubloxd-daemon-removal-20261103/design/reports/xtra-https-probe.md",
+    "skillset-saves/runs/ubloxd-daemon-removal-20261103/intake/report_grilling.md",
+    "skillset-saves/runs/ubloxd-daemon-removal-20261103/intake/reports/intake-brief.md"
+  ],
+  "execution_mode": "agent",
+  "hook_registration_status": "missing",
+  "intake_status": "confirmed",
+  "mcp_registry_check": "not-needed",
+  "next_action": "Revise design evidence to remove TICI GNSS manager support while preserving KA2 qcomgpsd behavior, then complete design-to-build.",
+  "parent_revision": 8,
+  "persistence_probe": "ok",
+  "phase_state": "DESIGN_ACTIVE",
+  "preamble_tier": "2",
+  "protocol_state": "DESIGN",
+  "revision": 9,
+  "run_id": "ubloxd-daemon-removal-20261103",
+  "runtime_readiness_check": "not-ready",
+  "schema_version": 1,
+  "session_pin": true,
+  "skills_engaged": [
+    "admiral",
+    "session-memory",
+    "commander",
+    "taste",
+    "researcher",
+    "architect",
+    "security-builder",
+    "planner"
+  ],
+  "status": "active",
+  "tier": "2",
+  "timestamp": "2026-11-03T17:14:04.140705+00:00",
+  "unresolved_decision": "none",
+  "user_clarification": "KA2 is the target; remove this subsystem TICI manager support, including qcomgpsd TICI enablement; preserve KA2 qcomgpsd GNSS and XTRA behavior",
+  "xtra_behavior_choice": "not_applicable; TICI qcom path removed and KA2 behavior unchanged"
+}

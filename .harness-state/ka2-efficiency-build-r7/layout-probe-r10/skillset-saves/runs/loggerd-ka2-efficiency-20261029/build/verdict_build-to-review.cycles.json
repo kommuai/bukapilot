@@ -1,0 +1,89 @@
+{
+  "boundary": "build-to-review",
+  "events": [
+    {
+      "boundary": "build-to-review",
+      "changed_evidence": null,
+      "checked_at": "2026-10-31T13:59:52.908414+00:00",
+      "judgment": {
+        "by_owner": {},
+        "escalation": null,
+        "findings": [
+          {
+            "basis": {
+              "kind": "contract",
+              "ref": "build-to-review fallback_values and applicability_records for security_evidence",
+              "source": "gates.yaml"
+            },
+            "evidence": [
+              "manifest:evidence.security_evidence"
+            ],
+            "id": "INFO-SECURITY-WAIVER-CONFIRMED",
+            "key": "security_evidence",
+            "owner": "security-builder",
+            "severity": "Info",
+            "statement": "The package-shape check marked a conditional security artifact because there is no standalone security report. The schema-2 manifest carries the sanctioned typed no-trust-boundary applicability record. Inspection of the 18 changed first-party loggerd production, build, and test files confirms no external actor, endpoint, credential, privilege boundary, or cereal schema changed; the waiver is applicable."
+          },
+          {
+            "basis": {
+              "kind": "contract",
+              "ref": "Save Protocol: gatekeeper-build writes the build-to-review verdict record",
+              "source": "build/gatekeeper-build/SKILL.md"
+            },
+            "evidence": [],
+            "id": "INFO-CURRENT-GATE-VERDICT-SLOT",
+            "key": null,
+            "owner": "build-management",
+            "severity": "Info",
+            "statement": "The package-shape check noted that no gatekeeper-build verdict existed when its precheck ran. This is the current initial submission, and this gate is now writing the required verdict record at the canonical path."
+          },
+          {
+            "basis": {
+              "kind": "contradiction"
+            },
+            "evidence": [
+              "reports/report_tests_r10.md",
+              "reports/report_runtime_health_r10.md"
+            ],
+            "id": "INFO-STALE-TEST-REPORT-REFRESH-NOTE",
+            "key": "tests",
+            "owner": "test-builder",
+            "severity": "Info",
+            "statement": "The test report retains a sentence saying health-check must refresh runtime evidence before build submission. The r269 production smoke, runtime report, and typed runtime probe already provide that refresh and pass on the same source hashes, so this is stale report wording rather than a missing runtime result. The note should be clarified in a future report-only update; it does not require rerunning tests or runtime validation."
+          }
+        ],
+        "gate": "gatekeeper-build",
+        "intake": {
+          "artifact": "../intake/report_grilling.md"
+        },
+        "valid": true,
+        "verdict": "APPROVED"
+      },
+      "package_fingerprint": "774312237abface7b92f6c93ebc6145ea2940ccb6c7839086c26b9d68135e916",
+      "revise_packet": {
+        "actions_by_owner": {},
+        "by_key": {},
+        "by_owner": {},
+        "judgment_by_owner": {},
+        "unassigned": []
+      },
+      "revision": 266,
+      "signature": [
+        "gatekeeper-build",
+        "266",
+        "774312237abface7b92f6c93ebc6145ea2940ccb6c7839086c26b9d68135e916",
+        "APPROVED"
+      ],
+      "submission_id": "loggerd-ka2-efficiency-20261029-build-r10",
+      "unchanged_evidence": null
+    }
+  ],
+  "gates": {
+    "gatekeeper-build": []
+  },
+  "held": false,
+  "reopen_refs": [],
+  "rounds": [],
+  "run_id": "loggerd-ka2-efficiency-20261029",
+  "schema_version": 1
+}

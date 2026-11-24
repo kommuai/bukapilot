@@ -1,0 +1,40 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-9.0.2, pluggy-1.6.0 -- /usr/local/venv/bin/python3
+cachedir: .pytest_cache
+Using --randomly-seed=3723811136
+rootdir: /data/openpilot
+configfile: pyproject.toml
+plugins: timeout-2.4.0, repeat-0.9.4, xdist-3.7.1.dev24+g2b4372bd6, randomly-4.0.1, asyncio-1.3.0, mock-3.15.1, cpp-2.6.0
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=function, asyncio_default_test_loop_scope=function
+collecting ... collected 1 item
+
+system/loggerd/tests/test_loggerd_rotation.py::test_loggerd_rotation_clock_report_and_audio_contracts rotation helper build: /usr/local/venv/bin/scons -Q --ccflags=-DLOGGERD_TEST_BUILD build/system/loggerd/tests/test_loggerd_rotation
+scons: `build/system/loggerd/tests/test_loggerd_rotation' is up to date.
+preflight pgrep -x camerad: no active process
+preflight pgrep -x encoderd: no active process
+preflight pgrep -x loggerd: no active process
+preflight fuser -v /dev/media0: exit=1 preflight fuser -v /dev/media1: exit=1 preflight fuser -v /dev/media2: exit=1 preflight fuser -v /dev/media3: exit=1 preflight fuser -v /dev/media4: exit=1 preflight fuser -v /dev/media5: exit=1 preflight fuser -v /dev/mpp_service: exit=1 preflight fuser -v /dev/rga: exit=1 preflight fuser -v /dev/v4l-subdev0: exit=1 preflight fuser -v /dev/v4l-subdev1: exit=1 preflight fuser -v /dev/v4l-subdev10: exit=1 preflight fuser -v /dev/v4l-subdev11: exit=1 preflight fuser -v /dev/v4l-subdev12: exit=1 preflight fuser -v /dev/v4l-subdev13: exit=1 preflight fuser -v /dev/v4l-subdev14: exit=1 preflight fuser -v /dev/v4l-subdev2: exit=1 preflight fuser -v /dev/v4l-subdev3: exit=1 preflight fuser -v /dev/v4l-subdev4: exit=1 preflight fuser -v /dev/v4l-subdev5: exit=1 preflight fuser -v /dev/v4l-subdev6: exit=1 preflight fuser -v /dev/v4l-subdev7: exit=1 preflight fuser -v /dev/v4l-subdev8: exit=1 preflight fuser -v /dev/v4l-subdev9: exit=1 preflight fuser -v /dev/video0: exit=1 preflight fuser -v /dev/video1: exit=1 preflight fuser -v /dev/video10: exit=1 preflight fuser -v /dev/video11: exit=1 preflight fuser -v /dev/video12: exit=1 preflight fuser -v /dev/video13: exit=1 preflight fuser -v /dev/video14: exit=1 preflight fuser -v /dev/video15: exit=1 preflight fuser -v /dev/video16: exit=1 preflight fuser -v /dev/video17: exit=1 preflight fuser -v /dev/video18: exit=1 preflight fuser -v /dev/video19: exit=1 preflight fuser -v /dev/video2: exit=1 preflight fuser -v /dev/video20: exit=1 preflight fuser -v /dev/video21: exit=1 preflight fuser -v /dev/video22: exit=1 preflight fuser -v /dev/video23: exit=1 preflight fuser -v /dev/video24: exit=1 preflight fuser -v /dev/video25: exit=1 preflight fuser -v /dev/video26: exit=1 preflight fuser -v /dev/video27: exit=1 preflight fuser -v /dev/video28: exit=1 preflight fuser -v /dev/video29: exit=1 preflight fuser -v /dev/video3: exit=1 preflight fuser -v /dev/video30: exit=1 preflight fuser -v /dev/video31: exit=1 preflight fuser -v /dev/video32: exit=1 preflight fuser -v /dev/video33: exit=1 preflight fuser -v /dev/video34: exit=1 preflight fuser -v /dev/video35: exit=1 preflight fuser -v /dev/video36: exit=1 preflight fuser -v /dev/video37: exit=1 preflight fuser -v /dev/video38: exit=1 preflight fuser -v /dev/video39: exit=1 preflight fuser -v /dev/video4: exit=1 preflight fuser -v /dev/video40: exit=1 preflight fuser -v /dev/video41: exit=1 preflight fuser -v /dev/video42: exit=1 preflight fuser -v /dev/video43: exit=1 preflight fuser -v /dev/video44: exit=1 preflight fuser -v /dev/video45: exit=1 preflight fuser -v /dev/video46: exit=1 preflight fuser -v /dev/video47: exit=1 preflight fuser -v /dev/video48: exit=1 preflight fuser -v /dev/video49: exit=1 preflight fuser -v /dev/video5: exit=1 preflight fuser -v /dev/video50: exit=1 preflight fuser -v /dev/video51: exit=1 preflight fuser -v /dev/video52: exit=1 preflight fuser -v /dev/video53: exit=1 preflight fuser -v /dev/video54: exit=1 preflight fuser -v /dev/video55: exit=1 preflight fuser -v /dev/video56: exit=1 preflight fuser -v /dev/video57: exit=1 preflight fuser -v /dev/video58: exit=1 preflight fuser -v /dev/video59: exit=1 preflight fuser -v /dev/video6: exit=1 preflight fuser -v /dev/video7: exit=1 preflight fuser -v /dev/video8: exit=1 preflight fuser -v /dev/video9: exit=1 ./system/loggerd/loggerd.cc: logging to /tmp/pytest-of-kommu/pytest-35/test_loggerd_rotation_clock_re0/logs/2026-10-31--09-26-18--0
+./system/loggerd/loggerd.cc: logging to /tmp/pytest-of-kommu/pytest-35/test_loggerd_rotation_clock_re0/logs/2026-10-31--09-26-18--0
+./system/loggerd/loggerd.cc: rotated to /tmp/pytest-of-kommu/pytest-35/test_loggerd_rotation_clock_re0/logs/2026-10-31--09-26-18--1
+./system/loggerd/loggerd.cc: logging to /tmp/pytest-of-kommu/pytest-35/test_loggerd_rotation_clock_re0/logs/2026-10-31--09-26-18--0
+./system/loggerd/loggerd.cc: rotated to /tmp/pytest-of-kommu/pytest-35/test_loggerd_rotation_clock_re0/logs/2026-10-31--09-26-18--1
+MISSING_REPORT {"route":"2026-10-31--09-26-18","epoch":2,"segment":1,"degraded":true,"missing_streams":["qRoad"],"elapsed_ms":0,"known_drop_counts":{"stale_video_messages":0,"future_video_queue_drops":0,"audio_no_writer_events":0,"audio_expired_events":0,"audio_capacity_drops":0}}
+./system/loggerd/loggerd.cc: rawAudioData event rejected atomically at 256 KiB qRoad queue cap (segment 0, 65536 bytes)
+./system/loggerd/loggerd.cc: rawAudioData event expired before qRoad writer opened (segment 0)
+./system/loggerd/loggerd.cc: logging to /tmp/pytest-of-kommu/pytest-35/test_loggerd_rotation_clock_re0/logs/2026-10-31--09-26-18--0
+./system/loggerd/loggerd.cc: rawAudioData event expired before qRoad writer opened (segment 0)
+./system/loggerd/loggerd.cc: rotated to /tmp/pytest-of-kommu/pytest-35/test_loggerd_rotation_clock_re0/logs/2026-10-31--09-26-18--1
+REPORT {"route":"2026-10-31--09-26-18","epoch":2,"segment":1,"degraded":true,"missing_streams":[],"elapsed_ms":5000,"known_drop_counts":{"stale_video_messages":0,"future_video_queue_drops":0,"audio_no_writer_events":0,"audio_expired_events":1,"audio_capacity_drops":0}}
+./system/loggerd/loggerd.cc: logging to /tmp/pytest-of-kommu/pytest-35/test_loggerd_rotation_clock_re0/logs/2026-10-31--09-26-19--0
+./system/loggerd/loggerd.cc: rotated to /tmp/pytest-of-kommu/pytest-35/test_loggerd_rotation_clock_re0/logs/2026-10-31--09-26-19--1
+NO_MESSAGE_REPORT {"route":"2026-10-31--09-26-19","epoch":2,"segment":1,"degraded":true,"missing_streams":["roadEncodeData","qRoadEncodeData","wideRoadEncodeData","driverEncodeData"],"elapsed_ms":5000,"known_drop_counts":{"stale_video_messages":0,"future_video_queue_drops":0,"audio_no_writer_events":0,"audio_expired_events":0,"audio_capacity_drops":0}}
+./system/loggerd/loggerd.cc: closing logger
+loggerd rotation, report, and audio contracts passed
+PASSED
+
+============================= slowest 10 durations =============================
+6.76s call     system/loggerd/tests/test_loggerd_rotation.py::test_loggerd_rotation_clock_report_and_audio_contracts
+0.01s teardown system/loggerd/tests/test_loggerd_rotation.py::test_loggerd_rotation_clock_report_and_audio_contracts
+
+(1 durations < 0.005s hidden.  Use -vv to show these durations.)
+============================== 1 passed in 6.91s ===============================

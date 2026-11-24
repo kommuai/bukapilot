@@ -1,0 +1,3 @@
+command: git diff --check -- Jenkinsfile selfdrive/test/test_onroad.py system/loggerd/tests/test_encoder.py system/manager/process_config.py system/manager/test/test_manager.py system/sensord/sensord.py system/sensord/tests/test_sensord.py system/sensord/tests/test_fixed_calculations.py system/sensord/tests/test_event_construction.py system/sensord/sensors/lsm6ds3_accel.py system/sensord/sensors/lsm6ds3_gyro.py system/sensord/sensors/lsm6ds3_temp.py system/sensord/sensors/mmc5603nj_magn.py
+surface: approved r4 implementation paths
+exit_code: 0

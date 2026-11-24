@@ -1,0 +1,15 @@
+SideCamera V4L2 DQBUF / FFmpeg output trace
+Created UTC: 2026-11-15T10:00:10.498024+00:00
+Output frames read: 600/600; bytes: 829440000/829440000
+DQBUF successes: 360; DQBUF interval summary: {'count': 359, 'mean_ms': 83.72434582729805, 'median_ms': 53.622128, 'p95_ms': 158.92488, 'p99_ms': 246.399136, 'min_ms': 40.452856, 'max_ms': 301.141808, 'over_60ms': 155, 'under_40ms': 0}
+PTS count/timebase: 600/(1, 1000000)
+PTS interval summary: {'count': 599, 'mean_ms': 50.95160267111853, 'median_ms': 51.851, 'p95_ms': 52.026, 'p99_ms': 52.091, 'min_ms': 47.885, 'max_ms': 615.981, 'over_60ms': 1, 'under_40ms': 0}
+Output FD/write calls/bytes: 12/25077/806281216; frame boundaries 583
+Python read interval summary: {'count': 599, 'mean_ms': 49.97407767445743, 'median_ms': 50.643511, 'p95_ms': 74.784576, 'p99_ms': 84.197553, 'min_ms': 10.562136, 'max_ms': 89.587268, 'over_60ms': 148, 'under_40ms': 152}
+DQBUF-to-read completion lag ms: {'mean': -5963.656812872223, 'median': -5996.2845485, 'p95': -403.874126, 'max': 82.815657}
+Source hash unchanged: True (494fb8b88fda8bcf1d8301225019f4f01f4b77a0bb5cb3e69dde47ed96e1309b)
+Syscalls: {'read': 230, 'ioctl': 7236, 'write': 35720}
+Error/return code: None/0
+Children reaped: True
+Strace: /data/openpilot/.harness-state/sidecam-dqbuf-output-trace-20261115T095938Z/strace-syscalls.log
+Artifact: /data/openpilot/.harness-state/sidecam-dqbuf-output-trace-20261115T095938Z/dqbuf-output-correlation.json

@@ -1,0 +1,731 @@
+{
+  "boundary": "design-to-build",
+  "events": [
+    {
+      "boundary": "design-to-build",
+      "changed_evidence": null,
+      "checked_at": "2026-10-29T08:58:33.394790+00:00",
+      "judgment": {
+        "by_owner": {},
+        "escalation": {
+          "reason": "Enable an interpreter meeting the harness minimum of Python 3.13 or later, then rerun the design package-shape validator and gate the unchanged submission. The boundary validator passed, but an exit-2 shape check is unresolved and this gate cannot approve the package without that validation.",
+          "to": "admiral"
+        },
+        "findings": [
+          {
+            "basis": {
+              "kind": "contract",
+              "ref": "Verdict Rules",
+              "source": "design/gatekeeper-design/references/workflow.md"
+            },
+            "evidence": [
+              "reports/report_stack-lock.md"
+            ],
+            "id": "INFO-DESIGN-SHAPE-CHECK-UNAVAILABLE",
+            "key": null,
+            "owner": "commander",
+            "severity": "Info",
+            "statement": "The package-shape validator did not execute: the available Python 3.12.3 is below its declared 3.13 minimum. The gate workflow requires ESCALATE when a validator exits 2, so the unrun structural check cannot be treated as clean."
+          }
+        ],
+        "gate": "gatekeeper-design",
+        "intake": {
+          "artifact": "../intake/report_grilling.md"
+        },
+        "valid": true,
+        "verdict": "ESCALATE"
+      },
+      "package_fingerprint": "f06b5b4fe632da41575f6473c37fd5c35827a6c0d4e6d36c456171c7d1263363",
+      "revise_packet": {
+        "actions_by_owner": {},
+        "by_key": {},
+        "by_owner": {},
+        "judgment_by_owner": {},
+        "unassigned": []
+      },
+      "revision": "r1",
+      "signature": [
+        "gatekeeper-design",
+        "r1",
+        "f06b5b4fe632da41575f6473c37fd5c35827a6c0d4e6d36c456171c7d1263363",
+        "ESCALATE"
+      ],
+      "submission_id": "sensord-refactor-20261029-design-r1",
+      "unchanged_evidence": null
+    },
+    {
+      "boundary": "design-to-build",
+      "changed_evidence": [],
+      "checked_at": "2026-10-29T09:03:02.621840+00:00",
+      "judgment": {
+        "by_owner": {},
+        "escalation": {
+          "reason": "The design-to-build package is mechanically complete, but the required cross-stage shape validator did not inspect the delivery package because no Python 3.13+ interpreter is available. Provide that runtime, rerun the design and cross-stage shape checks and both gates against submission r1, then resume the build handoff only if both judgments approve.",
+          "to": "admiral"
+        },
+        "findings": [
+          {
+            "basis": {
+              "kind": "contract",
+              "ref": "Verdict Rules",
+              "source": "gatekeeper-admiral/references/workflow.md"
+            },
+            "evidence": [
+              "reports/report_stack-lock.md"
+            ],
+            "expected": "The package-shape validator returns a structural result instead of exiting 2.",
+            "id": "INFO-CROSS-STAGE-SHAPE-CHECK-UNAVAILABLE",
+            "key": null,
+            "observed": "The boundary validator passed with prior_reusable=true, but the delivery package-shape validator exited 2 with the runtime-floor error for Python 3.12 versus required 3.13.",
+            "owner": "commander",
+            "remediation": "Make Python 3.13 or later available, then rerun the design and delivery package-shape validators, the design-to-build phase gate, and this cross-stage gate against unchanged submission r1.",
+            "severity": "Info",
+            "statement": "The required cross-stage delivery package-shape validator exited 2 before structural checks because Python 3.12 is below its declared runtime minimum of 3.13. An unrun validator is not a clean package result, so this boundary cannot advance.",
+            "verification": "Record successful results from both shape validators and valid APPROVED judgments from both gates before handing the design to build."
+          }
+        ],
+        "gate": "gatekeeper-admiral",
+        "intake": {
+          "artifact": "../intake/report_grilling.md"
+        },
+        "valid": true,
+        "verdict": "ESCALATE"
+      },
+      "package_fingerprint": "f06b5b4fe632da41575f6473c37fd5c35827a6c0d4e6d36c456171c7d1263363",
+      "revise_packet": {
+        "actions_by_owner": {},
+        "by_key": {},
+        "by_owner": {},
+        "judgment_by_owner": {},
+        "unassigned": []
+      },
+      "revision": "r1",
+      "signature": [
+        "gatekeeper-admiral",
+        "r1",
+        "f06b5b4fe632da41575f6473c37fd5c35827a6c0d4e6d36c456171c7d1263363",
+        "ESCALATE"
+      ],
+      "submission_id": "sensord-refactor-20261029-design-r1",
+      "unchanged_evidence": [
+        "acceptance",
+        "architecture",
+        "decisions",
+        "interfaces",
+        "plan",
+        "security_seed",
+        "stack_lock",
+        "taste_snapshot",
+        "ui_evidence"
+      ]
+    },
+    {
+      "boundary": "design-to-build",
+      "changed_evidence": [],
+      "checked_at": "2026-10-29T09:18:14.376207+00:00",
+      "judgment": {
+        "by_owner": {},
+        "escalation": null,
+        "findings": [
+          {
+            "basis": {
+              "kind": "contract",
+              "ref": "Design Packet Validation Sequence",
+              "source": "design/gatekeeper-design/references/workflow.md"
+            },
+            "evidence": [
+              "reports/report_interfaces.md",
+              "reports/report_architecture.md"
+            ],
+            "id": "INFO-API-CONTRACTS-OUT-OF-SCOPE",
+            "key": "interfaces",
+            "owner": "architect",
+            "severity": "Info",
+            "statement": "The shape validator's conditional API-contract finding is resolved as not in scope: the interface inventory says there is no request/response API, webhook, or user-facing endpoint and proposes no new interface items; the architecture keeps the existing local I2C/GPIO input and cereal publication boundaries."
+          },
+          {
+            "basis": {
+              "kind": "contract",
+              "ref": "Design Packet Validation Sequence",
+              "source": "design/gatekeeper-design/references/workflow.md"
+            },
+            "evidence": [
+              "reports/report_interfaces.md",
+              "reports/report_architecture.md"
+            ],
+            "id": "INFO-UI-HANDOFF-OUT-OF-SCOPE",
+            "key": "ui_evidence",
+            "owner": "architect",
+            "severity": "Info",
+            "statement": "The shape validator's conditional frontend/UI finding is resolved as not in scope: this backend sensor daemon introduces no user-facing surface, and the manifest carries the architect's sanctioned no-surface applicability record."
+          }
+        ],
+        "gate": "gatekeeper-design",
+        "intake": {
+          "artifact": "../intake/report_grilling.md"
+        },
+        "valid": true,
+        "verdict": "APPROVED"
+      },
+      "package_fingerprint": "f06b5b4fe632da41575f6473c37fd5c35827a6c0d4e6d36c456171c7d1263363",
+      "revise_packet": {
+        "actions_by_owner": {},
+        "by_key": {},
+        "by_owner": {},
+        "judgment_by_owner": {},
+        "unassigned": []
+      },
+      "revision": "r1",
+      "signature": [
+        "gatekeeper-design",
+        "r1",
+        "f06b5b4fe632da41575f6473c37fd5c35827a6c0d4e6d36c456171c7d1263363",
+        "APPROVED"
+      ],
+      "submission_id": "sensord-refactor-20261029-design-r1",
+      "unchanged_evidence": [
+        "acceptance",
+        "architecture",
+        "decisions",
+        "interfaces",
+        "plan",
+        "security_seed",
+        "stack_lock",
+        "taste_snapshot",
+        "ui_evidence"
+      ]
+    },
+    {
+      "boundary": "design-to-build",
+      "changed_evidence": [],
+      "checked_at": "2026-10-29T09:24:23.743028+00:00",
+      "judgment": {
+        "by_owner": {},
+        "escalation": null,
+        "findings": [
+          {
+            "basis": {
+              "kind": "contract",
+              "ref": "boundaries.design-to-build.required_evidence",
+              "source": "gates.yaml"
+            },
+            "evidence": [
+              "reports/delivery-plan.md",
+              "reports/implementation-spec.md"
+            ],
+            "expected": "The build owner can consume the approved design scope, acceptance criteria, slice ownership, and proof steps from the r1 manifest referenced by the handoff.",
+            "id": "INFO-DELIVERY-SUMMARY-CONDITIONAL-RESOLVED",
+            "key": null,
+            "observed": "The delivery shape validator exited 0 with zero failures and one conditional UNCHECKED summary finding; it found the handoff, and the manifest binds reports/delivery-plan.md and reports/implementation-spec.md.",
+            "owner": "commander",
+            "remediation": "No separate summary artifact is required. Carry the approved r1 manifest and this handoff into build.",
+            "severity": "Info",
+            "statement": "The delivery package-shape check's conditional package-or-delivery-summary finding is resolved as not requiring a separate file at this design-to-build crossing. The handoff identifies the approved r1 manifest, whose hashed delivery plan and implementation specification give build the slice order, acceptance criteria, ownership, and proof steps. The design-to-build evidence contract does not require a separate delivery summary, so the consumer can read the declared package without guessing.",
+            "verification": "The handoff package_path matches design/manifest.json; the boundary validator reports the same r1 submission with prior_reusable=true and no changed_evidence; the delivery shape validator reports zero failures."
+          }
+        ],
+        "gate": "gatekeeper-admiral",
+        "intake": {
+          "artifact": "../intake/report_grilling.md"
+        },
+        "valid": true,
+        "verdict": "APPROVED"
+      },
+      "package_fingerprint": "f06b5b4fe632da41575f6473c37fd5c35827a6c0d4e6d36c456171c7d1263363",
+      "revise_packet": {
+        "actions_by_owner": {},
+        "by_key": {},
+        "by_owner": {},
+        "judgment_by_owner": {},
+        "unassigned": []
+      },
+      "revision": "r1",
+      "signature": [
+        "gatekeeper-admiral",
+        "r1",
+        "f06b5b4fe632da41575f6473c37fd5c35827a6c0d4e6d36c456171c7d1263363",
+        "APPROVED"
+      ],
+      "submission_id": "sensord-refactor-20261029-design-r1",
+      "unchanged_evidence": [
+        "acceptance",
+        "architecture",
+        "decisions",
+        "interfaces",
+        "plan",
+        "security_seed",
+        "stack_lock",
+        "taste_snapshot",
+        "ui_evidence"
+      ]
+    },
+    {
+      "boundary": "design-to-build",
+      "changed_evidence": [
+        "acceptance",
+        "architecture",
+        "decisions",
+        "plan"
+      ],
+      "checked_at": "2026-10-29T10:54:41.139442+00:00",
+      "judgment": {
+        "by_owner": {},
+        "escalation": null,
+        "findings": [
+          {
+            "basis": {
+              "kind": "contract",
+              "ref": "Design Packet Validation Sequence",
+              "source": "design/gatekeeper-design/references/workflow.md"
+            },
+            "evidence": [
+              "reports/report_interfaces.md",
+              "reports/report_architecture.md"
+            ],
+            "id": "INFO-API-CONTRACTS-OUT-OF-SCOPE",
+            "key": "interfaces",
+            "owner": "architect",
+            "severity": "Info",
+            "statement": "The shape validator's conditional API-contract finding is resolved as not in scope: the interface inventory says there is no request/response API, webhook, or user-facing endpoint and proposes no new interface items; the architecture keeps the existing local I2C/GPIO input and cereal publication boundaries."
+          },
+          {
+            "basis": {
+              "kind": "contract",
+              "ref": "Design Packet Validation Sequence",
+              "source": "design/gatekeeper-design/references/workflow.md"
+            },
+            "evidence": [
+              "reports/report_interfaces.md",
+              "reports/report_architecture.md"
+            ],
+            "id": "INFO-UI-HANDOFF-OUT-OF-SCOPE",
+            "key": "ui_evidence",
+            "owner": "architect",
+            "severity": "Info",
+            "statement": "The shape validator's conditional frontend/UI finding is resolved as not in scope: this backend sensor daemon introduces no user-facing surface, and the manifest carries the architect's sanctioned no-surface applicability record."
+          }
+        ],
+        "gate": "gatekeeper-design",
+        "intake": {
+          "artifact": "../intake/report_grilling.md"
+        },
+        "valid": true,
+        "verdict": "APPROVED"
+      },
+      "package_fingerprint": "6676e3b5bca3d7a47b9357d45bbedc3780d131f114e43f5091480b08cda431d7",
+      "revise_packet": {
+        "actions_by_owner": {},
+        "by_key": {},
+        "by_owner": {},
+        "judgment_by_owner": {},
+        "unassigned": []
+      },
+      "revision": "r2",
+      "signature": [
+        "gatekeeper-design",
+        "r2",
+        "6676e3b5bca3d7a47b9357d45bbedc3780d131f114e43f5091480b08cda431d7",
+        "APPROVED"
+      ],
+      "submission_id": "sensord-refactor-20261029-design-r2",
+      "unchanged_evidence": [
+        "interfaces",
+        "security_seed",
+        "stack_lock",
+        "taste_snapshot",
+        "ui_evidence"
+      ]
+    },
+    {
+      "boundary": "design-to-build",
+      "changed_evidence": [],
+      "checked_at": "2026-10-29T10:56:18.162046+00:00",
+      "judgment": {
+        "by_owner": {},
+        "escalation": null,
+        "findings": [
+          {
+            "basis": {
+              "kind": "contract",
+              "ref": "boundaries.design-to-build.required_evidence",
+              "source": "gates.yaml"
+            },
+            "evidence": [
+              "reports/delivery-plan.md",
+              "reports/implementation-spec.md"
+            ],
+            "expected": "The build owner can consume the approved design scope, acceptance criteria, slice ownership, and proof steps from the r2 manifest referenced by the handoff.",
+            "id": "INFO-DELIVERY-SUMMARY-CONDITIONAL-RESOLVED",
+            "key": null,
+            "observed": "The delivery shape validator exited 0 with zero failures and one conditional UNCHECKED summary finding; it found the r2 handoff, and the manifest binds reports/delivery-plan.md and reports/implementation-spec.md.",
+            "owner": "commander",
+            "remediation": "No separate summary artifact is required. Carry the approved r2 manifest and this handoff into build.",
+            "severity": "Info",
+            "statement": "The delivery package-shape check's conditional package-or-delivery-summary finding is resolved as not requiring a separate file at this design-to-build crossing. The handoff identifies the approved r2 manifest, whose hashed delivery plan and implementation specification give build the slice order, acceptance criteria, ownership, and proof steps. The design-to-build evidence contract does not require a separate delivery summary, so the consumer can read the declared package without guessing.",
+            "verification": "The handoff package_path matches design/manifest.json; the boundary validator reports the same r2 submission with prior_reusable=true and no changed_evidence; the delivery shape validator reports zero failures."
+          }
+        ],
+        "gate": "gatekeeper-admiral",
+        "intake": {
+          "artifact": "../intake/report_grilling.md"
+        },
+        "valid": true,
+        "verdict": "APPROVED"
+      },
+      "package_fingerprint": "6676e3b5bca3d7a47b9357d45bbedc3780d131f114e43f5091480b08cda431d7",
+      "revise_packet": {
+        "actions_by_owner": {},
+        "by_key": {},
+        "by_owner": {},
+        "judgment_by_owner": {},
+        "unassigned": []
+      },
+      "revision": "r2",
+      "signature": [
+        "gatekeeper-admiral",
+        "r2",
+        "6676e3b5bca3d7a47b9357d45bbedc3780d131f114e43f5091480b08cda431d7",
+        "APPROVED"
+      ],
+      "submission_id": "sensord-refactor-20261029-design-r2",
+      "unchanged_evidence": [
+        "acceptance",
+        "architecture",
+        "decisions",
+        "interfaces",
+        "plan",
+        "security_seed",
+        "stack_lock",
+        "taste_snapshot",
+        "ui_evidence"
+      ]
+    },
+    {
+      "boundary": "design-to-build",
+      "changed_evidence": [
+        "acceptance",
+        "architecture",
+        "decisions",
+        "interfaces",
+        "plan",
+        "security_seed"
+      ],
+      "checked_at": "2026-10-29T12:10:52.375998+00:00",
+      "judgment": {
+        "by_owner": {},
+        "escalation": null,
+        "findings": [
+          {
+            "basis": {
+              "kind": "contract",
+              "ref": "Design Packet Validation Sequence",
+              "source": "design/gatekeeper-design/references/workflow.md"
+            },
+            "evidence": [
+              "reports/report_interfaces.md",
+              "reports/report_architecture.md",
+              "reports/design-package.md"
+            ],
+            "id": "INFO-API-CONTRACTS-OUT-OF-SCOPE",
+            "key": "interfaces",
+            "owner": "architect",
+            "severity": "Info",
+            "statement": "The shape validator's conditional API-contract finding is resolved as out of scope: IF-1 is an internal process-lifecycle contract, with no request/response endpoint or webhook. Existing KA2 cereal services and payloads remain unchanged; the architecture removes legacy TICI/tizi device and IRQ inputs while retaining the local I2C and cereal boundaries."
+          },
+          {
+            "basis": {
+              "kind": "contract",
+              "ref": "Design Packet Validation Sequence",
+              "source": "design/gatekeeper-design/references/workflow.md"
+            },
+            "evidence": [
+              "reports/report_interfaces.md",
+              "reports/report_architecture.md",
+              "reports/design-package.md",
+              "manifest:evidence.ui_evidence"
+            ],
+            "id": "INFO-UI-HANDOFF-OUT-OF-SCOPE",
+            "key": "ui_evidence",
+            "owner": "architect",
+            "severity": "Info",
+            "statement": "The shape validator's conditional frontend/UI finding is resolved as not in scope: this sensor daemon and its machine consumers introduce no user-facing surface, and the manifest carries the architect's sanctioned no-surface applicability record."
+          }
+        ],
+        "gate": "gatekeeper-design",
+        "intake": {
+          "artifact": "../intake/report_grilling.md"
+        },
+        "valid": true,
+        "verdict": "APPROVED"
+      },
+      "package_fingerprint": "8b475d4fa16b2c91f5e4c3c41282ad97b453ec93527a9e07a68bc76da40083c4",
+      "revise_packet": {
+        "actions_by_owner": {},
+        "by_key": {},
+        "by_owner": {},
+        "judgment_by_owner": {},
+        "unassigned": []
+      },
+      "revision": "r3",
+      "signature": [
+        "gatekeeper-design",
+        "r3",
+        "8b475d4fa16b2c91f5e4c3c41282ad97b453ec93527a9e07a68bc76da40083c4",
+        "APPROVED"
+      ],
+      "submission_id": "sensord-refactor-20261029-design-r3",
+      "unchanged_evidence": [
+        "stack_lock",
+        "taste_snapshot",
+        "ui_evidence"
+      ]
+    },
+    {
+      "boundary": "design-to-build",
+      "changed_evidence": [],
+      "checked_at": "2026-10-29T12:18:53.289204+00:00",
+      "judgment": {
+        "by_owner": {},
+        "escalation": null,
+        "findings": [
+          {
+            "basis": {
+              "kind": "contract",
+              "ref": "boundaries.design-to-build.required_evidence",
+              "source": "gates.yaml"
+            },
+            "evidence": [
+              "reports/delivery-plan.md",
+              "reports/implementation-spec.md"
+            ],
+            "expected": "The build owner can identify the approved r3 package, single slice, exact allowlist, acceptance criteria, and proof steps without guessing.",
+            "id": "INFO-DELIVERY-SUMMARY-CONDITIONAL-RESOLVED",
+            "key": null,
+            "observed": "The delivery shape check found the canonical r3 handoff and no structural failures; its only unchecked finding is the conditional summary slot. The handoff names design/manifest.json and the build slice. That manifest hashes reports/delivery-plan.md and reports/implementation-spec.md, which specify the slice and its build contract. The design-to-build row in gates.yaml requires the plan and acceptance evidence but no separate delivery-summary artifact.",
+            "owner": "commander",
+            "remediation": "No separate delivery summary is required at this boundary. Build should consume the approved r3 design manifest and its implementation specification through the canonical handoff.",
+            "severity": "Info",
+            "statement": "The delivery shape check's conditional package-or-delivery-summary slot is not in scope for this design-to-build crossing. The canonical r3 handoff identifies the approved design manifest and tells build to use the hashed implementation specification; the manifest's delivery plan and implementation specification provide the single slice, exact allowlist, acceptance criteria, proof steps, and risk boundaries.",
+            "verification": "The delivery shape check reports zero failures, coherent r3 lineage, and only this conditional UNCHECKED finding. The boundary check passes with prior_reusable=true, changed_evidence=[], and the valid APPROVED phase judgment. Confirmed the handoff package_path points to the r3 design manifest and that the manifest hash entries for delivery-plan.md and implementation-spec.md match the inspected files."
+          }
+        ],
+        "gate": "gatekeeper-admiral",
+        "intake": {
+          "artifact": "../intake/report_grilling.md"
+        },
+        "valid": true,
+        "verdict": "APPROVED"
+      },
+      "package_fingerprint": "8b475d4fa16b2c91f5e4c3c41282ad97b453ec93527a9e07a68bc76da40083c4",
+      "revise_packet": {
+        "actions_by_owner": {},
+        "by_key": {},
+        "by_owner": {},
+        "judgment_by_owner": {},
+        "unassigned": []
+      },
+      "revision": "r3",
+      "signature": [
+        "gatekeeper-admiral",
+        "r3",
+        "8b475d4fa16b2c91f5e4c3c41282ad97b453ec93527a9e07a68bc76da40083c4",
+        "APPROVED"
+      ],
+      "submission_id": "sensord-refactor-20261029-design-r3",
+      "unchanged_evidence": [
+        "acceptance",
+        "architecture",
+        "decisions",
+        "interfaces",
+        "plan",
+        "security_seed",
+        "stack_lock",
+        "taste_snapshot",
+        "ui_evidence"
+      ]
+    },
+    {
+      "boundary": "design-to-build",
+      "changed_evidence": [
+        "acceptance",
+        "architecture",
+        "decisions",
+        "interfaces",
+        "plan",
+        "security_seed"
+      ],
+      "checked_at": "2026-10-29T13:06:02.269245+00:00",
+      "judgment": {
+        "by_owner": {},
+        "escalation": null,
+        "findings": [
+          {
+            "basis": {
+              "kind": "contract",
+              "ref": "Design Packet Validation Sequence",
+              "source": "design/gatekeeper-design/references/workflow.md"
+            },
+            "evidence": [
+              "reports/report_interfaces.md",
+              "reports/report_architecture.md",
+              "reports/design-package.md"
+            ],
+            "id": "INFO-API-CONTRACTS-OUT-OF-SCOPE",
+            "key": "interfaces",
+            "owner": "architect",
+            "severity": "Info",
+            "statement": "The shape validator's conditional API-contract finding is resolved as out of scope: IF-1 is an internal process-lifecycle contract, with no HTTP, webhook, or request/response endpoint. Existing KA2 cereal services and payloads remain unchanged."
+          },
+          {
+            "basis": {
+              "kind": "contract",
+              "ref": "Design Packet Validation Sequence",
+              "source": "design/gatekeeper-design/references/workflow.md"
+            },
+            "evidence": [
+              "reports/report_interfaces.md",
+              "reports/report_architecture.md",
+              "reports/design-package.md",
+              "manifest:evidence.ui_evidence"
+            ],
+            "id": "INFO-UI-HANDOFF-OUT-OF-SCOPE",
+            "key": "ui_evidence",
+            "owner": "architect",
+            "severity": "Info",
+            "statement": "The conditional frontend/UI finding is resolved as out of scope: this daemon and its machine consumers introduce no user-facing surface, and the manifest carries the architect's sanctioned no-surface applicability record."
+          },
+          {
+            "basis": {
+              "artifact": "../intake/report_grilling.md",
+              "kind": "decision",
+              "ref": "D-20"
+            },
+            "evidence": [
+              "reports/report_architecture.md",
+              "reports/report_interfaces.md",
+              "reports/implementation-spec.md"
+            ],
+            "id": "INFO-NON-KA2-OFF-TARGET-UNGUARDED",
+            "key": "architecture",
+            "owner": "architect",
+            "severity": "Info",
+            "statement": "Residual risk accepted under D-20: managed or direct non-KA2 invocation is not rejected and may reach the fixed bus-3 path. Non-KA2 behavior is explicitly outside the confirmed KA2 contract; this is not a claim of off-target safety and does not require reinstating a platform guard."
+          },
+          {
+            "basis": {
+              "artifact": "../intake/report_grilling.md",
+              "kind": "decision",
+              "ref": "D-3"
+            },
+            "evidence": [
+              "reports/delivery-plan.md",
+              "reports/implementation-spec.md"
+            ],
+            "id": "INFO-TARGET-VALIDATION-DEFERRED",
+            "key": "plan",
+            "owner": "planner",
+            "severity": "Info",
+            "statement": "Physical board and sensor identity, startup, live cadence, shutdown, and target CPU/RSS remain unverified and are explicitly deferred under D-3. The plan correctly stops at build/review and makes no hardware-readiness or target-performance claim."
+          }
+        ],
+        "gate": "gatekeeper-design",
+        "intake": {
+          "artifact": "../intake/report_grilling.md"
+        },
+        "valid": true,
+        "verdict": "APPROVED"
+      },
+      "package_fingerprint": "4bd563fa71a93b825d334a8bae430c815635dc6da2e4270041700485d627488d",
+      "revise_packet": {
+        "actions_by_owner": {},
+        "by_key": {},
+        "by_owner": {},
+        "judgment_by_owner": {},
+        "unassigned": []
+      },
+      "revision": "r4",
+      "signature": [
+        "gatekeeper-design",
+        "r4",
+        "4bd563fa71a93b825d334a8bae430c815635dc6da2e4270041700485d627488d",
+        "APPROVED"
+      ],
+      "submission_id": "sensord-refactor-20261029-design-r4",
+      "unchanged_evidence": [
+        "stack_lock",
+        "taste_snapshot",
+        "ui_evidence"
+      ]
+    },
+    {
+      "boundary": "design-to-build",
+      "changed_evidence": [],
+      "checked_at": "2026-10-29T13:08:55.661767+00:00",
+      "judgment": {
+        "by_owner": {},
+        "escalation": null,
+        "findings": [
+          {
+            "basis": {
+              "kind": "contract",
+              "ref": "boundaries.design-to-build.required_evidence",
+              "source": "gates.yaml"
+            },
+            "evidence": [
+              "reports/delivery-plan.md",
+              "reports/implementation-spec.md"
+            ],
+            "expected": "The build owner can identify the approved r4 package, D-20 change, single implementation slice, exact allowlist, acceptance criteria, proof steps, and scope limits without guessing.",
+            "id": "INFO-DELIVERY-SUMMARY-CONDITIONAL-RESOLVED",
+            "key": null,
+            "observed": "The delivery shape check found one canonical r4 handoff, coherent r4 lineage, and no structural failures; its only unchecked finding is the conditional summary slot. The handoff names design/manifest.json and the approved build slice and states that non-KA2 invocation is outside scope and unguarded. The r4 manifest hashes the delivery plan and implementation specification, which set out D-20, the allowlist, acceptance criteria, proof plan, and risk boundaries. The design-to-build evidence row in gates.yaml requires the plan and acceptance evidence but no standalone delivery-summary artifact.",
+            "owner": "commander",
+            "remediation": "No standalone delivery summary is required at this boundary. Build should consume the approved r4 design manifest and implementation specification through the canonical handoff, preserving the stated non-KA2 limitation.",
+            "severity": "Info",
+            "statement": "The delivery shape check's conditional package-or-delivery-summary slot is not in scope for this design-to-build crossing. The canonical r4 handoff identifies the approved design manifest and directs build to the hashed implementation specification. The manifest's plan and implementation specification contain the D-20 scope, the single slice and allowlist, acceptance criteria, proof steps, and explicit off-target risk; a separate delivery summary would duplicate that contract.",
+            "verification": "The delivery shape check reports zero failures, coherent r4 lineage, and only this conditional UNCHECKED finding. The boundary check passes with prior_reusable=true, changed_evidence=[], and the valid APPROVED phase judgment. The handoff package_path names design/manifest.json; actual hashes for the manifest-bound delivery-plan.md and implementation-spec.md match the r4 manifest."
+          }
+        ],
+        "gate": "gatekeeper-admiral",
+        "intake": {
+          "artifact": "../intake/report_grilling.md"
+        },
+        "valid": true,
+        "verdict": "APPROVED"
+      },
+      "package_fingerprint": "4bd563fa71a93b825d334a8bae430c815635dc6da2e4270041700485d627488d",
+      "revise_packet": {
+        "actions_by_owner": {},
+        "by_key": {},
+        "by_owner": {},
+        "judgment_by_owner": {},
+        "unassigned": []
+      },
+      "revision": "r4",
+      "signature": [
+        "gatekeeper-admiral",
+        "r4",
+        "4bd563fa71a93b825d334a8bae430c815635dc6da2e4270041700485d627488d",
+        "APPROVED"
+      ],
+      "submission_id": "sensord-refactor-20261029-design-r4",
+      "unchanged_evidence": [
+        "acceptance",
+        "architecture",
+        "decisions",
+        "interfaces",
+        "plan",
+        "security_seed",
+        "stack_lock",
+        "taste_snapshot",
+        "ui_evidence"
+      ]
+    }
+  ],
+  "gates": {},
+  "held": false,
+  "reopen_refs": [],
+  "rounds": [],
+  "run_id": "sensord-refactor-20261029",
+  "schema_version": 1
+}

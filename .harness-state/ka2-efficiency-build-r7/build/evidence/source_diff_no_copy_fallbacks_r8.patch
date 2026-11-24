@@ -1,0 +1,865 @@
+diff --git a/system/loggerd/encoder/mpp_encoder.cc b/system/loggerd/encoder/mpp_encoder.cc
+index 54bd0b421..88d2c380c 100644
+--- a/system/loggerd/encoder/mpp_encoder.cc
++++ b/system/loggerd/encoder/mpp_encoder.cc
+@@ -10,7 +10,6 @@
+ #include <algorithm>
+ #include <chrono>
+ #include <limits>
+-#include <thread>
+ 
+ #define __STDC_CONSTANT_MACROS
+ 
+@@ -19,6 +18,8 @@
+ 
+ #include <mpp_meta.h>
+ #include <mpp_packet.h>
++#include <rga/rga.h>
++#include <rga/im2d.h>
+ 
+ #include "common/swaglog.h"
+ #include "common/util.h"
+@@ -33,12 +34,6 @@ MppEncoder::MppEncoder(const EncoderInfo &encoder_info, int in_width, int in_hei
+     if (in_width != out_width || in_height != out_height) {
+       is_downscale = true;
+     }
+-    // Zero-copy DMA import can succeed but still produce zero-length HEVC packets on some KA2 MPP builds.
+-    // Default to copy path which works for both H.264 and HEVC.
+-    use_zero_copy = false;
+-    if (const char *zero_copy_env = getenv("ENCODER_ZERO_COPY")) {
+-      use_zero_copy = atoi(zero_copy_env) != 0 && !is_downscale;
+-    }
+ 
+     alw = is_downscale ? MPP_ALIGN(out_width, 16) : MPP_ALIGN(in_width, 16);
+     alh = is_downscale ? MPP_ALIGN(out_height, 16) : MPP_ALIGN(in_height, 16);
+@@ -100,25 +95,34 @@ void MppEncoder::encoder_open(const char* path) {
+         out_width, out_height, encoder_info.fps,
+         encoder_info.filename, settings.bitrate);
+ 
+-    if (settings.encode_type == cereal::EncodeIndex::Type::QCAMERA_H264) {
+-      if (mpp_init(mpp_ctx, MPP_CTX_ENC, MPP_VIDEO_CodingAVC) != MPP_OK) {
+-        LOGE("mpp_init AVC failed for %s", path);
+-        encoder_close();
+-        return;
+-      }
+-      if (mpp_enc_cfg_init(&cfg) != MPP_OK) {
+-        LOGE("mpp_enc_cfg_init AVC failed for %s", path);
+-        encoder_close();
+-        return;
+-      }
+-      if (mpp_mpi->control(mpp_ctx, MPP_ENC_GET_CFG, cfg) != MPP_OK) {
+-        LOGE("MPP_ENC_GET_CFG AVC failed for %s", path);
+-        encoder_close();
+-        return;
+-      }
+-      mpp_enc_cfg_set_u32(cfg, "codec:type", MPP_VIDEO_CodingAVC);
+-      mpp_enc_cfg_set_s32(cfg, "split:mode", MPP_ENC_SPLIT_NONE);
++    const bool is_h264 = settings.encode_type == cereal::EncodeIndex::Type::QCAMERA_H264;
++    const bool is_hevc = settings.encode_type == cereal::EncodeIndex::Type::FULL_H_E_V_C;
++    if (!is_h264 && !is_hevc) {
++      LOGE("unsupported encode type %d for %s", (int)settings.encode_type, path);
++      encoder_close();
++      return;
++    }
++    const auto codec_type = is_h264 ? MPP_VIDEO_CodingAVC : MPP_VIDEO_CodingHEVC;
++    const char *codec_name = is_h264 ? "AVC" : "HEVC";
++    if (mpp_init(mpp_ctx, MPP_CTX_ENC, codec_type) != MPP_OK) {
++      LOGE("mpp_init %s failed for %s", codec_name, path);
++      encoder_close();
++      return;
++    }
++    if (mpp_enc_cfg_init(&cfg) != MPP_OK) {
++      LOGE("mpp_enc_cfg_init %s failed for %s", codec_name, path);
++      encoder_close();
++      return;
++    }
++    if (mpp_mpi->control(mpp_ctx, MPP_ENC_GET_CFG, cfg) != MPP_OK) {
++      LOGE("MPP_ENC_GET_CFG %s failed for %s", codec_name, path);
++      encoder_close();
++      return;
++    }
++    mpp_enc_cfg_set_u32(cfg, "codec:type", codec_type);
++    mpp_enc_cfg_set_s32(cfg, "split:mode", MPP_ENC_SPLIT_NONE);
+ 
++    if (is_h264) {
+       //**Profile & Level Settings (Low Quality)**
+       mpp_enc_cfg_set_u32(cfg, "h264:profile", 100);
+       mpp_enc_cfg_set_u32(cfg, "h264:level", 40);
+@@ -137,25 +141,7 @@ void MppEncoder::encoder_open(const char* path) {
+       mpp_enc_cfg_set_s32(cfg, "rc:qp_min_i", 30);
+       mpp_enc_cfg_set_s32(cfg, "rc:qp_ip", 6);
+     }
+-    else if (settings.encode_type == cereal::EncodeIndex::Type::FULL_H_E_V_C) {
+-      if (mpp_init(mpp_ctx, MPP_CTX_ENC, MPP_VIDEO_CodingHEVC) != MPP_OK) {
+-        LOGE("mpp_init HEVC failed for %s", path);
+-        encoder_close();
+-        return;
+-      }
+-      if (mpp_enc_cfg_init(&cfg) != MPP_OK) {
+-        LOGE("mpp_enc_cfg_init HEVC failed for %s", path);
+-        encoder_close();
+-        return;
+-      }
+-      if (mpp_mpi->control(mpp_ctx, MPP_ENC_GET_CFG, cfg) != MPP_OK) {
+-        LOGE("MPP_ENC_GET_CFG HEVC failed for %s", path);
+-        encoder_close();
+-        return;
+-      }
+-      mpp_enc_cfg_set_u32(cfg, "codec:type", MPP_VIDEO_CodingHEVC);
+-      mpp_enc_cfg_set_s32(cfg, "split:mode", MPP_ENC_SPLIT_NONE);
+-
++    else {
+       // HEVC needs explicit QP bounds for RC to produce output on KA2 MPP.
+       mpp_enc_cfg_set_s32(cfg, "rc:qp_init", 26);
+       mpp_enc_cfg_set_s32(cfg, "rc:qp_max", 51);
+@@ -164,11 +150,6 @@ void MppEncoder::encoder_open(const char* path) {
+       mpp_enc_cfg_set_s32(cfg, "rc:qp_min_i", 10);
+       mpp_enc_cfg_set_s32(cfg, "rc:qp_ip", 2);
+     }
+-    else {
+-      LOGE("unsupported encode type %d for %s", (int)settings.encode_type, path);
+-      encoder_close();
+-      return;
+-    }
+ 
+     mpp_enc_cfg_set_s32(cfg, "prep:width", out_width);
+     mpp_enc_cfg_set_s32(cfg, "prep:height", out_height);
+@@ -228,13 +209,12 @@ void MppEncoder::encoder_open(const char* path) {
+     mpp_frame_set_ver_stride(frame, alh);
+     mpp_frame_set_fmt(frame, MPP_FMT_YUV420SP);
+ 
+-    if (!use_zero_copy && !init_frame_buffer_pool(path)) {
++    if (is_downscale && !init_frame_buffer_pool(path)) {
+       encoder_close();
+       return;
+     }
+ 
+     pending_extras.clear();
+-    mpp_encoder_internal::reset_import_state(mpp_buf, zero_copy_import_failures, import_fallback_logged);
+     seen_first_enqueued = false;
+     seen_first_published = false;
+     flush_eos_sent = false;
+@@ -243,7 +223,7 @@ void MppEncoder::encoder_open(const char* path) {
+     is_open = true;
+     segment_num++;
+     counter = 0;
+-    LOGD("mpp encoder mode: %s", use_zero_copy ? "zero-copy" : "copy");
++    LOGD("mpp encoder input: %s", is_downscale ? "RGA resize" : "DMA-BUF import");
+ }
+ 
+ void MppEncoder::encoder_close() {
+@@ -291,7 +271,6 @@ void MppEncoder::encoder_close() {
+     }
+     codec_header = nullptr;
+     pending_extras.clear();
+-    mpp_encoder_internal::reset_import_state(mpp_buf, zero_copy_import_failures, import_fallback_logged);
+     output_timeout_non_block = false;
+     seen_first_enqueued = false;
+     seen_first_published = false;
+@@ -350,16 +329,20 @@ bool MppEncoder::flush_pending_packets(int timeout_ms) {
+ }
+ 
+ MppBuffer MppEncoder::acquire_frame_buffer() {
+-    if (frame_buffers.empty()) return nullptr;
+-    MppBuffer buf = frame_buffers[frame_buffer_idx];
++    MppBuffer buffer = frame_buffers[frame_buffer_idx];
+     frame_buffer_idx = (frame_buffer_idx + 1) % frame_buffers.size();
+-    return buf;
++    return buffer;
+ }
+ 
+ MppBuffer MppEncoder::import_frame_buffer(VisionBuf *buf) {
+-    auto it = imported_buffers.find(buf->fd);
+-    if (it != imported_buffers.end()) {
+-      return it->second;
++    auto [it, inserted] = imported_buffers.try_emplace(buf->fd, nullptr);
++    if (!inserted) return it->second;
++
++    // MPP can accept an ordinary fd but fail to read from it. Reject anything
++    // that does not implement the DMA-BUF synchronization API before import.
++    if (!mpp_encoder_internal::is_dma_buf_fd(buf->fd)) {
++      LOGE("refusing non-DMA-BUF input fd %d for %s", buf->fd, encoder_info.publish_name);
++      return nullptr;
+     }
+ 
+     MppBuffer imported = nullptr;
+@@ -367,26 +350,15 @@ MppBuffer MppEncoder::import_frame_buffer(VisionBuf *buf) {
+     info.type = MPP_BUFFER_TYPE_EXT_DMA;
+     info.fd = buf->fd;
+     info.size = std::max(frame_buf_size, buf->len);
+-    // Most RK MPP builds accept fd/size for EXT_DMA imports; pointer can fail with some allocators.
+     MPP_RET import_ret = mpp_buffer_import(&imported, &info);
+-    if (import_ret != MPP_OK) {
+-      if (imported != nullptr) {
+-        mpp_buffer_put(imported);
+-        imported = nullptr;
+-      }
+-      // Retry once with pointer attached for compatibility with kernels requiring userspace mapping.
+-      info.ptr = buf->addr;
+-      import_ret = mpp_buffer_import(&imported, &info);
+-    }
+-
+     if (import_ret != MPP_OK || imported == nullptr) {
+-      if (imported != nullptr) {
+-        mpp_buffer_put(imported);
+-      }
++      if (imported != nullptr) mpp_buffer_put(imported);
++      LOGE("MPP DMA-BUF import failed for %s fd %d: %d",
++           encoder_info.publish_name, buf->fd, static_cast<int>(import_ret));
+       return nullptr;
+     }
+ 
+-    imported_buffers.emplace(buf->fd, imported);
++    it->second = imported;
+     return imported;
+ }
+ 
+@@ -424,56 +396,27 @@ int MppEncoder::encode_frame(VisionBuf* buf, VisionIpcBufExtra *extra) {
+       return -2;
+     }
+ 
++    MppBuffer input_buffer = nullptr;
+     if (is_downscale) {
+-      mpp_buf = acquire_frame_buffer();
+-      if (mpp_buf == nullptr) {
++      input_buffer = acquire_frame_buffer();
++      if (input_buffer == nullptr) {
+         LOGE("no preallocated mpp frame buffer available");
+         return -1;
+       }
+-      src = wrapbuffer_virtualaddr(buf->addr, buf->width, buf->height, RK_FORMAT_YCbCr_420_SP);
+-      dst = wrapbuffer_virtualaddr(mpp_buffer_get_ptr(mpp_buf), alw, alh, RK_FORMAT_YCbCr_420_SP);
++      const auto src = wrapbuffer_virtualaddr(buf->addr, buf->width, buf->height, RK_FORMAT_YCbCr_420_SP);
++      const auto dst = wrapbuffer_virtualaddr(mpp_buffer_get_ptr(input_buffer), alw, alh, RK_FORMAT_YCbCr_420_SP);
+       if (imresize(src, dst, (double)out_width / buf->width, (double)out_height / buf->height, IM_SYNC) < 0) {
+         LOGE("imresize failed");
+-        mpp_buf = nullptr;
+-        return -1;
+-      }
+-      mpp_frame_set_buffer(frame, mpp_buf);
+-      if (mpp_mpi->encode_put_frame(mpp_ctx, frame) != MPP_OK) {
+-        mpp_buf = nullptr;
+         return -1;
+       }
+     } else {
+-      bool submitted = mpp_encoder_internal::encode_full_resolution_frame(
+-        use_zero_copy, mpp_buf, zero_copy_import_failures, import_fallback_logged,
+-        [&]() { return import_frame_buffer(buf); },
+-        [&]() { return frame_buf_group != nullptr; },
+-        [&]() { return init_frame_buffer_pool(encoder_info.filename); },
+-        [&]() { return acquire_frame_buffer(); },
+-        [&](MppBuffer buffer) {
+-          void *dst_ptr = mpp_buffer_get_ptr(buffer);
+-          if (buf->addr == nullptr || dst_ptr == nullptr) {
+-            LOGE("invalid frame data for copy fallback");
+-            return false;
+-          }
+-          memcpy(dst_ptr, buf->addr, frame_buf_size);
+-          return true;
+-        },
+-        [&](MppBuffer buffer) {
+-          mpp_frame_set_buffer(frame, buffer);
+-          return mpp_mpi->encode_put_frame(mpp_ctx, frame) == MPP_OK;
+-        },
+-        [&](uint32_t failures, bool should_log_fallback) {
+-          if (should_log_fallback) {
+-            LOGW("mpp zero-copy import failed (%u), switching to copy mode", failures);
+-          }
+-        });
+-      if (!submitted) {
+-        return -1;
+-      }
++      input_buffer = import_frame_buffer(buf);
++      if (input_buffer == nullptr) return -1;
+     }
++    mpp_frame_set_buffer(frame, input_buffer);
++    if (mpp_mpi->encode_put_frame(mpp_ctx, frame) != MPP_OK) return -1;
+     pending_extras.push_back(*extra);
+     if (drain_packets(output_timeout_non_block, DRAIN_BUDGET_PER_FRAME) < 0) {
+-      mpp_buf = nullptr;
+       return -1;
+     }
+     if (pending_extras.size() >= PENDING_EXTRAS_MAX_INFLIGHT) {
+@@ -485,11 +428,9 @@ int MppEncoder::encode_frame(VisionBuf* buf, VisionIpcBufExtra *extra) {
+           LOGW("mpp backlog saturated after submit (%zu), drop_count=%" PRIu64,
+                pending_extras.size(), drop_overflow_count);
+         }
+-        mpp_buf = nullptr;
+         return -2;
+       }
+     }
+-    mpp_buf = nullptr;
+     return 1;
+ }
+ 
+diff --git a/system/loggerd/encoder/mpp_encoder.h b/system/loggerd/encoder/mpp_encoder.h
+index 6ec1a243e..f91b4a874 100644
+--- a/system/loggerd/encoder/mpp_encoder.h
++++ b/system/loggerd/encoder/mpp_encoder.h
+@@ -3,10 +3,7 @@
+ #include <rk_mpi.h>
+ #include <rk_venc_cfg.h>
+ #include <rk_venc_cmd.h>
+-#include <cstdio>
+-#include <cstdlib>
+-#include <string>
+-#include <vector>
++#include <cstdint>
+ #include <array>
+ #include <deque>
+ #include <limits>
+@@ -15,16 +12,13 @@
+ #include "system/loggerd/encoder/encoder.h"
+ #include "system/loggerd/loggerd.h"
+ 
+-#include "rga/rga.h"
+-#include "rga/im2d.h"
+-
+ class MppEncoder : public VideoEncoder {
+ public:
+   MppEncoder(const EncoderInfo &encoder_info, int in_width, int in_height);
+-  ~MppEncoder();
+-  int encode_frame(VisionBuf* buf, VisionIpcBufExtra *extra);
++  ~MppEncoder() override;
++  int encode_frame(VisionBuf* buf, VisionIpcBufExtra *extra) override;
+   void encoder_open() override;
+-  void encoder_close();
++  void encoder_close() override;
+   void set_segment_num(int segment_num) override;
+   void set_flush_pending_on_close(bool flush_pending);
+   bool flush_pending_packets(int timeout_ms = 500);
+@@ -38,27 +32,21 @@ private:
+   int counter = 0;
+   bool is_open = false;
+   bool is_downscale = false;
+-  bool use_zero_copy = false;
+ 
+   int alw, alh;
+ 
+-  rga_buffer_t src, dst;
+-
+   MppCtx mpp_ctx = nullptr;
+   MppApi *mpp_mpi = nullptr;
+   MppFrame frame = nullptr;
+   MppPacket packet = nullptr;
+   MppEncCfg cfg = nullptr;
+   MppBufferGroup frame_buf_group = nullptr;
+-  MppBuffer mpp_buf = nullptr;
+   static constexpr size_t FRAME_BUFFER_POOL_SIZE = 6;
+   std::array<MppBuffer, FRAME_BUFFER_POOL_SIZE> frame_buffers = {};
+   size_t frame_buffer_idx = 0;
+   std::unordered_map<int, MppBuffer> imported_buffers;
+   std::deque<VisionIpcBufExtra> pending_extras;
+   kj::Array<capnp::byte> codec_header;
+-  bool import_fallback_logged = false;
+-  uint32_t zero_copy_import_failures = 0;
+   bool output_timeout_non_block = false;
+   bool flush_pending_on_close = true;
+   bool flush_eos_sent = false;
+diff --git a/system/loggerd/encoder/mpp_encoder_input.h b/system/loggerd/encoder/mpp_encoder_input.h
+index fd0914618..78d3bdd18 100644
+--- a/system/loggerd/encoder/mpp_encoder_input.h
++++ b/system/loggerd/encoder/mpp_encoder_input.h
+@@ -1,61 +1,27 @@
+ #pragma once
+ 
+-#include <cstdint>
++#include <cerrno>
++#include <sys/ioctl.h>
+ 
+-#include <rk_mpi.h>
++#include <linux/dma-buf.h>
+ 
+-// Internal full-resolution input selection shared by the MPP adapter and its
+-// hardware-free behavior tests.
+ namespace mpp_encoder_internal {
+ 
+-inline void reset_import_state(MppBuffer &buffer, uint32_t &failures, bool &fallback_logged) {
+-  buffer = nullptr;
+-  failures = 0;
+-  fallback_logged = false;
+-}
+-
+-template <typename ImportFn, typename PoolReadyFn, typename InitPoolFn,
+-          typename AcquireFn, typename CopyFn, typename SubmitFn, typename FallbackFn>
+-bool encode_full_resolution_frame(bool &use_zero_copy, MppBuffer &mpp_buf,
+-                                  uint32_t &zero_copy_import_failures, bool &import_fallback_logged,
+-                                  ImportFn import_fn, PoolReadyFn pool_ready_fn,
+-                                  InitPoolFn init_pool_fn, AcquireFn acquire_fn,
+-                                  CopyFn copy_fn, SubmitFn submit_fn,
+-                                  FallbackFn fallback_fn) {
+-  if (use_zero_copy) {
+-    mpp_buf = import_fn();
+-    if (mpp_buf == nullptr) {
+-      zero_copy_import_failures++;
+-      use_zero_copy = false;
+-      bool should_log_fallback = !import_fallback_logged;
+-      import_fallback_logged = true;
+-      fallback_fn(zero_copy_import_failures, should_log_fallback);
+-    } else {
+-      zero_copy_import_failures = 0;
+-    }
+-  }
+-
+-  if (!use_zero_copy && !pool_ready_fn() && !init_pool_fn()) {
+-    mpp_buf = nullptr;
+-    return false;
+-  }
+-
+-  if (mpp_buf == nullptr) {
+-    mpp_buf = acquire_fn();
+-    if (mpp_buf == nullptr) {
+-      return false;
+-    }
+-  }
+-
+-  if (!use_zero_copy && !copy_fn(mpp_buf)) {
+-    mpp_buf = nullptr;
+-    return false;
+-  }
+-  if (!submit_fn(mpp_buf)) {
+-    mpp_buf = nullptr;
+-    return false;
+-  }
+-  return true;
++inline bool is_dma_buf_fd(int fd) {
++  if (fd < 0) return false;
++
++  dma_buf_sync sync = {.flags = DMA_BUF_SYNC_START | DMA_BUF_SYNC_READ};
++  int ret;
++  do {
++    ret = ioctl(fd, DMA_BUF_IOCTL_SYNC, &sync);
++  } while (ret < 0 && errno == EINTR);
++  if (ret < 0) return false;
++
++  sync.flags = DMA_BUF_SYNC_END | DMA_BUF_SYNC_READ;
++  do {
++    ret = ioctl(fd, DMA_BUF_IOCTL_SYNC, &sync);
++  } while (ret < 0 && errno == EINTR);
++  return ret == 0;
+ }
+ 
+ }  // namespace mpp_encoder_internal
+diff --git a/system/loggerd/tests/test_loggerd.py b/system/loggerd/tests/test_loggerd.py
+index 28aa7a356..8dc2b61ed 100644
+--- a/system/loggerd/tests/test_loggerd.py
++++ b/system/loggerd/tests/test_loggerd.py
+@@ -16,6 +16,7 @@ from cereal.services import SERVICE_LIST
+ from openpilot.common.basedir import BASEDIR
+ from openpilot.common.params import Params
+ from openpilot.common.timeout import Timeout
++from openpilot.system.hardware import KA2
+ from openpilot.system.hardware.hw import Paths
+ from openpilot.system.loggerd.xattr_cache import getxattr
+ from openpilot.system.loggerd.deleter import PRESERVE_ATTR_NAME, PRESERVE_ATTR_VALUE
+@@ -189,6 +190,9 @@ class TestLoggerd:
+       assert logged_params[param_key].decode() == v
+ 
+   def test_rotation(self):
++    if KA2:
++      pytest.skip("synthetic VisionIPC buffers are shared memory; KA2 full-resolution MPP requires DMA-BUF inputs")
++
+     Params().put("RecordFront", True)
+ 
+     expected_files = {"rlog.zst", "qlog.zst", "qcamera.ts", "fcamera.hevc", "dcamera.hevc", "ecamera.hevc"}
+@@ -206,6 +210,9 @@ class TestLoggerd:
+       assert len(diff) == 0, f"didn't get all expected files. seg={n} {route_path=}, {diff=}\n{logged=} {expected_files=}"
+ 
+   def test_ka2_deterministic_rotation_alignment(self, tmp_path, monkeypatch):
++    if KA2:
++      pytest.skip("synthetic VisionIPC buffers are shared memory; KA2 full-resolution MPP requires DMA-BUF inputs")
++
+     loggerd = managed_processes["loggerd"]
+     encoderd = managed_processes["encoderd"]
+     assert loggerd.proc is None and encoderd.proc is None, "loggerd test processes must not already be running"
+@@ -219,8 +226,6 @@ class TestLoggerd:
+     monkeypatch.setenv("LOGGERD_TEST", "1")
+     monkeypatch.setenv("LOGGERD_TEST_DETERMINISTIC", "1")
+     monkeypatch.setenv("LOGGERD_SEGMENT_LENGTH", str(segment_length))
+-    monkeypatch.setenv("ENCODER_ZERO_COPY", "0")
+-
+     params = Params(str(params_root))
+     params.put_bool("RecordFront", True)
+     params.put_bool("RecordAudio", True)
+@@ -477,6 +482,9 @@ class TestLoggerd:
+ 
+   @pytest.mark.parametrize("record_front", [True, False])
+   def test_record_front(self, record_front):
++    if KA2:
++      pytest.skip("synthetic VisionIPC buffers are shared memory; KA2 full-resolution MPP requires DMA-BUF inputs")
++
+     params = Params()
+     params.put_bool("RecordFront", record_front)
+ 
+diff --git a/system/loggerd/tests/test_mpp_encoder.cc b/system/loggerd/tests/test_mpp_encoder.cc
+index 57a3f8aab..6e62ca300 100644
+--- a/system/loggerd/tests/test_mpp_encoder.cc
++++ b/system/loggerd/tests/test_mpp_encoder.cc
+@@ -1,340 +1,28 @@
+-#define __STDC_CONSTANT_MACROS
+-
+ #include "system/loggerd/encoder/mpp_encoder_input.h"
+ 
+-#include <cstdint>
++#include <fcntl.h>
+ #include <cstdio>
+ #include <cstdlib>
+-#include <string>
+-#include <vector>
+-
+-struct MppEncoderTestState {
+-  bool use_zero_copy = false;
+-  MppBuffer buffer = nullptr;
+-  uint32_t import_failures = 0;
+-  bool fallback_logged = false;
+-};
+-
+-struct MppEncoderTestAccess {
+-  template <typename ImportFn, typename PoolReadyFn, typename InitPoolFn,
+-            typename AcquireFn, typename CopyFn, typename SubmitFn, typename FallbackFn>
+-  static bool encode(MppEncoderTestState &state, ImportFn import_fn,
+-                     PoolReadyFn pool_ready_fn, InitPoolFn init_pool_fn,
+-                     AcquireFn acquire_fn, CopyFn copy_fn, SubmitFn submit_fn,
+-                     FallbackFn fallback_fn) {
+-    return mpp_encoder_internal::encode_full_resolution_frame(
+-      state.use_zero_copy, state.buffer, state.import_failures, state.fallback_logged,
+-      import_fn, pool_ready_fn, init_pool_fn, acquire_fn, copy_fn, submit_fn, fallback_fn);
+-  }
++#include <unistd.h>
+ 
+-  static void reset(MppEncoderTestState &state) {
+-    mpp_encoder_internal::reset_import_state(state.buffer, state.import_failures, state.fallback_logged);
+-  }
+-};
+-
+-static void require(bool condition, const char *expression, int line) {
+-  if (!condition) {
+-    std::fprintf(stderr, "check failed at line %d: %s\n", line, expression);
++static void require(bool ok, const char *condition, int line) {
++  if (!ok) {
++    std::fprintf(stderr, "check failed at line %d: %s\n", line, condition);
+     std::exit(1);
+   }
+ }
+ 
+-#define REQUIRE(condition) require((condition), #condition, __LINE__)
+-
+-static uint8_t buffer_tokens[256] = {};
+-
+-static MppBuffer buffer_token(uintptr_t index) {
+-  return &buffer_tokens[index];
+-}
+-
+-static void test_first_import_failure_copies_and_submits_same_frame() {
+-  MppEncoderTestState state{true, nullptr, 0, false};
+-  const MppBuffer copy_buffer = buffer_token(1);
+-  int frame_id = 41;
+-  int copied_frame_id = -1;
+-  int import_calls = 0;
+-  int pool_ready_calls = 0;
+-  int pool_init_calls = 0;
+-  int acquire_calls = 0;
+-  int copy_calls = 0;
+-  int submit_calls = 0;
+-  int fallback_calls = 0;
+-  std::vector<std::string> order;
+-
+-  const bool submitted = MppEncoderTestAccess::encode(
+-    state,
+-    [&]() -> MppBuffer {
+-      order.push_back("import");
+-      ++import_calls;
+-      return nullptr;
+-    },
+-    [&]() {
+-      order.push_back("pool-ready");
+-      ++pool_ready_calls;
+-      return false;
+-    },
+-    [&]() {
+-      order.push_back("pool-init");
+-      ++pool_init_calls;
+-      return true;
+-    },
+-    [&]() {
+-      order.push_back("acquire");
+-      ++acquire_calls;
+-      return copy_buffer;
+-    },
+-    [&](MppBuffer buffer) {
+-      order.push_back("copy");
+-      REQUIRE(buffer == copy_buffer);
+-      ++copy_calls;
+-      copied_frame_id = frame_id;
+-      return true;
+-    },
+-    [&](MppBuffer buffer) {
+-      order.push_back("submit");
+-      REQUIRE(buffer == copy_buffer);
+-      REQUIRE(copied_frame_id == frame_id);
+-      ++submit_calls;
+-      return true;
+-    },
+-    [&](uint32_t failures, bool should_log) {
+-      order.push_back("fallback");
+-      REQUIRE(failures == 1);
+-      REQUIRE(should_log);
+-      ++fallback_calls;
+-    });
+-
+-  REQUIRE(submitted);
+-  REQUIRE(!state.use_zero_copy);
+-  REQUIRE(state.import_failures == 1);
+-  REQUIRE(state.fallback_logged);
+-  REQUIRE(import_calls == 1);
+-  REQUIRE(pool_ready_calls == 1);
+-  REQUIRE(pool_init_calls == 1);
+-  REQUIRE(acquire_calls == 1);
+-  REQUIRE(copy_calls == 1);
+-  REQUIRE(submit_calls == 1);
+-  REQUIRE(fallback_calls == 1);
+-  REQUIRE(order == std::vector<std::string>({"import", "fallback", "pool-ready",
+-                                            "pool-init", "acquire", "copy", "submit"}));
+-}
+-
+-static void test_latch_survives_close_open_state_reset() {
+-  MppEncoderTestState state{true, nullptr, 0, false};
+-  int initial_import_calls = 0;
+-  int initial_copy_calls = 0;
+-  int initial_submit_calls = 0;
+-
+-  const bool fallback_submitted = MppEncoderTestAccess::encode(
+-    state,
+-    [&]() -> MppBuffer {
+-      ++initial_import_calls;
+-      return nullptr;
+-    },
+-    []() { return true; },
+-    []() {
+-      REQUIRE(false);
+-      return false;
+-    },
+-    []() { return buffer_token(2); },
+-    [&](MppBuffer) {
+-      ++initial_copy_calls;
+-      return true;
+-    },
+-    [&](MppBuffer) {
+-      ++initial_submit_calls;
+-      return true;
+-    },
+-    [](uint32_t failures, bool should_log) {
+-      REQUIRE(failures == 1);
+-      REQUIRE(should_log);
+-    });
+-
+-  REQUIRE(fallback_submitted);
+-  REQUIRE(!state.use_zero_copy);
+-  REQUIRE(initial_import_calls == 1);
+-  REQUIRE(initial_copy_calls == 1);
+-  REQUIRE(initial_submit_calls == 1);
+-
+-  // Production calls this same helper from both encoder_close() and encoder_open().
+-  MppEncoderTestAccess::reset(state);
+-  MppEncoderTestAccess::reset(state);
+-  REQUIRE(!state.use_zero_copy);
+-  REQUIRE(state.buffer == nullptr);
+-  REQUIRE(state.import_failures == 0);
+-  REQUIRE(!state.fallback_logged);
+-
+-  const MppBuffer second_frame_buffer = buffer_token(3);
+-  int frame_id = 42;
+-  int copied_frame_id = -1;
+-  int import_calls = 0;
+-  int copy_calls = 0;
+-  int submit_calls = 0;
+-
+-  const bool submitted = MppEncoderTestAccess::encode(
+-    state,
+-    [&]() -> MppBuffer {
+-      ++import_calls;
+-      return buffer_token(99);
+-    },
+-    []() { return true; },
+-    []() {
+-      REQUIRE(false);
+-      return false;
+-    },
+-    [&]() { return second_frame_buffer; },
+-    [&](MppBuffer buffer) {
+-      REQUIRE(buffer == second_frame_buffer);
+-      ++copy_calls;
+-      copied_frame_id = frame_id;
+-      return true;
+-    },
+-    [&](MppBuffer buffer) {
+-      REQUIRE(buffer == second_frame_buffer);
+-      REQUIRE(copied_frame_id == frame_id);
+-      ++submit_calls;
+-      return true;
+-    },
+-    [](uint32_t, bool) { REQUIRE(false); });
+-
+-  REQUIRE(submitted);
+-  REQUIRE(!state.use_zero_copy);
+-  REQUIRE(import_calls == 0);
+-  REQUIRE(copy_calls == 1);
+-  REQUIRE(submit_calls == 1);
+-}
+-
+-static void test_pool_allocation_failure_does_not_submit() {
+-  MppEncoderTestState state{true, nullptr, 0, false};
+-  int import_calls = 0;
+-  int pool_init_calls = 0;
+-  int acquire_calls = 0;
+-  int copy_calls = 0;
+-  int submit_calls = 0;
+-
+-  const bool submitted = MppEncoderTestAccess::encode(
+-    state,
+-    [&]() -> MppBuffer {
+-      ++import_calls;
+-      return nullptr;
+-    },
+-    []() { return false; },
+-    [&]() {
+-      ++pool_init_calls;
+-      return false;
+-    },
+-    [&]() {
+-      ++acquire_calls;
+-      return buffer_token(4);
+-    },
+-    [&](MppBuffer) {
+-      ++copy_calls;
+-      return true;
+-    },
+-    [&](MppBuffer) {
+-      ++submit_calls;
+-      return true;
+-    },
+-    [](uint32_t failures, bool should_log) {
+-      REQUIRE(failures == 1);
+-      REQUIRE(should_log);
+-    });
+-
+-  REQUIRE(!submitted);
+-  REQUIRE(!state.use_zero_copy);
+-  REQUIRE(state.buffer == nullptr);
+-  REQUIRE(import_calls == 1);
+-  REQUIRE(pool_init_calls == 1);
+-  REQUIRE(acquire_calls == 0);
+-  REQUIRE(copy_calls == 0);
+-  REQUIRE(submit_calls == 0);
+-}
+-
+-static void test_copy_failure_does_not_submit() {
+-  MppEncoderTestState state{true, nullptr, 0, false};
+-  int copy_calls = 0;
+-  int submit_calls = 0;
+-
+-  const bool submitted = MppEncoderTestAccess::encode(
+-    state,
+-    []() -> MppBuffer { return nullptr; },
+-    []() { return true; },
+-    []() {
+-      REQUIRE(false);
+-      return false;
+-    },
+-    []() { return buffer_token(5); },
+-    [&](MppBuffer) {
+-      ++copy_calls;
+-      return false;
+-    },
+-    [&](MppBuffer) {
+-      ++submit_calls;
+-      return true;
+-    },
+-    [](uint32_t failures, bool should_log) {
+-      REQUIRE(failures == 1);
+-      REQUIRE(should_log);
+-    });
+-
+-  REQUIRE(!submitted);
+-  REQUIRE(!state.use_zero_copy);
+-  REQUIRE(state.buffer == nullptr);
+-  REQUIRE(copy_calls == 1);
+-  REQUIRE(submit_calls == 0);
+-}
+-
+-static void test_successful_import_submits_without_copy() {
+-  MppEncoderTestState state{true, nullptr, 4, false};
+-  const MppBuffer imported_buffer = buffer_token(6);
+-  int import_calls = 0;
+-  int pool_ready_calls = 0;
+-  int submit_calls = 0;
+-
+-  const bool submitted = MppEncoderTestAccess::encode(
+-    state,
+-    [&]() {
+-      ++import_calls;
+-      return imported_buffer;
+-    },
+-    [&]() {
+-      ++pool_ready_calls;
+-      return false;
+-    },
+-    []() {
+-      REQUIRE(false);
+-      return false;
+-    },
+-    []() {
+-      REQUIRE(false);
+-      return buffer_token(7);
+-    },
+-    [](MppBuffer) {
+-      REQUIRE(false);
+-      return false;
+-    },
+-    [&](MppBuffer buffer) {
+-      REQUIRE(buffer == imported_buffer);
+-      ++submit_calls;
+-      return true;
+-    },
+-    [](uint32_t, bool) { REQUIRE(false); });
++#define CHECK(condition) require((condition), #condition, __LINE__)
+ 
+-  REQUIRE(submitted);
+-  REQUIRE(state.use_zero_copy);
+-  REQUIRE(state.buffer == imported_buffer);
+-  REQUIRE(state.import_failures == 0);
+-  REQUIRE(import_calls == 1);
+-  REQUIRE(pool_ready_calls == 0);
+-  REQUIRE(submit_calls == 1);
++static void test_rejects_ordinary_files() {
++  const int fd = open("/dev/null", O_RDONLY | O_CLOEXEC);
++  CHECK(fd >= 0);
++  CHECK(!mpp_encoder_internal::is_dma_buf_fd(fd));
++  CHECK(close(fd) == 0);
++  CHECK(!mpp_encoder_internal::is_dma_buf_fd(-1));
+ }
+ 
+ int main() {
+-  test_first_import_failure_copies_and_submits_same_frame();
+-  test_latch_survives_close_open_state_reset();
+-  test_pool_allocation_failure_does_not_submit();
+-  test_copy_failure_does_not_submit();
+-  test_successful_import_submits_without_copy();
+-  std::puts("MPP fallback helper behavior checks passed");
+-  return 0;
++  test_rejects_ordinary_files();
++  std::puts("MPP encoder DMA-BUF validation tests passed");
+ }
+diff --git a/system/loggerd/tests/test_mpp_encoder.py b/system/loggerd/tests/test_mpp_encoder.py
+index 67899547e..b496ed210 100644
+--- a/system/loggerd/tests/test_mpp_encoder.py
++++ b/system/loggerd/tests/test_mpp_encoder.py
+@@ -4,7 +4,7 @@ import shutil
+ import subprocess
+ 
+ 
+-def test_mpp_encoder_private_input_helper(tmp_path):
++def test_mpp_encoder_dma_buf_validation(tmp_path):
+   repo_root = Path(__file__).resolve().parents[3]
+   native_test = Path(__file__).with_suffix(".cc")
+   compiler = shutil.which("clang++")

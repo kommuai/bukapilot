@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Live Tune Plotter</title>
+  <style>
+    :root { color-scheme: dark; }
+    body { margin: 0; font-family: system-ui, sans-serif; background: #0b0f14; color: #e6eef7; }
+    .wrap { padding: 10px 14px; max-width: 100%; overflow-x: hidden; }
+    .row { display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+    .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin-top: 10px; }
+    .card { border: 1px solid #243246; border-radius: 10px; background: #070a0f; padding: 10px 12px; }
+    .card .k { font-size: 12px; color: #9fb0c5; }
+    .card .v { font-size: 20px; font-weight: 600; margin-top: 4px; }
+    .pill { padding: 4px 8px; border: 1px solid #243246; border-radius: 999px; font-size: 12px; }
+    canvas { width: 100%; height: 150px; border: 1px solid #243246; border-radius: 10px; background: #070a0f; display: block; }
+    .chart { margin-top: 10px; }
+    .legend { display: flex; gap: 10px; font-size: 12px; }
+    .sw { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; }
+    .muted { color: #9fb0c5; }
+
+    @media (max-width: 700px) {
+      .wrap { padding: 8px; }
+      .row { gap: 8px; }
+      .pill { font-size: 11px; padding: 4px 7px; }
+      .cards { grid-template-columns: 1fr 1fr; gap: 8px; }
+      .card { padding: 8px 10px; }
+      .card .v { font-size: 17px; }
+      canvas { height: 140px; }
+    }
+
+    @media (max-width: 420px) {
+      .cards { grid-template-columns: 1fr; }
+      .legend { font-size: 11px; gap: 8px; flex-wrap: wrap; }
+      canvas { height: 130px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="row">
+      <div class="pill">stream: <span id="status" class="muted">connecting</span></div>
+      <div class="pill">hz: <span id="hz" class="muted">20</span></div>
+      <div class="pill">window: <span id="win" class="muted">20s</span></div>
+      <div class="pill">lateral source: <span id="latSource" class="muted">none</span></div>
+    </div>
+    <div class="cards">
+      <div class="card"><div class="k">Current Speed</div><div class="v" id="currentSpeed">0.0 km/h</div></div>
+      <div class="card"><div class="k">Cruise Set</div><div class="v" id="cruiseSpeed">0.0 km/h</div></div>
+      <div class="card"><div class="k">Nearest Lead Rel Distance</div><div class="v" id="leadRelDist">0.00 m</div></div>
+      <div class="card"><div class="k">Nearest Lead Rel Speed</div><div class="v" id="leadRelSpeed">0.00 m/s</div></div>
+      <div class="card"><div class="k">Nearest Lead Probability</div><div class="v" id="leadProb">0.00</div></div>
+    </div>
+
+    <div class="chart">
+      <div class="legend">
+        <span class="muted">Danger Override Active</span>
+        <span><span class="sw" style="background:#ef4444"></span>overrideActive (1/0)</span>
+      </div>
+      <canvas id="c0"></canvas>
+    </div>
+    <div class="chart">
+      <div class="legend">
+        <span class="muted">Longitudinal PID (controlsState up/ui/uf)</span>
+        <span><span class="sw" style="background:#4cc3ff"></span>P</span>
+        <span><span class="sw" style="background:#a78bfa"></span>I</span>
+        <span><span class="sw" style="background:#34d399"></span>F</span>
+      </div>
+      <canvas id="c1"></canvas>
+    </div>
+    <div class="chart">
+      <div class="legend">
+        <span class="muted">Lateral PID (auto-detected)</span>
+        <span><span class="sw" style="background:#4cc3ff"></span>P</span>
+        <span><span class="sw" style="background:#a78bfa"></span>I</span>
+        <span><span class="sw" style="background:#34d399"></span>F</span>
+      </div>
+      <canvas id="c2"></canvas>
+    </div>
+    <div class="chart">
+      <div class="legend">
+        <span class="muted">Stock ACC Contribution (carState.stockAccelCmd)</span>
+        <span><span class="sw" style="background:#f59e0b"></span>stockAccelCmd</span>
+      </div>
+      <canvas id="c3"></canvas>
+    </div>
+  </div>
+
+  <script>
+    const CFG = {
+      hz: 20,
+      windowSec: 20,
+      maxPoints: 20 * 60,
+    };
+
+    const state = {
+      t: [],
+      ctrlP: [],
+      ctrlI: [],
+      ctrlF: [],
+      latP: [],
+      latI: [],
+      latF: [],
+      stockAccCmd: [],
+      vEgo: 0.0,
+      vCruise: 0.0,
+      leadRelDist: 0.0,
+      leadRelSpeed: 0.0,
+      leadProb: 0.0,
+      overrideSignal: [],
+      overrideActive: false,
+      latSource: "none",
+    };
+
+    const $ = (id) => document.getElementById(id);
+    $("hz").textContent = String(CFG.hz);
+    $("win").textContent = `${CFG.windowSec}s`;
+
+    function push(sample) {
+      state.t.push(sample.t);
+      state.ctrlP.push(sample.ctrlP);
+      state.ctrlI.push(sample.ctrlI);
+      state.ctrlF.push(sample.ctrlF);
+      state.latP.push(sample.latP);
+      state.latI.push(sample.latI);
+      state.latF.push(sample.latF);
+      state.stockAccCmd.push(sample.stockAccCmd);
+      state.vEgo = Number.isFinite(sample.vEgo) ? sample.vEgo : 0.0;
+      state.vCruise = Number.isFinite(sample.vCruise) ? sample.vCruise : 0.0;
+      state.leadRelDist = Number.isFinite(sample.leadRelDist) ? sample.leadRelDist : 0.0;
+      state.leadRelSpeed = Number.isFinite(sample.leadRelSpeed) ? sample.leadRelSpeed : 0.0;
+      state.leadProb = Number.isFinite(sample.leadProb) ? sample.leadProb : 0.0;
+      state.overrideActive = Boolean(sample.overrideActive);
+      state.overrideSignal.push(state.overrideActive ? 1.0 : 0.0);
+      state.latSource = sample.latSource || "none";
+
+      const extra = state.t.length - CFG.maxPoints;
+      if (extra > 0) {
+        for (const k of Object.keys(state)) {
+          if (Array.isArray(state[k])) state[k].splice(0, extra);
+        }
+      }
+    }
+
+    function drawAxes(ctx, w, h) {
+      ctx.strokeStyle = "#1c2636";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      for (let k = 1; k < 5; k++) {
+        const y = (h * k) / 5;
+        ctx.moveTo(0, y);
+        ctx.lineTo(w, y);
+      }
+      ctx.stroke();
+    }
+
+    function drawSeries(ctx, w, h, xs, ys, color, ymin, ymax) {
+      if (xs.length < 2) return;
+      const x0 = xs[xs.length - 1] - CFG.windowSec;
+      const x1 = xs[xs.length - 1];
+      const invdx = 1 / (x1 - x0 || 1);
+      const invdy = 1 / (ymax - ymin || 1);
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      let started = false;
+      for (let k = 0; k < xs.length; k++) {
+        const x = xs[k];
+        if (x < x0) continue;
+        const v = ys[k];
+        if (!Number.isFinite(v)) continue;
+        const xp = (x - x0) * invdx * w;
+        const yp = h - ((v - ymin) * invdy * h);
+        if (!started) { ctx.moveTo(xp, yp); started = true; }
+        else { ctx.lineTo(xp, yp); }
+      }
+      ctx.stroke();
+    }
+
+    function draw(canvas, seriesList, fixedRange = null) {
+      const dpr = window.devicePixelRatio || 1;
+      const rect = canvas.getBoundingClientRect();
+      const w = Math.max(1, Math.floor(rect.width * dpr));
+      const h = Math.max(1, Math.floor(rect.height * dpr));
+      if (canvas.width !== w) canvas.width = w;
+      if (canvas.height !== h) canvas.height = h;
+      const ctx = canvas.getContext("2d");
+      ctx.clearRect(0, 0, w, h);
+
+      drawAxes(ctx, w, h);
+
+      const xs = state.t;
+      if (xs.length < 2) return;
+      const x0 = xs[xs.length - 1] - CFG.windowSec;
+      const x1 = xs[xs.length - 1];
+
+      let ymin = -1;
+      let ymax = 1;
+      if (fixedRange && fixedRange.length === 2) {
+        ymin = fixedRange[0];
+        ymax = fixedRange[1];
+      } else {
+        ymin = Infinity;
+        ymax = -Infinity;
+        for (const s of seriesList) {
+          const ys = s.ys;
+          for (let k = 0; k < xs.length; k++) {
+            const x = xs[k];
+            if (x < x0 || x > x1) continue;
+            const v = ys[k];
+            if (!Number.isFinite(v)) continue;
+            ymin = Math.min(ymin, v);
+            ymax = Math.max(ymax, v);
+          }
+        }
+        if (!Number.isFinite(ymin) || !Number.isFinite(ymax) || ymin === ymax) {
+          ymin = -1; ymax = 1;
+        } else {
+          const pad = (ymax - ymin) * 0.15;
+          ymin -= pad; ymax += pad;
+        }
+      }
+
+      for (const s of seriesList) {
+        drawSeries(ctx, w, h, xs, s.ys, s.color, ymin, ymax);
+      }
+    }
+
+    const c0 = $("c0");
+    const c1 = $("c1");
+    const c2 = $("c2");
+    const c3 = $("c3");
+
+    function render() {
+      $("currentSpeed").textContent = `${state.vEgo.toFixed(1)} km/h`;
+      $("cruiseSpeed").textContent = `${state.vCruise.toFixed(1)} km/h`;
+      $("leadRelDist").textContent = `${state.leadRelDist.toFixed(2)} m`;
+      $("leadRelSpeed").textContent = `${state.leadRelSpeed.toFixed(2)} m/s`;
+      $("leadProb").textContent = `${state.leadProb.toFixed(2)}`;
+      $("latSource").textContent = state.latSource;
+      draw(c0, [
+        { ys: state.overrideSignal, color: "#ef4444" },
+      ], [-2.0, 2.0]);
+      draw(c1, [
+        { ys: state.ctrlP, color: "#4cc3ff" },
+        { ys: state.ctrlI, color: "#a78bfa" },
+        { ys: state.ctrlF, color: "#34d399" },
+      ], [-3.5, 3.5]);
+      draw(c2, [
+        { ys: state.latP, color: "#4cc3ff" },
+        { ys: state.latI, color: "#a78bfa" },
+        { ys: state.latF, color: "#34d399" },
+      ], [-2.0, 2.0]);
+      draw(c3, [
+        { ys: state.stockAccCmd, color: "#f59e0b" },
+      ]);
+      requestAnimationFrame(render);
+    }
+    requestAnimationFrame(render);
+
+    function connect() {
+      const url = `/stream?hz=${encodeURIComponent(CFG.hz)}&limit=128`;
+      const es = new EventSource(url);
+      $("status").textContent = "connected";
+      $("status").className = "";
+
+      es.onmessage = (ev) => {
+        try {
+          const rows = JSON.parse(ev.data);
+          for (const r of rows) push(r);
+        } catch (e) {}
+      };
+      es.onerror = () => {
+        $("status").textContent = "reconnecting";
+        $("status").className = "muted";
+        es.close();
+        setTimeout(connect, 500);
+      };
+    }
+
+    connect();
+  </script>
+</body>
+</html>
+

@@ -1,0 +1,5 @@
+# Checkpoint — mechanism reassessment revision 3
+
+The corrected DQBUF/PTS/write/read trace and scheduler probe still localize cadence divergence after V4L2 dequeue and before raw-pipe delivery, inside FFmpeg processing/output. The single sequential output-flush A/B shows a modest shift: 15 fewer read gaps above 60 ms and a 1.746 ms lower maximum with `-flush_packets 1`; write-boundary count fell by 14 and max by 1.671 ms. Both arms still have more than 100 of 599 read intervals above 60 ms.
+
+This is inconclusive, not causal proof: the arms were sequential and straced, so observer effects and run/order variation may explain some or all of the delta. Do not change production argv from this result. Reader-side backlog, CPU runqueue delay as the primary cause, and sustained pipe backpressure remain unsupported. Exact FFmpeg internal decode/filter/output pacing or synchronization wait and writer-thread attribution remain unresolved. Keep PTS as SOE and `timestampEof` at host-monotonic full-read completion.

@@ -1,0 +1,32 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-9.0.2, pluggy-1.6.0 -- /usr/local/venv/bin/python3
+cachedir: .pytest_cache
+Using --randomly-seed=2242171714
+rootdir: /data/openpilot
+configfile: pyproject.toml
+plugins: timeout-2.4.0, repeat-0.9.4, xdist-3.7.1.dev24+g2b4372bd6, randomly-4.0.1, asyncio-1.3.0, mock-3.15.1, cpp-2.6.0
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=function, asyncio_default_test_loop_scope=function
+collecting ... ERROR: found no collectors for /data/openpilot/system/loggerd/tests/test_loggerd_liveness.py::test_non_rk3588_hardware_pc_legacy_lifecycle_on_ka2_host
+
+collected 0 items / 1 error
+
+==================================== ERRORS ====================================
+________ ERROR collecting system/loggerd/tests/test_loggerd_liveness.py ________
+system/loggerd/tests/test_loggerd_liveness.py:19: in <module>
+    from openpilot.system.loggerd.tests.test_dmabuf_fixture import (
+<frozen importlib._bootstrap>:1360: in _find_and_load
+    ???
+<frozen importlib._bootstrap>:1331: in _find_and_load_unlocked
+    ???
+<frozen importlib._bootstrap>:935: in _load_unlocked
+    ???
+/usr/local/venv/lib/python3.12/site-packages/_pytest/assertion/rewrite.py:197: in exec_module
+    exec(co, module.__dict__)
+openpilot/system/loggerd/tests/test_dmabuf_fixture.py:55: in <module>
+    def _wait_line(process: subprocess.Popen[str], timeout: float) -> str:
+                            ^^^^^^^^^^^^^^^^^^^^^
+E   TypeError: 'function' object is not subscriptable
+=========================== short test summary info ============================
+ERROR system/loggerd/tests/test_loggerd_liveness.py - TypeError: 'function' o...
+!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!
+=============================== 1 error in 0.27s ===============================

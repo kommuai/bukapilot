@@ -1,0 +1,18 @@
+target=local KA2/RK3588; synthetic DMA-heap VisionIPC fixture only
+
+reachable: board runtime devices
+- /dev/dma_heap/system: present in binary audit; fixture reported backing=dma_heap with four 1920x1200 buffers per stream and sent 106 frames per stream
+- /dev/mpp_service: present; production encoderd initialized all camera encoders; nonempty HEVC and qRoad H.264 output was produced and decoded
+- /dev/rga: present; encoderd reported RGA API version 1.10.0_[8]
+
+reachable: runtime libraries and media tools
+- ldd resolved dependencies for production loggerd, production encoderd, and the DMA-heap publisher; no not-found entries (full observed mapping is in evidence/runtime-r10-binary-audit-r269.log)
+- ffmpeg and ffprobe: available at /usr/bin, version 6.1.1; qRoad H.264 video and audio were probed in segments 0, 1 and 2 and audio decoded in all three
+- Python runtime imports for cereal.messaging, the DMA-BUF fixture helper, and LogReader succeeded before workload
+
+reachable: IPC and local logging
+- publisher READY line confirmed; loggerd subscribed to roadCameraState, driverCameraState, wideRoadCameraState, and rawAudioData within the 10-second startup window
+- isolated MSGQ and Params paths under /data were used and removed; each segment contained all six expected nonempty log/media files
+- no network dependencies were used by this local service-pair smoke
+
+unexercised: live camera/V4L2 capture and DMA-BUF export, synchronization fences, live camera-buffer reuse, and deployed production MPP qualification. Preflight/postflight checked device ownership only; the smoke did not open V4L2 capture nodes.

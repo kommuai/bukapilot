@@ -1,0 +1,48 @@
+Breakpoint 1 at 0x36358: file system/loggerd/zstd_writer.cc, line 67.
+>Undefined command: "silent".  Try "help".
+No symbol "written" in current context.
+No symbol "file_" in current context.
+No stack.
+The program is not being run.
+This command cannot be used at the top level.
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/aarch64-linux-gnu/libthread_db.so.1".
+[New Thread 0x7fec7be3e0 (LWP 34509)]
+[New Thread 0x7febfae3e0 (LWP 34510)]
+[Detaching after vfork from child process 34512]
+Error in testing condition for breakpoint 1:
+value has been optimized out
+
+Thread 1 "loggerd_non_rk3" hit Breakpoint 1, ZstdFileWriter::flushCache (this=..., last_chunk=...) at system/loggerd/zstd_writer.cc:67
+67	    assert(written == output.pos);
+  Num  Description       Connection           Executable        
+* 1    process 34453     1 (native)           /data/openpilot/build/system/loggerd/tests/loggerd_non_rk3588 
+
+Thread 3 (Thread 0x7febfae3e0 (LWP 34510) "ZMQbg/IO/0"):
+#0  0x0000007ff529bd34 in epoll_pwait () at /lib/aarch64-linux-gnu/libc.so.6
+#1  0x0000007ff7f36338 in ??? () at /lib/aarch64-linux-gnu/libzmq.so.5
+#2  0x0000007ff7f669a0 in ??? () at /lib/aarch64-linux-gnu/libzmq.so.5
+#3  0x0000007ff523582c in ??? () at /lib/aarch64-linux-gnu/libc.so.6
+#4  0x0000007ff529ba0c in ??? () at /lib/aarch64-linux-gnu/libc.so.6
+
+Thread 2 (Thread 0x7fec7be3e0 (LWP 34509) "ZMQbg/Reaper"):
+#0  0x0000007ff529bd34 in epoll_pwait () at /lib/aarch64-linux-gnu/libc.so.6
+#1  0x0000007ff7f36338 in ??? () at /lib/aarch64-linux-gnu/libzmq.so.5
+#2  0x0000007ff7f669a0 in ??? () at /lib/aarch64-linux-gnu/libzmq.so.5
+#3  0x0000007ff523582c in ??? () at /lib/aarch64-linux-gnu/libc.so.6
+#4  0x0000007ff529ba0c in ??? () at /lib/aarch64-linux-gnu/libc.so.6
+
+Thread 1 (Thread 0x7ff6819020 (LWP 34453) "loggerd_non_rk3"):
+#0  ZstdFileWriter::flushCache (this=this@entry=..., last_chunk=...) at system/loggerd/zstd_writer.cc:67
+#1  0x0000005555586478 in ZstdFileWriter::flush (this=..., force=...) at system/loggerd/zstd_writer.cc:50
+#2  0x0000005555585348 in LoggerState::write (this=this@entry=..., data=..., size=..., in_qlog=...) at system/loggerd/logger.cc:234
+#3  0x00000055555851c4 in LoggerState::write (this=..., bytes=..., in_qlog=...) at ./system/loggerd/logger.h:26
+#4  LoggerState::next (this=...) at system/loggerd/logger.cc:213
+#5  0x0000005555576c64 in logger_rotate (s=s@entry=...) at system/loggerd/loggerd.cc:115
+#6  0x000000555557bdc4 in loggerd_thread () at system/loggerd/loggerd.cc:663
+#7  0x000000555557d4dc in main (argc=..., argv=...) at system/loggerd/loggerd.cc:857
+Error in testing condition for breakpoint 1:
+value has been optimized out
+
+Thread 1 "loggerd_non_rk3" hit Breakpoint 1, ZstdFileWriter::flushCache (this=..., last_chunk=...) at system/loggerd/zstd_writer.cc:67
+67	    assert(written == output.pos);

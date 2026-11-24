@@ -1,0 +1,8 @@
+   5.166s readiness progression: LoggerdSegment=0; process_alive=true
+   5.166s 2s liveness poll: loggerd=alive encoderd=alive segment=0
+   7.166s 2s liveness poll: loggerd=alive encoderd=alive segment=0
+   7.258s readiness progression: LoggerdSegment=1; process_alive=true
+   9.211s 2s liveness poll: loggerd=alive encoderd=alive segment=1
+   9.457s readiness progression: LoggerdSegment=2; process_alive=true
+  10.839s healthy rotation report segment=1: elapsed_ms=73 missing=[] drops=0
+  10.839s healthy rotation report segment=2: elapsed_ms=173 missing=[] drops=0

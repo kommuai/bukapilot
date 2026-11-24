@@ -1,0 +1,83 @@
+{
+  "artifacts": {
+    "metadata_log": "build/evidence/ac4-same-frame-diagnostic-r1.jsonl",
+    "observer_library": "build/artifacts/ac4-dqbuf-write-observer-r1.so",
+    "observer_ring": "build/evidence/ac4-same-frame-observer-r1.bin",
+    "observer_source": "build/artifacts/ac4-dqbuf-write-observer-r1.c"
+  },
+  "cleanup": {
+    "camera_device_holders": "none reported by fuser",
+    "child_reaped": true,
+    "ffmpeg_exit_status": -9,
+    "followup_process_check": "no ffmpeg/sidecamerad process remained"
+  },
+  "correlated_trigger_gap": {
+    "decoder_completion_interval_ms": 55.893322,
+    "dqbuf_completion_interval_ms": 50.731695,
+    "dqbuf_sequence_from": 24,
+    "dqbuf_sequence_to": 25,
+    "filter_sink_completion_interval_ms": 62.066826,
+    "mux_completion_interval_ms": 63.027868,
+    "pts_alignment": "V4L2 source timestamp relative to first sequence maps to decoder/filter frame PTS; output mux PTS maps to 1/20-second timebase",
+    "reader_eof_interval_ms": 63.049452,
+    "reader_frame_from": 25,
+    "reader_frame_to": 26,
+    "sequence_contiguous": true,
+    "source_pts_us_from": 1843998,
+    "source_pts_us_to": 1896021,
+    "source_timestamp_flags": "0x12001",
+    "source_timestamp_interval_ms": 52.023
+  },
+  "execution": {
+    "completed_output_frames": 26,
+    "ffmpeg": "/usr/bin/ffmpeg",
+    "ffmpeg_sha256": "9af5a141b45d32f64fe7bb5cd2c939d56fb9972234705513c45575ef7a1da38e",
+    "max_output_frames": 600,
+    "payload_saved": false,
+    "product_source_drift": false,
+    "production_argv_unchanged": true,
+    "sidecamerad_source_sha256_before_after": "494fb8b88fda8bcf1d8301225019f4f01f4b77a0bb5cb3e69dde47ed96e1309b",
+    "stop_reason": "first post-warmup complete EOF gap over 60 ms",
+    "warmup_frames": 20
+  },
+  "localization": "The steady-state gap is not present in V4L2 source timestamps or dequeue-completion spacing. It grows between decoder completion and FFmpeg filter-sink output, then remains through mux and reader EOF. This points to FFmpeg filter/output or scheduling on that path, not the camera capture cadence; this single observed interval does not distinguish filter work from host scheduling.",
+  "measurement": {
+    "post_warmup_dqbuf_completion_gaps_over_60ms": 0,
+    "post_warmup_dqbuf_completion_max_gap_ms": 50.791612,
+    "post_warmup_v4l2_source_gaps_over_60ms": 0,
+    "post_warmup_v4l2_source_intervals": 8,
+    "post_warmup_v4l2_source_max_gap_ms": 52.029,
+    "reader_gaps_over_60ms_after_warmup": 1,
+    "reader_max_gap_ms_after_warmup": 63.049452
+  },
+  "observer": {
+    "events": 109,
+    "limitation": "write/writev calls were not observed; per-thread scheduler trace was unavailable",
+    "method": "LD_PRELOAD metadata ring; wraps V4L2 DQBUF, decoder output, filter sink, and mux frame API calls",
+    "overflow": 0,
+    "overhead_calibrated": false,
+    "scheduler_trace": false,
+    "stdout_bytes_recorded": 0,
+    "stdout_syscalls_observed": false
+  },
+  "schema_version": 2,
+  "stage_counts": {
+    "decoder_frames": 27,
+    "dqbuf": 29,
+    "filter_sink_frames": 27,
+    "mux_packets": 26,
+    "reader_complete_frames": 26
+  },
+  "startup_observation": {
+    "interpretation": "initial startup timestamp discontinuity; not the post-warmup trigger gap",
+    "sequence_from": 0,
+    "sequence_to": 1,
+    "v4l2_source_timestamp_gap_ms": 695.988
+  },
+  "submission_id": "sidecamerad-mvp-20261113_build-ac4-same-frame-diagnostic-r1_2026-11-15T16:06:56Z",
+  "target": {
+    "by_path": "/dev/v4l/by-path/platform-xhci-hcd.11.auto-usb-0:1:1.0-video-index0",
+    "mode": "1280x720 MJPEG, requested 20 fps",
+    "resolved": "/dev/video60"
+  }
+}

@@ -1,0 +1,49 @@
+---
+submission_id: sidecamerad-mvp-20261113_handoff-2_attempt-1_2026-11-15T08:56:55Z
+revision: "4"
+package_path: skillset-saves/runs/sidecamerad-mvp-20261113/investigation/manifest.json
+submission_status: PENDING
+verdict: PENDING
+---
+
+# Cross-stage handoff: investigation review
+
+## Package
+
+- Boundary: `investigation-review` (INVESTIGATE returning to BUILD)
+- Investigation revision: `4`
+- Investigation submission: `sidecamerad-mvp-20261113_investigation-ac4-timing-r4`
+- Manifest: `skillset-saves/runs/sidecamerad-mvp-20261113/investigation/manifest.json`
+- Manifest SHA-256: `72a75339145e4d031dec69c9c278409db619dbe54ac33bdad5c0a634a364722e`
+- Report: `skillset-saves/runs/sidecamerad-mvp-20261113/investigation/reports/investigation-package.md`
+- Report SHA-256: `39f762cc1f8002a5ea694cf59fe638e359a856ac8e206a8b1c52209900da08bc`
+- Evidence chain: `skillset-saves/runs/sidecamerad-mvp-20261113/investigation/evidence/evidence-chain-r4.log`
+- Evidence-chain SHA-256: `efd09d6751444a40bdc5d370d0816c2de2061f259cb188201cd5c2df6884ca40`
+- Canonical investigation self-check: passed with zero failures and warnings.
+
+Approved investigation package snapshots r1, r2, and r3 remain byte-identical in their revisioned archives. The prior revision-3 APPROVED event remains in the cross-stage cycle ledger and does not approve revision-4 evidence/fix path. The approved r3 handoff is archived at `delivery/reports/handoff_investigation-review-r3-approved.md.archive` (SHA-256 `2c00196405f8802df70a51fb8c03cd2abe1d2fe0f9c1290616dea978354118cc`).
+
+## Finding and bounded BUILD path
+
+The accepted five-minute current-source reproduction still fails AC-4's maximum-gap condition: 6,050 matched frames over 302.506666 seconds, 20.000523 fps mean cadence, 89.163715 ms maximum EOF gap, and 753 of 6,049 gaps above 60 ms. The read-only output-flush ABBA repeat showed no repeatable `-flush_packets 1` effect: pooled read intervals >60 ms were 228/1,198 default and 227/1,198 flush, while the flush maximum was higher (96.677 ms vs 90.374 ms); write-boundary counts were 228/1,198 in both arms, with a higher flush maximum (96.578 ms vs 90.280 ms). Do not add the flag to production.
+
+The approved next diagnostic is one read-only 600-frame capture on `/dev/video60`, keeping default production argv, one FFmpeg thread, one filter thread, queue size 1, mode, and reader fixed. Trace per-thread FFmpeg `ioctl`, `futex`, `poll`/`ppoll`, `select`/`pselect6`, `epoll_wait`, and `read`/`readv`/`write`/`writev` timestamps/durations with `strace -f -ttt -T`, keep payload buffers raw-only, and record monotonic full-read completions plus per-thread schedstat runtime/runqueue deltas at frame boundaries. Align >60 ms read gaps with per-thread wait IDs/durations and scheduler deltas; treat runtime without a blocking syscall as suggestive, not proof of user-space CPU work. Strace and post-read `/proc` snapshots add observer cost. Save no frame payload, edit no source, and make no production argv change. Keep PTS as V4L2 SOE, not EOF, and preserve `timestampEof` at full raw-frame read completion.
+
+## Open evidence limits
+
+- The ABBA runs remain sequential and straced; they do not prove an exact internal wait cause. The `-flush_packets 1` change was not repeatable.
+- The proposed syscall/schedstat trace has not been run; the trace itself and `/proc` sampling will affect timing.
+- Exact DQBUF-to-output frame identity remains unproven because the ioctl trace lacked sequence fields.
+- AC-4 remains failed on the accepted five-minute reproduction. AC-6 reconnect/sibling continuity and AC-8 four-camera soak/CPU headroom remain hardware deferrals. The minor FFmpeg child resource-limit finding remains open.
+
+## Cross-stage verdict
+
+- Gate: `gatekeeper-admiral`
+- Verdict: **PENDING** for `investigation-review` revision `4`.
+- The gatekeeper will persist its revision-4 judgment and verdict before this handoff advances.
+
+## Next consumer
+
+Submit this revision-4 package to `gatekeeper-admiral`. If approved, route the read-only syscall/schedstat diagnostic to `build/build-management`. No production source/argv change is requested by this package.
+
+This is an intermediate investigation-to-BUILD handoff; a final delivery package is not in scope.

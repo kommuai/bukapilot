@@ -1,0 +1,14 @@
+preflight_utc=2026-10-31T12:43:09.726073+00:00
+Filesystem       Size  Used Avail Use% Mounted on
+tmpfs            800M  790M   11M  99% /tmp
+/dev/mmcblk0p12  8.2G  6.6G  1.2G  86% /data
+process_camerad=none
+process_loggerd=none
+process_encoderd=none
+process_gdb=none
+device_count=85 busy_count=0
+gdb_version=GNU gdb (Ubuntu 15.1-1ubuntu1~24.04.1) 15.1
+test_source_sha256=4e629bf55715eca9341dc48547757accbda5249f892ad95dcb33345135202a18
+test_source_expected_sha256=4e629bf55715eca9341dc48547757accbda5249f892ad95dcb33345135202a18
+basetemp=/data/openpilot/.harness-state/ka2-efficiency-build-r7/data-basetemp-r257 (absent before launch)
+preflight_result=PASS

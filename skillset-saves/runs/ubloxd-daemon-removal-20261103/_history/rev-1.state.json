@@ -1,0 +1,29 @@
+{
+  "active_owner": "admiral",
+  "artifact_hashes": {
+    "skillset-saves/runs/ubloxd-daemon-removal-20261103/intake/report_grilling.md": "a966fcd1bb06c20b8a44c327c0e61b02cebbf5e64857c3e54918a6b110946195"
+  },
+  "evidence_paths": [
+    "skillset-saves/runs/ubloxd-daemon-removal-20261103/intake/report_grilling.md"
+  ],
+  "execution_mode": "agent",
+  "hook_registration_status": "missing",
+  "intake_status": "confirmed",
+  "mcp_registry_check": "not-needed",
+  "next_action": "Complete the minimal design package and validate design-to-build before implementation.",
+  "parent_revision": null,
+  "persistence_probe": "ok",
+  "protocol_state": "INTAKE",
+  "revision": 1,
+  "run_id": "ubloxd-daemon-removal-20261103",
+  "runtime_readiness_check": "not-ready",
+  "schema_version": 1,
+  "session_pin": true,
+  "skills_engaged": [
+    "admiral",
+    "session-memory"
+  ],
+  "status": "active",
+  "tier": "2",
+  "timestamp": "2026-11-03T17:01:15.830339+00:00"
+}

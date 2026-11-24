@@ -1,0 +1,14 @@
+SideCamera PTS/read correlation
+Created UTC: 2026-11-15T09:55:44.025651+00:00
+Frames requested/read/showinfo: 600/600/600
+Bytes read / expected: 829440000/829440000
+FFmpeg return/error: 0 / None
+Source SHA-256 before/after: 494fb8b88fda8bcf1d8301225019f4f01f4b77a0bb5cb3e69dde47ed96e1309b / 494fb8b88fda8bcf1d8301225019f4f01f4b77a0bb5cb3e69dde47ed96e1309b
+PTS time base: (1, 1000000)
+PTS cadence ms: {'count': 599, 'mean_ms': 50.183597662771284, 'median_ms': 51.859, 'p95_ms': 52.022, 'p99_ms': 52.056, 'min_ms': 47.901, 'max_ms': 160.006, 'over_60ms': 1, 'under_40ms': 0}
+Read cadence ms: {'count': 599, 'mean_ms': 49.91424594490818, 'median_ms': 49.675311, 'p95_ms': 67.407918, 'p99_ms': 73.942719, 'min_ms': 12.380367, 'max_ms': 89.946454, 'over_60ms': 89, 'under_40ms': 99}
+Read-completion minus PTS ms: {'mean': 94.91223901666667, 'median': 94.8833605, 'p95_ms': 106.002898, 'min_ms': 66.585941, 'max_ms': 242.389814}
+Same-order alignment valid: True
+Children reaped: True
+Showinfo log: /data/openpilot/.harness-state/sidecam-pts-read-correlation-20261115T095513Z/ffmpeg-showinfo.log
+JSON artifact: /data/openpilot/.harness-state/sidecam-pts-read-correlation-20261115T095513Z/pts-read-correlation.json

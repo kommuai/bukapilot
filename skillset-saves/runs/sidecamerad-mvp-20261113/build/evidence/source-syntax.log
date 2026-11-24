@@ -1,0 +1,5 @@
+Command: in-memory Python compile() for the listed source modules
+Surface: sidecamerad process, manager configuration, cereal service registry
+Files: system/sidecamerad.py, system/manager/process_config.py, cereal/services.py
+Exit code: 0
+Result: syntax accepted

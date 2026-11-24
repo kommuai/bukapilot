@@ -1,0 +1,171 @@
+{
+  "boundary": "design-to-build",
+  "events": [
+    {
+      "boundary": "design-to-build",
+      "changed_evidence": null,
+      "checked_at": "2026-11-03T17:35:01.335211+00:00",
+      "judgment": {
+        "by_owner": {},
+        "escalation": null,
+        "findings": [
+          {
+            "basis": {
+              "kind": "contract",
+              "ref": "Design Packet Validation Sequence",
+              "source": "design/gatekeeper-design/references/workflow.md"
+            },
+            "evidence": [
+              "reports/architecture.md",
+              "reports/design-package.md"
+            ],
+            "id": "INFO-API-CONTRACTS-OUT-OF-SCOPE",
+            "key": "interfaces",
+            "owner": "architect",
+            "severity": "Info",
+            "statement": "The package-shape validator's conditional API endpoint-contract finding is resolved as out of scope. The architecture defines internal manager, parameter, and cereal-service contracts; it introduces no HTTP, webhook, or public request/response endpoint, and retained cereal service schemas are unchanged."
+          },
+          {
+            "basis": {
+              "kind": "contract",
+              "ref": "Design Packet Validation Sequence",
+              "source": "design/gatekeeper-design/references/workflow.md"
+            },
+            "evidence": [
+              "reports/architecture.md",
+              "reports/design-package.md",
+              "manifest:evidence.ui_evidence"
+            ],
+            "id": "INFO-UI-HANDOFF-OUT-OF-SCOPE",
+            "key": "ui_evidence",
+            "owner": "architect",
+            "severity": "Info",
+            "statement": "The package-shape validator's conditional UI handoff finding is resolved as out of scope. This is a manager and daemon-support cleanup with no user-facing surface or design-system change; the manifest carries the architect's sanctioned no-surface applicability record, and existing hardwared/UI GPS subscriptions stay unchanged."
+          },
+          {
+            "basis": {
+              "kind": "contract",
+              "ref": "Fallbacks That Exist, And The Ones That Do Not",
+              "source": "design/commander/references/gate-evidence.md"
+            },
+            "evidence": [
+              "reports/report_stack-lock.md",
+              "reports/implementation-spec.md",
+              "manifest:evidence.stack_lock"
+            ],
+            "id": "INFO-STACK-DETECTOR-INCOMPLETE",
+            "key": "stack_lock",
+            "owner": "commander",
+            "severity": "Info",
+            "statement": "The host runtime scan is incomplete because Python 3.12.3 is below the harness's 3.13 floor and the repository walk exceeded its byte limit. The package does not claim a detected runtime; the sanctioned no-new-runtime/framework applicability is used because the design adds no runtime or framework."
+          },
+          {
+            "basis": {
+              "kind": "contract",
+              "ref": "Acceptance Checklist",
+              "source": "design/gatekeeper-design/references/workflow.md"
+            },
+            "evidence": [
+              "reports/plan.md",
+              "reports/implementation-spec.md"
+            ],
+            "id": "INFO-KA2-RUNTIME-NOT-EXERCISED",
+            "key": "acceptance",
+            "owner": "planner",
+            "severity": "Info",
+            "statement": "The plan's acceptance checks are static reviews; no KA2 hardware run, product tests, or historical route replay is claimed. The implementation spec preserves these limitations and names future behavior checks only if the user separately authorizes them."
+          }
+        ],
+        "gate": "gatekeeper-design",
+        "intake": {
+          "artifact": "../intake/report_grilling.md"
+        },
+        "valid": true,
+        "verdict": "APPROVED"
+      },
+      "package_fingerprint": "9560c415454533b1f0eff480c1468a9b321915e3b9b0aacdf74b5e43dbdf68f1",
+      "revise_packet": {
+        "actions_by_owner": {},
+        "by_key": {},
+        "by_owner": {},
+        "judgment_by_owner": {},
+        "unassigned": []
+      },
+      "revision": "r8",
+      "signature": [
+        "gatekeeper-design",
+        "r8",
+        "9560c415454533b1f0eff480c1468a9b321915e3b9b0aacdf74b5e43dbdf68f1",
+        "APPROVED"
+      ],
+      "submission_id": "ubloxd-removal-design-20261103-v2",
+      "unchanged_evidence": null
+    },
+    {
+      "boundary": "design-to-build",
+      "changed_evidence": [],
+      "checked_at": "2026-11-03T17:38:29.274518+00:00",
+      "judgment": {
+        "by_owner": {},
+        "escalation": null,
+        "findings": [
+          {
+            "basis": {
+              "kind": "contract",
+              "ref": "Deterministic Pre-Check (two validators)",
+              "source": "gatekeeper-admiral/SKILL.md"
+            },
+            "evidence": [
+              "manifest:evidence.architecture",
+              "manifest:evidence.plan"
+            ],
+            "id": "INFO-DELIVERY-SUMMARY-CONDITIONAL-RESOLVED",
+            "key": null,
+            "owner": "commander",
+            "severity": "Info",
+            "statement": "The delivery package summary check is conditional and is not needed for this intermediate design-to-build handoff. The delivery handoff record identifies the r8 design manifest, phase approval, next consumer, scope, and build contract; the hashed design manifest and approved design package remain the source of truth."
+          }
+        ],
+        "gate": "gatekeeper-admiral",
+        "intake": {
+          "artifact": "../intake/report_grilling.md"
+        },
+        "valid": true,
+        "verdict": "APPROVED"
+      },
+      "package_fingerprint": "9560c415454533b1f0eff480c1468a9b321915e3b9b0aacdf74b5e43dbdf68f1",
+      "revise_packet": {
+        "actions_by_owner": {},
+        "by_key": {},
+        "by_owner": {},
+        "judgment_by_owner": {},
+        "unassigned": []
+      },
+      "revision": "r8",
+      "signature": [
+        "gatekeeper-admiral",
+        "r8",
+        "9560c415454533b1f0eff480c1468a9b321915e3b9b0aacdf74b5e43dbdf68f1",
+        "APPROVED"
+      ],
+      "submission_id": "ubloxd-removal-design-20261103-v2",
+      "unchanged_evidence": [
+        "acceptance",
+        "architecture",
+        "decisions",
+        "interfaces",
+        "plan",
+        "security_seed",
+        "stack_lock",
+        "taste_snapshot",
+        "ui_evidence"
+      ]
+    }
+  ],
+  "gates": {},
+  "held": false,
+  "reopen_refs": [],
+  "rounds": [],
+  "run_id": "ubloxd-daemon-removal-20261103",
+  "schema_version": 1
+}

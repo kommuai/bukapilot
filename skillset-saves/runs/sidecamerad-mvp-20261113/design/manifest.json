@@ -1,0 +1,124 @@
+{
+  "artifact_hashes": {
+    "../build/evidence/usb-camera-baseline.log": "9629e9abadb286f4bd2d90f8d9649575c554ef184b648290331073573d6a59e2",
+    "../intake/report_grilling.md": "84a7e874f86ba50a6e4c5b3e3938e4a534099e518c4dea8c9ba8a8f4f2d97a0b",
+    "../intake/report_scope-change.md": "5ab1e0b6bc31e2158f8a9126a27d9f25ed132b776528f522ac7015ebcb1ffb39",
+    "artifacts/taste_snapshot-r2.md": "7be5216f7b5b9d5bfb05417acf7886cbbd04618de09648495c468f6f848a0741",
+    "packages/design-r1-archive.zip": "b72d655619a6e09d5d63d97cc1e978eff2429908164aca66932c7af9def7186a",
+    "reports/api-endpoint-contracts-r2.md": "d5e5b5b9a43658eca70ad26b8131b81f026355fe185b72ef1c06c77945101bb7",
+    "reports/delivery-plan-r2.md": "0ef16ba626a8fb8cd117b710375d63d5d46e677cae4925abe2af919eb22eeffc",
+    "reports/design-package-r2.md": "b83df66c2071c0445912c0d02431b857226b559579ab77daa206efa949a6895c",
+    "reports/implementation-spec-r2.md": "447269713326cd2a99224014d2c145a5b49d9b13dd51eb145fac7193dd00126b",
+    "reports/report_architecture-r2.md": "9f4cb41838303bd661048d62ddbcfea0ced765d4fc10ec228ef2c453e1a94991",
+    "reports/report_interfaces-r2.md": "2ae1cfbe0746ae3a03df5a682e2dbe02d11337270809f3ace4dd220a6b0c05ad",
+    "reports/report_research-r2.md": "da91b350598a06d66650ce8d945c3dae708c14e16c4ff211b596a61f98262901",
+    "reports/report_stack-lock-r2.md": "f06b7157bf7c2b57f48473395098461bb1c9e3ef3db5415d0fe1dde4b51cff1d",
+    "reports/requirements-brief-r2.md": "bff3dc6825e257d653772d43d64a3d7f6221ed91bea0dff4c08ce50b82d7f748",
+    "reports/security-seed-r2.md": "6d780ee790d464047c360934cb0baef86131c129f01ea14a44707fb8b4b28652"
+  },
+  "boundary": "design-to-build",
+  "evidence": {
+    "acceptance": "reports/delivery-plan-r2.md",
+    "architecture": "reports/report_architecture-r2.md",
+    "decisions": "../intake/report_grilling.md",
+    "interfaces": {
+      "artifacts": [
+        "reports/report_interfaces-r2.md",
+        "reports/api-endpoint-contracts-r2.md"
+      ],
+      "change": "changed",
+      "items": [
+        {
+          "id": "IF-1",
+          "kind": "process lifecycle",
+          "name": "Default-on sidecamerad beside unchanged native camerad"
+        },
+        {
+          "id": "IF-2",
+          "kind": "device configuration",
+          "name": "Explicit side-to-path mapping with by-path support"
+        },
+        {
+          "id": "IF-3",
+          "kind": "Params status",
+          "name": "SideCameraAvailability JSON dictionary and reset transitions"
+        },
+        {
+          "id": "IF-4",
+          "kind": "capture worker",
+          "name": "Fixed FFmpeg 1280x720 MJPEG-to-NV12 path"
+        },
+        {
+          "id": "IF-5",
+          "kind": "VisionIPC stream",
+          "name": "Four isolated position-specific side camera streams"
+        },
+        {
+          "id": "IF-6",
+          "kind": "cereal event",
+          "name": "Four matching 20 Hz camera state topics"
+        },
+        {
+          "id": "IF-7",
+          "kind": "empty-config lifecycle",
+          "name": "No-path warning and SIGINT/SIGTERM idle wait"
+        }
+      ]
+    },
+    "plan": "reports/delivery-plan-r2.md",
+    "security_seed": {
+      "applicable": true,
+      "architecture_revision": "report_architecture-r2.md SHA-256 9f4cb41838303bd661048d62ddbcfea0ced765d4fc10ec228ef2c453e1a94991; report_interfaces-r2.md SHA-256 2ae1cfbe0746ae3a03df5a682e2dbe02d11337270809f3ace4dd220a6b0c05ad",
+      "boundaries": [
+        {
+          "control": "Keep the sidecar separate, cap workers/decoder threads, run only configured feeds, preserve the signal-wait idle branch, and leave native camerad unchanged.",
+          "id": "default-on-lifecycle"
+        },
+        {
+          "control": "Validate explicit per-side device paths, resolve targets under /dev as image-node character devices, reject metadata-only nodes, pass a path only as data, and never infer sides from USB order.",
+          "id": "device-config"
+        },
+        {
+          "control": "Treat MJPEG as untrusted; use fixed format and worker/thread/buffer limits, accept exact complete frames only, close/reap/retry failed children, and report any unavailable hard resource limit.",
+          "id": "peripheral-to-decoder"
+        },
+        {
+          "control": "Use fixed direct argv without a shell, pass only the validated path, close unrelated inherited descriptors, retain the unprivileged identity, and bound diagnostics.",
+          "id": "sidecar-to-ffmpeg-process"
+        },
+        {
+          "control": "Write only the complete four-boolean JSON value under one lock on state transitions, initialize all false, set true only after matching dual publication, clear on loss/orderly shutdown, and reset at manager start.",
+          "id": "sidecar-to-local-status"
+        },
+        {
+          "control": "Keep imagery on existing host-local VisionIPC/cereal interfaces with local permissions; add no network listener, persistent sink, or remote consumer.",
+          "id": "sidecar-to-local-ipc"
+        }
+      ],
+      "decided_by": "security-builder",
+      "reason": "Default-on operation increases capture exposure for configured peripherals, and the design crosses a local device/decoder boundary while publishing potentially sensitive imagery to local IPC. Explicit path validation, bounded least-privilege decoding, controlled status writes, and host-local publication are required.",
+      "scope": "Default-on sidecamerad capture of explicitly configured local V4L2 image nodes, untrusted MJPEG decoding through FFmpeg, transition-only Params availability state, and host-local VisionIPC/cereal publication."
+    },
+    "stack_lock": {
+      "applicable": false,
+      "decided_by": "commander",
+      "reason": "no new runtime or framework - existing stack unchanged",
+      "scope": "sidecamerad r2 reuses the existing openpilot Python/C++/Cap'n Proto/msgq stack and installed FFmpeg; no packages installed"
+    },
+    "taste_snapshot": "artifacts/taste_snapshot-r2.md",
+    "ui_evidence": {
+      "applicable": false,
+      "decided_by": "architect",
+      "reason": "no user-facing surface - design system not engaged",
+      "scope": "sidecamerad r2 is a backend process and local IPC change with no user-facing screen"
+    }
+  },
+  "owner": "commander",
+  "revision": "r2",
+  "revisions": [
+    "r2"
+  ],
+  "run_id": "sidecamerad-mvp-20261113",
+  "schema_version": 2,
+  "submission_id": "sidecamerad-mvp-20261113_design-revision-2"
+}

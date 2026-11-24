@@ -1,0 +1,49 @@
+{
+  "active_owner": "admiral",
+  "artifact_hashes": {
+    "skillset-saves/runs/sensord-refactor-20261029/design/artifacts/taste_snapshot.json": "4b29408d876a909bc0a1eec35f78abf384a72276b6f6972da35e2f99a6244a8f",
+    "skillset-saves/runs/sensord-refactor-20261029/design/reports/report_architecture.md": "2d5b7466d8cdd7a03281f1e7d268b8de420bb938e362eaebd02b718cff13b6f6",
+    "skillset-saves/runs/sensord-refactor-20261029/design/reports/report_interfaces.md": "91ac7fe34b1f1a944e4f96a1586462720781df3bc0fea6d21de2e836e7439f3f",
+    "skillset-saves/runs/sensord-refactor-20261029/design/reports/requirements-brief.md": "5a8cc47bed98161b1a8b4e59c8b502582eaf2f1637561224f51f0fa96e85d3c4",
+    "skillset-saves/runs/sensord-refactor-20261029/intake/intake-brief.md": "3e7160208914020d485d57bb8a9d3fce0a7ccb8a29716b09b8ec25f7af210382",
+    "skillset-saves/runs/sensord-refactor-20261029/intake/report_grilling.md": "c04acdb1fb079a27174ee5345123f28dd39f2e2838c674a37dc4bedd7e2a85db"
+  },
+  "context_tier": "2",
+  "delegated_to": "researcher",
+  "evidence_paths": [
+    "skillset-saves/runs/sensord-refactor-20261029/design/artifacts/taste_snapshot.json",
+    "skillset-saves/runs/sensord-refactor-20261029/design/reports/report_architecture.md",
+    "skillset-saves/runs/sensord-refactor-20261029/design/reports/report_interfaces.md",
+    "skillset-saves/runs/sensord-refactor-20261029/design/reports/requirements-brief.md",
+    "skillset-saves/runs/sensord-refactor-20261029/intake/intake-brief.md",
+    "skillset-saves/runs/sensord-refactor-20261029/intake/report_grilling.md"
+  ],
+  "execution_mode": "agent",
+  "hook_registration_status": "missing",
+  "mcp_registry_check": "not-needed",
+  "next_action": "architect returns the system architecture and interface contract for design-to-build",
+  "parent_revision": 8,
+  "performance_measurement": "deferred-devices-present-identity-access-rig-and-baseline-unverified",
+  "persistence_active": "true",
+  "persistence_probe": "ok",
+  "persistence_probe_result": "ok",
+  "phase_state": "DESIGN_ACTIVE",
+  "preamble_tier": "2",
+  "protocol_state": "DESIGN",
+  "revision": 9,
+  "run_id": "sensord-refactor-20261029",
+  "runtime_readiness_check": "not-ready-python-3.12.3",
+  "schema_version": 1,
+  "session_pin": true,
+  "skills_engaged": [
+    "session-memory",
+    "commander",
+    "taste",
+    "researcher",
+    "architect"
+  ],
+  "stack_detector_limitation": "root-project-scan-failed-total-byte-cap",
+  "status": "active",
+  "taste_snapshot_validation": "verified:no-profile;global=absent@0;project=absent@0;entries=empty;canonical_digest=sha256:1beb862ffc2faa7ade5f7b2308f2803bc9cea1981dbf2144ce044fa8ebd9132b;generated_at-only-digest-variance=not-drift",
+  "timestamp": "2026-10-29T08:36:01.510314+00:00"
+}

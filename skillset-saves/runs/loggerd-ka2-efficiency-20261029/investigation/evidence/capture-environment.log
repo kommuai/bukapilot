@@ -1,0 +1,144 @@
+observed_at=2026-10-31T11:16:44.156183+00:00
+board_marker=True
+core_limits_soft_hard=(0, -1)
+core_pattern=core
+core_uses_pid=0
+target_sha256=94b304426795d8482ed6477c82f8946252fb3bd0f4dfd2226ef2a22c5c8062ff
+
+[gdb_version] exit=0
+$ /usr/bin/gdb --version
+GNU gdb (Ubuntu 15.1-1ubuntu1~24.04.1) 15.1
+Copyright (C) 2024 Free Software Foundation, Inc.
+License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
+
+[target_elf] exit=0
+$ /usr/bin/file /data/openpilot/build/system/loggerd/tests/loggerd_non_rk3588
+/data/openpilot/build/system/loggerd/tests/loggerd_non_rk3588: ELF 64-bit LSB pie executable, ARM aarch64, version 1 (SYSV), dynamically linked, interpreter /lib/ld-linux-aarch64.so.1, BuildID[sha1]=8d2286a05ba4aa5b117bcee2199de59599794f7a, for GNU/Linux 3.7.0, with debug_info, not stripped
+
+[target_debug_sections] exit=0
+$ /usr/bin/readelf -S /data/openpilot/build/system/loggerd/tests/loggerd_non_rk3588
+There are 40 section headers, starting at offset 0x455f08:
+
+Section Headers:
+  [Nr] Name              Type             Address           Offset
+       Size              EntSize          Flags  Link  Info  Align
+  [ 0]                   NULL             0000000000000000  00000000
+       0000000000000000  0000000000000000           0     0     0
+  [ 1] .interp           PROGBITS         0000000000000238  00000238
+       000000000000001b  0000000000000000   A       0     0     1
+  [ 2] .note.gnu.bu[...] NOTE             0000000000000254  00000254
+       0000000000000024  0000000000000000   A       0     0     4
+  [ 3] .note.ABI-tag     NOTE             0000000000000278  00000278
+       0000000000000020  0000000000000000   A       0     0     4
+  [ 4] .gnu.hash         GNU_HASH         0000000000000298  00000298
+       000000000000004c  0000000000000000   A       5     0     8
+  [ 5] .dynsym           DYNSYM           00000000000002e8  000002e8
+       0000000000001c20  0000000000000018   A       6     3     8
+  [ 6] .dynstr           STRTAB           0000000000001f08  00001f08
+       0000000000002290  0000000000000000   A       0     0     1
+  [ 7] .gnu.version      VERSYM           0000000000004198  00004198
+       0000000000000258  0000000000000002   A       5     0     2
+  [ 8] .gnu.version_r    VERNEED          00000000000043f0  000043f0
+       0000000000000220  0000000000000000   A       6     6     8
+  [ 9] .rela.dyn         RELA             0000000000004610  00004610
+       00000000000039d8  0000000000000018   A       5     0     8
+  [10] .rela.plt         RELA             0000000000007fe8  00007fe8
+       0000000000001848  0000000000000018  AI       5    24     8
+  [11] .init             PROGBITS         0000000000009830  00009830
+       0000000000000018  0000000000000000  AX       0     0     4
+  [12] .plt              PROGBITS         0000000000009850  00009850
+       0000000000001050  0000000000000000  AX       0     0     16
+  [13] .text             PROGBITS         000000000000a8c0  0000a8c0
+       0000000000046460  0000000000000000  AX       0     0     64
+  [14] .fini             PROGBITS         0000000000050d20  00050d20
+       0000000000000014  0000000000000000  AX       0     0     4
+  [15] .rodata           PROGBITS         0000000000050d40  00050d40
+       0000000000003976  0000000000000000   A       0     0     16
+  [16] .eh_frame_hdr     PROGBITS         00000000000546b8  000546b8
+       000000000000132c  0000000000000000   A       0     0     4
+  [17] .eh_frame         PROGBITS         00000000000559e8  000559e8
+       00000000000077d8  0000000000000000   A       0     0     8
+  [18] .gcc_except_table PROGBITS         000000000005d1c0  0005d1c0
+       000000000000349c  0000000000000000   A       0     0     4
+  [19] .init_array       INIT_ARRAY       000000000007e928  0006e928
+       0000000000000028  0000000000000008  WA       0     0     8
+  [20] .fini_array       FINI_ARRAY       000000000007e950  0006e950
+       0000000000000008  0000000000000008  WA       0     0     8
+  [21] .data.rel.ro      PROGBITS         000000000007e958  0006e958
+       00000000000010b8  0000000000000000  WA       0     0     8
+  [22] .dynamic          DYNAMIC          000000000007fa10  0006fa10
+       0000000000000260  0000000000000010  WA       6     0     8
+  [23] .got              PROGBITS         000000000007fc70  0006fc70
+       0000000000000378  0000000000000008  WA       0     0     8
+  [24] .got.plt          PROGBITS         000000000007ffe8  0006ffe8
+       0000000000000830  0000000000000008  WA       0     0     8
+  [25] .data             PROGBITS         0000000000080818  00070818
+       000000000000004c  0000000000000000  WA       0     0     8
+  [26] .bss              NOBITS           0000000000080868  00070864
+       0000000000000748  0000000000000000  WA       0     0     8
+  [27] .comment          PROGBITS         0000000000000000  00070864
+       0000000000000054  0000000000000001  MS       0     0     1
+  [28] .debug_info       PROGBITS         0000000000000000  000708b8
+       00000000001ac0af  0000000000000000           0     0     1
+  [29] .debug_abbrev     PROGBITS         0000000000000000  0021c967
+       000000000000ba77  0000000000000000           0     0     1
+  [30] .debug_line       PROGBITS         0000000000000000  002283de
+       000000000003c747  0000000000000000           0     0     1
+  [31] .debug_str        PROGBITS         0000000000000000  00264b25
+       0000000000120e4f  0000000000000001  MS       0     0     1
+  [32] .debug_addr       PROGBITS         0000000000000000  00385974
+       000000000001cec0  0000000000000000           0     0     1
+  [33] .debug_line_str   PROGBITS         0000000000000000  003a2834
+       0000000000000ef4  0000000000000001  MS       0     0     1
+  [34] .debug_loclists   PROGBITS         0000000000000000  003a3728
+       000000000004a9e5  0000000000000000           0     0     1
+  [35] .debug_rnglists   PROGBITS         0000000000000000  003ee10d
+       00000000000215e9  0000000000000000           0     0     1
+  [36] .debug_str_o[...] PROGBITS         0000000000000000  0040f6f6
+       0000000000025ed8  0000000000000000           0     0     1
+  [37] .symtab           SYMTAB           0000000000000000  004355d0
+       000000000000d608  0000000000000018          38   1232     8
+  [38] .strtab           STRTAB           0000000000000000  00442bd8
+       0000000000013187  0000000000000000           0     0     1
+  [39] .shstrtab         STRTAB           0000000000000000  00455d5f
+       00000000000001a2  0000000000000000           0     0     1
+Key to Flags:
+  W (write), A (alloc), X (execute), M (merge), S (strings), I (info),
+  L (link order), O (extra OS processing required), G (group), T (TLS),
+  C (compressed), x (unknown), o (OS specific), E (exclude),
+  D (mbind), p (processor specific)
+
+[disk] exit=0
+$ /bin/df -h /data/openpilot
+Filesystem       Size  Used Avail Use% Mounted on
+/dev/mmcblk0p12  8.2G  6.6G  1.2G  86% /data
+
+[harmless_sigabrt_capture] exit=0
+$ /usr/bin/gdb -q -batch -ex set pagination off -ex set debuginfod enabled off -ex set print frame-arguments none -ex handle SIGABRT stop print pass -ex run -ex thread apply all bt 30 -ex continue --args /bin/sh -c kill -ABRT $$
+
+This GDB supports auto-downloading debuginfo from the following URLs:
+  <https://debuginfod.ubuntu.com>
+Enable debuginfod for this session? (y or [n]) [answered N; input not from terminal]
+Debuginfod has been disabled.
+To make this setting permanent, add 'set debuginfod enabled off' to .gdbinit.
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/aarch64-linux-gnu/libthread_db.so.1".
+
+Program received signal SIGABRT, Aborted.
+0x0000007ff7decd8c in kill () from /lib/aarch64-linux-gnu/libc.so.6
+
+Thread 1 (Thread 0x7ff7fe9020 (LWP 3989595) "sh"):
+#0  0x0000007ff7decd8c in kill () from /lib/aarch64-linux-gnu/libc.so.6
+#1  0x000000555560cdac in kill_builtin ()
+#2  0x00000055555a2910 in ?? ()
+#3  0x00000055555aa4c0 in ?? ()
+#4  0x000000555559cf1c in execute_command_internal ()
+#5  0x0000005555606410 in parse_and_execute ()
+#6  0x0000005555670504 in ?? ()
+#7  0x000000555558492c in main ()
+
+Program terminated with signal SIGABRT, Aborted.
+The program no longer exists.
+harmless_sigabrt_capture_status=PASS

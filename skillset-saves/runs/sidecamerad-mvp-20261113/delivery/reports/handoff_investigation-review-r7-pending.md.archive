@@ -1,0 +1,62 @@
+---
+submission_id: sidecamerad-mvp-20261113_handoff-5_attempt-1_2026-11-15T13:17:14Z
+revision: "7"
+package_path: skillset-saves/runs/sidecamerad-mvp-20261113/investigation/manifest.json
+submission_status: PENDING
+verdict: PENDING
+---
+
+# Cross-stage handoff: investigation review
+
+## Package
+
+- Boundary: `investigation-review` (INVESTIGATE returning to BUILD)
+- Investigation revision: `7`
+- Investigation submission: `sidecamerad-mvp-20261113_investigation-ac4-timing-r7`
+- Manifest: `skillset-saves/runs/sidecamerad-mvp-20261113/investigation/manifest.json`
+- Manifest SHA-256: `ea45c0984b53ecd9e2fef5fb280c56fafd8cb369fb63f44f5e31a4cfdfbaf540`
+- Report: `skillset-saves/runs/sidecamerad-mvp-20261113/investigation/reports/investigation-package.md`
+- Report SHA-256: `35210e5f097b0ed2dc2b1607bdf9d97ea4b61b53eb5377526a8a0fe9f9181eb4`
+- Evidence chain: `skillset-saves/runs/sidecamerad-mvp-20261113/investigation/evidence/evidence-chain-r7.log`
+- Evidence-chain SHA-256: `332fc786c22f458166b14dccbc4a338b2f9aedf761fbe6a9efa5c7602c700cdc`
+- GDB feasibility report SHA-256: `7d58e08a8383fbee735c4b9cd411542801fdbbccf9a441957486304f1c4a481d`
+- GDB command log SHA-256: `eb03bdede78cd20e69b7e8dc12241fda9f087a79b2c3220ad10461fa48351732`
+- Canonical investigation self-check: passed with zero failures and warnings.
+- Revision 6 package and manifest are preserved byte-for-byte at `investigation/reports/investigation-package-r6.md` and `investigation/artifacts/manifest-r6.json`. Its approved cross-stage verdict is preserved at `investigation/verdict_investigation-review-r6.cross-stage.json` (SHA-256 `4f9442e3f0432b39e080f7a37cdd603c71ed52ed7a345f8e7f1bde478be713b7`), and its approved handoff is preserved at `delivery/reports/handoff_investigation-review-r6-approved.md.archive`.
+
+## Revision delta from revision 6: integrity repair
+
+Revision 6 passed its cross-stage review before the gate wrote its verdict, but the revision-6 manifest had hashed the prior r5 verdict at the mutable canonical path `verdict_investigation-review.cross-stage.json`. The gate wrote the new r6 verdict to that same path, replacing the bytes that the r6 manifest referenced. A post-verdict boundary check therefore reported a stale artifact hash. The r6 verdict itself has been preserved byte-for-byte for lineage.
+
+Revision 7 removes that mutable canonical verdict path from its artifact hashes and evidence-chain inputs, and binds the immutable r6 verdict archive instead. This repairs the evidence binding only; it does not alter the technical findings or diagnostic plan. AC-4 remains failed, and no new capture, test, product source change, or AC-4 fix occurred.
+
+## Finding and bounded BUILD path
+
+The accepted five-minute current-source reproduction remains 6,050 matched frames over 302.506666 seconds, mean 20.000523 fps, maximum EOF gap 89.163715 ms, and 753/6,049 gaps above 60 ms. This fails AC-4's maximum-gap criterion. The evidence localizes jitter after V4L2 dequeue and before raw-pipe delivery inside FFmpeg processing/output, but the exact internal wait/processing cause remains unresolved. PTS are V4L2 SOE, not EOF; keep `timestampEof` as host-monotonic time sampled after each complete raw-frame read.
+
+**Owner:** BUILD through `build/build-management`, only after revision 7 is approved.
+
+If approved, run one 600-frame diagnostic on the same assigned camera using the fixed FFmpeg executable and unchanged default production argv. Keep the 1280×720 MJPEG-to-NV12 mode, one decoder thread, one filter thread, queue size 1, the same camera, and the same reader. Save no frame payload. After startup, arm a one-shot monotonic watchdog for each in-flight full-frame read; if it remains incomplete for more than 60 ms, take at most one GDB snapshot for that read. Re-arm only after that frame completes; allow at most three snapshots total. Verify the target PID is the live FFmpeg child and `/proc/<pid>/exe` plus its command line match the fixed executable and expected argv. Use `gdb --quiet --batch --nx --pid <pid>` with pagination and confirmation off, debuginfod disabled, `info threads`, `thread apply all bt 16`, then detach and quit. Record monotonic trigger, attach, detach, and full-read-completion times, debugger pause duration, and TID/LWP mapping. Do not use `strace` or another tracer. Abort and clean up if PID verification, attach, backtrace collection, or detach fails.
+
+GDB stops FFmpeg threads while collecting each snapshot, so these pauses perturb cadence and may extend each triggering gap. The snapshots are for callsite localization only; their timings cannot measure AC-4 and do not establish causality. This step is diagnostic only, makes no source or argv change, and does not replace a separate accepted five-minute AC-4 run.
+
+## Cross-stage verdict
+
+- Gate: `gatekeeper-admiral`
+- Verdict: **PENDING** for `investigation-review` revision `7`.
+- The r6 approval is preserved as prior lineage, but it does not certify the repaired r7 manifest; a fresh cross-stage judgment is required.
+- The conditional final-summary slot is out of scope for this intermediate investigation-to-BUILD handoff.
+
+## Open evidence limits
+
+- AC-4 remains failed; the accepted run has 753/6,049 EOF intervals above 60 ms.
+- GDB feasibility was proven only for a disposable same-UID Python process; the host ptrace sysctl files were unavailable and one stack ended with an unwind warning.
+- Any future GDB sampling pauses FFmpeg threads and perturbs the triggering intervals; no causal claim follows from the snapshots alone.
+- Futex wait/wake evidence does not identify the awakened TID or prove causality. DQBUF counted 602 calls for 600 outputs without sequence fields, so exact dequeue-to-output identity remains unproven.
+- AC-6 reconnect/sibling continuity and AC-8 four-camera soak remain hardware deferrals; the minor FFmpeg child resource-limit finding remains open.
+
+## Next consumer
+
+Submit revision 7 to `gatekeeper-admiral`. If approved, route the single bounded GDB sampling diagnostic to `build/build-management`; do not run it before approval.
+
+This is an intermediate investigation-to-BUILD handoff; a final delivery package is not in scope.

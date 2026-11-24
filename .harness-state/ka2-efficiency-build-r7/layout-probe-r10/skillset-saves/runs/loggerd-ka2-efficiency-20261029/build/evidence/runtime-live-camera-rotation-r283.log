@@ -1,0 +1,106 @@
+target=local KA2 RK3588 board, actual camerad V4L2 DMA-BUFs
+runner=/data/openpilot/skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/runtime-live-camera-rotation-r283.py
+production_binaries=/data/openpilot/system/camerad/camerad,/data/openpilot/system/loggerd/loggerd,/data/openpilot/system/loggerd/encoderd
+LOGGERD_TEST=1, segment length 2s, deterministic KA2 rotation
+acceptance=3 live camera streams, 2 healthy rotations, zero known drops, 3 segment dirs, all video files decode, idle postflight
+result=pass
+error=none; postflight=pass; data_root=/data/ka2_live_rotation_583380_0zmtcc6f
+   4.326s isolated MSGQ ready: /dev/shm/msgq_ka2_live_rotation_583380_c0993cc5
+   4.328s camerad started pid=583748
+  17.240s camera ready wideRoadCameraState frame_id=1
+  17.271s camera ready roadCameraState frame_id=1
+  17.289s camera ready wideRoadCameraState frame_id=2
+  17.295s camera ready driverCameraState frame_id=1
+  17.298s loggerd started pid=585011
+  17.301s encoderd started pid=585012
+  17.602s loggerd entered segment 0
+  17.603s LoggerdSegment=0; daemons alive
+  19.604s liveness camerad=alive loggerd=alive encoderd=alive segment=0
+  19.703s LoggerdSegment=1; daemons alive
+  21.615s liveness camerad=alive loggerd=alive encoderd=alive segment=1
+  21.924s LoggerdSegment=2; daemons alive
+  22.304s encoderd stopped rc=0
+  22.418s loggerd stopped rc=0
+  26.419s camerad stopped rc=0
+  26.419s healthy rotation segment=1 elapsed_ms=85
+  26.419s healthy rotation segment=2 elapsed_ms=184
+  28.020s segment 0 all six files nonempty; qRoad, road, driver and wide-road decode passed
+  29.755s segment 1 all six files nonempty; qRoad, road, driver and wide-road decode passed
+  30.581s segment 2 all six files nonempty; qRoad, road, driver and wide-road decode passed
+  30.582s live camera path PASS frame_counts={'roadCameraState': 93, 'driverCameraState': 92, 'wideRoadCameraState': 94}
+  30.616s camerad output follows
+CAMERAD system/camerad/main.cc: failed to set camerad core affinity
+CAMERAD rkaiq log level ff1
+CAMERAD XCORE:K:rk_aiq_init_lib, ISP HW ver: 30
+CAMERAD 
+CAMERAD ************************** VERSION INFOS **************************
+CAMERAD version release date: 2024-03-03
+CAMERAD          AIQ:       AIQ v6.0x6.1
+CAMERAD ************************ VERSION INFOS END ************************
+CAMERAD ACCM:E:pCcmMatrixAll_init(246): invalid input params
+CAMERAD 
+CAMERAD IPCSERVER:K:cid[2] Process path:/tmp/UNIX.domain2, sockfd:23
+CAMERAD XCORE:K:cid[2] rk_aiq_uapi_sysctl_init success. iq:
+CAMERAD XCORE:K:cid[2] rk_aiq_uapi_sysctl_setMulCamConc: cc:1
+CAMERAD ACCM:E:pCcmMatrixAll_init(246): invalid input params
+CAMERAD 
+CAMERAD IPCSERVER:K:cid[0] Process path:/tmp/UNIX.domain0, sockfd:41
+CAMERAD XCORE:K:cid[0] rk_aiq_uapi_sysctl_init success. iq:
+CAMERAD XCORE:K:cid[0] rk_aiq_uapi_sysctl_setMulCamConc: cc:1
+CAMERAD ACCM:E:pCcmMatrixAll_init(246): invalid input params
+CAMERAD 
+CAMERAD IPCSERVER:K:cid[1] Process path:/tmp/UNIX.domain1, sockfd:59
+CAMERAD XCORE:K:cid[1] rk_aiq_uapi_sysctl_init success. iq:
+CAMERAD XCORE:K:cid[1] rk_aiq_uapi_sysctl_setMulCamConc: cc:1
+CAMERAD XCORE:K:cid[2] rk_aiq_uapi_sysctl_prepare success. mode:0 
+CAMERAD XCORE:K:cid[0] rk_aiq_uapi_sysctl_prepare success. mode:0 
+CAMERAD XCORE:K:cid[1] rk_aiq_uapi_sysctl_prepare success. mode:0 
+CAMERAD XCORE:E:can't find algo handle 1
+CAMERAD CAMHW:E:dumpRkRawType: 0
+CAMERAD CAMHW:K:cid[2] start success. isGroup:0, isOnline:0, isMultiIsp:0, init_ens:0x80007bc430c
+CAMERAD XCORE:K:cid[2] rk_aiq_uapi_sysctl_start success.
+CAMERAD XCORE:E:can't find algo handle 1
+CAMERAD CAMHW:E:dumpRkRawType: 0
+CAMERAD CAMHW:K:cid[0] start success. isGroup:0, isOnline:0, isMultiIsp:0, init_ens:0x80007bc431c
+CAMERAD XCORE:K:cid[0] rk_aiq_uapi_sysctl_start success.
+CAMERAD XCORE:E:can't find algo handle 1
+CAMERAD CAMHW:E:dumpRkRawType: 0
+CAMERAD CAMHW:K:cid[1] start success. isGroup:0, isOnline:0, isMultiIsp:0, init_ens:0x80007bc430c
+CAMERAD XCORE:K:cid[1] rk_aiq_uapi_sysctl_start success.
+CAMERAD rga_api version 1.10.0_[8]
+CAMERAD XCORE:K:cid[1] rk_aiq_uapi_sysctl_stop success.
+CAMERAD IPCSERVER:K:cid[1] Deinit success
+CAMERAD MessageParser process loop exit!
+CAMERAD XCORE:K:cid[1] rk_aiq_uapi_sysctl_deinit_locked success.
+CAMERAD XCORE:K:cid[0] rk_aiq_uapi_sysctl_stop success.
+CAMERAD IPCSERVER:K:cid[0] Deinit success
+CAMERAD MessageParser process loop exit!
+CAMERAD XCORE:K:cid[0] rk_aiq_uapi_sysctl_deinit_locked success.
+CAMERAD XCORE:K:cid[2] rk_aiq_uapi_sysctl_stop success.
+CAMERAD IPCSERVER:K:cid[2] Deinit success
+CAMERAD MessageParser process loop exit!
+CAMERAD XCORE:K:cid[2] rk_aiq_uapi_sysctl_deinit_locked success.
+  30.617s loggerd output follows
+LOGGERD system/loggerd/loggerd.cc: logging to /data/ka2_live_rotation_583380_0zmtcc6f/logs/2026-10-31--15-23-34--0
+LOGGERD system/loggerd/loggerd.cc: qRoadEncodeData: dropped 12 non iframe packets before init
+LOGGERD system/loggerd/loggerd.cc: roadEncodeData: dropped 27 non iframe packets before init
+LOGGERD system/loggerd/loggerd.cc: wideRoadEncodeData: dropped 27 non iframe packets before init
+LOGGERD system/loggerd/loggerd.cc: driverEncodeData: dropped 27 non iframe packets before init
+LOGGERD system/loggerd/loggerd.cc: rotated to /data/ka2_live_rotation_583380_0zmtcc6f/logs/2026-10-31--15-23-34--1
+LOGGERD system/loggerd/loggerd.cc: rotated to /data/ka2_live_rotation_583380_0zmtcc6f/logs/2026-10-31--15-23-34--2
+LOGGERD system/loggerd/loggerd.cc: closing logger
+  30.617s encoderd output follows
+ENCODERD system/loggerd/encoderd.cc: encoder road_cam_encoder init 1920x1200
+ENCODERD system/loggerd/encoderd.cc: encoder wide_road_cam_encoder init 1920x1200
+ENCODERD system/loggerd/encoderd.cc: encoder driver_cam_encoder init 1920x1200
+ENCODERD rga_api version 1.10.0_[8]
+ENCODERD system/loggerd/encoderd.cc: encoder road_cam_encoder ignoring invalid LoggerdRotateState value
+ENCODERD system/loggerd/encoderd.cc: encoder road_cam_encoder ignoring invalid LoggerdSegmentEpoch value
+ENCODERD system/loggerd/encoderd.cc: encoder road_cam_encoder ignoring invalid LoggerdSegment value
+ENCODERD system/loggerd/encoderd.cc: encoder road_cam_encoder applying global segment catch-up 0 -> 1 phase=pre_rotate_barrier loggerd_state=started epoch=1
+ENCODERD system/loggerd/encoderd.cc: encoder wide_road_cam_encoder applying global segment catch-up 0 -> 1 phase=pre_rotate_barrier loggerd_state=committed epoch=1
+ENCODERD system/loggerd/encoderd.cc: encoder driver_cam_encoder applying global segment catch-up 0 -> 1 phase=pre_rotate_barrier loggerd_state=started epoch=1
+ENCODERD system/loggerd/encoderd.cc: encoder road_cam_encoder applying global segment catch-up 1 -> 2 phase=pre_rotate_barrier loggerd_state=started epoch=2
+ENCODERD system/loggerd/encoderd.cc: encoder wide_road_cam_encoder applying global segment catch-up 1 -> 2 phase=pre_rotate_barrier loggerd_state=committed epoch=2
+ENCODERD system/loggerd/encoderd.cc: encoder driver_cam_encoder applying global segment catch-up 1 -> 2 phase=pre_rotate_barrier loggerd_state=committed epoch=2
+  34.868s postflight PASS: no camera/logger/encoder process or video/MPP/RGA device users

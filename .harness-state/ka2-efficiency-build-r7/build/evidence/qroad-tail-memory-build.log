@@ -1,0 +1,29 @@
+In file included from skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-memory-harness.cc:27:
+In file included from ./system/loggerd/encoder/encoder.h:20:
+./system/loggerd/loggerd.h:129:18: warning: ISO C++ requires field designators to be specified in declaration order; field 'get_settings' will be initialized after field 'frame_width' [-Wreorder-init-list]
+  129 |   .frame_width = 526,
+      |   ~~~~~~~~~~~~~~~^~~
+./system/loggerd/loggerd.h:128:19: note: previous initialization for field 'get_settings' is here
+  128 |   .get_settings = [](int){return EncoderSettings::QcamEncoderSettings();},
+      |                   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+./system/loggerd/loggerd.h:131:20: warning: ISO C++ requires field designators to be specified in declaration order; field 'frame_height' will be initialized after field 'include_audio' [-Wreorder-init-list]
+  131 |   .include_audio = Params().getBool("RecordAudio"),
+      |   ~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+./system/loggerd/loggerd.h:130:19: note: previous initialization for field 'frame_height' is here
+  130 |   .frame_height = 330,
+      |                   ^~~
+In file included from skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-memory-harness.cc:32:
+./system/loggerd/encoder/mpp_encoder.h:25:7: warning: 'encode_frame' overrides a member function but is not marked 'override' [-Winconsistent-missing-override]
+   25 |   int encode_frame(VisionBuf* buf, VisionIpcBufExtra *extra);
+      |       ^
+./system/loggerd/encoder/encoder.h:26:15: note: overridden virtual function is here
+   26 |   virtual int encode_frame(VisionBuf* buf, VisionIpcBufExtra *extra) = 0;
+      |               ^
+In file included from skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-memory-harness.cc:32:
+./system/loggerd/encoder/mpp_encoder.h:27:8: warning: 'encoder_close' overrides a member function but is not marked 'override' [-Winconsistent-missing-override]
+   27 |   void encoder_close();
+      |        ^
+./system/loggerd/encoder/encoder.h:28:16: note: overridden virtual function is here
+   28 |   virtual void encoder_close() = 0;
+      |                ^
+4 warnings generated.

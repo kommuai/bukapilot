@@ -1,0 +1,98 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-9.0.2, pluggy-1.6.0 -- /usr/local/venv/bin/python3
+cachedir: .pytest_cache
+Using --randomly-seed=1078622192
+rootdir: /data/openpilot
+configfile: pyproject.toml
+plugins: timeout-2.4.0, repeat-0.9.4, xdist-3.7.1.dev24+g2b4372bd6, randomly-4.0.1, asyncio-1.3.0, mock-3.15.1, cpp-2.6.0
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=function, asyncio_default_test_loop_scope=function
+collecting ... collected 1 item
+
+system/loggerd/tests/test_loggerd_liveness.py::test_ka2_output_fault_preserves_qroad[drain_timeout] KA2 test-build command: /usr/local/venv/bin/scons -Q -j2 --ccflags=-DLOGGERD_TEST_BUILD system/loggerd/loggerd system/loggerd/encoderd build/system/loggerd/tests/visionipc_dmabuf_publisher
+Retrieved `system/loggerd/loggerd.o' from cache
+Retrieved `system/loggerd/logger.o' from cache
+Retrieved `system/loggerd/zstd_writer.o' from cache
+Retrieved `system/loggerd/memory_pressure.o' from cache
+Retrieved `system/loggerd/video_writer.o' from cache
+Retrieved `system/loggerd/encoder/encoder.o' from cache
+Retrieved `system/loggerd/encoder/v4l_encoder.o' from cache
+Retrieved `system/loggerd/encoder/jpeg_encoder.o' from cache
+Retrieved `system/loggerd/encoder/mpp_encoder.o' from cache
+Retrieved `common/params.o' from cache
+Retrieved `common/swaglog.o' from cache
+Retrieved `system/loggerd/liblogger.a' from cache
+Retrieved `common/util.o' from cache
+Retrieved `common/ratekeeper.o' from cache
+Retrieved `common/clutil.o' from cache
+Retrieved `common/rkutil.o' from cache
+Retrieved `third_party/json11/json11.o' from cache
+Retrieved `cereal/messaging/socketmaster.o' from cache
+Retrieved `msgq_repo/msgq/ipc.os' from cache
+Retrieved `msgq_repo/msgq/event.os' from cache
+Retrieved `msgq_repo/msgq/impl_zmq.os' from cache
+Retrieved `msgq_repo/msgq/impl_msgq.os' from cache
+Retrieved `msgq_repo/msgq/impl_fake.os' from cache
+Retrieved `msgq_repo/msgq/msgq.os' from cache
+Retrieved `msgq_repo/msgq/visionipc/visionipc.os' from cache
+Retrieved `msgq_repo/msgq/visionipc/visionipc_client.os' from cache
+Retrieved `msgq_repo/msgq/visionipc/visionipc_server.os' from cache
+Retrieved `msgq_repo/msgq/visionipc/visionbuf_cl.os' from cache
+Retrieved `msgq_repo/msgq/visionipc/visionbuf.os' from cache
+clang++ -o system/loggerd/encoderd.o -c -std=c++1z -DRK3588 -g -fPIC -O2 -Wunused -Werror -Wshadow -Wno-unknown-warning-option -Wno-inconsistent-missing-override -Wno-c99-designator -Wno-reorder-init-list -Wno-vla-cxx-extension -DRK3588 -DLOGGERD_TEST_BUILD -I. -Imsgq -Ithird_party -Ithird_party/json11 -Ithird_party/linux/include -Ithird_party/acados/include -Ithird_party/acados/include/blasfeo/include -Ithird_party/acados/include/hpipm/include -Ithird_party/catch2/include -Ithird_party/libyuv/include -Ithird_party/opencl/include -Ithird_party/rknpu/include -I/usr/include/rockchip -I/usr/local/include/rockchip -I/usr/include/rkaiq -I/usr/include/rkaiq/algos -I/usr/include/rkaiq/iq_parser -I/usr/include/rkaiq/smartIr -I/usr/include/rkaiq/common -I/usr/include/rkaiq/iq_parser_v2 -I/usr/include/rkaiq/isp -I/usr/include/rkaiq/ipc_server -I/usr/include/rkaiq/uAPI2 -I/usr/include/rkaiq/xcore -I/usr/include/rkaiq/algos/aynr2 -I/usr/include/rkaiq/algos/anr -I/usr/include/rkaiq/algos/adehaze -I/usr/include/rkaiq/algos/aldch -I/usr/include/rkaiq/algos/accm -I/usr/include/rkaiq/algos/again2 -I/usr/include/rkaiq/algos/amd -I/usr/include/rkaiq/algos/afec -I/usr/include/rkaiq/algos/auvnr -I/usr/include/rkaiq/algos/aynr3 -I/usr/include/rkaiq/algos/acp -I/usr/include/rkaiq/algos/asd -I/usr/include/rkaiq/algos/argbir -I/usr/include/rkaiq/algos/a3dlut -I/usr/include/rkaiq/algos/acnr2 -I/usr/include/rkaiq/algos/agamma -I/usr/include/rkaiq/algos/acgc -I/usr/include/rkaiq/algos/acnrV30 -I/usr/include/rkaiq/algos/ablcV32 -I/usr/include/rkaiq/algos/asharpV33 -I/usr/include/rkaiq/algos/atmo -I/usr/include/rkaiq/algos/adegamma -I/usr/include/rkaiq/algos/asharp -I/usr/include/rkaiq/algos/aie -I/usr/include/rkaiq/algos/arawnr2 -I/usr/include/rkaiq/algos/amfnr -I/usr/include/rkaiq/algos/acac -I/usr/include/rkaiq/algos/acnr -I/usr/include/rkaiq/algos/alsc -I/usr/include/rkaiq/algos/aeis -I/usr/include/rkaiq/algos/adebayer -I/usr/include/rkaiq/algos/arawnr -I/usr/include/rkaiq/algos/agic -I/usr/include/rkaiq/algos/abayertnrV23 -I/usr/include/rkaiq/algos/adpcc -I/usr/include/rkaiq/algos/asharp3 -I/usr/include/rkaiq/algos/aorb -I/usr/include/rkaiq/algos/again -I/usr/include/rkaiq/algos/amerge -I/usr/include/rkaiq/algos/adrc -I/usr/include/rkaiq/algos/abayertnrV30 -I/usr/include/rkaiq/algos/awb -I/usr/include/rkaiq/algos/asharp4 -I/usr/include/rkaiq/algos/asharpV34 -I/usr/include/rkaiq/algos/aynrV24 -I/usr/include/rkaiq/algos/ae -I/usr/include/rkaiq/algos/ablc -I/usr/include/rkaiq/algos/abayer2dnr2 -I/usr/include/rkaiq/algos/acsm -I/usr/include/rkaiq/algos/aynrV22 -I/usr/include/rkaiq/algos/acnrV31 -I/usr/include/rkaiq/algos/af -I/usr/include/rkaiq/algos/aynr -I/usr/include/rkaiq/algos/abayertnr2 -I/usr/include/rkaiq/algos/ayuvmeV1 -I/usr/include/rkaiq/algos/abayer2dnrV23 -I/usr/include/rkaiq/algos/afd -I/usr/include/rkaiq/common/mediactl -I/usr/include/rkaiq/iq_parser_v2/j2s -I/usr/include/rkaiq/xcore/base -I/usr/include/rkaiq/algos/anr/tnr_md system/loggerd/encoderd.cc
+Retrieved `system/loggerd/loggerd' from cache
+Retrieved `system/loggerd/tests/visionipc_dmabuf_publisher.o' from cache
+scons: `build/system/loggerd/tests/visionipc_dmabuf_publisher' is up to date.
+clang++ -o system/loggerd/encoderd -Wl,--as-needed -Wl,--no-undefined system/loggerd/encoderd.o -Lcommon -Lmsgq_repo -Lthird_party -Lselfdrive/pandad -Lrednose/helpers -Lthird_party/libyuv/larch64/lib -Lthird_party/acados/larch64/lib -L/usr/local/lib -L/system/vendor/lib64 -L/usr/lib/aarch64-linux-gnu -Lthird_party/rknpu/larch64 system/loggerd/liblogger.a common/libcommon.a -ljson11 -lzmq cereal/libsocketmaster.a msgq_repo/libmsgq.a -lcapnp -lkj msgq_repo/libvisionipc.a -lavformat -lavcodec -lavutil -lyuv -lOpenCL -lpthread -lzstd -lrockchip_mpp -lrga -ljpeg
+preflight pgrep -x camerad: no active process
+preflight pgrep -x encoderd: no active process
+preflight pgrep -x loggerd: no active process
+preflight fuser -v /dev/media0: exit=1 preflight fuser -v /dev/media1: exit=1 preflight fuser -v /dev/media2: exit=1 preflight fuser -v /dev/media3: exit=1 preflight fuser -v /dev/media4: exit=1 preflight fuser -v /dev/media5: exit=1 preflight fuser -v /dev/mpp_service: exit=1 preflight fuser -v /dev/rga: exit=1 preflight fuser -v /dev/v4l-subdev0: exit=1 preflight fuser -v /dev/v4l-subdev1: exit=1 preflight fuser -v /dev/v4l-subdev10: exit=1 preflight fuser -v /dev/v4l-subdev11: exit=1 preflight fuser -v /dev/v4l-subdev12: exit=1 preflight fuser -v /dev/v4l-subdev13: exit=1 preflight fuser -v /dev/v4l-subdev14: exit=1 preflight fuser -v /dev/v4l-subdev2: exit=1 preflight fuser -v /dev/v4l-subdev3: exit=1 preflight fuser -v /dev/v4l-subdev4: exit=1 preflight fuser -v /dev/v4l-subdev5: exit=1 preflight fuser -v /dev/v4l-subdev6: exit=1 preflight fuser -v /dev/v4l-subdev7: exit=1 preflight fuser -v /dev/v4l-subdev8: exit=1 preflight fuser -v /dev/v4l-subdev9: exit=1 preflight fuser -v /dev/video0: exit=1 preflight fuser -v /dev/video1: exit=1 preflight fuser -v /dev/video10: exit=1 preflight fuser -v /dev/video11: exit=1 preflight fuser -v /dev/video12: exit=1 preflight fuser -v /dev/video13: exit=1 preflight fuser -v /dev/video14: exit=1 preflight fuser -v /dev/video15: exit=1 preflight fuser -v /dev/video16: exit=1 preflight fuser -v /dev/video17: exit=1 preflight fuser -v /dev/video18: exit=1 preflight fuser -v /dev/video19: exit=1 preflight fuser -v /dev/video2: exit=1 preflight fuser -v /dev/video20: exit=1 preflight fuser -v /dev/video21: exit=1 preflight fuser -v /dev/video22: exit=1 preflight fuser -v /dev/video23: exit=1 preflight fuser -v /dev/video24: exit=1 preflight fuser -v /dev/video25: exit=1 preflight fuser -v /dev/video26: exit=1 preflight fuser -v /dev/video27: exit=1 preflight fuser -v /dev/video28: exit=1 preflight fuser -v /dev/video29: exit=1 preflight fuser -v /dev/video3: exit=1 preflight fuser -v /dev/video30: exit=1 preflight fuser -v /dev/video31: exit=1 preflight fuser -v /dev/video32: exit=1 preflight fuser -v /dev/video33: exit=1 preflight fuser -v /dev/video34: exit=1 preflight fuser -v /dev/video35: exit=1 preflight fuser -v /dev/video36: exit=1 preflight fuser -v /dev/video37: exit=1 preflight fuser -v /dev/video38: exit=1 preflight fuser -v /dev/video39: exit=1 preflight fuser -v /dev/video4: exit=1 preflight fuser -v /dev/video40: exit=1 preflight fuser -v /dev/video41: exit=1 preflight fuser -v /dev/video42: exit=1 preflight fuser -v /dev/video43: exit=1 preflight fuser -v /dev/video44: exit=1 preflight fuser -v /dev/video45: exit=1 preflight fuser -v /dev/video46: exit=1 preflight fuser -v /dev/video47: exit=1 preflight fuser -v /dev/video48: exit=1 preflight fuser -v /dev/video49: exit=1 preflight fuser -v /dev/video5: exit=1 preflight fuser -v /dev/video50: exit=1 preflight fuser -v /dev/video51: exit=1 preflight fuser -v /dev/video52: exit=1 preflight fuser -v /dev/video53: exit=1 preflight fuser -v /dev/video54: exit=1 preflight fuser -v /dev/video55: exit=1 preflight fuser -v /dev/video56: exit=1 preflight fuser -v /dev/video57: exit=1 preflight fuser -v /dev/video58: exit=1 preflight fuser -v /dev/video59: exit=1 preflight fuser -v /dev/video6: exit=1 preflight fuser -v /dev/video7: exit=1 preflight fuser -v /dev/video8: exit=1 preflight fuser -v /dev/video9: exit=1 preflight pgrep -x camerad: no active process
+preflight pgrep -x encoderd: no active process
+preflight pgrep -x loggerd: no active process
+preflight fuser -v /dev/media0: exit=1 preflight fuser -v /dev/media1: exit=1 preflight fuser -v /dev/media2: exit=1 preflight fuser -v /dev/media3: exit=1 preflight fuser -v /dev/media4: exit=1 preflight fuser -v /dev/media5: exit=1 preflight fuser -v /dev/mpp_service: exit=1 preflight fuser -v /dev/rga: exit=1 preflight fuser -v /dev/v4l-subdev0: exit=1 preflight fuser -v /dev/v4l-subdev1: exit=1 preflight fuser -v /dev/v4l-subdev10: exit=1 preflight fuser -v /dev/v4l-subdev11: exit=1 preflight fuser -v /dev/v4l-subdev12: exit=1 preflight fuser -v /dev/v4l-subdev13: exit=1 preflight fuser -v /dev/v4l-subdev14: exit=1 preflight fuser -v /dev/v4l-subdev2: exit=1 preflight fuser -v /dev/v4l-subdev3: exit=1 preflight fuser -v /dev/v4l-subdev4: exit=1 preflight fuser -v /dev/v4l-subdev5: exit=1 preflight fuser -v /dev/v4l-subdev6: exit=1 preflight fuser -v /dev/v4l-subdev7: exit=1 preflight fuser -v /dev/v4l-subdev8: exit=1 preflight fuser -v /dev/v4l-subdev9: exit=1 preflight fuser -v /dev/video0: exit=1 preflight fuser -v /dev/video1: exit=1 preflight fuser -v /dev/video10: exit=1 preflight fuser -v /dev/video11: exit=1 preflight fuser -v /dev/video12: exit=1 preflight fuser -v /dev/video13: exit=1 preflight fuser -v /dev/video14: exit=1 preflight fuser -v /dev/video15: exit=1 preflight fuser -v /dev/video16: exit=1 preflight fuser -v /dev/video17: exit=1 preflight fuser -v /dev/video18: exit=1 preflight fuser -v /dev/video19: exit=1 preflight fuser -v /dev/video2: exit=1 preflight fuser -v /dev/video20: exit=1 preflight fuser -v /dev/video21: exit=1 preflight fuser -v /dev/video22: exit=1 preflight fuser -v /dev/video23: exit=1 preflight fuser -v /dev/video24: exit=1 preflight fuser -v /dev/video25: exit=1 preflight fuser -v /dev/video26: exit=1 preflight fuser -v /dev/video27: exit=1 preflight fuser -v /dev/video28: exit=1 preflight fuser -v /dev/video29: exit=1 preflight fuser -v /dev/video3: exit=1 preflight fuser -v /dev/video30: exit=1 preflight fuser -v /dev/video31: exit=1 preflight fuser -v /dev/video32: exit=1 preflight fuser -v /dev/video33: exit=1 preflight fuser -v /dev/video34: exit=1 preflight fuser -v /dev/video35: exit=1 preflight fuser -v /dev/video36: exit=1 preflight fuser -v /dev/video37: exit=1 preflight fuser -v /dev/video38: exit=1 preflight fuser -v /dev/video39: exit=1 preflight fuser -v /dev/video4: exit=1 preflight fuser -v /dev/video40: exit=1 preflight fuser -v /dev/video41: exit=1 preflight fuser -v /dev/video42: exit=1 preflight fuser -v /dev/video43: exit=1 preflight fuser -v /dev/video44: exit=1 preflight fuser -v /dev/video45: exit=1 preflight fuser -v /dev/video46: exit=1 preflight fuser -v /dev/video47: exit=1 preflight fuser -v /dev/video48: exit=1 preflight fuser -v /dev/video49: exit=1 preflight fuser -v /dev/video5: exit=1 preflight fuser -v /dev/video50: exit=1 preflight fuser -v /dev/video51: exit=1 preflight fuser -v /dev/video52: exit=1 preflight fuser -v /dev/video53: exit=1 preflight fuser -v /dev/video54: exit=1 preflight fuser -v /dev/video55: exit=1 preflight fuser -v /dev/video56: exit=1 preflight fuser -v /dev/video57: exit=1 preflight fuser -v /dev/video58: exit=1 preflight fuser -v /dev/video59: exit=1 preflight fuser -v /dev/video6: exit=1 preflight fuser -v /dev/video7: exit=1 preflight fuser -v /dev/video8: exit=1 preflight fuser -v /dev/video9: exit=1 publisher stdout after command reads:
+ (no remaining output)
+complete loggerd stdout:
+ system/loggerd/loggerd.cc: logging to /data/openpilot/.harness-state/ka2-efficiency-build-r7/ac6-focused-r266/test_ka2_output_fault_preserve0/drain_timeout/logs/2026-10-31--13-30-22--0
+system/loggerd/loggerd.cc: rotated to /data/openpilot/.harness-state/ka2-efficiency-build-r7/ac6-focused-r266/test_ka2_output_fault_preserve0/drain_timeout/logs/2026-10-31--13-30-22--1
+system/loggerd/loggerd.cc: rotated to /data/openpilot/.harness-state/ka2-efficiency-build-r7/ac6-focused-r266/test_ka2_output_fault_preserve0/drain_timeout/logs/2026-10-31--13-30-22--2
+system/loggerd/loggerd.cc: closing logger
+
+complete encoderd stdout:
+ system/loggerd/encoderd.cc: encoder wide_road_cam_encoder init 1920x1200
+system/loggerd/encoderd.cc: encoder road_cam_encoder init 1920x1200
+system/loggerd/encoderd.cc: encoder driver_cam_encoder init 1920x1200
+rga_api version 1.10.0_[8]
+system/loggerd/encoderd.cc: encoder road_cam_encoder applying global segment catch-up 0 -> 1 phase=pre_rotate_barrier loggerd_state=started epoch=1
+system/loggerd/encoderd.cc: encoder driver_cam_encoder applying global segment catch-up 0 -> 1 phase=pre_rotate_barrier loggerd_state=started epoch=1
+system/loggerd/encoderd.cc: LOGGERD_TEST_MPP_COUNTERS stream=driverEncodeData cur_seg=1 segment_transition_reopen_count=1 failure_recovery_reopen_count=0 failure_retry_count=0
+system/loggerd/encoderd.cc: encoder wide_road_cam_encoder applying global segment catch-up 0 -> 1 phase=pre_rotate_barrier loggerd_state=started epoch=1
+system/loggerd/encoderd.cc: LOGGERD_TEST_MPP_COUNTERS stream=wideRoadEncodeData cur_seg=1 segment_transition_reopen_count=1 failure_recovery_reopen_count=0 failure_retry_count=0
+system/loggerd/encoder/mpp_encoder.cc: dropping 1 pending encoded packets on forced close
+system/loggerd/encoderd.cc: encoder road_cam_encoder output roadEncodeData unavailable (segment drain deadline); retry in 1 sec
+system/loggerd/encoderd.cc: encoder road_cam_encoder segment 0 shared 900 ms drain deadline expired; quarantined pending outputs: roadEncodeData
+system/loggerd/encoderd.cc: LOGGERD_TEST_MPP_COUNTERS stream=qRoadEncodeData cur_seg=1 segment_transition_reopen_count=1 failure_recovery_reopen_count=0 failure_retry_count=0
+system/loggerd/encoderd.cc: encoder road_cam_encoder lag  buffer id: 60 extra id: 44
+system/loggerd/encoderd.cc: LOGGERD_TEST_MPP_COUNTERS stream=roadEncodeData cur_seg=1 segment_transition_reopen_count=0 failure_recovery_reopen_count=0 failure_retry_count=1
+system/loggerd/encoderd.cc: LOGGERD_TEST_MPP_COUNTERS stream=roadEncodeData cur_seg=1 segment_transition_reopen_count=0 failure_recovery_reopen_count=1 failure_retry_count=1
+system/loggerd/encoderd.cc: encoder road_cam_encoder output roadEncodeData recovered at segment 1
+system/loggerd/encoderd.cc: encoder road_cam_encoder applying global segment catch-up 1 -> 2 phase=pre_rotate_barrier loggerd_state=started epoch=2
+system/loggerd/encoderd.cc: encoder driver_cam_encoder applying global segment catch-up 1 -> 2 phase=pre_rotate_barrier loggerd_state=started epoch=2
+system/loggerd/encoderd.cc: LOGGERD_TEST_MPP_COUNTERS stream=roadEncodeData cur_seg=2 segment_transition_reopen_count=1 failure_recovery_reopen_count=1 failure_retry_count=1
+system/loggerd/encoderd.cc: LOGGERD_TEST_MPP_COUNTERS stream=driverEncodeData cur_seg=2 segment_transition_reopen_count=2 failure_recovery_reopen_count=0 failure_retry_count=0
+system/loggerd/encoderd.cc: LOGGERD_TEST_MPP_COUNTERS stream=qRoadEncodeData cur_seg=2 segment_transition_reopen_count=2 failure_recovery_reopen_count=0 failure_retry_count=0
+system/loggerd/encoderd.cc: encoder wide_road_cam_encoder applying global segment catch-up 1 -> 2 phase=pre_rotate_barrier loggerd_state=started epoch=2
+system/loggerd/encoderd.cc: LOGGERD_TEST_MPP_COUNTERS stream=wideRoadEncodeData cur_seg=2 segment_transition_reopen_count=2 failure_recovery_reopen_count=0 failure_retry_count=0
+system/loggerd/encoderd.cc: LOGGERD_TEST_ALL_OUTPUT_REOPEN_COUNT thread=driver_cam_encoder count=0
+system/loggerd/encoderd.cc: LOGGERD_TEST_ALL_OUTPUT_REOPEN_COUNT thread=road_cam_encoder count=0
+system/loggerd/encoderd.cc: LOGGERD_TEST_ALL_OUTPUT_REOPEN_COUNT thread=wide_road_cam_encoder count=0
+
+isolated Params at cleanup: {"CurrentRoute": "2026-10-31--13-30-22", "LoggerdRotateState": "committed", "LoggerdRotationReport": "{\"route\":\"2026-10-31--13-30-22\",\"epoch\":3,\"segment\":2,\"degraded\":false,\"missing_streams\":[],\"elapsed_ms\":161,\"known_drop_counts\":{\"stale_video_messages\":0,\"future_video_queue_drops\":0,\"audio_no_writer_events\":0,\"audio_expired_events\":0,\"audio_capacity_drops\":0}}", "LoggerdSegment": "2", "LoggerdSegmentEpoch": "3"}
+isolated segment files at cleanup: [["2026-10-31--13-30-22--0", [["dcamera.hevc", 25168], ["ecamera.hevc", 25165], ["fcamera.hevc", 25162], ["qcamera.ts", 55460], ["qlog.zst", 3653], ["rlog.zst", 6207]]], ["2026-10-31--13-30-22--1", [["dcamera.hevc", 49485], ["ecamera.hevc", 49489], ["fcamera.hevc", 26948], ["qcamera.ts", 49820], ["qlog.zst", 5481], ["rlog.zst", 7173]]], ["2026-10-31--13-30-22--2", [["dcamera.hevc", 12710], ["ecamera.hevc", 12711], ["fcamera.hevc", 12712], ["qcamera.ts", 19364], ["qlog.zst", 2547], ["rlog.zst", 3295]]]]
+PASSED
+
+============================= slowest 10 durations =============================
+28.82s call     system/loggerd/tests/test_loggerd_liveness.py::test_ka2_output_fault_preserves_qroad[drain_timeout]
+0.01s teardown system/loggerd/tests/test_loggerd_liveness.py::test_ka2_output_fault_preserves_qroad[drain_timeout]
+
+(1 durations < 0.005s hidden.  Use -vv to show these durations.)
+============================== 1 passed in 29.08s ==============================

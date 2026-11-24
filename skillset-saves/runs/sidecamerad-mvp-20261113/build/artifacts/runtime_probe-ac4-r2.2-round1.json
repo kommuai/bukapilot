@@ -1,0 +1,98 @@
+{
+  "artifacts": [
+    "evidence/runtime-smoke-ac4-r2.2-round1.log"
+  ],
+  "command": "Inline Python controller launched python3 system/sidecamerad.py with isolated PARAMS_ROOT and child ZMQ=1; connected local cereal and VisionIPC readers to assigned front-left UVC device; captured at least 6,050 matched frames with raw per-frame EOF timestamps; checked 9007-9010 and Params; SIGTERM-stopped and verified cleanup.",
+  "dependencies": [
+    {
+      "name": "V4L2 UVC decoder",
+      "signal": "/dev/v4l/by-path/platform-xhci-hcd.11.auto-usb-0:1:1.0-video-index0 resolved to /dev/video60; sample={\"buffer_len\": 1382400, \"frame_id\": 1, \"height\": 720, \"sample_bytes\": 4096, \"sample_nonzero_bytes\": 4096, \"stride\": 1280, \"width\": 1280}",
+      "status": "reachable"
+    },
+    {
+      "name": "FFmpeg",
+      "signal": "sidecamerad live decoder emitted 0 VisionIPC records during capture",
+      "status": "degraded"
+    },
+    {
+      "name": "cereal/msgq",
+      "signal": "0 unique cereal records, matching subset 0",
+      "status": "degraded"
+    },
+    {
+      "name": "VisionIPC",
+      "signal": "0 unique VisionIPC records; dimensions/payload sample={\"buffer_len\": 1382400, \"frame_id\": 1, \"height\": 720, \"sample_bytes\": 4096, \"sample_nonzero_bytes\": 4096, \"stride\": 1280, \"width\": 1280}",
+      "status": "degraded"
+    },
+    {
+      "name": "Params",
+      "signal": "during=null after=\"{'frontLeftCameraState': False, 'frontRightCameraState': False, 'backLeftCameraState': False, 'backRightCameraState': False}\"",
+      "status": "degraded"
+    },
+    {
+      "name": "local IPC transport",
+      "signal": "no listener on 9007-9010 after cleanup; startup=[]; pre_shutdown=[]; post_shutdown=[]",
+      "status": "reachable"
+    }
+  ],
+  "environment": "Local /data/openpilot host; source HEAD 6d92d63a2; authorized physical UVC device /dev/video60; Python 3.12.3; parent ZMQ before probe=None, child ZMQ=1 and removed by entrypoint; isolated temporary PARAMS_ROOT removed after shutdown; no video recording; /data/params untouched; no packages installed.",
+  "exit_code": 0,
+  "input_revision": 68,
+  "inputs": [
+    {
+      "path": "system/sidecamerad.py",
+      "sha256": "494fb8b88fda8bcf1d8301225019f4f01f4b77a0bb5cb3e69dde47ed96e1309b"
+    },
+    {
+      "path": "system/manager/process_config.py",
+      "sha256": "b7fdfda2878cae1fa6b354ed512bc33ad66f1abe1ed25c90ed980b547a8aa02d"
+    },
+    {
+      "path": "common/params_keys.h",
+      "sha256": "c2925ebd8f9f26cc04951afb0e3c67ac7cb20a1c370b79aa93a25a4aaef2a031"
+    },
+    {
+      "path": "common/params_pyx.so",
+      "sha256": "3108e29407f31b9bd86a86ccafc82a4f98a225884412987a24be5c357dbfb586"
+    },
+    {
+      "path": "cereal/log.capnp",
+      "sha256": "d5c0372d714e65461942874c91c522b205ce208261b382283839ed03b9731f64"
+    },
+    {
+      "path": "cereal/services.py",
+      "sha256": "cacd4b749d9a0a3e19e3c466784dcf34925f263fdca3c26af72578c47d740a6b"
+    },
+    {
+      "path": "msgq_repo/msgq/visionipc/visionbuf.h",
+      "sha256": "c971a1afa601f5bb8f560de6fb1dd78c2121cee61ea41c169f00a4154566e870"
+    },
+    {
+      "path": "msgq_repo/msgq/visionipc/visionipc_pyx.pyx",
+      "sha256": "36247e353901eb80e52735c91f466151b3026e77152dde9ad9e3bcd682c66f32"
+    },
+    {
+      "path": "msgq_repo/msgq/visionipc/visionipc_server.cc",
+      "sha256": "36b383bfcaf10eaa69f6844a579c86204b4a07464a889208fe059a6c1202d198"
+    }
+  ],
+  "observed_at": "2026-11-15T08:12:17.526895+00:00",
+  "result": {
+    "ac4_one_camera_cadence": "unmeasured-harness-failure",
+    "capture_error": "no matching cereal/VisionIPC frame observed within 20 seconds after start",
+    "eligible_for_ac4_acceptance": false,
+    "harness_failure": "Poller.poll() returns new SubSocket wrapper objects; controller compared by identity with the original and skipped cereal reads.",
+    "raw_per_frame_intervals_artifact": "artifacts/runtime_cadence_intervals-r2.2-round1.json",
+    "runtime_functional_status": "unverified",
+    "status": "fail",
+    "summary": "0 matching frames over 0.000000s; interval mean 0.000000000000 fps; maximum gap 0.000000 ms; 0 intervals over 60 ms; cereal/VisionIPC timestamps matched=True; cleanup exit=0, tcp listeners after shutdown=[]."
+  },
+  "target_revision": "implementation r2.2 recovery refresh; build package revision 68; approved design r2; source HEAD 6d92d63a2",
+  "tool": "Python 3.12.3 inline controller with local cereal/msgq and VisionIPC readers, Params, V4L2 and FFmpeg",
+  "warnings": [
+    "This is one assigned local decoder; AC-6 physical reconnect/sibling continuity and AC-8 four-camera soak remain unverified.",
+    "Start-command discovery helper returned incomplete due project walk byte limit; the handoff-authorized entry command python3 system/sidecamerad.py was executed directly.",
+    "AC-4 strict result: 0.000000000000 fps mean, 0.000000 ms maximum gap, 0 intervals >60 ms.",
+    "This first attempt did not produce cadence evidence and is preserved only as a controller-harness diagnostic."
+  ]
+}

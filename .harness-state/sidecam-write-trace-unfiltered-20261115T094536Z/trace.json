@@ -1,0 +1,4325 @@
+{
+  "bytes_read": 829440000,
+  "camera_node": "/dev/video60",
+  "children_reaped": true,
+  "clock_alignment": {
+    "after": {
+      "bracket_ns": 4667,
+      "monotonic_mid_ns": 9013487111645,
+      "offset_ns": 1794726953573886832,
+      "realtime_ns": 1794735967060998477
+    },
+    "before": {
+      "bracket_ns": 3208,
+      "monotonic_mid_ns": 8982854221432,
+      "offset_ns": 1794726953573886977,
+      "realtime_ns": 1794735936428108409
+    },
+    "estimated_realtime_minus_monotonic_ns": 1794726953573886904,
+    "estimated_uncertainty_ns": 3405,
+    "python": "CLOCK_MONOTONIC",
+    "strace": "realtime epoch (-ttt)"
+  },
+  "completed_frames": 600,
+  "completion_write_pairs": [
+    {
+      "frame_no": 1,
+      "read_complete_mono_ns": 8983433254554,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 2,
+      "read_complete_mono_ns": 8983466057133,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 3,
+      "read_complete_mono_ns": 8983521994546,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 4,
+      "read_complete_mono_ns": 8983576300390,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 5,
+      "read_complete_mono_ns": 8983619215836,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 6,
+      "read_complete_mono_ns": 8983682018020,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 7,
+      "read_complete_mono_ns": 8983726186372,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 8,
+      "read_complete_mono_ns": 8983772304582,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 9,
+      "read_complete_mono_ns": 8983824599069,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 10,
+      "read_complete_mono_ns": 8983866481441,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 11,
+      "read_complete_mono_ns": 8983916418199,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 12,
+      "read_complete_mono_ns": 8983966980202,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 13,
+      "read_complete_mono_ns": 8984018716653,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 14,
+      "read_complete_mono_ns": 8984070788100,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 15,
+      "read_complete_mono_ns": 8984124163577,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 16,
+      "read_complete_mono_ns": 8984176869602,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 17,
+      "read_complete_mono_ns": 8984217730942,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 18,
+      "read_complete_mono_ns": 8984272146535,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 19,
+      "read_complete_mono_ns": 8984325037767,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 20,
+      "read_complete_mono_ns": 8984376948341,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 21,
+      "read_complete_mono_ns": 8984424182749,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 22,
+      "read_complete_mono_ns": 8984468691932,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 23,
+      "read_complete_mono_ns": 8984521995286,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 24,
+      "read_complete_mono_ns": 8984571417842,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 25,
+      "read_complete_mono_ns": 8984628579620,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 26,
+      "read_complete_mono_ns": 8984658872972,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 27,
+      "read_complete_mono_ns": 8984712565448,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 28,
+      "read_complete_mono_ns": 8984775027845,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 29,
+      "read_complete_mono_ns": 8984820776142,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 30,
+      "read_complete_mono_ns": 8984872046432,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 31,
+      "read_complete_mono_ns": 8984919351131,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 32,
+      "read_complete_mono_ns": 8984969893594,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 33,
+      "read_complete_mono_ns": 8985017106253,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 34,
+      "read_complete_mono_ns": 8985060103283,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 35,
+      "read_complete_mono_ns": 8985131474017,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 36,
+      "read_complete_mono_ns": 8985180687658,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 37,
+      "read_complete_mono_ns": 8985223787020,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 38,
+      "read_complete_mono_ns": 8985275994551,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 39,
+      "read_complete_mono_ns": 8985325918311,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 40,
+      "read_complete_mono_ns": 8985365400789,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 41,
+      "read_complete_mono_ns": 8985430817659,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 42,
+      "read_complete_mono_ns": 8985460222688,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 43,
+      "read_complete_mono_ns": 8985522580379,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 44,
+      "read_complete_mono_ns": 8985574047126,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 45,
+      "read_complete_mono_ns": 8985624347883,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 46,
+      "read_complete_mono_ns": 8985673003572,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 47,
+      "read_complete_mono_ns": 8985726768423,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 48,
+      "read_complete_mono_ns": 8985777149972,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 49,
+      "read_complete_mono_ns": 8985817185780,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 50,
+      "read_complete_mono_ns": 8985875112885,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 51,
+      "read_complete_mono_ns": 8985925363185,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 52,
+      "read_complete_mono_ns": 8985969847786,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 53,
+      "read_complete_mono_ns": 8986022132068,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 54,
+      "read_complete_mono_ns": 8986079144515,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 55,
+      "read_complete_mono_ns": 8986131703252,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 56,
+      "read_complete_mono_ns": 8986162620225,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 57,
+      "read_complete_mono_ns": 8986232957053,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 58,
+      "read_complete_mono_ns": 8986266422295,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 59,
+      "read_complete_mono_ns": 8986327507039,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 60,
+      "read_complete_mono_ns": 8986368684128,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 61,
+      "read_complete_mono_ns": 8986422385022,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 62,
+      "read_complete_mono_ns": 8986465948965,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 63,
+      "read_complete_mono_ns": 8986522594876,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 64,
+      "read_complete_mono_ns": 8986561389987,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 65,
+      "read_complete_mono_ns": 8986618598142,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 66,
+      "read_complete_mono_ns": 8986672396536,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 67,
+      "read_complete_mono_ns": 8986722750670,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 68,
+      "read_complete_mono_ns": 8986772778931,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 69,
+      "read_complete_mono_ns": 8986821563536,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 70,
+      "read_complete_mono_ns": 8986877072498,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 71,
+      "read_complete_mono_ns": 8986925677106,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 72,
+      "read_complete_mono_ns": 8986979982704,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 73,
+      "read_complete_mono_ns": 8987022316450,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 74,
+      "read_complete_mono_ns": 8987067067008,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 75,
+      "read_complete_mono_ns": 8987125734067,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 76,
+      "read_complete_mono_ns": 8987165868208,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 77,
+      "read_complete_mono_ns": 8987225766715,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 78,
+      "read_complete_mono_ns": 8987268723997,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 79,
+      "read_complete_mono_ns": 8987318685176,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 80,
+      "read_complete_mono_ns": 8987377056154,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 81,
+      "read_complete_mono_ns": 8987414667109,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 82,
+      "read_complete_mono_ns": 8987475183653,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 83,
+      "read_complete_mono_ns": 8987519056053,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 84,
+      "read_complete_mono_ns": 8987565179101,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 85,
+      "read_complete_mono_ns": 8987620109194,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 86,
+      "read_complete_mono_ns": 8987679317291,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 87,
+      "read_complete_mono_ns": 8987723714979,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 88,
+      "read_complete_mono_ns": 8987776047679,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 89,
+      "read_complete_mono_ns": 8987834267618,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 90,
+      "read_complete_mono_ns": 8987861400251,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 91,
+      "read_complete_mono_ns": 8987931498293,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 92,
+      "read_complete_mono_ns": 8987968172424,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 93,
+      "read_complete_mono_ns": 8988026405780,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 94,
+      "read_complete_mono_ns": 8988063305785,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 95,
+      "read_complete_mono_ns": 8988116498935,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 96,
+      "read_complete_mono_ns": 8988172558019,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 97,
+      "read_complete_mono_ns": 8988220186428,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 98,
+      "read_complete_mono_ns": 8988269613862,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 99,
+      "read_complete_mono_ns": 8988328352505,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 100,
+      "read_complete_mono_ns": 8988369095058,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 101,
+      "read_complete_mono_ns": 8988426093509,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 102,
+      "read_complete_mono_ns": 8988473558086,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 103,
+      "read_complete_mono_ns": 8988525752164,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 104,
+      "read_complete_mono_ns": 8988572291375,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 105,
+      "read_complete_mono_ns": 8988623221756,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 106,
+      "read_complete_mono_ns": 8988667133865,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 107,
+      "read_complete_mono_ns": 8988734063937,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 108,
+      "read_complete_mono_ns": 8988772299014,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 109,
+      "read_complete_mono_ns": 8988814429889,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 110,
+      "read_complete_mono_ns": 8988863288330,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 111,
+      "read_complete_mono_ns": 8988902043818,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 112,
+      "read_complete_mono_ns": 8988971214578,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 113,
+      "read_complete_mono_ns": 8989022798661,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 114,
+      "read_complete_mono_ns": 8989074336370,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 115,
+      "read_complete_mono_ns": 8989124875920,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 116,
+      "read_complete_mono_ns": 8989165393935,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 117,
+      "read_complete_mono_ns": 8989225399402,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 118,
+      "read_complete_mono_ns": 8989276298574,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 119,
+      "read_complete_mono_ns": 8989321187425,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 120,
+      "read_complete_mono_ns": 8989370685110,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 121,
+      "read_complete_mono_ns": 8989428993258,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 122,
+      "read_complete_mono_ns": 8989475264306,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 123,
+      "read_complete_mono_ns": 8989517433266,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 124,
+      "read_complete_mono_ns": 8989567658195,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 125,
+      "read_complete_mono_ns": 8989632220998,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 126,
+      "read_complete_mono_ns": 8989666610235,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 127,
+      "read_complete_mono_ns": 8989712282955,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 128,
+      "read_complete_mono_ns": 8989778825989,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 129,
+      "read_complete_mono_ns": 8989824666333,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 130,
+      "read_complete_mono_ns": 8989874227435,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 131,
+      "read_complete_mono_ns": 8989915553860,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 132,
+      "read_complete_mono_ns": 8989973797427,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 133,
+      "read_complete_mono_ns": 8990023413279,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 134,
+      "read_complete_mono_ns": 8990075148570,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 135,
+      "read_complete_mono_ns": 8990112294949,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 136,
+      "read_complete_mono_ns": 8990179380313,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 137,
+      "read_complete_mono_ns": 8990228617584,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 138,
+      "read_complete_mono_ns": 8990283442848,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 139,
+      "read_complete_mono_ns": 8990318041958,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 140,
+      "read_complete_mono_ns": 8990364898501,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 141,
+      "read_complete_mono_ns": 8990422179576,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 142,
+      "read_complete_mono_ns": 8990469028120,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 143,
+      "read_complete_mono_ns": 8990521672738,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 144,
+      "read_complete_mono_ns": 8990567017462,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 145,
+      "read_complete_mono_ns": 8990626772559,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 146,
+      "read_complete_mono_ns": 8990670683712,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 147,
+      "read_complete_mono_ns": 8990719362906,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 148,
+      "read_complete_mono_ns": 8990772627977,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 149,
+      "read_complete_mono_ns": 8990824722933,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 150,
+      "read_complete_mono_ns": 8990860025371,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 151,
+      "read_complete_mono_ns": 8990926133536,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 152,
+      "read_complete_mono_ns": 8990972240670,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 153,
+      "read_complete_mono_ns": 8991025648031,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 154,
+      "read_complete_mono_ns": 8991072936113,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 155,
+      "read_complete_mono_ns": 8991128234166,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 156,
+      "read_complete_mono_ns": 8991164168348,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 157,
+      "read_complete_mono_ns": 8991225031060,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 158,
+      "read_complete_mono_ns": 8991254313551,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 159,
+      "read_complete_mono_ns": 8991319047895,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 160,
+      "read_complete_mono_ns": 8991361801225,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 161,
+      "read_complete_mono_ns": 8991422857935,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 162,
+      "read_complete_mono_ns": 8991473241741,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 163,
+      "read_complete_mono_ns": 8991523262133,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 164,
+      "read_complete_mono_ns": 8991564908432,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 165,
+      "read_complete_mono_ns": 8991622404675,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 166,
+      "read_complete_mono_ns": 8991672898147,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 167,
+      "read_complete_mono_ns": 8991726184718,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 168,
+      "read_complete_mono_ns": 8991773308594,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 169,
+      "read_complete_mono_ns": 8991822769575,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 170,
+      "read_complete_mono_ns": 8991878645165,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 171,
+      "read_complete_mono_ns": 8991929172595,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 172,
+      "read_complete_mono_ns": 8991979731774,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 173,
+      "read_complete_mono_ns": 8992032538141,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 174,
+      "read_complete_mono_ns": 8992069235984,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 175,
+      "read_complete_mono_ns": 8992134417243,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 176,
+      "read_complete_mono_ns": 8992163352946,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 177,
+      "read_complete_mono_ns": 8992216176605,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 178,
+      "read_complete_mono_ns": 8992267935024,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 179,
+      "read_complete_mono_ns": 8992326184635,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 180,
+      "read_complete_mono_ns": 8992367107399,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 181,
+      "read_complete_mono_ns": 8992420991257,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 182,
+      "read_complete_mono_ns": 8992473517420,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 183,
+      "read_complete_mono_ns": 8992526835493,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 184,
+      "read_complete_mono_ns": 8992573157002,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 185,
+      "read_complete_mono_ns": 8992623318894,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 186,
+      "read_complete_mono_ns": 8992681690214,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 187,
+      "read_complete_mono_ns": 8992730606617,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 188,
+      "read_complete_mono_ns": 8992772970953,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 189,
+      "read_complete_mono_ns": 8992827555431,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 190,
+      "read_complete_mono_ns": 8992851486429,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 191,
+      "read_complete_mono_ns": 8992926942057,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 192,
+      "read_complete_mono_ns": 8992966092129,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 193,
+      "read_complete_mono_ns": 8993020209862,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 194,
+      "read_complete_mono_ns": 8993062871611,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 195,
+      "read_complete_mono_ns": 8993127148254,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 196,
+      "read_complete_mono_ns": 8993188081968,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 197,
+      "read_complete_mono_ns": 8993210165607,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 198,
+      "read_complete_mono_ns": 8993269797208,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 199,
+      "read_complete_mono_ns": 8993332410699,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 200,
+      "read_complete_mono_ns": 8993371468689,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 201,
+      "read_complete_mono_ns": 8993420511382,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 202,
+      "read_complete_mono_ns": 8993482625421,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 203,
+      "read_complete_mono_ns": 8993522810902,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 204,
+      "read_complete_mono_ns": 8993572969545,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 205,
+      "read_complete_mono_ns": 8993624611009,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 206,
+      "read_complete_mono_ns": 8993663705082,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 207,
+      "read_complete_mono_ns": 8993718222979,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 208,
+      "read_complete_mono_ns": 8993767382923,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 209,
+      "read_complete_mono_ns": 8993826896859,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 210,
+      "read_complete_mono_ns": 8993869262529,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 211,
+      "read_complete_mono_ns": 8993913356559,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 212,
+      "read_complete_mono_ns": 8993967679291,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 213,
+      "read_complete_mono_ns": 8994020294454,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 214,
+      "read_complete_mono_ns": 8994071042259,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 215,
+      "read_complete_mono_ns": 8994128817002,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 216,
+      "read_complete_mono_ns": 8994170890675,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 217,
+      "read_complete_mono_ns": 8994221858186,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 218,
+      "read_complete_mono_ns": 8994276704497,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 219,
+      "read_complete_mono_ns": 8994332897046,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 220,
+      "read_complete_mono_ns": 8994371042628,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 221,
+      "read_complete_mono_ns": 8994424257619,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 222,
+      "read_complete_mono_ns": 8994476181332,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 223,
+      "read_complete_mono_ns": 8994529553281,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 224,
+      "read_complete_mono_ns": 8994561956248,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 225,
+      "read_complete_mono_ns": 8994635147441,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 226,
+      "read_complete_mono_ns": 8994673931393,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 227,
+      "read_complete_mono_ns": 8994710127202,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 228,
+      "read_complete_mono_ns": 8994766667457,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 229,
+      "read_complete_mono_ns": 8994824812698,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 230,
+      "read_complete_mono_ns": 8994872607072,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 231,
+      "read_complete_mono_ns": 8994923042798,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 232,
+      "read_complete_mono_ns": 8994971360292,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 233,
+      "read_complete_mono_ns": 8995023633209,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 234,
+      "read_complete_mono_ns": 8995073907061,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 235,
+      "read_complete_mono_ns": 8995124383578,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 236,
+      "read_complete_mono_ns": 8995177829527,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 237,
+      "read_complete_mono_ns": 8995232919045,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 238,
+      "read_complete_mono_ns": 8995266456293,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 239,
+      "read_complete_mono_ns": 8995326516893,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 240,
+      "read_complete_mono_ns": 8995362989782,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 241,
+      "read_complete_mono_ns": 8995436130393,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 242,
+      "read_complete_mono_ns": 8995470847756,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 243,
+      "read_complete_mono_ns": 8995522976593,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 244,
+      "read_complete_mono_ns": 8995563145159,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 245,
+      "read_complete_mono_ns": 8995620497201,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 246,
+      "read_complete_mono_ns": 8995674607770,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 247,
+      "read_complete_mono_ns": 8995727690557,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 248,
+      "read_complete_mono_ns": 8995768897531,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 249,
+      "read_complete_mono_ns": 8995819477631,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 250,
+      "read_complete_mono_ns": 8995873280620,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 251,
+      "read_complete_mono_ns": 8995924165260,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 252,
+      "read_complete_mono_ns": 8995962422468,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 253,
+      "read_complete_mono_ns": 8996022205280,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 254,
+      "read_complete_mono_ns": 8996076622263,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 255,
+      "read_complete_mono_ns": 8996133489059,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 256,
+      "read_complete_mono_ns": 8996173315795,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 257,
+      "read_complete_mono_ns": 8996229251765,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 258,
+      "read_complete_mono_ns": 8996269682079,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 259,
+      "read_complete_mono_ns": 8996315758427,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 260,
+      "read_complete_mono_ns": 8996368679007,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 261,
+      "read_complete_mono_ns": 8996427889574,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 262,
+      "read_complete_mono_ns": 8996472687517,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 263,
+      "read_complete_mono_ns": 8996520781474,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 264,
+      "read_complete_mono_ns": 8996574541506,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 265,
+      "read_complete_mono_ns": 8996619895653,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 266,
+      "read_complete_mono_ns": 8996675442003,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 267,
+      "read_complete_mono_ns": 8996735286232,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 268,
+      "read_complete_mono_ns": 8996773834897,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 269,
+      "read_complete_mono_ns": 8996813973381,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 270,
+      "read_complete_mono_ns": 8996868614072,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 271,
+      "read_complete_mono_ns": 8996929921081,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 272,
+      "read_complete_mono_ns": 8996976869422,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 273,
+      "read_complete_mono_ns": 8997033142766,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 274,
+      "read_complete_mono_ns": 8997063579918,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 275,
+      "read_complete_mono_ns": 8997119605180,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 276,
+      "read_complete_mono_ns": 8997169700078,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 277,
+      "read_complete_mono_ns": 8997221777291,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 278,
+      "read_complete_mono_ns": 8997270607533,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 279,
+      "read_complete_mono_ns": 8997320955595,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 280,
+      "read_complete_mono_ns": 8997365930537,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 281,
+      "read_complete_mono_ns": 8997426249846,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 282,
+      "read_complete_mono_ns": 8997479023388,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 283,
+      "read_complete_mono_ns": 8997524156913,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 284,
+      "read_complete_mono_ns": 8997571976748,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 285,
+      "read_complete_mono_ns": 8997628025261,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 286,
+      "read_complete_mono_ns": 8997674789606,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 287,
+      "read_complete_mono_ns": 8997723208936,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 288,
+      "read_complete_mono_ns": 8997765658317,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 289,
+      "read_complete_mono_ns": 8997829182183,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 290,
+      "read_complete_mono_ns": 8997876416523,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 291,
+      "read_complete_mono_ns": 8997915678307,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 292,
+      "read_complete_mono_ns": 8997971105285,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 293,
+      "read_complete_mono_ns": 8998030092606,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 294,
+      "read_complete_mono_ns": 8998059039980,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 295,
+      "read_complete_mono_ns": 8998117456806,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 296,
+      "read_complete_mono_ns": 8998171133466,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 297,
+      "read_complete_mono_ns": 8998224368462,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 298,
+      "read_complete_mono_ns": 8998263588955,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 299,
+      "read_complete_mono_ns": 8998327356943,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 300,
+      "read_complete_mono_ns": 8998372432427,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 301,
+      "read_complete_mono_ns": 8998427116119,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 302,
+      "read_complete_mono_ns": 8998463955634,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 303,
+      "read_complete_mono_ns": 8998527998080,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 304,
+      "read_complete_mono_ns": 8998574575968,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 305,
+      "read_complete_mono_ns": 8998633926621,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 306,
+      "read_complete_mono_ns": 8998664602648,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 307,
+      "read_complete_mono_ns": 8998727039066,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 308,
+      "read_complete_mono_ns": 8998780753143,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 309,
+      "read_complete_mono_ns": 8998808076031,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 310,
+      "read_complete_mono_ns": 8998876833311,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 311,
+      "read_complete_mono_ns": 8998917912456,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 312,
+      "read_complete_mono_ns": 8998970850081,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 313,
+      "read_complete_mono_ns": 8999020464985,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 314,
+      "read_complete_mono_ns": 8999070305054,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 315,
+      "read_complete_mono_ns": 8999122889890,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 316,
+      "read_complete_mono_ns": 8999172141756,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 317,
+      "read_complete_mono_ns": 8999222506778,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 318,
+      "read_complete_mono_ns": 8999270138449,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 319,
+      "read_complete_mono_ns": 8999334230520,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 320,
+      "read_complete_mono_ns": 8999380556827,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 321,
+      "read_complete_mono_ns": 8999424816986,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 322,
+      "read_complete_mono_ns": 8999467181620,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 323,
+      "read_complete_mono_ns": 8999529700664,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 324,
+      "read_complete_mono_ns": 8999562613338,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 325,
+      "read_complete_mono_ns": 8999617896403,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 326,
+      "read_complete_mono_ns": 8999665467326,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 327,
+      "read_complete_mono_ns": 8999720730974,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 328,
+      "read_complete_mono_ns": 8999770532502,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 329,
+      "read_complete_mono_ns": 8999818591463,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 330,
+      "read_complete_mono_ns": 8999870709430,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 331,
+      "read_complete_mono_ns": 8999934992583,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 332,
+      "read_complete_mono_ns": 8999963560837,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 333,
+      "read_complete_mono_ns": 9000021047049,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 334,
+      "read_complete_mono_ns": 9000072232315,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 335,
+      "read_complete_mono_ns": 9000115256611,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 336,
+      "read_complete_mono_ns": 9000179374932,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 337,
+      "read_complete_mono_ns": 9000219599210,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 338,
+      "read_complete_mono_ns": 9000272564587,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 339,
+      "read_complete_mono_ns": 9000322983443,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 340,
+      "read_complete_mono_ns": 9000373497132,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 341,
+      "read_complete_mono_ns": 9000423424201,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 342,
+      "read_complete_mono_ns": 9000473173648,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 343,
+      "read_complete_mono_ns": 9000522602889,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 344,
+      "read_complete_mono_ns": 9000579764772,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 345,
+      "read_complete_mono_ns": 9000624515387,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 346,
+      "read_complete_mono_ns": 9000674736538,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 347,
+      "read_complete_mono_ns": 9000721268138,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 348,
+      "read_complete_mono_ns": 9000766513999,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 349,
+      "read_complete_mono_ns": 9000828027761,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 350,
+      "read_complete_mono_ns": 9000866948009,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 351,
+      "read_complete_mono_ns": 9000911579917,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 352,
+      "read_complete_mono_ns": 9000969851040,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 353,
+      "read_complete_mono_ns": 9001025785767,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 354,
+      "read_complete_mono_ns": 9001068945937,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 355,
+      "read_complete_mono_ns": 9001121300237,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 356,
+      "read_complete_mono_ns": 9001167727712,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 357,
+      "read_complete_mono_ns": 9001211759958,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 358,
+      "read_complete_mono_ns": 9001272623851,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 359,
+      "read_complete_mono_ns": 9001322987251,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 360,
+      "read_complete_mono_ns": 9001371177753,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 361,
+      "read_complete_mono_ns": 9001419957875,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 362,
+      "read_complete_mono_ns": 9001481330223,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 363,
+      "read_complete_mono_ns": 9001528888773,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 364,
+      "read_complete_mono_ns": 9001554954508,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 365,
+      "read_complete_mono_ns": 9001626260229,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 366,
+      "read_complete_mono_ns": 9001667767539,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 367,
+      "read_complete_mono_ns": 9001710978043,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 368,
+      "read_complete_mono_ns": 9001769299668,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 369,
+      "read_complete_mono_ns": 9001819362988,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 370,
+      "read_complete_mono_ns": 9001868750856,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 371,
+      "read_complete_mono_ns": 9001930627242,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 372,
+      "read_complete_mono_ns": 9001975027319,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 373,
+      "read_complete_mono_ns": 9002020010683,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 374,
+      "read_complete_mono_ns": 9002069523008,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 375,
+      "read_complete_mono_ns": 9002127178096,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 376,
+      "read_complete_mono_ns": 9002180708928,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 377,
+      "read_complete_mono_ns": 9002215154216,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 378,
+      "read_complete_mono_ns": 9002266118445,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 379,
+      "read_complete_mono_ns": 9002328137163,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 380,
+      "read_complete_mono_ns": 9002369313935,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 381,
+      "read_complete_mono_ns": 9002426499652,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 382,
+      "read_complete_mono_ns": 9002466253479,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 383,
+      "read_complete_mono_ns": 9002518526114,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 384,
+      "read_complete_mono_ns": 9002569266055,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 385,
+      "read_complete_mono_ns": 9002625068328,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 386,
+      "read_complete_mono_ns": 9002668412831,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 387,
+      "read_complete_mono_ns": 9002725869798,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 388,
+      "read_complete_mono_ns": 9002778472556,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 389,
+      "read_complete_mono_ns": 9002824992408,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 390,
+      "read_complete_mono_ns": 9002867035506,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 391,
+      "read_complete_mono_ns": 9002929703762,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 392,
+      "read_complete_mono_ns": 9002972536103,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 393,
+      "read_complete_mono_ns": 9003027543424,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 394,
+      "read_complete_mono_ns": 9003065407267,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 395,
+      "read_complete_mono_ns": 9003121873283,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 396,
+      "read_complete_mono_ns": 9003165232162,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 397,
+      "read_complete_mono_ns": 9003241794757,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 398,
+      "read_complete_mono_ns": 9003276702083,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 399,
+      "read_complete_mono_ns": 9003308546186,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 400,
+      "read_complete_mono_ns": 9003372060850,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 401,
+      "read_complete_mono_ns": 9003423958531,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 402,
+      "read_complete_mono_ns": 9003471363501,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 403,
+      "read_complete_mono_ns": 9003520244959,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 404,
+      "read_complete_mono_ns": 9003572760094,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 405,
+      "read_complete_mono_ns": 9003628728116,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 406,
+      "read_complete_mono_ns": 9003669434311,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 407,
+      "read_complete_mono_ns": 9003728866428,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 408,
+      "read_complete_mono_ns": 9003781009900,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 409,
+      "read_complete_mono_ns": 9003826241472,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 410,
+      "read_complete_mono_ns": 9003880706924,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 411,
+      "read_complete_mono_ns": 9003926640490,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 412,
+      "read_complete_mono_ns": 9003958367886,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 413,
+      "read_complete_mono_ns": 9004029722652,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 414,
+      "read_complete_mono_ns": 9004068598570,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 415,
+      "read_complete_mono_ns": 9004115839417,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 416,
+      "read_complete_mono_ns": 9004171731648,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 417,
+      "read_complete_mono_ns": 9004221454765,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 418,
+      "read_complete_mono_ns": 9004275925758,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 419,
+      "read_complete_mono_ns": 9004314690511,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 420,
+      "read_complete_mono_ns": 9004371840940,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 421,
+      "read_complete_mono_ns": 9004418211169,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 422,
+      "read_complete_mono_ns": 9004477853869,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 423,
+      "read_complete_mono_ns": 9004527142283,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 424,
+      "read_complete_mono_ns": 9004567312316,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 425,
+      "read_complete_mono_ns": 9004623539921,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 426,
+      "read_complete_mono_ns": 9004683245204,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 427,
+      "read_complete_mono_ns": 9004724647227,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 428,
+      "read_complete_mono_ns": 9004765573378,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 429,
+      "read_complete_mono_ns": 9004824033964,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 430,
+      "read_complete_mono_ns": 9004871984139,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 431,
+      "read_complete_mono_ns": 9004925488434,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 432,
+      "read_complete_mono_ns": 9004956389046,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 433,
+      "read_complete_mono_ns": 9005029183093,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 434,
+      "read_complete_mono_ns": 9005064968705,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 435,
+      "read_complete_mono_ns": 9005118801621,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 436,
+      "read_complete_mono_ns": 9005176274424,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 437,
+      "read_complete_mono_ns": 9005225835460,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 438,
+      "read_complete_mono_ns": 9005262754896,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 439,
+      "read_complete_mono_ns": 9005320173949,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 440,
+      "read_complete_mono_ns": 9005370316855,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 441,
+      "read_complete_mono_ns": 9005415205473,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 442,
+      "read_complete_mono_ns": 9005473800059,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 443,
+      "read_complete_mono_ns": 9005523815217,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 444,
+      "read_complete_mono_ns": 9005582047848,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 445,
+      "read_complete_mono_ns": 9005611170976,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 446,
+      "read_complete_mono_ns": 9005658933612,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 447,
+      "read_complete_mono_ns": 9005729468513,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 448,
+      "read_complete_mono_ns": 9005769507007,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 449,
+      "read_complete_mono_ns": 9005817289643,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 450,
+      "read_complete_mono_ns": 9005868599499,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 451,
+      "read_complete_mono_ns": 9005914755648,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 452,
+      "read_complete_mono_ns": 9005967491076,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 453,
+      "read_complete_mono_ns": 9006022082196,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 454,
+      "read_complete_mono_ns": 9006071856273,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 455,
+      "read_complete_mono_ns": 9006119560576,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 456,
+      "read_complete_mono_ns": 9006170992056,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 457,
+      "read_complete_mono_ns": 9006219335521,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 458,
+      "read_complete_mono_ns": 9006282280153,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 459,
+      "read_complete_mono_ns": 9006324263797,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 460,
+      "read_complete_mono_ns": 9006379076832,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 461,
+      "read_complete_mono_ns": 9006428788701,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 462,
+      "read_complete_mono_ns": 9006459858521,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 463,
+      "read_complete_mono_ns": 9006522291285,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 464,
+      "read_complete_mono_ns": 9006571422535,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 465,
+      "read_complete_mono_ns": 9006627336604,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 466,
+      "read_complete_mono_ns": 9006662077226,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 467,
+      "read_complete_mono_ns": 9006717760255,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 468,
+      "read_complete_mono_ns": 9006769370234,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 469,
+      "read_complete_mono_ns": 9006815575343,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 470,
+      "read_complete_mono_ns": 9006871069415,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 471,
+      "read_complete_mono_ns": 9006924025342,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 472,
+      "read_complete_mono_ns": 9006971090402,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 473,
+      "read_complete_mono_ns": 9007011932722,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 474,
+      "read_complete_mono_ns": 9007076861339,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 475,
+      "read_complete_mono_ns": 9007126123131,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 476,
+      "read_complete_mono_ns": 9007183932600,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 477,
+      "read_complete_mono_ns": 9007225292041,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 478,
+      "read_complete_mono_ns": 9007273408175,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 479,
+      "read_complete_mono_ns": 9007326668266,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 480,
+      "read_complete_mono_ns": 9007369877442,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 481,
+      "read_complete_mono_ns": 9007434916475,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 482,
+      "read_complete_mono_ns": 9007464183311,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 483,
+      "read_complete_mono_ns": 9007510495462,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 484,
+      "read_complete_mono_ns": 9007575403414,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 485,
+      "read_complete_mono_ns": 9007618286510,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 486,
+      "read_complete_mono_ns": 9007672959548,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 487,
+      "read_complete_mono_ns": 9007727332548,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 488,
+      "read_complete_mono_ns": 9007773149786,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 489,
+      "read_complete_mono_ns": 9007808068991,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 490,
+      "read_complete_mono_ns": 9007876744286,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 491,
+      "read_complete_mono_ns": 9007910908664,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 492,
+      "read_complete_mono_ns": 9007983443260,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 493,
+      "read_complete_mono_ns": 9008029986534,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 494,
+      "read_complete_mono_ns": 9008070038154,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 495,
+      "read_complete_mono_ns": 9008129300529,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 496,
+      "read_complete_mono_ns": 9008169886811,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 497,
+      "read_complete_mono_ns": 9008231696456,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 498,
+      "read_complete_mono_ns": 9008270378712,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 499,
+      "read_complete_mono_ns": 9008320551081,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 500,
+      "read_complete_mono_ns": 9008381353984,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 501,
+      "read_complete_mono_ns": 9008425919399,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 502,
+      "read_complete_mono_ns": 9008469475782,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 503,
+      "read_complete_mono_ns": 9008522268005,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 504,
+      "read_complete_mono_ns": 9008576494673,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 505,
+      "read_complete_mono_ns": 9008625747383,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 506,
+      "read_complete_mono_ns": 9008670810629,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 507,
+      "read_complete_mono_ns": 9008723171230,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 508,
+      "read_complete_mono_ns": 9008782995934,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 509,
+      "read_complete_mono_ns": 9008831584858,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 510,
+      "read_complete_mono_ns": 9008874842453,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 511,
+      "read_complete_mono_ns": 9008925604275,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 512,
+      "read_complete_mono_ns": 9008971951010,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 513,
+      "read_complete_mono_ns": 9009023290911,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 514,
+      "read_complete_mono_ns": 9009068078575,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 515,
+      "read_complete_mono_ns": 9009117332411,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 516,
+      "read_complete_mono_ns": 9009170967376,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 517,
+      "read_complete_mono_ns": 9009229532341,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 518,
+      "read_complete_mono_ns": 9009271126449,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 519,
+      "read_complete_mono_ns": 9009309451001,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 520,
+      "read_complete_mono_ns": 9009360615362,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 521,
+      "read_complete_mono_ns": 9009431968345,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 522,
+      "read_complete_mono_ns": 9009478068458,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 523,
+      "read_complete_mono_ns": 9009515714475,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 524,
+      "read_complete_mono_ns": 9009582650830,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 525,
+      "read_complete_mono_ns": 9009625434179,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 526,
+      "read_complete_mono_ns": 9009669891097,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 527,
+      "read_complete_mono_ns": 9009723714812,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 528,
+      "read_complete_mono_ns": 9009768841099,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 529,
+      "read_complete_mono_ns": 9009829621839,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 530,
+      "read_complete_mono_ns": 9009867624812,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 531,
+      "read_complete_mono_ns": 9009919869790,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 532,
+      "read_complete_mono_ns": 9009969718996,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 533,
+      "read_complete_mono_ns": 9010009631786,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 534,
+      "read_complete_mono_ns": 9010070992021,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 535,
+      "read_complete_mono_ns": 9010117546630,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 536,
+      "read_complete_mono_ns": 9010173173704,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 537,
+      "read_complete_mono_ns": 9010226236217,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 538,
+      "read_complete_mono_ns": 9010272490662,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 539,
+      "read_complete_mono_ns": 9010324708474,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 540,
+      "read_complete_mono_ns": 9010374698262,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 541,
+      "read_complete_mono_ns": 9010416830575,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 542,
+      "read_complete_mono_ns": 9010481307076,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 543,
+      "read_complete_mono_ns": 9010513726222,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 544,
+      "read_complete_mono_ns": 9010563628804,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 545,
+      "read_complete_mono_ns": 9010631422361,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 546,
+      "read_complete_mono_ns": 9010666688649,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 547,
+      "read_complete_mono_ns": 9010717673430,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 548,
+      "read_complete_mono_ns": 9010773811544,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 549,
+      "read_complete_mono_ns": 9010821644018,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 550,
+      "read_complete_mono_ns": 9010866557100,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 551,
+      "read_complete_mono_ns": 9010923095502,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 552,
+      "read_complete_mono_ns": 9010952304216,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 553,
+      "read_complete_mono_ns": 9011026864800,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 554,
+      "read_complete_mono_ns": 9011055348144,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 555,
+      "read_complete_mono_ns": 9011124745563,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 556,
+      "read_complete_mono_ns": 9011182039917,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 557,
+      "read_complete_mono_ns": 9011226697085,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 558,
+      "read_complete_mono_ns": 9011271663916,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 559,
+      "read_complete_mono_ns": 9011325562507,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 560,
+      "read_complete_mono_ns": 9011365517880,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 561,
+      "read_complete_mono_ns": 9011429435762,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 562,
+      "read_complete_mono_ns": 9011468411853,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 563,
+      "read_complete_mono_ns": 9011509997131,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 564,
+      "read_complete_mono_ns": 9011572939022,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 565,
+      "read_complete_mono_ns": 9011627359442,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 566,
+      "read_complete_mono_ns": 9011665238668,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 567,
+      "read_complete_mono_ns": 9011728112434,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 568,
+      "read_complete_mono_ns": 9011773194100,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 569,
+      "read_complete_mono_ns": 9011814269381,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 570,
+      "read_complete_mono_ns": 9011871180948,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 571,
+      "read_complete_mono_ns": 9011927099064,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 572,
+      "read_complete_mono_ns": 9011976631817,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 573,
+      "read_complete_mono_ns": 9012031763524,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 574,
+      "read_complete_mono_ns": 9012073488425,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 575,
+      "read_complete_mono_ns": 9012114664415,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 576,
+      "read_complete_mono_ns": 9012165336991,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 577,
+      "read_complete_mono_ns": 9012225261741,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 578,
+      "read_complete_mono_ns": 9012269538955,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 579,
+      "read_complete_mono_ns": 9012315298447,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 580,
+      "read_complete_mono_ns": 9012359596119,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 581,
+      "read_complete_mono_ns": 9012420037698,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 582,
+      "read_complete_mono_ns": 9012474860158,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 583,
+      "read_complete_mono_ns": 9012518697293,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 584,
+      "read_complete_mono_ns": 9012571540227,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 585,
+      "read_complete_mono_ns": 9012622959758,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 586,
+      "read_complete_mono_ns": 9012674822034,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 587,
+      "read_complete_mono_ns": 9012716941975,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 588,
+      "read_complete_mono_ns": 9012769298331,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 589,
+      "read_complete_mono_ns": 9012833572670,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 590,
+      "read_complete_mono_ns": 9012869095624,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 591,
+      "read_complete_mono_ns": 9012907578971,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 592,
+      "read_complete_mono_ns": 9012974348165,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 593,
+      "read_complete_mono_ns": 9013018208841,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 594,
+      "read_complete_mono_ns": 9013071075859,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 595,
+      "read_complete_mono_ns": 9013114834495,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 596,
+      "read_complete_mono_ns": 9013177300516,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 597,
+      "read_complete_mono_ns": 9013222286183,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 598,
+      "read_complete_mono_ns": 9013273084760,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 599,
+      "read_complete_mono_ns": 9013331215693,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 600,
+      "read_complete_mono_ns": 9013372535432,
+      "required_write_end_mono_ns": null,
+      "write_end_to_read_complete_ms": null
+    }
+  ],
+  "created_utc": "2026-11-15T09:46:07.069064+00:00",
+  "diagnostic": "600-frame FFmpeg stdout timing trace; strace records raw syscall arguments only, no payload",
+  "error": null,
+  "expected_bytes": 829440000,
+  "ffmpeg_stderr_path": "/data/openpilot/.harness-state/sidecam-write-trace-unfiltered-20261115T094536Z/ffmpeg-stderr.log",
+  "frame_boundaries_correlated": 0,
+  "frame_bytes": 1382400,
+  "interval_summary_ms": {
+    "max": 76.562595,
+    "mean": 49.98210497161937,
+    "median": 50.300757,
+    "min": 22.083639,
+    "over_60ms": 75,
+    "p95": 64.734344,
+    "p99": 72.534596,
+    "under_40ms": 78
+  },
+  "read_intervals_ms": [
+    32.802579,
+    55.937413,
+    54.305844,
+    42.915446,
+    62.802184,
+    44.168352,
+    46.11821,
+    52.294487,
+    41.882372,
+    49.936758,
+    50.562003,
+    51.736451,
+    52.071447,
+    53.375477,
+    52.706025,
+    40.86134,
+    54.415593,
+    52.891232,
+    51.910574,
+    47.234408,
+    44.509183,
+    53.303354,
+    49.422556,
+    57.161778,
+    30.293352,
+    53.692476,
+    62.462397,
+    45.748297,
+    51.27029,
+    47.304699,
+    50.542463,
+    47.212659,
+    42.99703,
+    71.370734,
+    49.213641,
+    43.099362,
+    52.207531,
+    49.92376,
+    39.482478,
+    65.41687,
+    29.405029,
+    62.357691,
+    51.466747,
+    50.300757,
+    48.655689,
+    53.764851,
+    50.381549,
+    40.035808,
+    57.927105,
+    50.2503,
+    44.484601,
+    52.284282,
+    57.012447,
+    52.558737,
+    30.916973,
+    70.336828,
+    33.465242,
+    61.084744,
+    41.177089,
+    53.700894,
+    43.563943,
+    56.645911,
+    38.795111,
+    57.208155,
+    53.798394,
+    50.354134,
+    50.028261,
+    48.784605,
+    55.508962,
+    48.604608,
+    54.305598,
+    42.333746,
+    44.750558,
+    58.667059,
+    40.134141,
+    59.898507,
+    42.957282,
+    49.961179,
+    58.370978,
+    37.610955,
+    60.516544,
+    43.8724,
+    46.123048,
+    54.930093,
+    59.208097,
+    44.397688,
+    52.3327,
+    58.219939,
+    27.132633,
+    70.098042,
+    36.674131,
+    58.233356,
+    36.900005,
+    53.19315,
+    56.059084,
+    47.628409,
+    49.427434,
+    58.738643,
+    40.742553,
+    56.998451,
+    47.464577,
+    52.194078,
+    46.539211,
+    50.930381,
+    43.912109,
+    66.930072,
+    38.235077,
+    42.130875,
+    48.858441,
+    38.755488,
+    69.17076,
+    51.584083,
+    51.537709,
+    50.53955,
+    40.518015,
+    60.005467,
+    50.899172,
+    44.888851,
+    49.497685,
+    58.308148,
+    46.271048,
+    42.16896,
+    50.224929,
+    64.562803,
+    34.389237,
+    45.67272,
+    66.543034,
+    45.840344,
+    49.561102,
+    41.326425,
+    58.243567,
+    49.615852,
+    51.735291,
+    37.146379,
+    67.085364,
+    49.237271,
+    54.825264,
+    34.59911,
+    46.856543,
+    57.281075,
+    46.848544,
+    52.644618,
+    45.344724,
+    59.755097,
+    43.911153,
+    48.679194,
+    53.265071,
+    52.094956,
+    35.302438,
+    66.108165,
+    46.107134,
+    53.407361,
+    47.288082,
+    55.298053,
+    35.934182,
+    60.862712,
+    29.282491,
+    64.734344,
+    42.75333,
+    61.05671,
+    50.383806,
+    50.020392,
+    41.646299,
+    57.496243,
+    50.493472,
+    53.286571,
+    47.123876,
+    49.460981,
+    55.87559,
+    50.52743,
+    50.559179,
+    52.806367,
+    36.697843,
+    65.181259,
+    28.935703,
+    52.823659,
+    51.758419,
+    58.249611,
+    40.922764,
+    53.883858,
+    52.526163,
+    53.318073,
+    46.321509,
+    50.161892,
+    58.37132,
+    48.916403,
+    42.364336,
+    54.584478,
+    23.930998,
+    75.455628,
+    39.150072,
+    54.117733,
+    42.661749,
+    64.276643,
+    60.933714,
+    22.083639,
+    59.631601,
+    62.613491,
+    39.05799,
+    49.042693,
+    62.114039,
+    40.185481,
+    50.158643,
+    51.641464,
+    39.094073,
+    54.517897,
+    49.159944,
+    59.513936,
+    42.36567,
+    44.09403,
+    54.322732,
+    52.615163,
+    50.747805,
+    57.774743,
+    42.073673,
+    50.967511,
+    54.846311,
+    56.192549,
+    38.145582,
+    53.214991,
+    51.923713,
+    53.371949,
+    32.402967,
+    73.191193,
+    38.783952,
+    36.195809,
+    56.540255,
+    58.145241,
+    47.794374,
+    50.435726,
+    48.317494,
+    52.272917,
+    50.273852,
+    50.476517,
+    53.445949,
+    55.089518,
+    33.537248,
+    60.0606,
+    36.472889,
+    73.140611,
+    34.717363,
+    52.128837,
+    40.168566,
+    57.352042,
+    54.110569,
+    53.082787,
+    41.206974,
+    50.5801,
+    53.802989,
+    50.88464,
+    38.257208,
+    59.782812,
+    54.416983,
+    56.866796,
+    39.826736,
+    55.93597,
+    40.430314,
+    46.076348,
+    52.92058,
+    59.210567,
+    44.797943,
+    48.093957,
+    53.760032,
+    45.354147,
+    55.54635,
+    59.844229,
+    38.548665,
+    40.138484,
+    54.640691,
+    61.307009,
+    46.948341,
+    56.273344,
+    30.437152,
+    56.025262,
+    50.094898,
+    52.077213,
+    48.830242,
+    50.348062,
+    44.974942,
+    60.319309,
+    52.773542,
+    45.133525,
+    47.819835,
+    56.048513,
+    46.764345,
+    48.41933,
+    42.449381,
+    63.523866,
+    47.23434,
+    39.261784,
+    55.426978,
+    58.987321,
+    28.947374,
+    58.416826,
+    53.67666,
+    53.234996,
+    39.220493,
+    63.767988,
+    45.075484,
+    54.683692,
+    36.839515,
+    64.042446,
+    46.577888,
+    59.350653,
+    30.676027,
+    62.436418,
+    53.714077,
+    27.322888,
+    68.75728,
+    41.079145,
+    52.937625,
+    49.614904,
+    49.840069,
+    52.584836,
+    49.251866,
+    50.365022,
+    47.631671,
+    64.092071,
+    46.326307,
+    44.260159,
+    42.364634,
+    62.519044,
+    32.912674,
+    55.283065,
+    47.570923,
+    55.263648,
+    49.801528,
+    48.058961,
+    52.117967,
+    64.283153,
+    28.568254,
+    57.486212,
+    51.185266,
+    43.024296,
+    64.118321,
+    40.224278,
+    52.965377,
+    50.418856,
+    50.513689,
+    49.927069,
+    49.749447,
+    49.429241,
+    57.161883,
+    44.750615,
+    50.221151,
+    46.5316,
+    45.245861,
+    61.513762,
+    38.920248,
+    44.631908,
+    58.271123,
+    55.934727,
+    43.16017,
+    52.3543,
+    46.427475,
+    44.032246,
+    60.863893,
+    50.3634,
+    48.190502,
+    48.780122,
+    61.372348,
+    47.55855,
+    26.065735,
+    71.305721,
+    41.50731,
+    43.210504,
+    58.321625,
+    50.06332,
+    49.387868,
+    61.876386,
+    44.400077,
+    44.983364,
+    49.512325,
+    57.655088,
+    53.530832,
+    34.445288,
+    50.964229,
+    62.018718,
+    41.176772,
+    57.185717,
+    39.753827,
+    52.272635,
+    50.739941,
+    55.802273,
+    43.344503,
+    57.456967,
+    52.602758,
+    46.519852,
+    42.043098,
+    62.668256,
+    42.832341,
+    55.007321,
+    37.863843,
+    56.466016,
+    43.358879,
+    76.562595,
+    34.907326,
+    31.844103,
+    63.514664,
+    51.897681,
+    47.40497,
+    48.881458,
+    52.515135,
+    55.968022,
+    40.706195,
+    59.432117,
+    52.143472,
+    45.231572,
+    54.465452,
+    45.933566,
+    31.727396,
+    71.354766,
+    38.875918,
+    47.240847,
+    55.892231,
+    49.723117,
+    54.470993,
+    38.764753,
+    57.150429,
+    46.370229,
+    59.6427,
+    49.288414,
+    40.170033,
+    56.227605,
+    59.705283,
+    41.402023,
+    40.926151,
+    58.460586,
+    47.950175,
+    53.504295,
+    30.900612,
+    72.794047,
+    35.785612,
+    53.832916,
+    57.472803,
+    49.561036,
+    36.919436,
+    57.419053,
+    50.142906,
+    44.888618,
+    58.594586,
+    50.015158,
+    58.232631,
+    29.123128,
+    47.762636,
+    70.534901,
+    40.038494,
+    47.782636,
+    51.309856,
+    46.156149,
+    52.735428,
+    54.59112,
+    49.774077,
+    47.704303,
+    51.43148,
+    48.343465,
+    62.944632,
+    41.983644,
+    54.813035,
+    49.711869,
+    31.06982,
+    62.432764,
+    49.13125,
+    55.914069,
+    34.740622,
+    55.683029,
+    51.609979,
+    46.205109,
+    55.494072,
+    52.955927,
+    47.06506,
+    40.84232,
+    64.928617,
+    49.261792,
+    57.809469,
+    41.359441,
+    48.116134,
+    53.260091,
+    43.209176,
+    65.039033,
+    29.266836,
+    46.312151,
+    64.907952,
+    42.883096,
+    54.673038,
+    54.373,
+    45.817238,
+    34.919205,
+    68.675295,
+    34.164378,
+    72.534596,
+    46.543274,
+    40.05162,
+    59.262375,
+    40.586282,
+    61.809645,
+    38.682256,
+    50.172369,
+    60.802903,
+    44.565415,
+    43.556383,
+    52.792223,
+    54.226668,
+    49.25271,
+    45.063246,
+    52.360601,
+    59.824704,
+    48.588924,
+    43.257595,
+    50.761822,
+    46.346735,
+    51.339901,
+    44.787664,
+    49.253836,
+    53.634965,
+    58.564965,
+    41.594108,
+    38.324552,
+    51.164361,
+    71.352983,
+    46.100113,
+    37.646017,
+    66.936355,
+    42.783349,
+    44.456918,
+    53.823715,
+    45.126287,
+    60.78074,
+    38.002973,
+    52.244978,
+    49.849206,
+    39.91279,
+    61.360235,
+    46.554609,
+    55.627074,
+    53.062513,
+    46.254445,
+    52.217812,
+    49.989788,
+    42.132313,
+    64.476501,
+    32.419146,
+    49.902582,
+    67.793557,
+    35.266288,
+    50.984781,
+    56.138114,
+    47.832474,
+    44.913082,
+    56.538402,
+    29.208714,
+    74.560584,
+    28.483344,
+    69.397419,
+    57.294354,
+    44.657168,
+    44.966831,
+    53.898591,
+    39.955373,
+    63.917882,
+    38.976091,
+    41.585278,
+    62.941891,
+    54.42042,
+    37.879226,
+    62.873766,
+    45.081666,
+    41.075281,
+    56.911567,
+    55.918116,
+    49.532753,
+    55.131707,
+    41.724901,
+    41.17599,
+    50.672576,
+    59.92475,
+    44.277214,
+    45.759492,
+    44.297672,
+    60.441579,
+    54.82246,
+    43.837135,
+    52.842934,
+    51.419531,
+    51.862276,
+    42.119941,
+    52.356356,
+    64.274339,
+    35.522954,
+    38.483347,
+    66.769194,
+    43.860676,
+    52.867018,
+    43.758636,
+    62.466021,
+    44.985667,
+    50.798577,
+    58.130933,
+    41.319739
+  ],
+  "requested_frames": 600,
+  "return_code": 0,
+  "run_id": "sidecamerad-mvp-20261113",
+  "selected_output_fd": null,
+  "selected_output_traced_bytes": 0,
+  "selected_output_write_calls": 0,
+  "source_hash_drift": false,
+  "source_path": "system/sidecamerad.py",
+  "source_sha256_after": "494fb8b88fda8bcf1d8301225019f4f01f4b77a0bb5cb3e69dde47ed96e1309b",
+  "source_sha256_before": "494fb8b88fda8bcf1d8301225019f4f01f4b77a0bb5cb3e69dde47ed96e1309b",
+  "strace_argv": [
+    "/usr/bin/strace",
+    "-ttt",
+    "-T",
+    "-qq",
+    "-e",
+    "trace=write,writev",
+    "-e",
+    "raw=write,writev",
+    "-o",
+    "/data/openpilot/.harness-state/sidecam-write-trace-unfiltered-20261115T094536Z/strace-writes.log",
+    "/usr/bin/ffmpeg",
+    "-nostdin",
+    "-hide_banner",
+    "-loglevel",
+    "error",
+    "-thread_queue_size",
+    "1",
+    "-threads",
+    "1",
+    "-filter_threads",
+    "1",
+    "-f",
+    "v4l2",
+    "-input_format",
+    "mjpeg",
+    "-framerate",
+    "20",
+    "-video_size",
+    "1280x720",
+    "-i",
+    "/dev/video60",
+    "-an",
+    "-sn",
+    "-dn",
+    "-vf",
+    "scale=1280:720:flags=neighbor,format=nv12",
+    "-pix_fmt",
+    "nv12",
+    "-frames:v",
+    "600",
+    "-threads",
+    "1",
+    "-fps_mode",
+    "passthrough",
+    "-f",
+    "rawvideo",
+    "pipe:1"
+  ],
+  "strace_path": "/data/openpilot/.harness-state/sidecam-write-trace-unfiltered-20261115T094536Z/strace-writes.log",
+  "timestamp_semantics": "CLOCK_MONOTONIC immediately after full raw NV12 frame read; no V4L2 PTS used",
+  "unparsed_write_lines": [],
+  "untraced_reference": {
+    "artifact": "skillset-saves/runs/sidecamerad-mvp-20261113/build/artifacts/reader-poll-blocking-ab-r2.3-r1.json",
+    "blocking_intervals": 1199,
+    "max_ms": 81.590917,
+    "mean_ms": 50.01249750708924,
+    "note": "untraced sequential comparison, not paired; observer effect estimate is approximate",
+    "over_60ms": 161,
+    "p95_ms": 66.342798,
+    "p99_ms": 73.215193
+  },
+  "write_end_to_read_complete_lag_ms": {
+    "below_minus_uncertainty": 0,
+    "max": null,
+    "mean": null,
+    "median": null,
+    "min": null,
+    "p95": null
+  },
+  "write_fd_totals_bytes": {}
+}

@@ -1,0 +1,10 @@
+One bounded MPP encoder-context init/destroy probe; no input frame, packet, camera/sensor data, Params, IPC, output file, or encode call.
+Target binary: /tmp/ka2-mpp-init-probe-r7; compiled against /usr/local/include/rockchip/rk_mpi.h and explicitly linked to /lib/aarch64-linux-gnu/librockchip_mpp.so.1.
+Pre-run CMA is recorded even if zero; this is a readiness-only probe, not permission to run A/B.
+## pre-run idle/resource/device check at 2026-10-30T18:18:04.330912+00:00
+234 comm=irq/34-rga3_cor cmd=
+235 comm=irq/35-rga3_cor cmd=
+236 comm=irq/36-rga2 cmd=
+resources: MemAvailable:    2029288 kB; CmaTotal:         262144 kB; CmaFree:               0 kB; nr_free_cma  0,nr_free_cma  0
+fuser: (no users reported) [exit 1]
+PROBE NOT RUN: competing process or MPP/render device user found.

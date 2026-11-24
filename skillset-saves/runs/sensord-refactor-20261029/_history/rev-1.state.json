@@ -1,0 +1,29 @@
+{
+  "active_owner": "admiral",
+  "artifact_hashes": {
+    "skillset-saves/runs/sensord-refactor-20261029/intake/report_grilling.md": "c04acdb1fb079a27174ee5345123f28dd39f2e2838c674a37dc4bedd7e2a85db"
+  },
+  "context_tier": "2",
+  "evidence_paths": [
+    "skillset-saves/runs/sensord-refactor-20261029/intake/report_grilling.md"
+  ],
+  "execution_mode": "agent",
+  "hook_registration_status": "registered",
+  "mcp_registry_check": "not-needed",
+  "next_action": "checkpoint normalized intake then delegate design to commander",
+  "parent_revision": null,
+  "performance_measurement": "deferred-no-i2c-device-nodes",
+  "persistence_probe": "ok",
+  "preamble_tier": "2",
+  "protocol_state": "INTAKE",
+  "revision": 1,
+  "run_id": "sensord-refactor-20261029",
+  "runtime_readiness_check": "ready",
+  "schema_version": 1,
+  "session_pin": true,
+  "skills_engaged": [
+    "session-memory"
+  ],
+  "status": "active",
+  "timestamp": "2026-10-29T08:09:19.114741+00:00"
+}

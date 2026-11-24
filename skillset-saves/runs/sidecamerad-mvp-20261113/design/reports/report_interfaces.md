@@ -1,0 +1,17 @@
+# Interface contracts — sidecamerad MVP
+
+**Run/revision:** `sidecamerad-mvp-20261113` / 11  
+**Requirements:** [requirements-brief.md](requirements-brief.md) · SHA-256 `1d0813a7fca5e7cee8d987c80842c22fd52ef8dca7dcdd4197632d3fe3040288`  
+**Change:** Additive internal process, cereal, and VisionIPC interfaces; no external API.
+
+| ID | Interface; caller → callee | Contract and error behavior |
+|---|---|---|
+| IF-1 | Manager → `sidecamerad` | Register a separate process enabled only by `SIDECAMERAD=1`; use existing `driverview` lifecycle. Native `camerad` is unchanged. Disabled means absent; process startup failure is isolated to this sidecar. |
+| IF-2 | Operator environment → sidecar | Four optional path variables: `SIDECAM_FRONT_LEFT`, `SIDECAM_FRONT_RIGHT`, `SIDECAM_BACK_LEFT`, `SIDECAM_BACK_RIGHT`; each non-empty value names its V4L2 device. Missing values omit that worker; invalid/unavailable paths retry per camera without blocking siblings. No auto-discovery. |
+| IF-3 | Capture worker → FFmpeg child | Input: selected V4L2 MJPEG device, 1280×720, 20 fps. Output: raw NV12 bytes on stdout, one FFmpeg thread. Read a complete 1,382,400-byte frame into the worker’s reusable buffer. On child exit, EOF, short/invalid frame, or decoder error, close/reap and log FFmpeg, then retry that camera with bounded exponential backoff: 1, 2, 4, 8, 16, then 30 seconds maximum. No BGR conversion or app queue; use existing FFmpeg, add no package. |
+| IF-4 | Sidecar → VisionIPC clients | Server/control name: `sidecamerad`; add this name to the ZMQ endpoint-name allowlist. Create 3 buffers per configured stream at 1280×720 NV12. Append `VISION_STREAM_SIDE_FRONT_LEFT=7`, `...FRONT_RIGHT=8`, `...BACK_LEFT=9`, `...BACK_RIGHT=10` after occupied IDs 0–6, and mirror the values in `visionipc_pyx.pyx`. These IDs are distinct from public native and encoder streams; do not route through encoder mapping or frame leases. No frames are sent during a camera’s failure/backoff period. |
+| IF-5 | Sidecar → cereal subscribers | Add Event `FrameData` arms at ordinals 150–153, after `audioFeedback @149`: `frontLeftCameraState`, `frontRightCameraState`, `backLeftCameraState`, `backRightCameraState`. Add the same four service names to `cereal/services.py`, each at 20 Hz. For each configured camera publish frame metadata with a monotonically increasing frame ID; at read completion set host-monotonic `timestampEof = monotonic_ns` and nominal `timestampSof = timestampEof - 50,000,000 ns`. No hardware timing or cross-camera alignment is promised. No state is published during that camera’s failure/backoff period. |
+
+The required mapping is fixed: front-left topic ↔ stream 7 ↔ `SIDECAM_FRONT_LEFT`; front-right ↔ 8 ↔ `SIDECAM_FRONT_RIGHT`; back-left ↔ 9 ↔ `SIDECAM_BACK_LEFT`; back-right ↔ 10 ↔ `SIDECAM_BACK_RIGHT`. Each state service is the discovery/status channel; clients obtain pixels from its distinct VisionIPC stream. VisionIPC control uses the sidecar-specific name, while the ZMQ transport resolves stream endpoints from the appended IDs.
+
+**Compatibility and failure taxonomy:** preserve all current stream numeric values, cereal ordinals, service names, and native process lifecycle. Configuration and FFmpeg/device errors are position-scoped and retried with bounded backoff; sidecar startup errors affect only the opt-in sidecar; unavailable consumers do not alter capture configuration. No API authentication or versioning surface is added. Four-stream throughput remains unmeasured and is not asserted by this contract.

@@ -1,0 +1,41 @@
+{
+  "active_owner": "admiral",
+  "artifact_hashes": {
+    "skillset-saves/runs/sensord-refactor-20261029/design/artifacts/taste_snapshot.json": "4b29408d876a909bc0a1eec35f78abf384a72276b6f6972da35e2f99a6244a8f",
+    "skillset-saves/runs/sensord-refactor-20261029/design/reports/requirements-brief.md": "dadb834e31621719a2afc0880e88042183b43e80c529d3ad1d7488c22d92e712",
+    "skillset-saves/runs/sensord-refactor-20261029/intake/intake-brief.md": "3e7160208914020d485d57bb8a9d3fce0a7ccb8a29716b09b8ec25f7af210382",
+    "skillset-saves/runs/sensord-refactor-20261029/intake/report_grilling.md": "c04acdb1fb079a27174ee5345123f28dd39f2e2838c674a37dc4bedd7e2a85db"
+  },
+  "context_tier": "2",
+  "delegated_to": "taste",
+  "evidence_paths": [
+    "skillset-saves/runs/sensord-refactor-20261029/design/artifacts/taste_snapshot.json",
+    "skillset-saves/runs/sensord-refactor-20261029/design/reports/requirements-brief.md",
+    "skillset-saves/runs/sensord-refactor-20261029/intake/intake-brief.md",
+    "skillset-saves/runs/sensord-refactor-20261029/intake/report_grilling.md"
+  ],
+  "execution_mode": "agent",
+  "hook_registration_status": "missing",
+  "mcp_registry_check": "not-needed",
+  "next_action": "taste validates the existing taste_snapshot applicability record against current Taste source revisions and returns its validation evidence",
+  "parent_revision": 4,
+  "performance_measurement": "deferred-no-i2c-device-nodes",
+  "persistence_active": "true",
+  "persistence_probe": "ok",
+  "persistence_probe_result": "ok",
+  "phase_state": "DESIGN_ACTIVE",
+  "preamble_tier": "2",
+  "protocol_state": "DESIGN",
+  "revision": 5,
+  "run_id": "sensord-refactor-20261029",
+  "runtime_readiness_check": "not-ready-python-3.12.3",
+  "schema_version": 1,
+  "session_pin": true,
+  "skills_engaged": [
+    "session-memory",
+    "commander",
+    "taste"
+  ],
+  "status": "active",
+  "timestamp": "2026-10-29T08:26:41.446727+00:00"
+}

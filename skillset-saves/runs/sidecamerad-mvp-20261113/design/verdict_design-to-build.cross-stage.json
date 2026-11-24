@@ -1,0 +1,106 @@
+{
+  "boundary": "design-to-build",
+  "changed_evidence": [],
+  "checked_at": "2026-11-13T07:30:21.310312+00:00",
+  "declared_schema_version": 2,
+  "evidence_digests": {
+    "acceptance": "d0c9c2d5729f861b227b323dd6afaf54907af4f17e86cd7e04a0fb0073e29e47",
+    "architecture": "be1b1a697b08a2a1b97bdb48fb1e4807d94c99473c1e33bd22f92c004c54dbdd",
+    "decisions": "5ce4c6bf2b8da774d6b2fb623e2f04d210f37ac7c4fed26a27e392462ab6d76a",
+    "interfaces": "2419594e60f5cbc9870708d5048ab2c64c22ce358fbb630b1ee7843bbdacf58c",
+    "plan": "d0c9c2d5729f861b227b323dd6afaf54907af4f17e86cd7e04a0fb0073e29e47",
+    "security_seed": "09c14404f13f6b88352bf7ae65721feec294f1c97214a799cebc1c77c361c691",
+    "stack_lock": "f4cee8aff805c83e90020a1e898c1851a9528aec1203e0a93b39d81d5a16f8e1",
+    "taste_snapshot": "d2abcc639a0e7b8806b800ec11a4a442d1bce7c660f9b120d8aa9e7a6894c4c2",
+    "ui_evidence": "db3120100f571e80ccc2cfbac243a76d324b2ad82805d018313a3d52fc577572"
+  },
+  "evidence_root": "/data/openpilot/skillset-saves/runs/sidecamerad-mvp-20261113",
+  "evidence_root_kind": "run",
+  "failures": [],
+  "gate_spec_digest": "b2995ffa29a827c2bf101391788bf1228eb38869ad7c0a601a4126734ee6c7c1",
+  "gate_spec_is_shipped": true,
+  "idempotency_drift": false,
+  "judgment": {
+    "by_owner": {},
+    "escalation": null,
+    "findings": [
+      {
+        "basis": {
+          "kind": "contract",
+          "ref": "Deterministic Pre-Check (two validators)",
+          "source": "gatekeeper-admiral/SKILL.md"
+        },
+        "evidence": [
+          "manifest:evidence.architecture",
+          "manifest:evidence.plan"
+        ],
+        "expected": "Build receives one coherent, approved design package and can consume its hashed specification without inferring the implementation contract.",
+        "id": "INFO-DELIVERY-SUMMARY-CONDITIONAL-RESOLVED-R2",
+        "key": null,
+        "observed": "The r2 handoff points to the r2 manifest and approved phase verdict. The package-shape validator reports zero failures and one conditional summary slot; the manifest hashes the architecture and plan, and the implementation specification is part of the approved package.",
+        "owner": "commander",
+        "remediation": "No separate summary artifact is needed for this intermediate boundary. Build management should reconcile the existing r1 implementation attempt against the r2 specification before treating any source as r2-complete.",
+        "severity": "Info",
+        "statement": "A separate delivery summary is not required for this intermediate design-to-build handoff; the r2 handoff identifies the approved design manifest and build consumer, while the design package carries the architecture, plan, acceptance criteria, and implementation specification.",
+        "verification": "The boundary validator reports prior_reusable=true, changed_evidence=[], no failures, and no warnings. The delivery-shape validator reports zero failures, coherent r2 lineage, no skip record, and a clean blocked-phrase scan; only the optional summary slot is unchecked and is resolved out of scope for this handoff."
+      }
+    ],
+    "gate": "gatekeeper-admiral",
+    "intake": {
+      "artifact": "../intake/report_grilling.md"
+    },
+    "valid": true,
+    "verdict": "APPROVED"
+  },
+  "judgment_failures": [],
+  "manifest": "manifest.json",
+  "manifest_schema_version": 2,
+  "mechanical_only": false,
+  "missing": [],
+  "mixed_revisions": false,
+  "owner": "commander",
+  "package_fingerprint": "b0251564736c6ebe59fc540ee6a4734eca3835ee6d8559ec22bb2b0f44fbd2e4",
+  "pass": true,
+  "prior_record": {
+    "gate_spec_digest": "b2995ffa29a827c2bf101391788bf1228eb38869ad7c0a601a4126734ee6c7c1",
+    "gate_spec_is_shipped": true,
+    "judgment": {
+      "gate": "gatekeeper-design",
+      "valid": true,
+      "verdict": "APPROVED"
+    },
+    "path": "/data/openpilot/skillset-saves/runs/sidecamerad-mvp-20261113/design/verdict_design-to-build.json"
+  },
+  "prior_reusable": true,
+  "registry_is_shipped": true,
+  "revise_packet": {
+    "actions_by_owner": {},
+    "by_key": {},
+    "by_owner": {},
+    "judgment_by_owner": {},
+    "unassigned": []
+  },
+  "revision": "r2",
+  "revision_cycle": {
+    "boundary_revise_rounds": 0,
+    "consecutive_revise": 0,
+    "gate": "gatekeeper-admiral",
+    "held_for_user": false,
+    "history": "verdict_design-to-build.cycles.json"
+  },
+  "run_id": "sidecamerad-mvp-20261113",
+  "submission_id": "sidecamerad-mvp-20261113_design-revision-2",
+  "unchanged_evidence": [
+    "acceptance",
+    "architecture",
+    "decisions",
+    "interfaces",
+    "plan",
+    "security_seed",
+    "stack_lock",
+    "taste_snapshot",
+    "ui_evidence"
+  ],
+  "verdict_id": "9694f6d67574c0e68a172a56c07daac6821cd03583d5fc928831a1759fe14329",
+  "warnings": []
+}

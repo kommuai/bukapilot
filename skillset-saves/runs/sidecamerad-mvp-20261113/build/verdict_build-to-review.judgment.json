@@ -1,0 +1,51 @@
+{
+  "boundary": "build-to-review",
+  "submission_id": "sidecamerad-mvp-20261113_build-r2.2-c68",
+  "revision": "68",
+  "gate": "gatekeeper-build",
+  "verdict": "REVISE",
+  "intake": {
+    "artifact": "../intake/report_grilling.md"
+  },
+  "findings": [
+    {
+      "id": "AC-4-CADENCE-FAIL",
+      "severity": "Major",
+      "key": "runtime",
+      "owner": "health-check",
+      "statement": "The five-minute assigned-camera capture did not satisfy the required cadence thresholds. The current eight-second functional smoke does not establish AC-4 cadence acceptance.",
+      "expected": "AC-4 requires at least 6,000 successfully published frames over five steady-state minutes, mean cadence of at least 20.0 fps, and no EOF-to-EOF interval above 60 ms, alongside matching cereal and VisionIPC frame IDs.",
+      "observed": "The earlier five-minute capture published 6,000 matching IDs but measured mean 19.999396661241942 fps, maximum EOF gap 123.185415 ms, and 743 of 5,999 intervals above 60 ms. The refreshed current-binding smoke lasted eight seconds and therefore is not cadence proof.",
+      "remediation": "health-check must produce an acceptance-passing five-minute capture on the assigned camera against the current package source hashes, preserving per-frame timestamps and dual-publication evidence. If the measured cadence still misses either threshold, return the concrete failure mechanism for a scoped build fix rather than treating the smoke as a pass.",
+      "verification": "Repeat the existing five-minute health-check capture procedure on the authorized assigned image node and inspect the per-frame EOF intervals. Pass only with at least 6,000 successfully published frames, mean cadence >=20.0 fps, every EOF gap <=60 ms, and matching IDs across cereal and VisionIPC; register the new probe inputs and log hashes in the package.",
+      "basis": {
+        "kind": "acceptance",
+        "ref": "AC-4",
+        "artifact": "../design/reports/delivery-plan-r2.md"
+      },
+      "evidence": [
+        "manifest:evidence.runtime",
+        "evidence/runtime-smoke-zmq-r2-final.log",
+        "evidence/runtime-smoke-r2.1-post-merge.log",
+        "reports/report_completeness.md"
+      ]
+    },
+    {
+      "id": "SEC-FFMPEG-RESOURCE-001-RESIDUAL",
+      "severity": "Minor",
+      "key": "security_evidence",
+      "owner": "security-builder",
+      "statement": "The package correctly retains the open SEC-FFMPEG-RESOURCE-001 residual: this host cannot enforce a safe per-child CPU/memory limit, so FFmpeg internal resource consumption remains unbounded. Dependency scanners remain not-run, not clean.",
+      "basis": {
+        "kind": "acceptance",
+        "ref": "AC-8",
+        "artifact": "../design/reports/delivery-plan-r2.md"
+      },
+      "evidence": [
+        "artifacts/security_evidence.json",
+        "reports/report_security.md",
+        "evidence/security-scan.json"
+      ]
+    }
+  ]
+}

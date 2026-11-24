@@ -1,0 +1,72 @@
+{
+  "command": "harness/gatekeeper/check.py --boundary design-to-build --package manifest.json --prior verdict_design-to-build-r9.json",
+  "exit_code": 0,
+  "result": {
+    "boundary": "design-to-build",
+    "changed_evidence": [
+      "acceptance",
+      "architecture",
+      "interfaces",
+      "plan",
+      "security_seed"
+    ],
+    "checked_at": "2026-10-31T06:53:40.724850+00:00",
+    "declared_schema_version": 2,
+    "evidence_digests": {
+      "acceptance": "b7d80d7ecd0eefad639f8803362b0f27e2d6a09a3b849981bfe5ffbb9d221742",
+      "architecture": "014502f5e9661e88f5e6b77316a7e2ffef7cc6ac867ee103e8adcdc568001e9a",
+      "decisions": "14750ae26f52b5695b62b4f2a9329da3687fef3b5db7c4dbdac726fb7e4d4c89",
+      "interfaces": "42ac1b71f89b488576b0429399bc2616cb480b77637e1de5a836b6693cbefbfc",
+      "plan": "b7d80d7ecd0eefad639f8803362b0f27e2d6a09a3b849981bfe5ffbb9d221742",
+      "security_seed": "640faf3bc1981849099711b5156c80d5bc90c501e6e207dd8ea6f7f37b874931",
+      "stack_lock": "e80e04e2361f105b4317eb5748f9ea2736b0eb911458fd737c68a87918e200ed",
+      "taste_snapshot": "79472a01cc9bcf53493658037f2105109a93ea8c51dfab1ef05134b0ad7cc8f5",
+      "ui_evidence": "c186b1eadb349aec67a254184780183de154c8b6ba0a1256e3ac71cb56356132"
+    },
+    "evidence_root": "/data/media/supremeteam/42c6eb550c629191187c/skillset-saves/runs/loggerd-ka2-efficiency-20261029",
+    "evidence_root_kind": "run",
+    "failures": [],
+    "gate_spec_digest": "b2995ffa29a827c2bf101391788bf1228eb38869ad7c0a601a4126734ee6c7c1",
+    "gate_spec_is_shipped": true,
+    "idempotency_drift": false,
+    "judgment": null,
+    "judgment_failures": [],
+    "manifest": "manifest.json",
+    "manifest_schema_version": 2,
+    "mechanical_only": true,
+    "missing": [],
+    "mixed_revisions": false,
+    "owner": "commander",
+    "package_fingerprint": "7821bc18beae4a2c6b58824b31ea6b24775b1042fe6384a4ceeee45a0aaba73f",
+    "pass": true,
+    "prior_record": {
+      "gate_spec_digest": "b2995ffa29a827c2bf101391788bf1228eb38869ad7c0a601a4126734ee6c7c1",
+      "gate_spec_is_shipped": true,
+      "judgment": {
+        "gate": "gatekeeper-design",
+        "valid": true,
+        "verdict": "APPROVED"
+      },
+      "path": "/data/media/supremeteam/42c6eb550c629191187c/skillset-saves/runs/loggerd-ka2-efficiency-20261029/design/verdict_design-to-build-r9.json"
+    },
+    "prior_reusable": null,
+    "registry_is_shipped": true,
+    "revise_packet": {
+      "by_key": {},
+      "by_owner": {},
+      "unassigned": []
+    },
+    "revision": "r10",
+    "run_id": "loggerd-ka2-efficiency-20261029",
+    "submission_id": "loggerd-ka2-efficiency-20261029-design-r10-mpp-segment-recovery-contract",
+    "unchanged_evidence": [
+      "decisions",
+      "stack_lock",
+      "taste_snapshot",
+      "ui_evidence"
+    ],
+    "verdict_id": "89719e849ac65c6e4aed2f974e8c4154ff0bd90d6cb29c13ef02c330a3c0f6a3",
+    "warnings": []
+  },
+  "stderr": ""
+}

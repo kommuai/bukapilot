@@ -1,0 +1,57 @@
+{
+  "artifacts": [
+    "evidence/implementation-recovery-r2.2.diff"
+  ],
+  "changed_files": [
+    {
+      "path": "system/sidecamerad.py",
+      "sha256": "494fb8b88fda8bcf1d8301225019f4f01f4b77a0bb5cb3e69dde47ed96e1309b",
+      "status": "added"
+    },
+    {
+      "path": "system/manager/test/test_sidecamerad.py",
+      "sha256": "cf9fb49f514ac90458d47d825716a30b296b8cb25880167695c6a86a6660a059",
+      "status": "added"
+    },
+    {
+      "path": "system/manager/process_config.py",
+      "sha256": "b7fdfda2878cae1fa6b354ed512bc33ad66f1abe1ed25c90ed980b547a8aa02d",
+      "status": "modified"
+    },
+    {
+      "path": "common/params_keys.h",
+      "sha256": "c2925ebd8f9f26cc04951afb0e3c67ac7cb20a1c370b79aa93a25a4aaef2a031",
+      "status": "modified"
+    },
+    {
+      "path": "common/params_pyx.so",
+      "sha256": "3108e29407f31b9bd86a86ccafc82a4f98a225884412987a24be5c357dbfb586",
+      "status": "modified"
+    },
+    {
+      "path": "cereal/log.capnp",
+      "sha256": "d5c0372d714e65461942874c91c522b205ce208261b382283839ed03b9731f64",
+      "status": "modified"
+    },
+    {
+      "path": "cereal/services.py",
+      "sha256": "cacd4b749d9a0a3e19e3c466784dcf34925f263fdca3c26af72578c47d740a6b",
+      "status": "modified"
+    },
+    {
+      "path": "msgq_repo/msgq/visionipc/visionbuf.h",
+      "sha256": "c971a1afa601f5bb8f560de6fb1dd78c2121cee61ea41c169f00a4154566e870",
+      "status": "modified"
+    },
+    {
+      "path": "msgq_repo/msgq/visionipc/visionipc_pyx.pyx",
+      "sha256": "36247e353901eb80e52735c91f466151b3026e77152dde9ad9e3bcd682c66f32",
+      "status": "modified"
+    },
+    {
+      "path": "msgq_repo/msgq/visionipc/visionipc_server.cc",
+      "sha256": "36b383bfcaf10eaa69f6844a579c86204b4a07464a889208fe059a6c1202d198",
+      "status": "modified"
+    }
+  ]
+}

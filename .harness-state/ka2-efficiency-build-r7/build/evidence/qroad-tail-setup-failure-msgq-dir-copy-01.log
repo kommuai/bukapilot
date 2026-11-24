@@ -1,0 +1,13 @@
+phase=warmup mode=copy repetition=01 started_utc=2026-10-31T03:10:49Z mem_before_kb=1926344 shm_used_bytes=12488704
+thermal_cooling_state /sys/class/thermal/cooling_device0/cur_state=0
+thermal_cooling_state /sys/class/thermal/cooling_device1/cur_state=0
+thermal_cooling_state /sys/class/thermal/cooling_device2/cur_state=0
+thermal_cooling_state /sys/class/thermal/cooling_device4/cur_state=0
+cpu_frequency /sys/devices/system/cpu/cpufreq/policy0/scaling_cur_freq=1800000
+cpu_frequency /sys/devices/system/cpu/cpufreq/policy4/scaling_cur_freq=408000
+cpu_frequency /sys/devices/system/cpu/cpufreq/policy6/scaling_cur_freq=408000
+investigation_mode=copy binary_class=MppEncoder dma_heap=system streams=road+qRoad fps=20 frames=100 buffers=24
+Warning, could not open: /dev/shm/msgq_ka2bench/roadEncodeData
+Error, failed to bind PubSocket to roadEncodeData: No such file or directory
+qroad-tail-memory-harness: cereal/messaging/socketmaster.cc:192: PubMaster::PubMaster(const std::vector<const char *> &): Assertion `socket' failed.
+launch_exit_code=134 completed_utc=2026-10-31T03:10:49Z mem_after_kb=1925412

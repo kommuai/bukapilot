@@ -1,0 +1,16 @@
+bringing up nodes...
+bringing up nodes...
+
+........                                                                 [100%]
+============================= slowest 10 durations =============================
+1.47s call     system/manager/test/test_sidecamerad.py::test_manager_enables_sidecamerad_by_default_and_keeps_camerad
+0.05s setup    system/manager/test/test_sidecamerad.py::test_main_removes_inherited_zmq_before_ipc_and_pubmaster
+0.05s setup    system/manager/test/test_sidecamerad.py::test_params_default_and_json_dict_round_trip
+0.04s setup    system/manager/test/test_sidecamerad.py::test_explicit_device_paths_resolve_only_to_video_character_nodes
+0.03s setup    system/manager/test/test_sidecamerad.py::test_manager_enables_sidecamerad_by_default_and_keeps_camerad
+0.03s teardown system/manager/test/test_sidecamerad.py::test_main_removes_inherited_zmq_before_ipc_and_pubmaster
+0.02s setup    system/manager/test/test_sidecamerad.py::test_no_paths_acknowledges_each_feed_and_waits_for_signal
+0.01s teardown system/manager/test/test_sidecamerad.py::test_explicit_device_paths_resolve_only_to_video_character_nodes
+0.01s teardown system/manager/test/test_sidecamerad.py::test_params_default_and_json_dict_round_trip
+0.01s teardown system/manager/test/test_sidecamerad.py::test_side_camera_service_stream_and_schema_mapping_is_stable
+8 passed in 5.96s

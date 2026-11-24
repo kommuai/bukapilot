@@ -1,0 +1,123 @@
+{
+  "boundary": "build-to-review",
+  "events": [
+    {
+      "boundary": "build-to-review",
+      "changed_evidence": null,
+      "checked_at": "2026-11-15T08:01:41.131024+00:00",
+      "judgment": {
+        "by_owner": {
+          "health-check": [
+            "AC-4-CADENCE-FAIL"
+          ]
+        },
+        "escalation": null,
+        "findings": [
+          {
+            "basis": {
+              "artifact": "../design/reports/delivery-plan-r2.md",
+              "kind": "acceptance",
+              "ref": "AC-4"
+            },
+            "evidence": [
+              "manifest:evidence.runtime",
+              "evidence/runtime-smoke-zmq-r2-final.log",
+              "evidence/runtime-smoke-r2.1-post-merge.log",
+              "reports/report_completeness.md"
+            ],
+            "expected": "AC-4 requires at least 6,000 successfully published frames over five steady-state minutes, mean cadence of at least 20.0 fps, and no EOF-to-EOF interval above 60 ms, alongside matching cereal and VisionIPC frame IDs.",
+            "id": "AC-4-CADENCE-FAIL",
+            "key": "runtime",
+            "observed": "The earlier five-minute capture published 6,000 matching IDs but measured mean 19.999396661241942 fps, maximum EOF gap 123.185415 ms, and 743 of 5,999 intervals above 60 ms. The refreshed current-binding smoke lasted eight seconds and therefore is not cadence proof.",
+            "owner": "health-check",
+            "remediation": "health-check must produce an acceptance-passing five-minute capture on the assigned camera against the current package source hashes, preserving per-frame timestamps and dual-publication evidence. If the measured cadence still misses either threshold, return the concrete failure mechanism for a scoped build fix rather than treating the smoke as a pass.",
+            "severity": "Major",
+            "statement": "The five-minute assigned-camera capture did not satisfy the required cadence thresholds. The current eight-second functional smoke does not establish AC-4 cadence acceptance.",
+            "verification": "Repeat the existing five-minute health-check capture procedure on the authorized assigned image node and inspect the per-frame EOF intervals. Pass only with at least 6,000 successfully published frames, mean cadence >=20.0 fps, every EOF gap <=60 ms, and matching IDs across cereal and VisionIPC; register the new probe inputs and log hashes in the package."
+          },
+          {
+            "basis": {
+              "artifact": "../design/reports/delivery-plan-r2.md",
+              "kind": "acceptance",
+              "ref": "AC-8"
+            },
+            "evidence": [
+              "artifacts/security_evidence.json",
+              "reports/report_security.md",
+              "evidence/security-scan.json"
+            ],
+            "id": "SEC-FFMPEG-RESOURCE-001-RESIDUAL",
+            "key": "security_evidence",
+            "owner": "security-builder",
+            "severity": "Minor",
+            "statement": "The package correctly retains the open SEC-FFMPEG-RESOURCE-001 residual: this host cannot enforce a safe per-child CPU/memory limit, so FFmpeg internal resource consumption remains unbounded. Dependency scanners remain not-run, not clean."
+          }
+        ],
+        "gate": "gatekeeper-build",
+        "intake": {
+          "artifact": "../intake/report_grilling.md"
+        },
+        "valid": true,
+        "verdict": "REVISE"
+      },
+      "package_fingerprint": "b07c676fdd6f20c3e05e1c667b36268294e4e4aea9f7a225df133baf242b1c68",
+      "revise_packet": {
+        "actions_by_owner": {
+          "health-check": [
+            {
+              "basis": {
+                "artifact": "../design/reports/delivery-plan-r2.md",
+                "kind": "acceptance",
+                "ref": "AC-4"
+              },
+              "evidence": [
+                "manifest:evidence.runtime",
+                "evidence/runtime-smoke-zmq-r2-final.log",
+                "evidence/runtime-smoke-r2.1-post-merge.log",
+                "reports/report_completeness.md"
+              ],
+              "expected": "AC-4 requires at least 6,000 successfully published frames over five steady-state minutes, mean cadence of at least 20.0 fps, and no EOF-to-EOF interval above 60 ms, alongside matching cereal and VisionIPC frame IDs.",
+              "id": "AC-4-CADENCE-FAIL",
+              "key": "runtime",
+              "observed": "The earlier five-minute capture published 6,000 matching IDs but measured mean 19.999396661241942 fps, maximum EOF gap 123.185415 ms, and 743 of 5,999 intervals above 60 ms. The refreshed current-binding smoke lasted eight seconds and therefore is not cadence proof.",
+              "owner": "health-check",
+              "remediation": "health-check must produce an acceptance-passing five-minute capture on the assigned camera against the current package source hashes, preserving per-frame timestamps and dual-publication evidence. If the measured cadence still misses either threshold, return the concrete failure mechanism for a scoped build fix rather than treating the smoke as a pass.",
+              "severity": "Major",
+              "statement": "The five-minute assigned-camera capture did not satisfy the required cadence thresholds. The current eight-second functional smoke does not establish AC-4 cadence acceptance.",
+              "verification": "Repeat the existing five-minute health-check capture procedure on the authorized assigned image node and inspect the per-frame EOF intervals. Pass only with at least 6,000 successfully published frames, mean cadence >=20.0 fps, every EOF gap <=60 ms, and matching IDs across cereal and VisionIPC; register the new probe inputs and log hashes in the package."
+            }
+          ]
+        },
+        "by_key": {},
+        "by_owner": {},
+        "judgment_by_owner": {
+          "health-check": [
+            "AC-4-CADENCE-FAIL"
+          ]
+        },
+        "unassigned": []
+      },
+      "revision": "68",
+      "signature": [
+        "gatekeeper-build",
+        "68",
+        "b07c676fdd6f20c3e05e1c667b36268294e4e4aea9f7a225df133baf242b1c68",
+        "REVISE"
+      ],
+      "submission_id": "sidecamerad-mvp-20261113_build-r2.2-c68",
+      "unchanged_evidence": null
+    }
+  ],
+  "gates": {
+    "gatekeeper-build": [
+      "68"
+    ]
+  },
+  "held": false,
+  "reopen_refs": [],
+  "rounds": [
+    "68"
+  ],
+  "run_id": "sidecamerad-mvp-20261113",
+  "schema_version": 1
+}

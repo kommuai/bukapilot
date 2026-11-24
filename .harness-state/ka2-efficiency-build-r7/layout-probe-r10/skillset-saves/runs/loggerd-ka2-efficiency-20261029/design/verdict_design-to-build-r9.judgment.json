@@ -1,0 +1,75 @@
+{
+  "boundary": "design-to-build",
+  "submission_id": "loggerd-ka2-efficiency-20261029-design-r9-report-contract",
+  "revision": "r9",
+  "gate": "gatekeeper-design",
+  "verdict": "APPROVED",
+  "intake": {
+    "artifact": "../intake/report_grilling.md"
+  },
+  "findings": [
+    {
+      "id": "J-1",
+      "key": "interfaces",
+      "owner": "architect",
+      "severity": "Info",
+      "statement": "The shape check reports API endpoint contracts as UNCHECKED. They are out of scope: the hashed interface inventory defines internal Params/process coordination, C++ encoder status, media lifecycle, and a test fixture, and declares no public endpoint or cereal schema change.",
+      "basis": {
+        "kind": "contract",
+        "ref": "conditional API endpoint artifact is required only when endpoints are in scope",
+        "source": "design/gatekeeper-design/SKILL.md"
+      },
+      "evidence": [
+        "manifest:evidence.interfaces",
+        "reports/report_interfaces_r9.md"
+      ]
+    },
+    {
+      "id": "J-2",
+      "key": "ui_evidence",
+      "owner": "architect",
+      "severity": "Info",
+      "statement": "The shape check reports the frontend/UI handoff as UNCHECKED. This is a backend loggerd/encoderd change with no user-facing surface, and the manifest contains the architect's typed no-surface applicability record.",
+      "basis": {
+        "kind": "contract",
+        "ref": "conditional frontend/UI handoff applies only when a user-facing surface exists",
+        "source": "design/gatekeeper-design/SKILL.md"
+      },
+      "evidence": [
+        "manifest:evidence.ui_evidence",
+        "artifacts/ui_evidence_r8.json"
+      ]
+    },
+    {
+      "id": "J-3",
+      "key": null,
+      "owner": "commander",
+      "severity": "Info",
+      "statement": "The canonical package path resolves through skillset-saves to /data/media, outside /data/openpilot, so the shape validator refuses that path. A byte-identical in-project mirror of the manifest-selected r9 package files passed the shape check with zero failures and the two expected conditional findings; the boundary validator independently checked the canonical manifest and artifact hashes.",
+      "basis": {
+        "kind": "contract",
+        "ref": "package-shape validator requires an in-project package directory",
+        "source": "design/gatekeeper-design/references/workflow.md"
+      },
+      "evidence": []
+    },
+    {
+      "id": "J-4",
+      "key": "architecture",
+      "owner": "architect",
+      "severity": "Info",
+      "statement": "Live RK3588 V4L2 DMA-BUF exporter behavior, fences/synchronization, MPP import against live camera buffers, and buffer reuse remain unqualified. The design correctly limits its proof target to isolated synthetic DMA-heap inputs; the prior M0 fixture evidence covers VisionIPC transport and fixture-owned lifetime only, not MPP or the full loggerd/encoderd lifecycle.",
+      "basis": {
+        "kind": "contract",
+        "ref": "Calibration",
+        "source": "contracts/evidence-standards.md"
+      },
+      "evidence": [
+        "reports/report_architecture_r9.md",
+        "reports/delivery-plan_r9.md",
+        "evidence/r9/prior_report_dmabuf_fixture_r8.md"
+      ]
+    }
+  ],
+  "escalation": null
+}

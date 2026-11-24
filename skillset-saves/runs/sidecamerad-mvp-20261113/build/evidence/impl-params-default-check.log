@@ -1,0 +1,7 @@
+command: isolated Params default and dict round-trip via /usr/local/venv/bin/python3
+exit_code: 0
+stdout:
+compiled Params binding: SideCameraAvailability exists
+default type: dict; exact four-key all-false JSON default: PASS
+Python dict put/get JSON round-trip in isolated temporary Params root: PASS
+stderr:

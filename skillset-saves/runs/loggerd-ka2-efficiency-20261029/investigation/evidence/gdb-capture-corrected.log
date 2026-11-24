@@ -1,0 +1,45 @@
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/aarch64-linux-gnu/libthread_db.so.1".
+[New Thread 0x7fec7be3e0 (LWP 4003867)]
+[New Thread 0x7febfae3e0 (LWP 4003868)]
+[Detaching after vfork from child process 4003869]
+[New Thread 0x7fdecfe3e0 (LWP 4003874)]
+[Thread 0x7fdecfe3e0 (LWP 4003874) exited]
+
+Thread 1 "loggerd_non_rk3" received signal SIGABRT, Aborted.
+0x0000007ff52374d8 in ?? () from /lib/aarch64-linux-gnu/libc.so.6
+  Num  Description       Connection           Executable        
+* 1    process 4003843   1 (native)           /data/openpilot/build/system/loggerd/tests/loggerd_non_rk3588 
+
+Thread 3 (Thread 0x7febfae3e0 (LWP 4003868) "ZMQbg/IO/0"):
+#0  0x0000007ff529bd34 in epoll_pwait () at /lib/aarch64-linux-gnu/libc.so.6
+#1  0x0000007ff7f36338 in ??? () at /lib/aarch64-linux-gnu/libzmq.so.5
+#2  0x0000007ff7f669a0 in ??? () at /lib/aarch64-linux-gnu/libzmq.so.5
+#3  0x0000007ff523582c in ??? () at /lib/aarch64-linux-gnu/libc.so.6
+#4  0x0000007ff529ba0c in ??? () at /lib/aarch64-linux-gnu/libc.so.6
+
+Thread 2 (Thread 0x7fec7be3e0 (LWP 4003867) "ZMQbg/Reaper"):
+#0  0x0000007ff529bd34 in epoll_pwait () at /lib/aarch64-linux-gnu/libc.so.6
+#1  0x0000007ff7f36338 in ??? () at /lib/aarch64-linux-gnu/libzmq.so.5
+#2  0x0000007ff7f669a0 in ??? () at /lib/aarch64-linux-gnu/libzmq.so.5
+#3  0x0000007ff523582c in ??? () at /lib/aarch64-linux-gnu/libc.so.6
+#4  0x0000007ff529ba0c in ??? () at /lib/aarch64-linux-gnu/libc.so.6
+
+Thread 1 (Thread 0x7ff6819020 (LWP 4003843) "loggerd_non_rk3"):
+#0  0x0000007ff52374d8 in ??? () at /lib/aarch64-linux-gnu/libc.so.6
+#1  0x0000007ff51ecb3c in raise () at /lib/aarch64-linux-gnu/libc.so.6
+#2  0x0000007ff51d7e00 in abort () at /lib/aarch64-linux-gnu/libc.so.6
+#3  0x0000007ff51e5cc0 in ??? () at /lib/aarch64-linux-gnu/libc.so.6
+#4  0x0000007ff51e5d30 in __assert_fail () at /lib/aarch64-linux-gnu/libc.so.6
+#5  0x00000055555863cc in ZstdFileWriter::flushCache (this=this@entry=..., last_chunk=...) at system/loggerd/zstd_writer.cc:67
+#6  0x0000005555586478 in ZstdFileWriter::flush (this=..., force=...) at system/loggerd/zstd_writer.cc:50
+#7  0x0000005555585348 in LoggerState::write (this=..., data=..., size=..., in_qlog=...) at system/loggerd/logger.cc:234
+#8  0x000000555557ca58 in loggerd_thread () at system/loggerd/loggerd.cc:805
+#9  0x000000555557d4dc in main (argc=..., argv=...) at system/loggerd/loggerd.cc:857
+[Thread 0x7febfae3e0 (LWP 4003868) exited]
+[Thread 0x7ff6819020 (LWP 4003843) exited]
+[Thread 0x7fec7be3e0 (LWP 4003867) exited]
+[New process 4003843]
+
+Program terminated with signal SIGABRT, Aborted.
+The program no longer exists.

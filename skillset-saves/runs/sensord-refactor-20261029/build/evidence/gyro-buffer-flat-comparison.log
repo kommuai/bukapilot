@@ -1,0 +1,625 @@
+Exception ignored in: <function Sensor.__del__ at 0x7f76a0ba60>
+Traceback (most recent call last):
+  File "/data/pythonpath/openpilot/system/sensord/sensors/i2c_sensor.py", line 21, in __del__
+    self.bus.close()
+    ^^^^^^^^
+AttributeError: 'ICM42670_Gyro' object has no attribute 'bus'
+Exception ignored in: <function Sensor.__del__ at 0x7f76a0ba60>
+Traceback (most recent call last):
+  File "/data/pythonpath/openpilot/system/sensord/sensors/i2c_sensor.py", line 21, in __del__
+    self.bus.close()
+    ^^^^^^^^
+AttributeError: 'ICM42670_Gyro' object has no attribute 'bus'
+Exception ignored in: <function Sensor.__del__ at 0x7f76a0ba60>
+Traceback (most recent call last):
+  File "/data/pythonpath/openpilot/system/sensord/sensors/i2c_sensor.py", line 21, in __del__
+    self.bus.close()
+    ^^^^^^^^
+AttributeError: 'ICM42670_Gyro' object has no attribute 'bus'
+Exception ignored in: <function Sensor.__del__ at 0x7f76a0ba60>
+Traceback (most recent call last):
+  File "/data/pythonpath/openpilot/system/sensord/sensors/i2c_sensor.py", line 21, in __del__
+    self.bus.close()
+    ^^^^^^^^
+AttributeError: 'ICM42670_Gyro' object has no attribute 'bus'
+Exception ignored in: <function Sensor.__del__ at 0x7f76a0ba60>
+Traceback (most recent call last):
+  File "/data/pythonpath/openpilot/system/sensord/sensors/i2c_sensor.py", line 21, in __del__
+    self.bus.close()
+    ^^^^^^^^
+AttributeError: 'ICM42670_Gyro' object has no attribute 'bus'
+Exception ignored in: <function Sensor.__del__ at 0x7f76a0ba60>
+Traceback (most recent call last):
+  File "/data/pythonpath/openpilot/system/sensord/sensors/i2c_sensor.py", line 21, in __del__
+    self.bus.close()
+    ^^^^^^^^
+AttributeError: 'ICM42670_Gyro' object has no attribute 'bus'
+Exception ignored in: <function Sensor.__del__ at 0x7f76a0ba60>
+Traceback (most recent call last):
+  File "/data/pythonpath/openpilot/system/sensord/sensors/i2c_sensor.py", line 21, in __del__
+    self.bus.close()
+    ^^^^^^^^
+AttributeError: 'ICM42670_Gyro' object has no attribute 'bus'
+Exception ignored in: <function Sensor.__del__ at 0x7f76a0ba60>
+Traceback (most recent call last):
+  File "/data/pythonpath/openpilot/system/sensord/sensors/i2c_sensor.py", line 21, in __del__
+    self.bus.close()
+    ^^^^^^^^
+AttributeError: 'ICM42670_Gyro' object has no attribute 'bus'
+Exception ignored in: <function Sensor.__del__ at 0x7f76a0ba60>
+Traceback (most recent call last):
+  File "/data/pythonpath/openpilot/system/sensord/sensors/i2c_sensor.py", line 21, in __del__
+    self.bus.close()
+    ^^^^^^^^
+AttributeError: 'ICM42670_Gyro' object has no attribute 'bus'
+Exception ignored in: <function Sensor.__del__ at 0x7f76a0ba60>
+Traceback (most recent call last):
+  File "/data/pythonpath/openpilot/system/sensord/sensors/i2c_sensor.py", line 21, in __del__
+    self.bus.close()
+    ^^^^^^^^
+AttributeError: 'ICM42670_Gyro' object has no attribute 'bus'
+Exception ignored in: <function Sensor.__del__ at 0x7f76a0ba60>
+Traceback (most recent call last):
+  File "/data/pythonpath/openpilot/system/sensord/sensors/i2c_sensor.py", line 21, in __del__
+    self.bus.close()
+    ^^^^^^^^
+AttributeError: 'ICM42670_Gyro' object has no attribute 'bus'
+Exception ignored in: <function Sensor.__del__ at 0x7f76a0ba60>
+Traceback (most recent call last):
+  File "/data/pythonpath/openpilot/system/sensord/sensors/i2c_sensor.py", line 21, in __del__
+    self.bus.close()
+    ^^^^^^^^
+AttributeError: 'ICM42670_Gyro' object has no attribute 'bus'
+Exception ignored in: <function Sensor.__del__ at 0x7f76a0ba60>
+Traceback (most recent call last):
+  File "/data/pythonpath/openpilot/system/sensord/sensors/i2c_sensor.py", line 21, in __del__
+    self.bus.close()
+    ^^^^^^^^
+AttributeError: 'ICM42670_Gyro' object has no attribute 'bus'
+Exception ignored in: <function Sensor.__del__ at 0x7f76a0ba60>
+Traceback (most recent call last):
+  File "/data/pythonpath/openpilot/system/sensord/sensors/i2c_sensor.py", line 21, in __del__
+    self.bus.close()
+    ^^^^^^^^
+AttributeError: 'ICM42670_Gyro' object has no attribute 'bus'
+Exception ignored in: <function Sensor.__del__ at 0x7f76a0ba60>
+Traceback (most recent call last):
+  File "/data/pythonpath/openpilot/system/sensord/sensors/i2c_sensor.py", line 21, in __del__
+    self.bus.close()
+    ^^^^^^^^
+AttributeError: 'ICM42670_Gyro' object has no attribute 'bus'
+Exception ignored in: <function Sensor.__del__ at 0x7f76a0ba60>
+Traceback (most recent call last):
+  File "/data/pythonpath/openpilot/system/sensord/sensors/i2c_sensor.py", line 21, in __del__
+    self.bus.close()
+    ^^^^^^^^
+AttributeError: 'ICM42670_Gyro' object has no attribute 'bus'
+Exception ignored in: <function Sensor.__del__ at 0x7f76a0ba60>
+Traceback (most recent call last):
+  File "/data/pythonpath/openpilot/system/sensord/sensors/i2c_sensor.py", line 21, in __del__
+    self.bus.close()
+    ^^^^^^^^
+AttributeError: 'ICM42670_Gyro' object has no attribute 'bus'
+Exception ignored in: <function Sensor.__del__ at 0x7f76a0ba60>
+Traceback (most recent call last):
+  File "/data/pythonpath/openpilot/system/sensord/sensors/i2c_sensor.py", line 21, in __del__
+    self.bus.close()
+    ^^^^^^^^
+AttributeError: 'ICM42670_Gyro' object has no attribute 'bus'
+Exception ignored in: <function Sensor.__del__ at 0x7f76a0ba60>
+Traceback (most recent call last):
+  File "/data/pythonpath/openpilot/system/sensord/sensors/i2c_sensor.py", line 21, in __del__
+    self.bus.close()
+    ^^^^^^^^
+AttributeError: 'ICM42670_Gyro' object has no attribute 'bus'
+Exception ignored in: <function Sensor.__del__ at 0x7f76a0ba60>
+Traceback (most recent call last):
+  File "/data/pythonpath/openpilot/system/sensord/sensors/i2c_sensor.py", line 21, in __del__
+    self.bus.close()
+    ^^^^^^^^
+AttributeError: 'ICM42670_Gyro' object has no attribute 'bus'
+Exception ignored in: <function Sensor.__del__ at 0x7f76a0ba60>
+Traceback (most recent call last):
+  File "/data/pythonpath/openpilot/system/sensord/sensors/i2c_sensor.py", line 21, in __del__
+    self.bus.close()
+    ^^^^^^^^
+AttributeError: 'ICM42670_Gyro' object has no attribute 'bus'
+Exception ignored in: <function Sensor.__del__ at 0x7f76a0ba60>
+Traceback (most recent call last):
+  File "/data/pythonpath/openpilot/system/sensord/sensors/i2c_sensor.py", line 21, in __del__
+    self.bus.close()
+    ^^^^^^^^
+AttributeError: 'ICM42670_Gyro' object has no attribute 'bus'
+Exception ignored in: <function Sensor.__del__ at 0x7f76a0ba60>
+Traceback (most recent call last):
+  File "/data/pythonpath/openpilot/system/sensord/sensors/i2c_sensor.py", line 21, in __del__
+    self.bus.close()
+    ^^^^^^^^
+AttributeError: 'ICM42670_Gyro' object has no attribute 'bus'
+Exception ignored in: <function Sensor.__del__ at 0x7f76a0ba60>
+Traceback (most recent call last):
+  File "/data/pythonpath/openpilot/system/sensord/sensors/i2c_sensor.py", line 21, in __del__
+    self.bus.close()
+    ^^^^^^^^
+AttributeError: 'ICM42670_Gyro' object has no attribute 'bus'
+Exception ignored in: <function Sensor.__del__ at 0x7f76a0ba60>
+Traceback (most recent call last):
+  File "/data/pythonpath/openpilot/system/sensord/sensors/i2c_sensor.py", line 21, in __del__
+    self.bus.close()
+    ^^^^^^^^
+AttributeError: 'ICM42670_Gyro' object has no attribute 'bus'
+Exception ignored in: <function Sensor.__del__ at 0x7f76a0ba60>
+Traceback (most recent call last):
+  File "/data/pythonpath/openpilot/system/sensord/sensors/i2c_sensor.py", line 21, in __del__
+    self.bus.close()
+    ^^^^^^^^
+AttributeError: 'ICM42670_Gyro' object has no attribute 'bus'
+Exception ignored in: <function Sensor.__del__ at 0x7f76a0ba60>
+Traceback (most recent call last):
+  File "/data/pythonpath/openpilot/system/sensord/sensors/i2c_sensor.py", line 21, in __del__
+    self.bus.close()
+    ^^^^^^^^
+AttributeError: 'ICM42670_Gyro' object has no attribute 'bus'
+Exception ignored in: <function Sensor.__del__ at 0x7f76a0ba60>
+Traceback (most recent call last):
+  File "/data/pythonpath/openpilot/system/sensord/sensors/i2c_sensor.py", line 21, in __del__
+    self.bus.close()
+    ^^^^^^^^
+AttributeError: 'ICM42670_Gyro' object has no attribute 'bus'
+Exception ignored in: <function Sensor.__del__ at 0x7f76a0ba60>
+Traceback (most recent call last):
+  File "/data/pythonpath/openpilot/system/sensord/sensors/i2c_sensor.py", line 21, in __del__
+    self.bus.close()
+    ^^^^^^^^
+AttributeError: 'ICM42670_Gyro' object has no attribute 'bus'
+Exception ignored in: <function Sensor.__del__ at 0x7f76a0ba60>
+Traceback (most recent call last):
+  File "/data/pythonpath/openpilot/system/sensord/sensors/i2c_sensor.py", line 21, in __del__
+    self.bus.close()
+    ^^^^^^^^
+AttributeError: 'ICM42670_Gyro' object has no attribute 'bus'
+Exception ignored in: <function Sensor.__del__ at 0x7f76a0ba60>
+Traceback (most recent call last):
+  File "/data/pythonpath/openpilot/system/sensord/sensors/i2c_sensor.py", line 21, in __del__
+    self.bus.close()
+    ^^^^^^^^
+AttributeError: 'ICM42670_Gyro' object has no attribute 'bus'
+Exception ignored in: <function Sensor.__del__ at 0x7f76a0ba60>
+Traceback (most recent call last):
+  File "/data/pythonpath/openpilot/system/sensord/sensors/i2c_sensor.py", line 21, in __del__
+    self.bus.close()
+    ^^^^^^^^
+AttributeError: 'ICM42670_Gyro' object has no attribute 'bus'
+Exception ignored in: <function Sensor.__del__ at 0x7f76a0ba60>
+Traceback (most recent call last):
+  File "/data/pythonpath/openpilot/system/sensord/sensors/i2c_sensor.py", line 21, in __del__
+    self.bus.close()
+    ^^^^^^^^
+AttributeError: 'ICM42670_Gyro' object has no attribute 'bus'
+Exception ignored in: <function Sensor.__del__ at 0x7f76a0ba60>
+Traceback (most recent call last):
+  File "/data/pythonpath/openpilot/system/sensord/sensors/i2c_sensor.py", line 21, in __del__
+    self.bus.close()
+    ^^^^^^^^
+AttributeError: 'ICM42670_Gyro' object has no attribute 'bus'
+Exception ignored in: <function Sensor.__del__ at 0x7f76a0ba60>
+Traceback (most recent call last):
+  File "/data/pythonpath/openpilot/system/sensord/sensors/i2c_sensor.py", line 21, in __del__
+    self.bus.close()
+    ^^^^^^^^
+AttributeError: 'ICM42670_Gyro' object has no attribute 'bus'
+Exception ignored in: <function Sensor.__del__ at 0x7f76a0ba60>
+Traceback (most recent call last):
+  File "/data/pythonpath/openpilot/system/sensord/sensors/i2c_sensor.py", line 21, in __del__
+    self.bus.close()
+    ^^^^^^^^
+AttributeError: 'ICM42670_Gyro' object has no attribute 'bus'
+Exception ignored in: <function Sensor.__del__ at 0x7f76a0ba60>
+Traceback (most recent call last):
+  File "/data/pythonpath/openpilot/system/sensord/sensors/i2c_sensor.py", line 21, in __del__
+    self.bus.close()
+    ^^^^^^^^
+AttributeError: 'ICM42670_Gyro' object has no attribute 'bus'
+Exception ignored in: <function Sensor.__del__ at 0x7f76a0ba60>
+Traceback (most recent call last):
+  File "/data/pythonpath/openpilot/system/sensord/sensors/i2c_sensor.py", line 21, in __del__
+    self.bus.close()
+    ^^^^^^^^
+AttributeError: 'ICM42670_Gyro' object has no attribute 'bus'
+Exception ignored in: <function Sensor.__del__ at 0x7f76a0ba60>
+Traceback (most recent call last):
+  File "/data/pythonpath/openpilot/system/sensord/sensors/i2c_sensor.py", line 21, in __del__
+    self.bus.close()
+    ^^^^^^^^
+AttributeError: 'ICM42670_Gyro' object has no attribute 'bus'
+Exception ignored in: <function Sensor.__del__ at 0x7f76a0ba60>
+Traceback (most recent call last):
+  File "/data/pythonpath/openpilot/system/sensord/sensors/i2c_sensor.py", line 21, in __del__
+    self.bus.close()
+    ^^^^^^^^
+AttributeError: 'ICM42670_Gyro' object has no attribute 'bus'
+Exception ignored in: <function Sensor.__del__ at 0x7f76a0ba60>
+Traceback (most recent call last):
+  File "/data/pythonpath/openpilot/system/sensord/sensors/i2c_sensor.py", line 21, in __del__
+    self.bus.close()
+    ^^^^^^^^
+AttributeError: 'ICM42670_Gyro' object has no attribute 'bus'
+Exception ignored in: <function Sensor.__del__ at 0x7f76a0ba60>
+Traceback (most recent call last):
+  File "/data/pythonpath/openpilot/system/sensord/sensors/i2c_sensor.py", line 21, in __del__
+    self.bus.close()
+    ^^^^^^^^
+AttributeError: 'ICM42670_Gyro' object has no attribute 'bus'
+Exception ignored in: <function Sensor.__del__ at 0x7f76a0ba60>
+Traceback (most recent call last):
+  File "/data/pythonpath/openpilot/system/sensord/sensors/i2c_sensor.py", line 21, in __del__
+    self.bus.close()
+    ^^^^^^^^
+AttributeError: 'ICM42670_Gyro' object has no attribute 'bus'
+Exception ignored in: <function Sensor.__del__ at 0x7f76a0ba60>
+Traceback (most recent call last):
+  File "/data/pythonpath/openpilot/system/sensord/sensors/i2c_sensor.py", line 21, in __del__
+    self.bus.close()
+    ^^^^^^^^
+AttributeError: 'ICM42670_Gyro' object has no attribute 'bus'
+Exception ignored in: <function Sensor.__del__ at 0x7f76a0ba60>
+Traceback (most recent call last):
+  File "/data/pythonpath/openpilot/system/sensord/sensors/i2c_sensor.py", line 21, in __del__
+    self.bus.close()
+    ^^^^^^^^
+AttributeError: 'ICM42670_Gyro' object has no attribute 'bus'
+Exception ignored in: <function Sensor.__del__ at 0x7f76a0ba60>
+Traceback (most recent call last):
+  File "/data/pythonpath/openpilot/system/sensord/sensors/i2c_sensor.py", line 21, in __del__
+    self.bus.close()
+    ^^^^^^^^
+AttributeError: 'ICM42670_Gyro' object has no attribute 'bus'
+Exception ignored in: <function Sensor.__del__ at 0x7f76a0ba60>
+Traceback (most recent call last):
+  File "/data/pythonpath/openpilot/system/sensord/sensors/i2c_sensor.py", line 21, in __del__
+    self.bus.close()
+    ^^^^^^^^
+AttributeError: 'ICM42670_Gyro' object has no attribute 'bus'
+Exception ignored in: <function Sensor.__del__ at 0x7f76a0ba60>
+Traceback (most recent call last):
+  File "/data/pythonpath/openpilot/system/sensord/sensors/i2c_sensor.py", line 21, in __del__
+    self.bus.close()
+    ^^^^^^^^
+AttributeError: 'ICM42670_Gyro' object has no attribute 'bus'
+Exception ignored in: <function Sensor.__del__ at 0x7f76a0ba60>
+Traceback (most recent call last):
+  File "/data/pythonpath/openpilot/system/sensord/sensors/i2c_sensor.py", line 21, in __del__
+    self.bus.close()
+    ^^^^^^^^
+AttributeError: 'ICM42670_Gyro' object has no attribute 'bus'
+Exception ignored in: <function Sensor.__del__ at 0x7f76a0ba60>
+Traceback (most recent call last):
+  File "/data/pythonpath/openpilot/system/sensord/sensors/i2c_sensor.py", line 21, in __del__
+    self.bus.close()
+    ^^^^^^^^
+AttributeError: 'ICM42670_Gyro' object has no attribute 'bus'
+Exception ignored in: <function Sensor.__del__ at 0x7f76a0ba60>
+Traceback (most recent call last):
+  File "/data/pythonpath/openpilot/system/sensord/sensors/i2c_sensor.py", line 21, in __del__
+    self.bus.close()
+    ^^^^^^^^
+AttributeError: 'ICM42670_Gyro' object has no attribute 'bus'
+Exception ignored in: <function Sensor.__del__ at 0x7f76a0ba60>
+Traceback (most recent call last):
+  File "/data/pythonpath/openpilot/system/sensord/sensors/i2c_sensor.py", line 21, in __del__
+    self.bus.close()
+    ^^^^^^^^
+AttributeError: 'ICM42670_Gyro' object has no attribute 'bus'
+Exception ignored in: <function Sensor.__del__ at 0x7f76a0ba60>
+Traceback (most recent call last):
+  File "/data/pythonpath/openpilot/system/sensord/sensors/i2c_sensor.py", line 21, in __del__
+    self.bus.close()
+    ^^^^^^^^
+AttributeError: 'ICM42670_Gyro' object has no attribute 'bus'
+Exception ignored in: <function Sensor.__del__ at 0x7f76a0ba60>
+Traceback (most recent call last):
+  File "/data/pythonpath/openpilot/system/sensord/sensors/i2c_sensor.py", line 21, in __del__
+    self.bus.close()
+    ^^^^^^^^
+AttributeError: 'ICM42670_Gyro' object has no attribute 'bus'
+Exception ignored in: <function Sensor.__del__ at 0x7f76a0ba60>
+Traceback (most recent call last):
+  File "/data/pythonpath/openpilot/system/sensord/sensors/i2c_sensor.py", line 21, in __del__
+    self.bus.close()
+    ^^^^^^^^
+AttributeError: 'ICM42670_Gyro' object has no attribute 'bus'
+Exception ignored in: <function Sensor.__del__ at 0x7f76a0ba60>
+Traceback (most recent call last):
+  File "/data/pythonpath/openpilot/system/sensord/sensors/i2c_sensor.py", line 21, in __del__
+    self.bus.close()
+    ^^^^^^^^
+AttributeError: 'ICM42670_Gyro' object has no attribute 'bus'
+Exception ignored in: <function Sensor.__del__ at 0x7f76a0ba60>
+Traceback (most recent call last):
+  File "/data/pythonpath/openpilot/system/sensord/sensors/i2c_sensor.py", line 21, in __del__
+    self.bus.close()
+    ^^^^^^^^
+AttributeError: 'ICM42670_Gyro' object has no attribute 'bus'
+Exception ignored in: <function Sensor.__del__ at 0x7f76a0ba60>
+Traceback (most recent call last):
+  File "/data/pythonpath/openpilot/system/sensord/sensors/i2c_sensor.py", line 21, in __del__
+    self.bus.close()
+    ^^^^^^^^
+AttributeError: 'ICM42670_Gyro' object has no attribute 'bus'
+Exception ignored in: <function Sensor.__del__ at 0x7f76a0ba60>
+Traceback (most recent call last):
+  File "/data/pythonpath/openpilot/system/sensord/sensors/i2c_sensor.py", line 21, in __del__
+    self.bus.close()
+    ^^^^^^^^
+AttributeError: 'ICM42670_Gyro' object has no attribute 'bus'
+Exception ignored in: <function Sensor.__del__ at 0x7f76a0ba60>
+Traceback (most recent call last):
+  File "/data/pythonpath/openpilot/system/sensord/sensors/i2c_sensor.py", line 21, in __del__
+    self.bus.close()
+    ^^^^^^^^
+AttributeError: 'ICM42670_Gyro' object has no attribute 'bus'
+Exception ignored in: <function Sensor.__del__ at 0x7f76a0ba60>
+Traceback (most recent call last):
+  File "/data/pythonpath/openpilot/system/sensord/sensors/i2c_sensor.py", line 21, in __del__
+    self.bus.close()
+    ^^^^^^^^
+AttributeError: 'ICM42670_Gyro' object has no attribute 'bus'
+Exception ignored in: <function Sensor.__del__ at 0x7f76a0ba60>
+Traceback (most recent call last):
+  File "/data/pythonpath/openpilot/system/sensord/sensors/i2c_sensor.py", line 21, in __del__
+    self.bus.close()
+    ^^^^^^^^
+AttributeError: 'ICM42670_Gyro' object has no attribute 'bus'
+Exception ignored in: <function Sensor.__del__ at 0x7f76a0ba60>
+Traceback (most recent call last):
+  File "/data/pythonpath/openpilot/system/sensord/sensors/i2c_sensor.py", line 21, in __del__
+    self.bus.close()
+    ^^^^^^^^
+AttributeError: 'ICM42670_Gyro' object has no attribute 'bus'
+Exception ignored in: <function Sensor.__del__ at 0x7f76a0ba60>
+Traceback (most recent call last):
+  File "/data/pythonpath/openpilot/system/sensord/sensors/i2c_sensor.py", line 21, in __del__
+    self.bus.close()
+    ^^^^^^^^
+AttributeError: 'ICM42670_Gyro' object has no attribute 'bus'
+Exception ignored in: <function Sensor.__del__ at 0x7f76a0ba60>
+Traceback (most recent call last):
+  File "/data/pythonpath/openpilot/system/sensord/sensors/i2c_sensor.py", line 21, in __del__
+    self.bus.close()
+    ^^^^^^^^
+AttributeError: 'ICM42670_Gyro' object has no attribute 'bus'
+Exception ignored in: <function Sensor.__del__ at 0x7f76a0ba60>
+Traceback (most recent call last):
+  File "/data/pythonpath/openpilot/system/sensord/sensors/i2c_sensor.py", line 21, in __del__
+    self.bus.close()
+    ^^^^^^^^
+AttributeError: 'ICM42670_Gyro' object has no attribute 'bus'
+Exception ignored in: <function Sensor.__del__ at 0x7f76a0ba60>
+Traceback (most recent call last):
+  File "/data/pythonpath/openpilot/system/sensord/sensors/i2c_sensor.py", line 21, in __del__
+    self.bus.close()
+    ^^^^^^^^
+AttributeError: 'ICM42670_Gyro' object has no attribute 'bus'
+Exception ignored in: <function Sensor.__del__ at 0x7f76a0ba60>
+Traceback (most recent call last):
+  File "/data/pythonpath/openpilot/system/sensord/sensors/i2c_sensor.py", line 21, in __del__
+    self.bus.close()
+    ^^^^^^^^
+AttributeError: 'ICM42670_Gyro' object has no attribute 'bus'
+Exception ignored in: <function Sensor.__del__ at 0x7f76a0ba60>
+Traceback (most recent call last):
+  File "/data/pythonpath/openpilot/system/sensord/sensors/i2c_sensor.py", line 21, in __del__
+    self.bus.close()
+    ^^^^^^^^
+AttributeError: 'ICM42670_Gyro' object has no attribute 'bus'
+Exception ignored in: <function Sensor.__del__ at 0x7f76a0ba60>
+Traceback (most recent call last):
+  File "/data/pythonpath/openpilot/system/sensord/sensors/i2c_sensor.py", line 21, in __del__
+    self.bus.close()
+    ^^^^^^^^
+AttributeError: 'ICM42670_Gyro' object has no attribute 'bus'
+Exception ignored in: <function Sensor.__del__ at 0x7f76a0ba60>
+Traceback (most recent call last):
+  File "/data/pythonpath/openpilot/system/sensord/sensors/i2c_sensor.py", line 21, in __del__
+    self.bus.close()
+    ^^^^^^^^
+AttributeError: 'ICM42670_Gyro' object has no attribute 'bus'
+Exception ignored in: <function Sensor.__del__ at 0x7f76a0ba60>
+Traceback (most recent call last):
+  File "/data/pythonpath/openpilot/system/sensord/sensors/i2c_sensor.py", line 21, in __del__
+    self.bus.close()
+    ^^^^^^^^
+AttributeError: 'ICM42670_Gyro' object has no attribute 'bus'
+Exception ignored in: <function Sensor.__del__ at 0x7f76a0ba60>
+Traceback (most recent call last):
+  File "/data/pythonpath/openpilot/system/sensord/sensors/i2c_sensor.py", line 21, in __del__
+    self.bus.close()
+    ^^^^^^^^
+AttributeError: 'ICM42670_Gyro' object has no attribute 'bus'
+Exception ignored in: <function Sensor.__del__ at 0x7f76a0ba60>
+Traceback (most recent call last):
+  File "/data/pythonpath/openpilot/system/sensord/sensors/i2c_sensor.py", line 21, in __del__
+    self.bus.close()
+    ^^^^^^^^
+AttributeError: 'ICM42670_Gyro' object has no attribute 'bus'
+Exception ignored in: <function Sensor.__del__ at 0x7f76a0ba60>
+Traceback (most recent call last):
+  File "/data/pythonpath/openpilot/system/sensord/sensors/i2c_sensor.py", line 21, in __del__
+    self.bus.close()
+    ^^^^^^^^
+AttributeError: 'ICM42670_Gyro' object has no attribute 'bus'
+Exception ignored in: <function Sensor.__del__ at 0x7f76a0ba60>
+Traceback (most recent call last):
+  File "/data/pythonpath/openpilot/system/sensord/sensors/i2c_sensor.py", line 21, in __del__
+    self.bus.close()
+    ^^^^^^^^
+AttributeError: 'ICM42670_Gyro' object has no attribute 'bus'
+Exception ignored in: <function Sensor.__del__ at 0x7f76a0ba60>
+Traceback (most recent call last):
+  File "/data/pythonpath/openpilot/system/sensord/sensors/i2c_sensor.py", line 21, in __del__
+    self.bus.close()
+    ^^^^^^^^
+AttributeError: 'ICM42670_Gyro' object has no attribute 'bus'
+Exception ignored in: <function Sensor.__del__ at 0x7f76a0ba60>
+Traceback (most recent call last):
+  File "/data/pythonpath/openpilot/system/sensord/sensors/i2c_sensor.py", line 21, in __del__
+    self.bus.close()
+    ^^^^^^^^
+AttributeError: 'ICM42670_Gyro' object has no attribute 'bus'
+Exception ignored in: <function Sensor.__del__ at 0x7f76a0ba60>
+Traceback (most recent call last):
+  File "/data/pythonpath/openpilot/system/sensord/sensors/i2c_sensor.py", line 21, in __del__
+    self.bus.close()
+    ^^^^^^^^
+AttributeError: 'ICM42670_Gyro' object has no attribute 'bus'
+Exception ignored in: <function Sensor.__del__ at 0x7f76a0ba60>
+Traceback (most recent call last):
+  File "/data/pythonpath/openpilot/system/sensord/sensors/i2c_sensor.py", line 21, in __del__
+    self.bus.close()
+    ^^^^^^^^
+AttributeError: 'ICM42670_Gyro' object has no attribute 'bus'
+Exception ignored in: <function Sensor.__del__ at 0x7f76a0ba60>
+Traceback (most recent call last):
+  File "/data/pythonpath/openpilot/system/sensord/sensors/i2c_sensor.py", line 21, in __del__
+    self.bus.close()
+    ^^^^^^^^
+AttributeError: 'ICM42670_Gyro' object has no attribute 'bus'
+Exception ignored in: <function Sensor.__del__ at 0x7f76a0ba60>
+Traceback (most recent call last):
+  File "/data/pythonpath/openpilot/system/sensord/sensors/i2c_sensor.py", line 21, in __del__
+    self.bus.close()
+    ^^^^^^^^
+AttributeError: 'ICM42670_Gyro' object has no attribute 'bus'
+Exception ignored in: <function Sensor.__del__ at 0x7f76a0ba60>
+Traceback (most recent call last):
+  File "/data/pythonpath/openpilot/system/sensord/sensors/i2c_sensor.py", line 21, in __del__
+    self.bus.close()
+    ^^^^^^^^
+AttributeError: 'ICM42670_Gyro' object has no attribute 'bus'
+Exception ignored in: <function Sensor.__del__ at 0x7f76a0ba60>
+Traceback (most recent call last):
+  File "/data/pythonpath/openpilot/system/sensord/sensors/i2c_sensor.py", line 21, in __del__
+    self.bus.close()
+    ^^^^^^^^
+AttributeError: 'ICM42670_Gyro' object has no attribute 'bus'
+Exception ignored in: <function Sensor.__del__ at 0x7f76a0ba60>
+Traceback (most recent call last):
+  File "/data/pythonpath/openpilot/system/sensord/sensors/i2c_sensor.py", line 21, in __del__
+    self.bus.close()
+    ^^^^^^^^
+AttributeError: 'ICM42670_Gyro' object has no attribute 'bus'
+Exception ignored in: <function Sensor.__del__ at 0x7f76a0ba60>
+Traceback (most recent call last):
+  File "/data/pythonpath/openpilot/system/sensord/sensors/i2c_sensor.py", line 21, in __del__
+    self.bus.close()
+    ^^^^^^^^
+AttributeError: 'ICM42670_Gyro' object has no attribute 'bus'
+Exception ignored in: <function Sensor.__del__ at 0x7f76a0ba60>
+Traceback (most recent call last):
+  File "/data/pythonpath/openpilot/system/sensord/sensors/i2c_sensor.py", line 21, in __del__
+    self.bus.close()
+    ^^^^^^^^
+AttributeError: 'ICM42670_Gyro' object has no attribute 'bus'
+Exception ignored in: <function Sensor.__del__ at 0x7f76a0ba60>
+Traceback (most recent call last):
+  File "/data/pythonpath/openpilot/system/sensord/sensors/i2c_sensor.py", line 21, in __del__
+    self.bus.close()
+    ^^^^^^^^
+AttributeError: 'ICM42670_Gyro' object has no attribute 'bus'
+Exception ignored in: <function Sensor.__del__ at 0x7f76a0ba60>
+Traceback (most recent call last):
+  File "/data/pythonpath/openpilot/system/sensord/sensors/i2c_sensor.py", line 21, in __del__
+    self.bus.close()
+    ^^^^^^^^
+AttributeError: 'ICM42670_Gyro' object has no attribute 'bus'
+Exception ignored in: <function Sensor.__del__ at 0x7f76a0ba60>
+Traceback (most recent call last):
+  File "/data/pythonpath/openpilot/system/sensord/sensors/i2c_sensor.py", line 21, in __del__
+    self.bus.close()
+    ^^^^^^^^
+AttributeError: 'ICM42670_Gyro' object has no attribute 'bus'
+Exception ignored in: <function Sensor.__del__ at 0x7f76a0ba60>
+Traceback (most recent call last):
+  File "/data/pythonpath/openpilot/system/sensord/sensors/i2c_sensor.py", line 21, in __del__
+    self.bus.close()
+    ^^^^^^^^
+AttributeError: 'ICM42670_Gyro' object has no attribute 'bus'
+Exception ignored in: <function Sensor.__del__ at 0x7f76a0ba60>
+Traceback (most recent call last):
+  File "/data/pythonpath/openpilot/system/sensord/sensors/i2c_sensor.py", line 21, in __del__
+    self.bus.close()
+    ^^^^^^^^
+AttributeError: 'ICM42670_Gyro' object has no attribute 'bus'
+Exception ignored in: <function Sensor.__del__ at 0x7f76a0ba60>
+Traceback (most recent call last):
+  File "/data/pythonpath/openpilot/system/sensord/sensors/i2c_sensor.py", line 21, in __del__
+    self.bus.close()
+    ^^^^^^^^
+AttributeError: 'ICM42670_Gyro' object has no attribute 'bus'
+Exception ignored in: <function Sensor.__del__ at 0x7f76a0ba60>
+Traceback (most recent call last):
+  File "/data/pythonpath/openpilot/system/sensord/sensors/i2c_sensor.py", line 21, in __del__
+    self.bus.close()
+    ^^^^^^^^
+AttributeError: 'ICM42670_Gyro' object has no attribute 'bus'
+Exception ignored in: <function Sensor.__del__ at 0x7f76a0ba60>
+Traceback (most recent call last):
+  File "/data/pythonpath/openpilot/system/sensord/sensors/i2c_sensor.py", line 21, in __del__
+    self.bus.close()
+    ^^^^^^^^
+AttributeError: 'ICM42670_Gyro' object has no attribute 'bus'
+Exception ignored in: <function Sensor.__del__ at 0x7f76a0ba60>
+Traceback (most recent call last):
+  File "/data/pythonpath/openpilot/system/sensord/sensors/i2c_sensor.py", line 21, in __del__
+    self.bus.close()
+    ^^^^^^^^
+AttributeError: 'ICM42670_Gyro' object has no attribute 'bus'
+Exception ignored in: <function Sensor.__del__ at 0x7f76a0ba60>
+Traceback (most recent call last):
+  File "/data/pythonpath/openpilot/system/sensord/sensors/i2c_sensor.py", line 21, in __del__
+    self.bus.close()
+    ^^^^^^^^
+AttributeError: 'ICM42670_Gyro' object has no attribute 'bus'
+Exception ignored in: <function Sensor.__del__ at 0x7f76a0ba60>
+Traceback (most recent call last):
+  File "/data/pythonpath/openpilot/system/sensord/sensors/i2c_sensor.py", line 21, in __del__
+    self.bus.close()
+    ^^^^^^^^
+AttributeError: 'ICM42670_Gyro' object has no attribute 'bus'
+Exception ignored in: <function Sensor.__del__ at 0x7f76a0ba60>
+Traceback (most recent call last):
+  File "/data/pythonpath/openpilot/system/sensord/sensors/i2c_sensor.py", line 21, in __del__
+    self.bus.close()
+    ^^^^^^^^
+AttributeError: 'ICM42670_Gyro' object has no attribute 'bus'
+Exception ignored in: <function Sensor.__del__ at 0x7f76a0ba60>
+Traceback (most recent call last):
+  File "/data/pythonpath/openpilot/system/sensord/sensors/i2c_sensor.py", line 21, in __del__
+    self.bus.close()
+    ^^^^^^^^
+AttributeError: 'ICM42670_Gyro' object has no attribute 'bus'
+Exception ignored in: <function Sensor.__del__ at 0x7f76a0ba60>
+Traceback (most recent call last):
+  File "/data/pythonpath/openpilot/system/sensord/sensors/i2c_sensor.py", line 21, in __del__
+    self.bus.close()
+    ^^^^^^^^
+AttributeError: 'ICM42670_Gyro' object has no attribute 'bus'
+Exception ignored in: <function Sensor.__del__ at 0x7f76a0ba60>
+Traceback (most recent call last):
+  File "/data/pythonpath/openpilot/system/sensord/sensors/i2c_sensor.py", line 21, in __del__
+    self.bus.close()
+    ^^^^^^^^
+AttributeError: 'ICM42670_Gyro' object has no attribute 'bus'
+Exception ignored in: <function Sensor.__del__ at 0x7f76a0ba60>
+Traceback (most recent call last):
+  File "/data/pythonpath/openpilot/system/sensord/sensors/i2c_sensor.py", line 21, in __del__
+    self.bus.close()
+    ^^^^^^^^
+AttributeError: 'ICM42670_Gyro' object has no attribute 'bus'
+Exception ignored in: <function Sensor.__del__ at 0x7f76a0ba60>
+Traceback (most recent call last):
+  File "/data/pythonpath/openpilot/system/sensord/sensors/i2c_sensor.py", line 21, in __del__
+    self.bus.close()
+    ^^^^^^^^
+AttributeError: 'ICM42670_Gyro' object has no attribute 'bus'
+{"elapsed_seconds": 0.7593253709992496, "environment_after": {"affinity": [0, 1, 2, 3, 4], "cpu_count": 5, "frequency_cpu0_khz": "1800000", "git_head": "ad334254e36a6694df5e651ef5aecb8e0e7a3085", "governor_cpu0": "ondemand", "load_average_1_5_15": [2.34130859375, 1.68505859375, 1.54931640625], "machine": "aarch64", "platform": "Linux-5.10.198-aarch64-with-glibc2.39", "python": "3.12.3 (main, Apr 15 2024, 17:09:49) [GCC 6.3.0 20170516]"}, "environment_before": {"affinity": [0, 1, 2, 3, 4], "cpu_count": 5, "frequency_cpu0_khz": "1800000", "git_head": "ad334254e36a6694df5e651ef5aecb8e0e7a3085", "governor_cpu0": "ondemand", "load_average_1_5_15": [2.34130859375, 1.68505859375, 1.54931640625], "machine": "aarch64", "platform": "Linux-5.10.198-aarch64-with-glibc2.39", "python": "3.12.3 (main, Apr 15 2024, 17:09:49) [GCC 6.3.0 20170516]"}, "final_pairs": 40, "flat_source_sha256": "d27848b492a000c27d6cf6a34025328c55a47326e22b1b8d05ebc3f6198e667c", "hardware_access": "none", "method": "previous three-array candidate reconstructed in-memory from current source; same deterministic 300 XYZ samples; time.sleep mocked; interleaved arms", "peak_rss_mib": 46.7265625, "pilot_cv_percent": {"flat": {"cpu_ns": 3.2312732527005394, "wall_ns": 7.083251107196633}, "previous": {"cpu_ns": 9.89218997905558, "wall_ns": 14.103694725705749}}, "pilot_pairs": 7, "previous_source_sha256": "431be11360602a6240804d1b4c56cbac194a69d8e9b23d530756953638b45f12", "process_cpu_time": {"flat": {"cv_percent": 0.6361970244854442, "median": 1057000.0, "p95": 1072167.0, "p99": 1083834.0, "raw": [1055542.0, 1054083.0, 1083834.0, 1061083.0, 1055834.0, 1066333.0, 1056709.0, 1054959.0, 1062541.0, 1054375.0, 1055250.0, 1072167.0, 1065458.0, 1053500.0, 1054958.0, 1059625.0, 1057583.0, 1057000.0, 1070417.0, 1060792.0, 1057000.0, 1053208.0, 1059917.0, 1056125.0, 1054958.0, 1059916.0, 1057875.0, 1053208.0, 1072458.0, 1061959.0, 1061667.0, 1055834.0, 1067208.0, 1052042.0, 1051167.0, 1064293.0, 1056125.0, 1051458.0, 1065458.0, 1054958.0]}, "median_time_reduction_percent": 21.758886730973312, "paired_median_reduction_95ci_percent": [21.432516276249565, 21.97122947337135], "paired_reductions_percent": [22.604747062140305, 21.89327934958675, 19.619245387966995, 22.529855797066002, 21.746599962942376, 20.90004843915397, 22.253188901731722, 22.87837849692525, 20.94188988095238, 21.702404158544507, 21.992238033635186, 20.484509131361825, 20.483283666077824, 22.356014073939775, 21.557170740775163, 21.073232718231534, 22.05509295905026, 21.81229773462783, 20.785662906314844, 21.208794555284612, 21.99739794536571, 21.68729435821173, 21.307861811723967, 22.52882635527332, 21.74383921464776, 21.95022091310751, 23.238095238095237, 22.41081584422167, 20.3767718254145, 21.10500348800668, 21.888406649072557, 22.217417344854233, 21.159257549173518, 22.195795486648827, 21.77117349900425, 20.79438330769534, 21.893893283891707, 22.22224687933426, 20.70768298790884, 21.62517960063653], "previous": {"cv_percent": 0.5999589999880395, "median": 1350417.0, "p95": 1367916.0, "p99": 1378125.0, "raw": [1363833.0, 1349542.0, 1348375.0, 1369667.0, 1349250.0, 1348083.0, 1359167.0, 1367916.0, 1344000.0, 1346625.0, 1352750.0, 1348375.0, 1339917.0, 1356834.0, 1344875.0, 1342542.0, 1356834.0, 1351875.0, 1351292.0, 1346333.0, 1355083.0, 1344875.0, 1346916.0, 1363249.0, 1348083.0, 1358000.0, 1378125.0, 1357416.0, 1346916.0, 1346041.0, 1359167.0, 1357417.0, 1353625.0, 1352166.0, 1343708.0, 1343709.0, 1352167.0, 1351875.0, 1343709.0, 1346042.0]}, "samples_per_arm": 40}, "sample_storage_size_estimate": {"flat_array_bytes": 2004, "payload_bytes_each": 1800, "previous_three_arrays_bytes": 2130}, "sleep_restored": true, "source": "system/sensord/sensors/icm42670_gyro.py", "wall_time": {"flat": {"cv_percent": 1.51913387434699, "median": 1058358.0, "p95": 1073815.0, "p99": 1156056.0, "raw": [1056899.0, 1055441.0, 1156056.0, 1062441.0, 1057191.0, 1067690.0, 1058357.0, 1056024.0, 1063607.0, 1055733.0, 1056899.0, 1073523.0, 1073815.0, 1054858.0, 1056316.0, 1060983.0, 1059233.0, 1058358.0, 1071773.0, 1062149.0, 1058358.0, 1054566.0, 1061565.0, 1057191.0, 1056608.0, 1060982.0, 1059233.0, 1054275.0, 1074106.0, 1063024.0, 1069148.0, 1056900.0, 1068565.0, 1053400.0, 1052525.0, 1070315.0, 1057483.0, 1052816.0, 1071773.0, 1056025.0]}, "median_time_reduction_percent": 21.710939883642517, "paired_median_reduction_95ci_percent": [21.339075726591503, 22.042682676819698], "paired_reductions_percent": [22.860844305608268, 21.86965160281655, 14.328971189695075, 22.89944658685016, 21.723185594337245, 20.87750682889017, 22.20800355164587, 23.300167704439264, 20.923705557980103, 21.678913613585024, 21.93024313998942, 20.46239733867771, 19.939056713640365, 22.34864043979406, 21.53379314443194, 21.067444151160124, 22.343337035692944, 21.7887903163231, 21.15426066831503, 21.185918745325242, 22.27454390296564, 21.646851136105276, 21.26331451136179, 22.872350903149695, 21.698694172947793, 22.364519764089504, 23.213493474220197, 22.772901677603098, 20.315885916072865, 21.13802018613381, 21.414836941821218, 22.21504239938885, 21.136437104137855, 22.155122213649975, 21.730630371363535, 20.42498395957292, 21.853451620412283, 22.215063805138694, 20.316585615733075, 21.62329454916278], "previous": {"cv_percent": 0.7282127583584491, "median": 1352038.0, "p95": 1376827.0, "p99": 1379452.0, "raw": [1370120.0, 1350872.0, 1349413.0, 1377994.0, 1350580.0, 1349414.0, 1360496.0, 1376827.0, 1345039.0, 1347955.0, 1353788.0, 1349705.0, 1341247.0, 1358454.0, 1346205.0, 1344164.0, 1363995.0, 1353205.0, 1359329.0, 1347664.0, 1361662.0, 1345914.0, 1348247.0, 1370703.0, 1349413.0, 1366620.0, 1379452.0, 1365162.0, 1347955.0, 1347955.0, 1360496.0, 1358746.0, 1354954.0, 1353204.0, 1344747.0, 1345039.0, 1353205.0, 1353496.0, 1345039.0, 1347371.0]}, "samples_per_arm": 40}, "warmup_pairs_discarded": 5}

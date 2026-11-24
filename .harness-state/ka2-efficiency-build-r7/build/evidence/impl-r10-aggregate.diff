@@ -1,0 +1,4223 @@
+diff --git a/system/loggerd/SConscript b/system/loggerd/SConscript
+index cf0ca7354..864df5df5 100644
+--- a/system/loggerd/SConscript
++++ b/system/loggerd/SConscript
+@@ -28,3 +28,10 @@ env.Program('bootlog.cc', LIBS=libs)
+ 
+ if GetOption('extras'):
+   env.Program('tests/test_logger', ['tests/test_runner.cc', 'tests/test_logger.cc', 'tests/test_zstd_writer.cc'], LIBS=libs + ['curl', 'crypto'])
++  env.Program('#build/system/loggerd/tests/visionipc_dmabuf_publisher',
++              'tests/visionipc_dmabuf_publisher.cc',
++              LIBS=[visionipc, messaging, common, 'OpenCL', 'pthread'])
++  env.Program('#build/system/loggerd/tests/test_loggerd_rotation',
++              'tests/test_loggerd_rotation.cc', LIBS=libs + ['curl', 'crypto'])
++  env.Program('#build/system/loggerd/tests/test_encoderd_recovery',
++              'tests/test_encoderd_recovery.cc', LIBS=libs + ['jpeg', 'curl', 'crypto'])
+diff --git a/system/loggerd/encoder/mpp_encoder.cc b/system/loggerd/encoder/mpp_encoder.cc
+index 54bd0b421..a93e4f247 100644
+--- a/system/loggerd/encoder/mpp_encoder.cc
++++ b/system/loggerd/encoder/mpp_encoder.cc
+@@ -10,7 +10,6 @@
+ #include <algorithm>
+ #include <chrono>
+ #include <limits>
+-#include <thread>
+ 
+ #define __STDC_CONSTANT_MACROS
+ 
+@@ -19,6 +18,8 @@
+ 
+ #include <mpp_meta.h>
+ #include <mpp_packet.h>
++#include <rga/rga.h>
++#include <rga/im2d.h>
+ 
+ #include "common/swaglog.h"
+ #include "common/util.h"
+@@ -27,18 +28,23 @@
+ 
+ const int env_debug_encoder = (getenv("DEBUG_ENCODER") != NULL) ? atoi(getenv("DEBUG_ENCODER")) : 0;
+ 
++#if defined(LOGGERD_TEST_BUILD)
++static bool test_fault_selected(const char *publish_name, const char *mode) {
++    const char *test_env = getenv("LOGGERD_TEST");
++    const char *fault_stream = getenv("LOGGERD_TEST_MPP_FAULT_STREAM");
++    const char *fault_mode = getenv("LOGGERD_TEST_MPP_FAULT_MODE");
++    return test_env != nullptr && strcmp(test_env, "1") == 0 &&
++           fault_stream != nullptr && fault_mode != nullptr &&
++           strcmp(fault_stream, publish_name) == 0 && strcmp(fault_mode, mode) == 0;
++}
++#endif
++
+ MppEncoder::MppEncoder(const EncoderInfo &encoder_info, int in_width, int in_height)
+     : VideoEncoder(encoder_info, in_width, in_height) {
+ 
+     if (in_width != out_width || in_height != out_height) {
+       is_downscale = true;
+     }
+-    // Zero-copy DMA import can succeed but still produce zero-length HEVC packets on some KA2 MPP builds.
+-    // Default to copy path which works for both H.264 and HEVC.
+-    use_zero_copy = false;
+-    if (const char *zero_copy_env = getenv("ENCODER_ZERO_COPY")) {
+-      use_zero_copy = atoi(zero_copy_env) != 0 && !is_downscale;
+-    }
+ 
+     alw = is_downscale ? MPP_ALIGN(out_width, 16) : MPP_ALIGN(in_width, 16);
+     alh = is_downscale ? MPP_ALIGN(out_height, 16) : MPP_ALIGN(in_height, 16);
+@@ -100,25 +106,34 @@ void MppEncoder::encoder_open(const char* path) {
+         out_width, out_height, encoder_info.fps,
+         encoder_info.filename, settings.bitrate);
+ 
+-    if (settings.encode_type == cereal::EncodeIndex::Type::QCAMERA_H264) {
+-      if (mpp_init(mpp_ctx, MPP_CTX_ENC, MPP_VIDEO_CodingAVC) != MPP_OK) {
+-        LOGE("mpp_init AVC failed for %s", path);
+-        encoder_close();
+-        return;
+-      }
+-      if (mpp_enc_cfg_init(&cfg) != MPP_OK) {
+-        LOGE("mpp_enc_cfg_init AVC failed for %s", path);
+-        encoder_close();
+-        return;
+-      }
+-      if (mpp_mpi->control(mpp_ctx, MPP_ENC_GET_CFG, cfg) != MPP_OK) {
+-        LOGE("MPP_ENC_GET_CFG AVC failed for %s", path);
+-        encoder_close();
+-        return;
+-      }
+-      mpp_enc_cfg_set_u32(cfg, "codec:type", MPP_VIDEO_CodingAVC);
+-      mpp_enc_cfg_set_s32(cfg, "split:mode", MPP_ENC_SPLIT_NONE);
++    const bool is_h264 = settings.encode_type == cereal::EncodeIndex::Type::QCAMERA_H264;
++    const bool is_hevc = settings.encode_type == cereal::EncodeIndex::Type::FULL_H_E_V_C;
++    if (!is_h264 && !is_hevc) {
++      LOGE("unsupported encode type %d for %s", (int)settings.encode_type, path);
++      encoder_close();
++      return;
++    }
++    const auto codec_type = is_h264 ? MPP_VIDEO_CodingAVC : MPP_VIDEO_CodingHEVC;
++    const char *codec_name = is_h264 ? "AVC" : "HEVC";
++    if (mpp_init(mpp_ctx, MPP_CTX_ENC, codec_type) != MPP_OK) {
++      LOGE("mpp_init %s failed for %s", codec_name, path);
++      encoder_close();
++      return;
++    }
++    if (mpp_enc_cfg_init(&cfg) != MPP_OK) {
++      LOGE("mpp_enc_cfg_init %s failed for %s", codec_name, path);
++      encoder_close();
++      return;
++    }
++    if (mpp_mpi->control(mpp_ctx, MPP_ENC_GET_CFG, cfg) != MPP_OK) {
++      LOGE("MPP_ENC_GET_CFG %s failed for %s", codec_name, path);
++      encoder_close();
++      return;
++    }
++    mpp_enc_cfg_set_u32(cfg, "codec:type", codec_type);
++    mpp_enc_cfg_set_s32(cfg, "split:mode", MPP_ENC_SPLIT_NONE);
+ 
++    if (is_h264) {
+       //**Profile & Level Settings (Low Quality)**
+       mpp_enc_cfg_set_u32(cfg, "h264:profile", 100);
+       mpp_enc_cfg_set_u32(cfg, "h264:level", 40);
+@@ -137,25 +152,7 @@ void MppEncoder::encoder_open(const char* path) {
+       mpp_enc_cfg_set_s32(cfg, "rc:qp_min_i", 30);
+       mpp_enc_cfg_set_s32(cfg, "rc:qp_ip", 6);
+     }
+-    else if (settings.encode_type == cereal::EncodeIndex::Type::FULL_H_E_V_C) {
+-      if (mpp_init(mpp_ctx, MPP_CTX_ENC, MPP_VIDEO_CodingHEVC) != MPP_OK) {
+-        LOGE("mpp_init HEVC failed for %s", path);
+-        encoder_close();
+-        return;
+-      }
+-      if (mpp_enc_cfg_init(&cfg) != MPP_OK) {
+-        LOGE("mpp_enc_cfg_init HEVC failed for %s", path);
+-        encoder_close();
+-        return;
+-      }
+-      if (mpp_mpi->control(mpp_ctx, MPP_ENC_GET_CFG, cfg) != MPP_OK) {
+-        LOGE("MPP_ENC_GET_CFG HEVC failed for %s", path);
+-        encoder_close();
+-        return;
+-      }
+-      mpp_enc_cfg_set_u32(cfg, "codec:type", MPP_VIDEO_CodingHEVC);
+-      mpp_enc_cfg_set_s32(cfg, "split:mode", MPP_ENC_SPLIT_NONE);
+-
++    else {
+       // HEVC needs explicit QP bounds for RC to produce output on KA2 MPP.
+       mpp_enc_cfg_set_s32(cfg, "rc:qp_init", 26);
+       mpp_enc_cfg_set_s32(cfg, "rc:qp_max", 51);
+@@ -164,11 +161,6 @@ void MppEncoder::encoder_open(const char* path) {
+       mpp_enc_cfg_set_s32(cfg, "rc:qp_min_i", 10);
+       mpp_enc_cfg_set_s32(cfg, "rc:qp_ip", 2);
+     }
+-    else {
+-      LOGE("unsupported encode type %d for %s", (int)settings.encode_type, path);
+-      encoder_close();
+-      return;
+-    }
+ 
+     mpp_enc_cfg_set_s32(cfg, "prep:width", out_width);
+     mpp_enc_cfg_set_s32(cfg, "prep:height", out_height);
+@@ -228,35 +220,40 @@ void MppEncoder::encoder_open(const char* path) {
+     mpp_frame_set_ver_stride(frame, alh);
+     mpp_frame_set_fmt(frame, MPP_FMT_YUV420SP);
+ 
+-    if (!use_zero_copy && !init_frame_buffer_pool(path)) {
++    if (is_downscale && !init_frame_buffer_pool(path)) {
+       encoder_close();
+       return;
+     }
+ 
+     pending_extras.clear();
+-    mpp_encoder_internal::reset_import_state(mpp_buf, zero_copy_import_failures, import_fallback_logged);
+     seen_first_enqueued = false;
+     seen_first_published = false;
+     flush_eos_sent = false;
+     drop_overflow_count = 0;
+     drop_non_monotonic_count = 0;
++#if defined(LOGGERD_TEST_BUILD)
++    test_drain_timeout_pending = false;
++#endif
+     is_open = true;
+     segment_num++;
+     counter = 0;
+-    LOGD("mpp encoder mode: %s", use_zero_copy ? "zero-copy" : "copy");
++    LOGD("mpp encoder input: %s", is_downscale ? "RGA resize" : "DMA-BUF import");
+ }
+ 
+ void MppEncoder::encoder_close() {
+-    if (is_open && mpp_ctx != nullptr && mpp_mpi != nullptr && !pending_extras.empty()) {
++    if (!pending_extras.empty()) {
+       if (flush_pending_on_close) {
+-        if (!flush_pending_packets()) {
++        if (!is_open || mpp_ctx == nullptr || mpp_mpi == nullptr || !flush_pending_packets()) {
+           LOGE("encoder %s close timed out with %zu encoded packets pending; frame ids %u..%u will be discarded",
+                encoder_info.publish_name, pending_extras.size(),
+                pending_extras.front().frame_id, pending_extras.back().frame_id);
++          pending_drop_count_ += pending_extras.size();
++          pending_extras.clear();
+         }
+       } else {
+         // Recovery/resync path: discard stale packets to avoid cross-segment backlog.
+         LOGW("dropping %zu pending encoded packets on forced close", pending_extras.size());
++        pending_drop_count_ += pending_extras.size();
+         pending_extras.clear();
+       }
+     }
+@@ -291,11 +288,13 @@ void MppEncoder::encoder_close() {
+     }
+     codec_header = nullptr;
+     pending_extras.clear();
+-    mpp_encoder_internal::reset_import_state(mpp_buf, zero_copy_import_failures, import_fallback_logged);
+     output_timeout_non_block = false;
+     seen_first_enqueued = false;
+     seen_first_published = false;
+     flush_eos_sent = false;
++#if defined(LOGGERD_TEST_BUILD)
++    test_drain_timeout_pending = false;
++#endif
+     is_open = false;
+ }
+ 
+@@ -307,7 +306,7 @@ void MppEncoder::set_flush_pending_on_close(bool flush_pending) {
+     flush_pending_on_close = flush_pending;
+ }
+ 
+-bool MppEncoder::flush_pending_packets(int timeout_ms) {
++bool MppEncoder::flush_pending_packets(int timeout_ms, bool log_timeout) {
+     if (pending_extras.empty()) return true;
+     if (timeout_ms <= 0 || !is_open || mpp_ctx == nullptr || mpp_mpi == nullptr || frame == nullptr) return false;
+ 
+@@ -331,6 +330,10 @@ bool MppEncoder::flush_pending_packets(int timeout_ms) {
+       flush_eos_sent = true;
+     }
+ 
++#if defined(LOGGERD_TEST_BUILD)
++    if (test_drain_timeout_pending) return false;
++#endif
++
+     while (!pending_extras.empty() && std::chrono::steady_clock::now() < deadline) {
+       const auto remaining_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+         deadline - std::chrono::steady_clock::now()).count();
+@@ -340,26 +343,50 @@ bool MppEncoder::flush_pending_packets(int timeout_ms) {
+         drain_packets(true);
+       }
+     }
+-    if (!pending_extras.empty()) {
++    if (!pending_extras.empty() && log_timeout) {
+       LOGE("encoder %s EOS drain timed out after %d ms with %zu frames pending; frame ids %u..%u",
+            encoder_info.publish_name, timeout_ms, pending_extras.size(),
+            pending_extras.front().frame_id, pending_extras.back().frame_id);
++    }
++    return pending_extras.empty();
++}
++
++#if defined(LOGGERD_TEST_BUILD)
++bool MppEncoder::inject_test_drain_timeout(const VisionIpcBufExtra &extra) {
++    if (test_drain_timeout_triggered || test_drain_timeout_pending ||
++        !test_fault_selected(encoder_info.publish_name, "drain_timeout")) {
+       return false;
+     }
++    pending_extras.push_back(extra);
++    input_submitted_count_++;
++    test_drain_timeout_pending = true;
++    test_drain_timeout_triggered = true;
+     return true;
+ }
++#endif
++
++std::vector<uint32_t> MppEncoder::pending_frame_ids() const {
++    std::vector<uint32_t> frame_ids;
++    frame_ids.reserve(pending_extras.size());
++    for (const auto &extra : pending_extras) frame_ids.push_back(extra.frame_id);
++    return frame_ids;
++}
+ 
+ MppBuffer MppEncoder::acquire_frame_buffer() {
+-    if (frame_buffers.empty()) return nullptr;
+-    MppBuffer buf = frame_buffers[frame_buffer_idx];
++    MppBuffer buffer = frame_buffers[frame_buffer_idx];
+     frame_buffer_idx = (frame_buffer_idx + 1) % frame_buffers.size();
+-    return buf;
++    return buffer;
+ }
+ 
+ MppBuffer MppEncoder::import_frame_buffer(VisionBuf *buf) {
+-    auto it = imported_buffers.find(buf->fd);
+-    if (it != imported_buffers.end()) {
+-      return it->second;
++    auto [it, inserted] = imported_buffers.try_emplace(buf->fd, nullptr);
++    if (!inserted) return it->second;
++
++    // MPP can accept an ordinary fd but fail to read from it. Reject anything
++    // that does not implement the DMA-BUF synchronization API before import.
++    if (!mpp_encoder_internal::is_dma_buf_fd(buf->fd)) {
++      LOGE("refusing non-DMA-BUF input fd %d for %s", buf->fd, encoder_info.publish_name);
++      return nullptr;
+     }
+ 
+     MppBuffer imported = nullptr;
+@@ -367,37 +394,30 @@ MppBuffer MppEncoder::import_frame_buffer(VisionBuf *buf) {
+     info.type = MPP_BUFFER_TYPE_EXT_DMA;
+     info.fd = buf->fd;
+     info.size = std::max(frame_buf_size, buf->len);
+-    // Most RK MPP builds accept fd/size for EXT_DMA imports; pointer can fail with some allocators.
+     MPP_RET import_ret = mpp_buffer_import(&imported, &info);
+-    if (import_ret != MPP_OK) {
+-      if (imported != nullptr) {
+-        mpp_buffer_put(imported);
+-        imported = nullptr;
+-      }
+-      // Retry once with pointer attached for compatibility with kernels requiring userspace mapping.
+-      info.ptr = buf->addr;
+-      import_ret = mpp_buffer_import(&imported, &info);
+-    }
+-
+     if (import_ret != MPP_OK || imported == nullptr) {
+-      if (imported != nullptr) {
+-        mpp_buffer_put(imported);
+-      }
++      if (imported != nullptr) mpp_buffer_put(imported);
++      LOGE("MPP DMA-BUF import failed for %s fd %d: %d",
++           encoder_info.publish_name, buf->fd, static_cast<int>(import_ret));
+       return nullptr;
+     }
+ 
+-    imported_buffers.emplace(buf->fd, imported);
++    it->second = imported;
+     return imported;
+ }
+ 
+ int MppEncoder::encode_frame(VisionBuf* buf, VisionIpcBufExtra *extra) {
+-    if (!is_open || mpp_ctx == nullptr || mpp_mpi == nullptr) {
++    const auto reject_input = [&]() {
++      rejected_count_++;
+       return -1;
++    };
++    if (!is_open || mpp_ctx == nullptr || mpp_mpi == nullptr) {
++      return reject_input();
+     }
+     if (buf->width != this->in_width || buf->height != this->in_height) {
+       LOGE("input size mismatch: got %zux%zu expected %dx%d",
+            buf->width, buf->height, this->in_width, this->in_height);
+-      return -1;
++      return reject_input();
+     }
+ 
+     if (seen_first_enqueued && extra->frame_id <= last_enqueued_frame_id) {
+@@ -406,6 +426,7 @@ int MppEncoder::encode_frame(VisionBuf* buf, VisionIpcBufExtra *extra) {
+         LOGW("dropping non-monotonic frame_id=%u last=%u drops=%" PRIu64,
+              extra->frame_id, last_enqueued_frame_id, drop_non_monotonic_count);
+       }
++      rejected_count_++;
+       return -2;
+     }
+     last_enqueued_frame_id = extra->frame_id;
+@@ -417,6 +438,8 @@ int MppEncoder::encode_frame(VisionBuf* buf, VisionIpcBufExtra *extra) {
+     }
+     if (pending_extras.size() >= PENDING_EXTRAS_MAX_INFLIGHT) {
+       drop_overflow_count++;
++      overflow_drop_count_++;
++      rejected_count_++;
+       if ((drop_overflow_count % 100) == 1) {
+         LOGW("dropping frame before submit: in_flight=%zu drops=%" PRIu64,
+              pending_extras.size(), drop_overflow_count);
+@@ -424,72 +447,48 @@ int MppEncoder::encode_frame(VisionBuf* buf, VisionIpcBufExtra *extra) {
+       return -2;
+     }
+ 
++#if defined(LOGGERD_TEST_BUILD)
++    // Fault arms are compiled only into an isolated test binary. They model a
++    // rejected output, an accepting-but-silent output, or one identity that
++    // remains in flight when a boundary sends EOS.
++    if (test_fault_selected(encoder_info.publish_name, "reject")) return reject_input();
++    if (test_fault_selected(encoder_info.publish_name, "silent")) {
++      pending_extras.push_back(*extra);
++      input_submitted_count_++;
++      return 1;
++    }
++    if (test_drain_timeout_pending) return 1;
++#endif
++
++    MppBuffer input_buffer = nullptr;
+     if (is_downscale) {
+-      mpp_buf = acquire_frame_buffer();
+-      if (mpp_buf == nullptr) {
++      input_buffer = acquire_frame_buffer();
++      if (input_buffer == nullptr) {
+         LOGE("no preallocated mpp frame buffer available");
+-        return -1;
++        return reject_input();
+       }
+-      src = wrapbuffer_virtualaddr(buf->addr, buf->width, buf->height, RK_FORMAT_YCbCr_420_SP);
+-      dst = wrapbuffer_virtualaddr(mpp_buffer_get_ptr(mpp_buf), alw, alh, RK_FORMAT_YCbCr_420_SP);
++      const auto src = wrapbuffer_virtualaddr(buf->addr, buf->width, buf->height, RK_FORMAT_YCbCr_420_SP);
++      const auto dst = wrapbuffer_virtualaddr(mpp_buffer_get_ptr(input_buffer), alw, alh, RK_FORMAT_YCbCr_420_SP);
+       if (imresize(src, dst, (double)out_width / buf->width, (double)out_height / buf->height, IM_SYNC) < 0) {
+         LOGE("imresize failed");
+-        mpp_buf = nullptr;
+-        return -1;
+-      }
+-      mpp_frame_set_buffer(frame, mpp_buf);
+-      if (mpp_mpi->encode_put_frame(mpp_ctx, frame) != MPP_OK) {
+-        mpp_buf = nullptr;
+-        return -1;
++        return reject_input();
+       }
+     } else {
+-      bool submitted = mpp_encoder_internal::encode_full_resolution_frame(
+-        use_zero_copy, mpp_buf, zero_copy_import_failures, import_fallback_logged,
+-        [&]() { return import_frame_buffer(buf); },
+-        [&]() { return frame_buf_group != nullptr; },
+-        [&]() { return init_frame_buffer_pool(encoder_info.filename); },
+-        [&]() { return acquire_frame_buffer(); },
+-        [&](MppBuffer buffer) {
+-          void *dst_ptr = mpp_buffer_get_ptr(buffer);
+-          if (buf->addr == nullptr || dst_ptr == nullptr) {
+-            LOGE("invalid frame data for copy fallback");
+-            return false;
+-          }
+-          memcpy(dst_ptr, buf->addr, frame_buf_size);
+-          return true;
+-        },
+-        [&](MppBuffer buffer) {
+-          mpp_frame_set_buffer(frame, buffer);
+-          return mpp_mpi->encode_put_frame(mpp_ctx, frame) == MPP_OK;
+-        },
+-        [&](uint32_t failures, bool should_log_fallback) {
+-          if (should_log_fallback) {
+-            LOGW("mpp zero-copy import failed (%u), switching to copy mode", failures);
+-          }
+-        });
+-      if (!submitted) {
+-        return -1;
+-      }
++      input_buffer = import_frame_buffer(buf);
++      if (input_buffer == nullptr) return reject_input();
+     }
++    mpp_frame_set_buffer(frame, input_buffer);
++    if (mpp_mpi->encode_put_frame(mpp_ctx, frame) != MPP_OK) return reject_input();
+     pending_extras.push_back(*extra);
++    input_submitted_count_++;
+     if (drain_packets(output_timeout_non_block, DRAIN_BUDGET_PER_FRAME) < 0) {
+-      mpp_buf = nullptr;
+-      return -1;
++      return reject_input();
+     }
+     if (pending_extras.size() >= PENDING_EXTRAS_MAX_INFLIGHT) {
+       (void)drain_packets(false, DRAIN_BUDGET_PER_FRAME);
+-      if (pending_extras.size() >= PENDING_EXTRAS_MAX_INFLIGHT) {
+-        // Determinism-first: signal dropped frame, do not let queue depth explode.
+-        drop_overflow_count++;
+-        if ((drop_overflow_count % 100) == 1) {
+-          LOGW("mpp backlog saturated after submit (%zu), drop_count=%" PRIu64,
+-               pending_extras.size(), drop_overflow_count);
+-        }
+-        mpp_buf = nullptr;
+-        return -2;
+-      }
++      // MPP accepted this input. The next input is rejected before submit if
++      // the bounded pending queue still cannot drain.
+     }
+-    mpp_buf = nullptr;
+     return 1;
+ }
+ 
+@@ -534,9 +533,17 @@ int MppEncoder::drain_packets(bool non_block, size_t max_packets) {
+       }
+ 
+       if (payload.size() == 0) {
++        const bool eos_packet = mpp_packet_get_eos(packet) != 0;
+         mpp_packet_deinit(&packet);
+         packet = nullptr;
+         drained++;
++        if (!eos_packet && !pending_extras.empty()) {
++          // MPP packet completion is FIFO for this no-B-frame pipeline. Retire
++          // the matching oldest identity once so later output cannot inherit it.
++          pending_extras.pop_front();
++          empty_packet_count_++;
++          pending_drop_count_++;
++        }
+         continue;
+       }
+ 
+@@ -548,6 +555,7 @@ int MppEncoder::drain_packets(bool non_block, size_t max_packets) {
+           LOGW("dropping non-monotonic publish frame_id=%u last=%u drops=%" PRIu64,
+                extra.frame_id, last_published_frame_id, drop_non_monotonic_count);
+         }
++        pending_drop_count_++;
+         mpp_packet_deinit(&packet);
+         packet = nullptr;
+         continue;
+@@ -572,6 +580,10 @@ int MppEncoder::drain_packets(bool non_block, size_t max_packets) {
+         frame_flags,
+         codec_header.asPtr(),
+         payload);
++      packet_published_count_++;
++      last_packet_time_ = std::chrono::steady_clock::now();
++      last_packet_frame_id_ = extra.frame_id;
++      has_published_packet_ = true;
+       counter++;
+ 
+       mpp_packet_deinit(&packet);
+diff --git a/system/loggerd/encoder/mpp_encoder.h b/system/loggerd/encoder/mpp_encoder.h
+index 6ec1a243e..fac360868 100644
+--- a/system/loggerd/encoder/mpp_encoder.h
++++ b/system/loggerd/encoder/mpp_encoder.h
+@@ -3,31 +3,55 @@
+ #include <rk_mpi.h>
+ #include <rk_venc_cfg.h>
+ #include <rk_venc_cmd.h>
+-#include <cstdio>
+-#include <cstdlib>
+-#include <string>
+-#include <vector>
++#include <chrono>
++#include <cstdint>
+ #include <array>
+ #include <deque>
+ #include <limits>
+ #include <unordered_map>
++#include <vector>
+ 
+ #include "system/loggerd/encoder/encoder.h"
+ #include "system/loggerd/loggerd.h"
+ 
+-#include "rga/rga.h"
+-#include "rga/im2d.h"
+-
+ class MppEncoder : public VideoEncoder {
+ public:
+   MppEncoder(const EncoderInfo &encoder_info, int in_width, int in_height);
+-  ~MppEncoder();
+-  int encode_frame(VisionBuf* buf, VisionIpcBufExtra *extra);
++  ~MppEncoder() override;
++  int encode_frame(VisionBuf* buf, VisionIpcBufExtra *extra) override;
+   void encoder_open() override;
+-  void encoder_close();
++  void encoder_close() override;
+   void set_segment_num(int segment_num) override;
+   void set_flush_pending_on_close(bool flush_pending);
+-  bool flush_pending_packets(int timeout_ms = 500);
++  bool flush_pending_packets(int timeout_ms = 500, bool log_timeout = true);
++
++  uint64_t input_submitted_count() const { return input_submitted_count_; }
++  uint64_t packet_published_count() const { return packet_published_count_; }
++  std::chrono::steady_clock::time_point last_packet_time() const { return last_packet_time_; }
++  uint32_t last_packet_frame_id() const { return last_packet_frame_id_; }
++  bool has_published_packet() const { return has_published_packet_; }
++  std::vector<uint32_t> pending_frame_ids() const;
++  size_t pending_frame_count() const { return pending_extras.size(); }
++  uint64_t rejected_count() const { return rejected_count_; }
++  uint64_t empty_packet_count() const { return empty_packet_count_; }
++  uint64_t overflow_drop_count() const { return overflow_drop_count_; }
++  uint64_t pending_drop_count() const { return pending_drop_count_; }
++  uint64_t failure_retry_count() const { return failure_retry_count_; }
++  uint64_t failure_recovery_reopen_count() const { return failure_recovery_reopen_count_; }
++  uint64_t segment_transition_reopen_count() const { return segment_transition_reopen_count_; }
++  bool encoder_is_open() const { return is_open; }
++
++  // Internal encoderd accounting. These counters are per encoder instance and
++  // are not exported as Params, cereal fields, or public metrics.
++  void note_failure_retry_started() { failure_retry_count_++; }
++  void note_failure_recovery_reopen() { failure_recovery_reopen_count_++; }
++  void note_segment_transition_reopen() { segment_transition_reopen_count_++; }
++
++#if defined(LOGGERD_TEST_BUILD)
++  // These controls exist only in the isolated test build. The production
++  // logger/encoderd binaries do not read the fault-injection environment.
++  bool inject_test_drain_timeout(const VisionIpcBufExtra &extra);
++#endif
+ private:
+   void encoder_open(const char* path);
+   bool init_frame_buffer_pool(const char* path);
+@@ -38,27 +62,21 @@ private:
+   int counter = 0;
+   bool is_open = false;
+   bool is_downscale = false;
+-  bool use_zero_copy = false;
+ 
+   int alw, alh;
+ 
+-  rga_buffer_t src, dst;
+-
+   MppCtx mpp_ctx = nullptr;
+   MppApi *mpp_mpi = nullptr;
+   MppFrame frame = nullptr;
+   MppPacket packet = nullptr;
+   MppEncCfg cfg = nullptr;
+   MppBufferGroup frame_buf_group = nullptr;
+-  MppBuffer mpp_buf = nullptr;
+   static constexpr size_t FRAME_BUFFER_POOL_SIZE = 6;
+   std::array<MppBuffer, FRAME_BUFFER_POOL_SIZE> frame_buffers = {};
+   size_t frame_buffer_idx = 0;
+   std::unordered_map<int, MppBuffer> imported_buffers;
+   std::deque<VisionIpcBufExtra> pending_extras;
+   kj::Array<capnp::byte> codec_header;
+-  bool import_fallback_logged = false;
+-  uint32_t zero_copy_import_failures = 0;
+   bool output_timeout_non_block = false;
+   bool flush_pending_on_close = true;
+   bool flush_eos_sent = false;
+@@ -70,6 +88,23 @@ private:
+   bool seen_first_published = false;
+   uint64_t drop_overflow_count = 0;
+   uint64_t drop_non_monotonic_count = 0;
++  uint64_t input_submitted_count_ = 0;
++  uint64_t packet_published_count_ = 0;
++  std::chrono::steady_clock::time_point last_packet_time_{};
++  uint32_t last_packet_frame_id_ = 0;
++  bool has_published_packet_ = false;
++  uint64_t rejected_count_ = 0;
++  uint64_t empty_packet_count_ = 0;
++  uint64_t overflow_drop_count_ = 0;
++  uint64_t pending_drop_count_ = 0;
++  uint64_t failure_retry_count_ = 0;
++  uint64_t failure_recovery_reopen_count_ = 0;
++  uint64_t segment_transition_reopen_count_ = 0;
++
++#if defined(LOGGERD_TEST_BUILD)
++  bool test_drain_timeout_pending = false;
++  bool test_drain_timeout_triggered = false;
++#endif
+ 
+   size_t frame_buf_size = 0;
+ };
+diff --git a/system/loggerd/encoder/mpp_encoder_input.h b/system/loggerd/encoder/mpp_encoder_input.h
+index fd0914618..78d3bdd18 100644
+--- a/system/loggerd/encoder/mpp_encoder_input.h
++++ b/system/loggerd/encoder/mpp_encoder_input.h
+@@ -1,61 +1,27 @@
+ #pragma once
+ 
+-#include <cstdint>
++#include <cerrno>
++#include <sys/ioctl.h>
+ 
+-#include <rk_mpi.h>
++#include <linux/dma-buf.h>
+ 
+-// Internal full-resolution input selection shared by the MPP adapter and its
+-// hardware-free behavior tests.
+ namespace mpp_encoder_internal {
+ 
+-inline void reset_import_state(MppBuffer &buffer, uint32_t &failures, bool &fallback_logged) {
+-  buffer = nullptr;
+-  failures = 0;
+-  fallback_logged = false;
+-}
+-
+-template <typename ImportFn, typename PoolReadyFn, typename InitPoolFn,
+-          typename AcquireFn, typename CopyFn, typename SubmitFn, typename FallbackFn>
+-bool encode_full_resolution_frame(bool &use_zero_copy, MppBuffer &mpp_buf,
+-                                  uint32_t &zero_copy_import_failures, bool &import_fallback_logged,
+-                                  ImportFn import_fn, PoolReadyFn pool_ready_fn,
+-                                  InitPoolFn init_pool_fn, AcquireFn acquire_fn,
+-                                  CopyFn copy_fn, SubmitFn submit_fn,
+-                                  FallbackFn fallback_fn) {
+-  if (use_zero_copy) {
+-    mpp_buf = import_fn();
+-    if (mpp_buf == nullptr) {
+-      zero_copy_import_failures++;
+-      use_zero_copy = false;
+-      bool should_log_fallback = !import_fallback_logged;
+-      import_fallback_logged = true;
+-      fallback_fn(zero_copy_import_failures, should_log_fallback);
+-    } else {
+-      zero_copy_import_failures = 0;
+-    }
+-  }
+-
+-  if (!use_zero_copy && !pool_ready_fn() && !init_pool_fn()) {
+-    mpp_buf = nullptr;
+-    return false;
+-  }
+-
+-  if (mpp_buf == nullptr) {
+-    mpp_buf = acquire_fn();
+-    if (mpp_buf == nullptr) {
+-      return false;
+-    }
+-  }
+-
+-  if (!use_zero_copy && !copy_fn(mpp_buf)) {
+-    mpp_buf = nullptr;
+-    return false;
+-  }
+-  if (!submit_fn(mpp_buf)) {
+-    mpp_buf = nullptr;
+-    return false;
+-  }
+-  return true;
++inline bool is_dma_buf_fd(int fd) {
++  if (fd < 0) return false;
++
++  dma_buf_sync sync = {.flags = DMA_BUF_SYNC_START | DMA_BUF_SYNC_READ};
++  int ret;
++  do {
++    ret = ioctl(fd, DMA_BUF_IOCTL_SYNC, &sync);
++  } while (ret < 0 && errno == EINTR);
++  if (ret < 0) return false;
++
++  sync.flags = DMA_BUF_SYNC_END | DMA_BUF_SYNC_READ;
++  do {
++    ret = ioctl(fd, DMA_BUF_IOCTL_SYNC, &sync);
++  } while (ret < 0 && errno == EINTR);
++  return ret == 0;
+ }
+ 
+ }  // namespace mpp_encoder_internal
+diff --git a/system/loggerd/encoderd.cc b/system/loggerd/encoderd.cc
+index a7989391d..b697fe4d2 100644
+--- a/system/loggerd/encoderd.cc
++++ b/system/loggerd/encoderd.cc
+@@ -1,6 +1,8 @@
+ #include <cassert>
++#include <charconv>
+ #include <chrono>
+ #include <cstdlib>
++#include <cstring>
+ #include <sstream>
+ 
+ #include "system/loggerd/loggerd.h"
+@@ -29,6 +31,31 @@ constexpr int ENCODER_FAILURE_LOG_BATCH_SIZE = 30;
+ constexpr int ENCODER_SEGMENT_SYNC_PERIOD_MS = 100;
+ constexpr int ENCODER_SEGMENT_SYNC_PERIOD_DETERMINISTIC_MS = 100;
+ constexpr int MPP_SEGMENT_DRAIN_TIMEOUT_MS = 900;
++constexpr int ENCODER_OUTPUT_PACKET_STALL_TIMEOUT_MS = 1000;
++constexpr int ENCODER_QROAD_PACKET_GRACE_MS = 3000;
++constexpr int ENCODER_RECOVERY_RETRY_BASE_SECONDS = 1;
++constexpr int ENCODER_RECOVERY_RETRY_MAX_SECONDS = 30;
++constexpr int MPP_DRAIN_POLL_SLICE_MS = 10;
++
++enum class EncoderOutputState : uint8_t {
++  Active = 0,
++  Unavailable = 1,
++  Recovering = 2,
++};
++
++struct EncoderOutputRecovery {
++  EncoderOutputState state = EncoderOutputState::Active;
++  std::chrono::steady_clock::time_point retry_at{};
++  std::chrono::steady_clock::time_point pending_since{};
++  std::chrono::steady_clock::time_point no_progress_since{};
++  std::chrono::steady_clock::time_point watchdog_grace_until{};
++  std::chrono::steady_clock::time_point retry_progress_since{};
++  uint64_t observed_packet_count = 0;
++  uint64_t observed_submitted_count = 0;
++  int consecutive_input_errors = 0;
++  int retry_backoff_level = 0;
++  bool awaiting_progress_reset = false;
++};
+ 
+ enum class SegmentPhase : uint8_t {
+   Steady = 0,
+@@ -63,6 +90,34 @@ std::vector<int> parse_affinity_cores(const char *env_val) {
+   return cores;
+ }
+ 
++bool parse_nonnegative_int_strict(const std::string &value, int *parsed) {
++  if (value.empty() || parsed == nullptr) return false;
++  int result = 0;
++  const char *begin = value.data();
++  const char *end = begin + value.size();
++  const auto conversion = std::from_chars(begin, end, result);
++  if (conversion.ec != std::errc{} || conversion.ptr != end || result < 0) return false;
++  *parsed = result;
++  return true;
++}
++
++#if defined(RK3588) && defined(LOGGERD_TEST_BUILD)
++bool encoderd_test_runtime_enabled() {
++  const char *test_env = getenv("LOGGERD_TEST");
++  return test_env != nullptr && std::strcmp(test_env, "1") == 0;
++}
++
++void log_test_mpp_counter_snapshot(const MppEncoder &encoder, const char *stream_name, int cur_seg) {
++  if (!encoderd_test_runtime_enabled()) return;
++  LOGW("LOGGERD_TEST_MPP_COUNTERS stream=%s cur_seg=%d segment_transition_reopen_count=%llu "
++       "failure_recovery_reopen_count=%llu failure_retry_count=%llu",
++       stream_name, cur_seg,
++       static_cast<unsigned long long>(encoder.segment_transition_reopen_count()),
++       static_cast<unsigned long long>(encoder.failure_recovery_reopen_count()),
++       static_cast<unsigned long long>(encoder.failure_retry_count()));
++}
++#endif
++
+ const char *stream_affinity_env(VisionStreamType stream_type) {
+   switch (stream_type) {
+     case VISION_STREAM_ROAD:
+@@ -129,12 +184,15 @@ void reset_sync_for_camera(EncoderdState *s, VisionStreamType cam_type) {
+ 
+ void encoder_thread(EncoderdState *s, const LogCameraInfo &cam_info) {
+   util::set_thread_name(cam_info.thread_name);
+-  const bool deterministic_mode =
++  const bool deterministic_ka2_enabled =
+ #if defined(RK3588)
+     !(getenv("ENCODERD_DETERMINISTIC_DISABLE") != nullptr && atoi(getenv("ENCODERD_DETERMINISTIC_DISABLE")) != 0);
+ #else
+     false;
+ #endif
++  const char *deterministic_test_env = LOGGERD_TEST ? getenv("LOGGERD_TEST_DETERMINISTIC") : nullptr;
++  const bool deterministic_mode = deterministic_ka2_enabled &&
++    (!LOGGERD_TEST || (deterministic_test_env != nullptr && atoi(deterministic_test_env) == 1));
+   const bool critical_stream = (cam_info.stream_type == VISION_STREAM_ROAD) ||
+                                (cam_info.stream_type == VISION_STREAM_WIDE_ROAD);
+   if (!Hardware::PC()) {
+@@ -163,6 +221,7 @@ void encoder_thread(EncoderdState *s, const LogCameraInfo &cam_info) {
+   std::vector<int> encode_failure_counts;
+   std::vector<int> encode_failure_burst_counts;
+   std::vector<double> encode_failure_last_log_tms;
++  std::vector<EncoderOutputRecovery> output_recovery;
+   VisionIpcClient vipc_client = VisionIpcClient("camerad", cam_info.stream_type, false);
+   Params params;
+ 
+@@ -181,6 +240,7 @@ void encoder_thread(EncoderdState *s, const LogCameraInfo &cam_info) {
+       encode_failure_counts.clear();
+       encode_failure_burst_counts.clear();
+       encode_failure_last_log_tms.clear();
++      output_recovery.clear();
+       jpeg_encoder.reset();
+       cur_seg = 0;
+       input_width = 0;
+@@ -201,6 +261,25 @@ void encoder_thread(EncoderdState *s, const LogCameraInfo &cam_info) {
+       // Recovery reopen should not advance segment timeline.
+       encoders[i]->set_segment_num(cur_seg);
+       encode_failure_counts[i] = 0;
++#if defined(RK3588)
++      if (deterministic_mode && i < output_recovery.size()) {
++        auto *mpp = static_cast<MppEncoder *>(encoders[i].get());
++        mpp->set_flush_pending_on_close(true);
++        output_recovery[i].state = mpp->encoder_is_open() ? EncoderOutputState::Active : EncoderOutputState::Unavailable;
++        output_recovery[i].retry_at = mpp->encoder_is_open() ? std::chrono::steady_clock::time_point{} :
++          std::chrono::steady_clock::now() + std::chrono::seconds(ENCODER_RECOVERY_RETRY_BASE_SECONDS);
++        output_recovery[i].pending_since = {};
++        output_recovery[i].no_progress_since = {};
++        output_recovery[i].watchdog_grace_until = cam_info.encoder_infos[i].publish_name == std::string("qRoadEncodeData") ?
++          std::chrono::steady_clock::now() + std::chrono::milliseconds(ENCODER_QROAD_PACKET_GRACE_MS) :
++          std::chrono::steady_clock::time_point{};
++        output_recovery[i].awaiting_progress_reset = false;
++        output_recovery[i].retry_backoff_level = 0;
++        output_recovery[i].consecutive_input_errors = 0;
++        output_recovery[i].observed_packet_count = mpp->packet_published_count();
++        output_recovery[i].observed_submitted_count = mpp->input_submitted_count();
++      }
++#endif
+     }
+ #if defined(RK3588)
+     for (auto &e : encoders) {
+@@ -209,8 +288,151 @@ void encoder_thread(EncoderdState *s, const LogCameraInfo &cam_info) {
+ #endif
+   };
+ 
++#if defined(RK3588)
++  auto schedule_output_retry = [&](size_t i, const char *reason, bool context_already_closed = false) {
++    if (!deterministic_mode || i >= output_recovery.size()) return;
++    auto *mpp = static_cast<MppEncoder *>(encoders[i].get());
++    auto &health = output_recovery[i];
++    if (!context_already_closed && (mpp->encoder_is_open() || mpp->pending_frame_count() > 0)) {
++      mpp->set_flush_pending_on_close(false);
++      mpp->encoder_close();
++    }
++    mpp->set_flush_pending_on_close(true);
++    health.state = EncoderOutputState::Unavailable;
++    health.pending_since = {};
++    const int delay_seconds = health.retry_backoff_level >= 5 ? ENCODER_RECOVERY_RETRY_MAX_SECONDS :
++      std::min(ENCODER_RECOVERY_RETRY_MAX_SECONDS,
++               ENCODER_RECOVERY_RETRY_BASE_SECONDS << health.retry_backoff_level);
++    health.retry_at = std::chrono::steady_clock::now() + std::chrono::seconds(delay_seconds);
++    LOGE("encoder %s output %s unavailable (%s); retry in %d sec",
++         cam_info.thread_name, cam_info.encoder_infos[i].publish_name, reason, delay_seconds);
++  };
++
++  auto retry_unavailable_outputs = [&]() {
++    if (!deterministic_mode) return;
++    const auto now = std::chrono::steady_clock::now();
++    for (size_t i = 0; i < encoders.size() && i < output_recovery.size(); ++i) {
++      auto &health = output_recovery[i];
++      if (health.state != EncoderOutputState::Unavailable || now < health.retry_at) continue;
++
++      auto *mpp = static_cast<MppEncoder *>(encoders[i].get());
++      health.state = EncoderOutputState::Recovering;
++      mpp->note_failure_retry_started();
++#if defined(LOGGERD_TEST_BUILD)
++      log_test_mpp_counter_snapshot(*mpp, cam_info.encoder_infos[i].publish_name, cur_seg);
++#endif
++      health.retry_backoff_level = std::min(health.retry_backoff_level + 1, 6);
++      mpp->encoder_open();
++      mpp->set_segment_num(cur_seg);
++      mpp->set_flush_pending_on_close(true);
++      if (mpp->encoder_is_open()) {
++        mpp->note_failure_recovery_reopen();
++#if defined(LOGGERD_TEST_BUILD)
++        log_test_mpp_counter_snapshot(*mpp, cam_info.encoder_infos[i].publish_name, cur_seg);
++#endif
++        health.state = EncoderOutputState::Active;
++        health.retry_at = {};
++        health.pending_since = {};
++        health.no_progress_since = {};
++        health.watchdog_grace_until = cam_info.encoder_infos[i].publish_name == std::string("qRoadEncodeData") ?
++          std::chrono::steady_clock::now() + std::chrono::milliseconds(ENCODER_QROAD_PACKET_GRACE_MS) :
++          std::chrono::steady_clock::time_point{};
++        health.awaiting_progress_reset = true;
++        health.retry_progress_since = {};
++        health.consecutive_input_errors = 0;
++        health.observed_packet_count = mpp->packet_published_count();
++        health.observed_submitted_count = mpp->input_submitted_count();
++        encode_failure_counts[i] = 0;
++        encode_failure_burst_counts[i] = 0;
++        LOGW("encoder %s output %s recovered at segment %d",
++             cam_info.thread_name, cam_info.encoder_infos[i].publish_name, cur_seg);
++      } else {
++        schedule_output_retry(i, "scheduled reopen failed", true);
++      }
++    }
++  };
++#endif
++
+   auto advance_segment_once = [&](bool drop_pending) {
+ #if defined(RK3588)
++    if (deterministic_mode) {
++      const auto deadline = std::chrono::steady_clock::now() +
++                            std::chrono::milliseconds(MPP_SEGMENT_DRAIN_TIMEOUT_MS);
++      bool deadline_expired = false;
++      while (true) {
++        bool any_pending = false;
++        for (size_t i = 0; i < encoders.size(); ++i) {
++          if (output_recovery[i].state != EncoderOutputState::Active) continue;
++          auto *mpp = static_cast<MppEncoder *>(encoders[i].get());
++          if (mpp->pending_frame_count() == 0) continue;
++          any_pending = true;
++          const auto now = std::chrono::steady_clock::now();
++          if (now >= deadline) {
++            deadline_expired = true;
++            break;
++          }
++          const auto remaining_ms = std::chrono::duration_cast<std::chrono::milliseconds>(deadline - now).count();
++          const int slice_ms = std::max(1, std::min<int>(MPP_DRAIN_POLL_SLICE_MS, static_cast<int>(remaining_ms)));
++          (void)mpp->flush_pending_packets(slice_ms, false);
++        }
++        if (!any_pending) break;
++        if (std::chrono::steady_clock::now() >= deadline) {
++          deadline_expired = true;
++          break;
++        }
++        util::sleep_for(1);
++      }
++
++      std::vector<std::string> timed_out_outputs;
++      if (deadline_expired) {
++        for (size_t i = 0; i < encoders.size(); ++i) {
++          if (output_recovery[i].state != EncoderOutputState::Active) continue;
++          auto *mpp = static_cast<MppEncoder *>(encoders[i].get());
++          if (mpp->pending_frame_count() == 0) continue;
++          timed_out_outputs.emplace_back(cam_info.encoder_infos[i].publish_name);
++          schedule_output_retry(i, "segment drain deadline");
++        }
++      }
++      if (!timed_out_outputs.empty()) {
++        std::string names;
++        for (const auto &name : timed_out_outputs) {
++          if (!names.empty()) names += ",";
++          names += name;
++        }
++        LOGE("encoder %s segment %d shared %d ms drain deadline expired; quarantined pending outputs: %s",
++             cam_info.thread_name, cur_seg, MPP_SEGMENT_DRAIN_TIMEOUT_MS, names.c_str());
++      }
++
++      ++cur_seg;
++      for (size_t i = 0; i < encoders.size(); ++i) {
++        auto *mpp = static_cast<MppEncoder *>(encoders[i].get());
++        if (output_recovery[i].state == EncoderOutputState::Active) {
++          mpp->set_flush_pending_on_close(true);
++          mpp->encoder_close();
++          mpp->encoder_open();
++          mpp->set_segment_num(cur_seg);
++          if (mpp->encoder_is_open()) {
++            mpp->note_segment_transition_reopen();
++#if defined(LOGGERD_TEST_BUILD)
++            log_test_mpp_counter_snapshot(*mpp, cam_info.encoder_infos[i].publish_name, cur_seg);
++#endif
++            output_recovery[i].observed_packet_count = mpp->packet_published_count();
++            output_recovery[i].observed_submitted_count = mpp->input_submitted_count();
++            output_recovery[i].pending_since = {};
++            output_recovery[i].no_progress_since = {};
++            output_recovery[i].watchdog_grace_until = cam_info.encoder_infos[i].publish_name == std::string("qRoadEncodeData") ?
++              std::chrono::steady_clock::now() + std::chrono::milliseconds(ENCODER_QROAD_PACKET_GRACE_MS) :
++              std::chrono::steady_clock::time_point{};
++          } else {
++            schedule_output_retry(i, "planned segment reopen failed", true);
++          }
++        } else {
++          mpp->set_segment_num(cur_seg);
++        }
++      }
++      return true;
++    }
++
+     if (!drop_pending) {
+       const auto deadline = std::chrono::steady_clock::now() +
+                             std::chrono::milliseconds(MPP_SEGMENT_DRAIN_TIMEOUT_MS);
+@@ -279,6 +501,21 @@ void encoder_thread(EncoderdState *s, const LogCameraInfo &cam_info) {
+       for (const auto &encoder_info : cam_info.encoder_infos) {
+         auto &e = encoders.emplace_back(new Encoder(encoder_info, buf_info.width, buf_info.height));
+         e->encoder_open();
++        output_recovery.emplace_back();
++#if defined(RK3588)
++        if (deterministic_mode) {
++          auto *mpp = static_cast<MppEncoder *>(e.get());
++          mpp->set_flush_pending_on_close(true);
++          output_recovery.back().state = mpp->encoder_is_open() ? EncoderOutputState::Active : EncoderOutputState::Unavailable;
++          output_recovery.back().retry_at = mpp->encoder_is_open() ? std::chrono::steady_clock::time_point{} :
++            std::chrono::steady_clock::now() + std::chrono::seconds(ENCODER_RECOVERY_RETRY_BASE_SECONDS);
++          output_recovery.back().watchdog_grace_until = encoder_info.publish_name == std::string("qRoadEncodeData") ?
++            std::chrono::steady_clock::now() + std::chrono::milliseconds(ENCODER_QROAD_PACKET_GRACE_MS) :
++            std::chrono::steady_clock::time_point{};
++          output_recovery.back().observed_packet_count = mpp->packet_published_count();
++          output_recovery.back().observed_submitted_count = mpp->input_submitted_count();
++        }
++#endif
+         encode_failure_counts.emplace_back(0);
+         encode_failure_burst_counts.emplace_back(0);
+         encode_failure_last_log_tms.emplace_back(0.0);
+@@ -359,19 +596,40 @@ void encoder_thread(EncoderdState *s, const LogCameraInfo &cam_info) {
+           std::string loggerd_segment_raw = params.get("LoggerdSegment");
+           std::string loggerd_epoch_raw = params.get("LoggerdSegmentEpoch");
+           std::string loggerd_rotate_state_raw = params.get("LoggerdRotateState");
+-          if (!loggerd_rotate_state_raw.empty()) {
+-            const int rotate_state = (loggerd_rotate_state_raw == "started") ? 0 : 1;
+-            s->loggerd_rotate_state.store(rotate_state);
+-          }
+-          if (!loggerd_epoch_raw.empty()) {
+-            try {
+-              s->loggerd_segment_epoch.store(std::stoi(loggerd_epoch_raw));
+-            } catch (const std::exception&) {}
+-          }
+-          if (!loggerd_segment_raw.empty()) {
+-            try {
+-              s->loggerd_segment_authority.store(std::stoi(loggerd_segment_raw));
+-            } catch (const std::exception&) {}
++          if (deterministic_mode) {
++            if (loggerd_rotate_state_raw == "started") {
++              s->loggerd_rotate_state.store(0);
++            } else if (loggerd_rotate_state_raw == "committed") {
++              s->loggerd_rotate_state.store(1);
++            } else {
++              LOGW_100("encoder %s ignoring invalid LoggerdRotateState value", cam_info.thread_name);
++            }
++            int parsed_epoch = -1;
++            if (parse_nonnegative_int_strict(loggerd_epoch_raw, &parsed_epoch)) {
++              s->loggerd_segment_epoch.store(parsed_epoch);
++            } else {
++              LOGW_100("encoder %s ignoring invalid LoggerdSegmentEpoch value", cam_info.thread_name);
++            }
++            int parsed_segment = -1;
++            if (parse_nonnegative_int_strict(loggerd_segment_raw, &parsed_segment)) {
++              s->loggerd_segment_authority.store(parsed_segment);
++            } else {
++              LOGW_100("encoder %s ignoring invalid LoggerdSegment value", cam_info.thread_name);
++            }
++          } else {
++            if (!loggerd_rotate_state_raw.empty()) {
++              s->loggerd_rotate_state.store((loggerd_rotate_state_raw == "started") ? 0 : 1);
++            }
++            if (!loggerd_epoch_raw.empty()) {
++              try {
++                s->loggerd_segment_epoch.store(std::stoi(loggerd_epoch_raw));
++              } catch (const std::exception&) {}
++            }
++            if (!loggerd_segment_raw.empty()) {
++              try {
++                s->loggerd_segment_authority.store(std::stoi(loggerd_segment_raw));
++              } catch (const std::exception&) {}
++            }
+           }
+           if (deterministic_mode && s->loggerd_rotate_state.load() == 0 &&
+               s->loggerd_segment_authority.load() >= 0) {
+@@ -379,8 +637,23 @@ void encoder_thread(EncoderdState *s, const LogCameraInfo &cam_info) {
+             update_max_atomic(s->forced_segment_target, s->loggerd_segment_authority.load() + 1);
+           }
+         }
++        const bool was_rotation_barrier = loggerd_rotate_state == "started";
+         const int shared_rotate_state = s->loggerd_rotate_state.load();
+         loggerd_rotate_state = (shared_rotate_state == 0) ? "started" : "committed";
++        if (deterministic_mode && was_rotation_barrier && loggerd_rotate_state == "committed") {
++#if defined(RK3588)
++          const auto now = std::chrono::steady_clock::now();
++          for (size_t i = 0; i < output_recovery.size() && i < cam_info.encoder_infos.size(); ++i) {
++            auto &health = output_recovery[i];
++            health.no_progress_since = {};
++            health.pending_since = {};
++            if (health.state == EncoderOutputState::Active &&
++                cam_info.encoder_infos[i].publish_name == std::string("qRoadEncodeData")) {
++              health.watchdog_grace_until = now + std::chrono::milliseconds(ENCODER_QROAD_PACKET_GRACE_MS);
++            }
++          }
++#endif
++        }
+         loggerd_segment_epoch_seen = s->loggerd_segment_epoch.load();
+         const int shared_loggerd_segment = s->loggerd_segment_authority.load();
+         if (shared_loggerd_segment >= 0) {
+@@ -453,6 +726,15 @@ void encoder_thread(EncoderdState *s, const LogCameraInfo &cam_info) {
+              cam_info.thread_name, cur_seg, forced_target, phase_name(phase), loggerd_rotate_state.c_str(), loggerd_segment_epoch_seen);
+         while (!do_exit && cur_seg < forced_target) {
+           phase = SegmentPhase::RotateCommit;
++#if defined(RK3588) && defined(LOGGERD_TEST_BUILD)
++          if (deterministic_mode) {
++            for (size_t i = 0; i < encoders.size() && i < output_recovery.size(); ++i) {
++              if (output_recovery[i].state == EncoderOutputState::Active) {
++                static_cast<MppEncoder *>(encoders[i].get())->inject_test_drain_timeout(extra);
++              }
++            }
++          }
++#endif
+           if (!advance_segment_once(drop_pending)) {
+             do_exit = true;
+             break;
+@@ -482,8 +764,91 @@ void encoder_thread(EncoderdState *s, const LogCameraInfo &cam_info) {
+         }
+       }
+ 
++#if defined(RK3588)
++      if (deterministic_mode) retry_unavailable_outputs();
++#endif
++
+       // encode a frame
+       bool frame_encoded = false;
++#if defined(RK3588)
++      if (deterministic_mode) {
++        for (size_t i = 0; i < encoders.size(); ++i) {
++          auto &health = output_recovery[i];
++          if (health.state != EncoderOutputState::Active) continue;
++          auto *mpp = static_cast<MppEncoder *>(encoders[i].get());
++          const int out_id = mpp->encode_frame(buf, &extra);
++          const auto now = std::chrono::steady_clock::now();
++
++          if (out_id == -2) {
++            dropped_by_encoder_contract++;
++          } else if (out_id == -1) {
++            encode_failure_counts[i]++;
++            encode_failure_burst_counts[i]++;
++            health.consecutive_input_errors++;
++            const double now_tms = millis_since_boot();
++            if ((now_tms - encode_failure_last_log_tms[i]) >= ENCODER_FAILURE_LOG_PERIOD_MS ||
++                encode_failure_burst_counts[i] >= ENCODER_FAILURE_LOG_BATCH_SIZE) {
++              LOGE("encoder %s output %s failures=%d consecutive=%d last_frame=%u",
++                   cam_info.thread_name, cam_info.encoder_infos[i].publish_name,
++                   encode_failure_burst_counts[i], health.consecutive_input_errors, extra.frame_id);
++              encode_failure_last_log_tms[i] = now_tms;
++              encode_failure_burst_counts[i] = 0;
++            }
++            if (health.consecutive_input_errors >= ENCODER_REOPEN_FAILURE_THRESHOLD) {
++              schedule_output_retry(i, "consecutive input error threshold");
++              continue;
++            }
++          } else {
++            encode_failure_counts[i] = 0;
++            encode_failure_burst_counts[i] = 0;
++            health.consecutive_input_errors = 0;
++          }
++
++          const uint64_t submitted = mpp->input_submitted_count();
++          if (submitted > health.observed_submitted_count) {
++            health.observed_submitted_count = submitted;
++            if (health.no_progress_since == std::chrono::steady_clock::time_point{}) {
++              health.no_progress_since = now;
++            }
++          }
++          const uint64_t published = mpp->packet_published_count();
++          if (published > health.observed_packet_count) {
++            health.observed_packet_count = published;
++            frame_encoded = true;
++            health.no_progress_since = {};
++            if (health.awaiting_progress_reset) {
++              if (health.retry_progress_since == std::chrono::steady_clock::time_point{}) {
++                health.retry_progress_since = now;
++              } else if (now - health.retry_progress_since >= std::chrono::seconds(1)) {
++                health.retry_backoff_level = 0;
++                health.awaiting_progress_reset = false;
++                health.retry_progress_since = {};
++              }
++            }
++          }
++
++          if (mpp->pending_frame_count() != 0 &&
++              health.no_progress_since == std::chrono::steady_clock::time_point{}) {
++            health.no_progress_since = now;
++          }
++          if (mpp->pending_frame_count() == 0) {
++            health.pending_since = {};
++          } else if (health.pending_since == std::chrono::steady_clock::time_point{}) {
++            health.pending_since = now;
++          }
++
++          const bool in_rotation_barrier = s->loggerd_rotate_state.load() == 0;
++          if (!in_rotation_barrier && health.no_progress_since != std::chrono::steady_clock::time_point{}) {
++            const auto watchdog_origin = std::max(health.no_progress_since, health.watchdog_grace_until);
++            if (now >= watchdog_origin &&
++                now - watchdog_origin >= std::chrono::milliseconds(ENCODER_OUTPUT_PACKET_STALL_TIMEOUT_MS)) {
++              schedule_output_retry(i, "packet progress watchdog");
++            }
++          }
++        }
++      } else
++#endif
++      {
+       for (size_t i = 0; i < encoders.size(); ++i) {
+         int out_id = encoders[i]->encode_frame(buf, &extra);
+ 
+@@ -515,12 +880,18 @@ void encoder_thread(EncoderdState *s, const LogCameraInfo &cam_info) {
+           frame_encoded = true;
+         }
+       }
++      }
+       const double now_tms = millis_since_boot();
+       if (frame_encoded) {
+         last_encode_success_tms = now_tms;
+         last_encoded_frame_id = extra.frame_id;
+         encoded_frames++;
+-      } else if ((now_tms - last_encode_success_tms) > ENCODER_OUTPUT_STALL_TIMEOUT_MS) {
++      }
++#if defined(RK3588)
++      else if (!deterministic_mode && (now_tms - last_encode_success_tms) > ENCODER_OUTPUT_STALL_TIMEOUT_MS) {
++#else
++      else if ((now_tms - last_encode_success_tms) > ENCODER_OUTPUT_STALL_TIMEOUT_MS) {
++#endif
+         LOGE("encoder %s output stalled for %.1f ms, reopening all streams",
+              cam_info.thread_name, (now_tms - last_encode_success_tms));
+         reopen_all_encoders();
+diff --git a/system/loggerd/loggerd.cc b/system/loggerd/loggerd.cc
+index e9a2e4d29..1d0929d70 100644
+--- a/system/loggerd/loggerd.cc
++++ b/system/loggerd/loggerd.cc
+@@ -1,5 +1,11 @@
+ #include <sys/xattr.h>
+ 
++#include <algorithm>
++#include <atomic>
++#include <chrono>
++#include <cstdint>
++#include <cstring>
++#include <deque>
+ #include <map>
+ #include <memory>
+ #include <string>
+@@ -14,6 +20,61 @@
+ 
+ ExitHandler do_exit;
+ 
++constexpr int DETERMINISTIC_ROTATION_DEADLINE_MS = 5000;
++constexpr int DETERMINISTIC_ROTATION_POLL_MS = 50;
++constexpr size_t DETERMINISTIC_AUDIO_QUEUE_MAX_BYTES = 256 * 1024;
++constexpr auto DETERMINISTIC_AUDIO_MAX_HOLD = std::chrono::seconds(5);
++
++#if defined(LOGGERD_TEST_BUILD)
++namespace {
++std::atomic<int64_t> test_monotonic_ms{0};
++std::atomic<bool> test_monotonic_enabled{false};
++const auto test_monotonic_origin = std::chrono::steady_clock::now();
++
++bool loggerd_test_runtime_enabled() {
++  const char *test_env = getenv("LOGGERD_TEST");
++  return test_env != nullptr && std::strcmp(test_env, "1") == 0;
++}
++}
++
++void loggerd_test_enable_monotonic_clock() {
++  if (loggerd_test_runtime_enabled()) test_monotonic_enabled.store(true, std::memory_order_release);
++}
++
++void loggerd_test_advance_monotonic_ms(int64_t delta_ms) {
++  if (loggerd_test_runtime_enabled() && test_monotonic_enabled.load(std::memory_order_acquire) && delta_ms > 0) {
++    test_monotonic_ms.fetch_add(delta_ms, std::memory_order_relaxed);
++  }
++}
++
++int64_t loggerd_test_monotonic_ms() {
++  return loggerd_test_runtime_enabled() && test_monotonic_enabled.load(std::memory_order_acquire) ?
++    test_monotonic_ms.load(std::memory_order_relaxed) : 0;
++}
++#endif
++
++std::chrono::steady_clock::time_point loggerd_monotonic_now() {
++#if defined(LOGGERD_TEST_BUILD)
++  if (loggerd_test_runtime_enabled() && test_monotonic_enabled.load(std::memory_order_acquire)) {
++    return test_monotonic_origin + std::chrono::milliseconds(loggerd_test_monotonic_ms());
++  }
++#endif
++  return std::chrono::steady_clock::now();
++}
++
++struct LoggerdDropCounts {
++  uint64_t stale_video_messages = 0;
++  uint64_t future_video_queue_drops = 0;
++  uint64_t audio_no_writer_events = 0;
++  uint64_t audio_expired_events = 0;
++  uint64_t audio_capacity_drops = 0;
++
++  bool any() const {
++    return stale_video_messages != 0 || future_video_queue_drops != 0 ||
++           audio_no_writer_events != 0 || audio_expired_events != 0 || audio_capacity_drops != 0;
++  }
++};
++
+ struct LoggerdState {
+   LoggerState logger;
+   std::atomic<double> last_camera_seen_tms{0.0};
+@@ -22,6 +83,9 @@ struct LoggerdState {
+   double last_rotate_tms = 0.;      // last rotate time in ms
+   int rotate_epoch = 0;
+   bool rotation_started = false;
++  std::chrono::steady_clock::time_point rotation_started_at{};
++  std::chrono::steady_clock::time_point last_rotate_monotonic{};
++  LoggerdDropCounts drop_counts;
+ };
+ 
+ const char *const deterministic_test_env = LOGGERD_TEST ? getenv("LOGGERD_TEST_DETERMINISTIC") : nullptr;
+@@ -36,6 +100,10 @@ bool deterministic_ka2_mode() {
+ #endif
+ }
+ 
++bool deterministic_ka2_protocol_active() {
++  return deterministic_ka2_mode() && (!LOGGERD_TEST || deterministic_test_mode);
++}
++
+ void publish_rotate_state(LoggerdState *s, const char *state) {
+   Params params;
+   params.putNonBlocking("LoggerdRotateState", state);
+@@ -48,28 +116,36 @@ void logger_rotate(LoggerdState *s) {
+   assert(ret);
+   s->ready_to_rotate = 0;
+   s->rotation_started = false;
++  s->rotation_started_at = {};
+   s->last_rotate_tms = millis_since_boot();
++  s->last_rotate_monotonic = loggerd_monotonic_now();
+   s->rotate_epoch++;
+   publish_rotate_state(s, "committed");
+   LOGW((s->logger.segment() == 0) ? "logging to %s" : "rotated to %s", s->logger.segmentPath().c_str());
+ }
+ 
+-void rotate_if_needed(LoggerdState *s) {
++bool rotate_if_needed(LoggerdState *s,
++                      std::chrono::steady_clock::time_point *commit_decision_time = nullptr) {
+   double tms = millis_since_boot();
+   double seg_length_secs = (tms - s->last_rotate_tms) / 1000.;
+-  const bool deterministic_mode = deterministic_ka2_mode();
++  const bool deterministic_mode = deterministic_ka2_protocol_active();
+   bool all_ready = s->ready_to_rotate == s->max_waiting;
+ 
+-  if (deterministic_mode && (!LOGGERD_TEST || deterministic_test_mode)) {
++  if (deterministic_mode) {
++    const auto monotonic_now = loggerd_monotonic_now();
++    seg_length_secs = std::chrono::duration<double>(monotonic_now - s->last_rotate_monotonic).count();
+     // Let encoders drain the old segment before committing the clock boundary.
+     if (!s->rotation_started && seg_length_secs >= SEGMENT_LENGTH) {
++      s->rotation_started_at = monotonic_now;
+       s->rotation_started = true;
+       publish_rotate_state(s, "started");
+     }
+-    if (s->rotation_started && all_ready) {
+-      logger_rotate(s);
+-    }
+-    return;
++    const bool deadline_reached = s->rotation_started &&
++      monotonic_now - s->rotation_started_at >=
++        std::chrono::milliseconds(DETERMINISTIC_ROTATION_DEADLINE_MS);
++    const bool commit_ready = s->rotation_started && (all_ready || deadline_reached);
++    if (commit_ready && commit_decision_time != nullptr) *commit_decision_time = monotonic_now;
++    return commit_ready;
+   }
+ 
+   // all encoders ready, trigger rotation
+@@ -91,11 +167,12 @@ void rotate_if_needed(LoggerdState *s) {
+     publish_rotate_state(s, "started");
+     logger_rotate(s);
+   }
++  return false;
+ }
+ 
+ struct RemoteEncoder {
+   std::unique_ptr<VideoWriter> writer;
+-  int encoderd_segment_offset;
++  int encoderd_segment_offset = 0;
+   int current_segment = -1;
+   std::vector<Message *> q;
+   int dropped_frames = 0;
+@@ -105,6 +182,226 @@ struct RemoteEncoder {
+   bool audio_initialized = false;
+ };
+ 
++struct QueuedAudioEvent {
++  int segment = -1;
++  uint64_t log_mono_time = 0;
++  uint32_t sample_rate = 0;
++  std::chrono::steady_clock::time_point expires_at{};
++  std::vector<uint8_t> data;
++};
++
++struct LoggerdAudioQueue {
++  std::deque<QueuedAudioEvent> events;
++  size_t bytes = 0;
++};
++
++std::string json_escape(const std::string &value) {
++  std::string escaped;
++  escaped.reserve(value.size() + 8);
++  for (unsigned char c : value) {
++    switch (c) {
++      case '"': escaped += "\\\""; break;
++      case '\\': escaped += "\\\\"; break;
++      case '\b': escaped += "\\b"; break;
++      case '\f': escaped += "\\f"; break;
++      case '\n': escaped += "\\n"; break;
++      case '\r': escaped += "\\r"; break;
++      case '\t': escaped += "\\t"; break;
++      default:
++        if (c < 0x20) {
++          static constexpr char hex[] = "0123456789abcdef";
++          escaped += "\\u00";
++          escaped += hex[(c >> 4) & 0xf];
++          escaped += hex[c & 0xf];
++        } else {
++          escaped += static_cast<char>(c);
++        }
++    }
++  }
++  return escaped;
++}
++
++void expire_queued_audio(LoggerdState *s, LoggerdAudioQueue *queue,
++                         std::chrono::steady_clock::time_point now) {
++  for (auto it = queue->events.begin(); it != queue->events.end();) {
++    if (now >= it->expires_at) {
++      queue->bytes -= it->data.size();
++      s->drop_counts.audio_expired_events++;
++      LOGW("rawAudioData event expired before qRoad writer opened (segment %d)", it->segment);
++      it = queue->events.erase(it);
++    } else {
++      ++it;
++    }
++  }
++}
++
++void write_audio_event(RemoteEncoder *remote, QueuedAudioEvent &audio) {
++  if (remote == nullptr || !remote->writer || remote->current_segment != audio.segment) return;
++  remote->writer->write_audio(audio.data.data(), audio.data.size(), audio.log_mono_time / 1000, audio.sample_rate);
++  remote->audio_initialized = true;
++}
++
++void write_audio_payload(RemoteEncoder *remote, int segment, uint64_t log_mono_time,
++                         uint32_t sample_rate, const uint8_t *data, size_t size) {
++  if (remote == nullptr || !remote->writer || remote->current_segment != segment) return;
++  remote->writer->write_audio(const_cast<uint8_t *>(data), size, log_mono_time / 1000, sample_rate);
++  remote->audio_initialized = true;
++}
++
++void flush_queued_audio_for_segment(LoggerdState *s, LoggerdAudioQueue *queue,
++                                    RemoteEncoder *remote, int segment,
++                                    std::chrono::steady_clock::time_point now) {
++  expire_queued_audio(s, queue, now);
++  if (remote == nullptr || !remote->writer || remote->current_segment != segment) return;
++
++  for (auto it = queue->events.begin(); it != queue->events.end();) {
++    if (it->segment == segment) {
++      write_audio_event(remote, *it);
++      queue->bytes -= it->data.size();
++      it = queue->events.erase(it);
++    } else if (it->segment < segment) {
++      queue->bytes -= it->data.size();
++      s->drop_counts.audio_no_writer_events++;
++      LOGW("rawAudioData event discarded at segment commit without a matching qRoad writer (segment %d)", it->segment);
++      it = queue->events.erase(it);
++    } else {
++      ++it;
++    }
++  }
++}
++
++void admit_audio_event(LoggerdState *s, LoggerdAudioQueue *queue, RemoteEncoder *remote,
++                       int segment, uint64_t log_mono_time, uint32_t sample_rate,
++                       const uint8_t *data, size_t size) {
++  const auto now = loggerd_monotonic_now();
++  expire_queued_audio(s, queue, now);
++  if (remote != nullptr && remote->writer && remote->current_segment == segment) {
++    write_audio_payload(remote, segment, log_mono_time, sample_rate, data, size);
++    return;
++  }
++  if (queue->bytes > DETERMINISTIC_AUDIO_QUEUE_MAX_BYTES ||
++      size > DETERMINISTIC_AUDIO_QUEUE_MAX_BYTES - queue->bytes) {
++    s->drop_counts.audio_capacity_drops++;
++    LOGW("rawAudioData event rejected atomically at 256 KiB qRoad queue cap (segment %d, %zu bytes)", segment, size);
++    return;
++  }
++
++  QueuedAudioEvent audio = {
++    .segment = segment,
++    .log_mono_time = log_mono_time,
++    .sample_rate = sample_rate,
++    .expires_at = now + DETERMINISTIC_AUDIO_MAX_HOLD,
++    .data = {},
++  };
++  if (size != 0) audio.data.assign(data, data + size);
++
++  auto insert_at = std::upper_bound(queue->events.begin(), queue->events.end(), audio.log_mono_time,
++    [](uint64_t timestamp, const QueuedAudioEvent &queued) { return timestamp < queued.log_mono_time; });
++  queue->events.insert(insert_at, std::move(audio));
++  queue->bytes += size;
++}
++
++std::string make_rotation_report(const std::string &route, int epoch, int segment, bool degraded,
++                                const std::vector<std::string> &missing_streams, int64_t elapsed_ms,
++                                const LoggerdDropCounts &drops) {
++  std::string report = "{\"route\":\"" + json_escape(route) + "\",\"epoch\":" + std::to_string(epoch) +
++    ",\"segment\":" + std::to_string(segment) + ",\"degraded\":" + (degraded ? "true" : "false") +
++    ",\"missing_streams\":[";
++  for (size_t i = 0; i < missing_streams.size(); ++i) {
++    if (i != 0) report += ",";
++    report += "\"" + json_escape(missing_streams[i]) + "\"";
++  }
++  report += "],\"elapsed_ms\":" + std::to_string(std::max<int64_t>(elapsed_ms, 0)) +
++    ",\"known_drop_counts\":{\"stale_video_messages\":" + std::to_string(drops.stale_video_messages) +
++    ",\"future_video_queue_drops\":" + std::to_string(drops.future_video_queue_drops) +
++    ",\"audio_no_writer_events\":" + std::to_string(drops.audio_no_writer_events) +
++    ",\"audio_expired_events\":" + std::to_string(drops.audio_expired_events) +
++    ",\"audio_capacity_drops\":" + std::to_string(drops.audio_capacity_drops) + "}}";
++  return report;
++}
++
++void commit_deterministic_runtime_rotation(LoggerdState *s,
++                                          const std::vector<std::string> &configured_streams,
++                                          const std::unordered_map<std::string, RemoteEncoder *> &remote_by_name,
++                                          const std::map<std::string, EncoderInfo> &encoder_infos,
++                                          LoggerdAudioQueue *audio_queue,
++                                          RemoteEncoder *audio_encoder,
++                                          Params *params,
++                                          std::chrono::steady_clock::time_point decision_time) {
++  const int64_t elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
++    decision_time - s->rotation_started_at).count();
++  const int old_segment = s->logger.segment();
++  const int destination_segment = old_segment + 1;
++  std::vector<std::string> missing_streams;
++  for (const auto &name : configured_streams) {
++    auto it = remote_by_name.find(name);
++    if (it == remote_by_name.end() || it->second == nullptr || !it->second->marked_ready_to_rotate) {
++      missing_streams.push_back(name);
++    }
++  }
++
++  flush_queued_audio_for_segment(s, audio_queue, audio_encoder, old_segment, decision_time);
++  for (auto it = audio_queue->events.begin(); it != audio_queue->events.end();) {
++    if (it->segment < destination_segment) {
++      audio_queue->bytes -= it->data.size();
++      s->drop_counts.audio_no_writer_events++;
++      LOGW("rawAudioData event discarded at segment commit without a matching qRoad writer (segment %d)", it->segment);
++      it = audio_queue->events.erase(it);
++    } else {
++      ++it;
++    }
++  }
++
++  for (const auto &name : configured_streams) {
++    auto remote_it = remote_by_name.find(name);
++    if (remote_it == remote_by_name.end() || remote_it->second == nullptr) continue;
++    RemoteEncoder &remote = *remote_it->second;
++    auto info_it = encoder_infos.find(name);
++    if (info_it != encoder_infos.end()) {
++      std::vector<Message *> retained;
++      retained.reserve(remote.q.size());
++      for (Message *queued_msg : remote.q) {
++        bool keep = false;
++        try {
++          capnp::FlatArrayMessageReader reader({
++            (capnp::word *)queued_msg->getData(), queued_msg->getSize() / sizeof(capnp::word)});
++          const auto event = reader.getRoot<cereal::Event>();
++          const auto edata = (event.*(info_it->second.get_encode_data_func))();
++          const int mapped_segment = edata.getIdx().getSegmentNum() - remote.encoderd_segment_offset;
++          if (mapped_segment < destination_segment) {
++            s->drop_counts.stale_video_messages++;
++            LOGD("%s: dropping queued stale packet at runtime commit (seg %d, destination %d)",
++                 name.c_str(), mapped_segment, destination_segment);
++          } else {
++            keep = true;
++          }
++        } catch (const kj::Exception &e) {
++          LOGE("%s: dropping malformed queued encode packet at runtime commit (%s)",
++               name.c_str(), e.getDescription().cStr());
++        }
++        if (keep) retained.push_back(queued_msg);
++        else delete queued_msg;
++      }
++      remote.q.swap(retained);
++    }
++    remote.writer.reset();
++    remote.current_segment = -1;
++    remote.recording = false;
++    remote.audio_initialized = false;
++    remote.marked_ready_to_rotate = false;
++    remote.dropped_frames = 0;
++  }
++
++  logger_rotate(s);
++  const bool degraded = !missing_streams.empty() || s->drop_counts.any();
++  std::string route = params->get("CurrentRoute");
++  if (route.empty()) route = s->logger.routeName();
++  const std::string report = make_rotation_report(route, s->rotate_epoch, s->logger.segment(), degraded,
++                                                 missing_streams, elapsed_ms, s->drop_counts);
++  params->putNonBlocking("LoggerdRotationReport", report);
++  s->drop_counts = {};
++}
++
+ size_t write_encode_data(LoggerdState *s, cereal::Event::Reader event, RemoteEncoder &re, const EncoderInfo &encoder_info) {
+   auto edata = (event.*(encoder_info.get_encode_data_func))();
+   auto idx = edata.getIdx();
+@@ -154,12 +451,25 @@ size_t write_encode_data(LoggerdState *s, cereal::Event::Reader event, RemoteEnc
+ 
+ int handle_encoder_msg(LoggerdState *s, Message *msg, std::string &name, struct RemoteEncoder &re, const EncoderInfo &encoder_info) {
+   int bytes_count = 0;
+-  const bool deterministic_mode = deterministic_ka2_mode();
++  const bool deterministic_mode = deterministic_ka2_protocol_active();
+   const size_t max_encoder_queue = MAIN_FPS * 10;
+   auto enqueue_bounded = [&](Message *m, const char *reason) {
+     if (re.q.size() >= max_encoder_queue) {
+       // Keep freshest packets under prolonged skew/stall; stale packets have lower recovery value.
+-      delete re.q.front();
++      Message *oldest = re.q.front();
++      if (deterministic_mode) {
++        try {
++          capnp::FlatArrayMessageReader reader({
++            (capnp::word *)oldest->getData(), oldest->getSize() / sizeof(capnp::word)});
++          const auto queued_event = reader.getRoot<cereal::Event>();
++          const auto queued_data = (queued_event.*(encoder_info.get_encode_data_func))();
++          const int queued_segment = queued_data.getIdx().getSegmentNum() - re.encoderd_segment_offset;
++          if (queued_segment > s->logger.segment()) s->drop_counts.future_video_queue_drops++;
++        } catch (const kj::Exception &) {
++          // Malformed queue entries are discarded without inventing a video drop reason.
++        }
++      }
++      delete oldest;
+       re.q.erase(re.q.begin());
+       LOGW_100("%s: encoder queue full (%zu), dropping oldest while %s", name.c_str(), re.q.size(), reason);
+     }
+@@ -211,16 +521,44 @@ int handle_encoder_msg(LoggerdState *s, Message *msg, std::string &name, struct
+     if (re.audio_initialized || !encoder_info.include_audio) {
+       // we are in this segment now, process any queued messages before this one
+       if (!re.q.empty()) {
+-        for (auto qmsg : re.q) {
+-          try {
+-            capnp::FlatArrayMessageReader reader({(capnp::word *)qmsg->getData(), qmsg->getSize() / sizeof(capnp::word)});
+-            bytes_count += write_encode_data(s, reader.getRoot<cereal::Event>(), re, encoder_info);
+-          } catch (const kj::Exception &e) {
+-            LOGE("%s: dropping malformed queued encode packet (%s)", name.c_str(), e.getDescription().cStr());
++        if (deterministic_mode) {
++          std::vector<Message *> future_messages;
++          future_messages.reserve(re.q.size());
++          for (auto qmsg : re.q) {
++            bool keep = false;
++            try {
++              capnp::FlatArrayMessageReader reader({(capnp::word *)qmsg->getData(), qmsg->getSize() / sizeof(capnp::word)});
++              const auto queued_event = reader.getRoot<cereal::Event>();
++              const auto queued_data = (queued_event.*(encoder_info.get_encode_data_func))();
++              const int queued_segment = queued_data.getIdx().getSegmentNum() - re.encoderd_segment_offset;
++              if (queued_segment == s->logger.segment()) {
++                bytes_count += write_encode_data(s, queued_event, re, encoder_info);
++              } else if (queued_segment < s->logger.segment()) {
++                s->drop_counts.stale_video_messages++;
++                LOGD("%s: dropping stale queued packet (seg %d, loggerd seg %d)",
++                     name.c_str(), queued_segment, s->logger.segment());
++              } else {
++                keep = true;
++              }
++            } catch (const kj::Exception &e) {
++              LOGE("%s: dropping malformed queued encode packet (%s)", name.c_str(), e.getDescription().cStr());
++            }
++            if (keep) future_messages.push_back(qmsg);
++            else delete qmsg;
+           }
+-          delete qmsg;
++          re.q.swap(future_messages);
++        } else {
++          for (auto qmsg : re.q) {
++            try {
++              capnp::FlatArrayMessageReader reader({(capnp::word *)qmsg->getData(), qmsg->getSize() / sizeof(capnp::word)});
++              bytes_count += write_encode_data(s, reader.getRoot<cereal::Event>(), re, encoder_info);
++            } catch (const kj::Exception &e) {
++              LOGE("%s: dropping malformed queued encode packet (%s)", name.c_str(), e.getDescription().cStr());
++            }
++            delete qmsg;
++          }
++          re.q.clear();
+         }
+-        re.q.clear();
+       }
+       bytes_count += write_encode_data(s, event, re, encoder_info);
+       delete msg;
+@@ -251,6 +589,7 @@ int handle_encoder_msg(LoggerdState *s, Message *msg, std::string &name, struct
+       // because each rotation window produces a few stale packets.
+       LOGD("%s: dropping stale packet (seg %d, loggerd seg %d, offset %d)",
+         name.c_str(), idx.getSegmentNum(), s->logger.segment(), re.encoderd_segment_offset);
++      s->drop_counts.stale_video_messages++;
+     }
+     delete msg;
+   }
+@@ -290,6 +629,9 @@ void loggerd_thread() {
+   } ServiceState;
+   std::unordered_map<SubSocket*, ServiceState> service_state;
+   std::unordered_map<SubSocket*, struct RemoteEncoder> remote_encoders;
++  std::unordered_map<std::string, RemoteEncoder *> remote_by_name;
++  std::vector<std::string> configured_encoder_streams;
++  LoggerdAudioQueue audio_queue;
+ 
+   std::unique_ptr<Context> ctx(Context::create());
+   std::unique_ptr<Poller> poller(Poller::create());
+@@ -330,16 +672,47 @@ void loggerd_thread() {
+   for (const auto &cam : cameras_logged) {
+     for (const auto &encoder_info : cam.encoder_infos) {
+       encoder_infos_dict[encoder_info.publish_name] = encoder_info;
+-      s.max_waiting++;
++      if (std::find(configured_encoder_streams.begin(), configured_encoder_streams.end(), encoder_info.publish_name) ==
++          configured_encoder_streams.end()) {
++        configured_encoder_streams.emplace_back(encoder_info.publish_name);
++        s.max_waiting++;
++      }
+     }
+   }
+ 
+   for (auto &[sock, service] : service_state) {
++    if (service.encoder) remote_by_name[service.name] = &remote_encoders[sock];
+     auto it = encoder_infos_dict.find(service.name);
+     if (it != encoder_infos_dict.end() && it->second.include_audio) {
+       encoders_with_audio.push_back(&remote_encoders[sock]);
+     }
+   }
++  auto qroad_audio_it = remote_by_name.find("qRoadEncodeData");
++  RemoteEncoder *audio_remote = qroad_audio_it == remote_by_name.end() ? nullptr : qroad_audio_it->second;
++
++  const bool deterministic_mode = deterministic_ka2_protocol_active();
++  auto service_rotation_clock = [&]() {
++    std::chrono::steady_clock::time_point decision_time{};
++    if (rotate_if_needed(&s, &decision_time) && deterministic_mode) {
++      commit_deterministic_runtime_rotation(&s, configured_encoder_streams, remote_by_name,
++                                           encoder_infos_dict, &audio_queue, audio_remote, &params, decision_time);
++    }
++  };
++  auto service_audio_expiry = [&]() {
++    if (deterministic_mode) expire_queued_audio(&s, &audio_queue, loggerd_monotonic_now());
++  };
++  auto poll_timeout_ms = [&]() {
++    if (!deterministic_mode) return 1000;
++    int timeout_ms = DETERMINISTIC_ROTATION_POLL_MS;
++    if (s.rotation_started) {
++      const auto deadline = s.rotation_started_at + std::chrono::milliseconds(DETERMINISTIC_ROTATION_DEADLINE_MS);
++      const auto now = loggerd_monotonic_now();
++      if (now >= deadline) return 0;
++      timeout_ms = std::min<int>(timeout_ms, static_cast<int>(
++        std::chrono::duration_cast<std::chrono::milliseconds>(deadline - now).count()));
++    }
++    return std::max(timeout_ms, 0);
++  };
+ 
+   uint64_t msg_count = 0, bytes_count = 0;
+   double start_ts = millis_since_boot();
+@@ -347,6 +720,9 @@ void loggerd_thread() {
+   int last_memory_percent = -1;
+   
+   while (!do_exit) {
++    service_audio_expiry();
++    service_rotation_clock();
++
+     // Check memory pressure periodically (every 5 seconds)
+     double now_ms = millis_since_boot();
+     if (now_ms - last_memory_check_ms > 5000) {
+@@ -364,13 +740,19 @@ void loggerd_thread() {
+     
+     // Skip operations if memory is critical
+     if (MemoryPressure::should_skip_filesystem_operation()) {
+-      // Still poll to avoid blocking, but skip processing
+-      poller->poll(100);
++      // Keep deterministic deadline and audio expiry service alive even when
++      // filesystem work is temporarily suppressed.
++      poller->poll(poll_timeout_ms());
++      service_audio_expiry();
++      service_rotation_clock();
+       continue;
+     }
+     
+     // poll for new messages on all sockets
+-    for (auto sock : poller->poll(1000)) {
++    const auto ready_sockets = poller->poll(poll_timeout_ms());
++    service_audio_expiry();
++    service_rotation_clock();
++    for (auto sock : ready_sockets) {
+       if (do_exit) break;
+ 
+       ServiceState &service = service_state[sock];
+@@ -396,10 +778,15 @@ void loggerd_thread() {
+             auto event = cmsg.getRoot<cereal::Event>();
+             auto audio_data = event.getRawAudioData().getData();
+             auto sample_rate = event.getRawAudioData().getSampleRate();
+-            for (auto* encoder : encoders_with_audio) {
+-              if (encoder && encoder->writer) {
+-                encoder->writer->write_audio((uint8_t*)audio_data.begin(), audio_data.size(), event.getLogMonoTime() / 1000, sample_rate);
+-                encoder->audio_initialized = true;
++            if (deterministic_mode) {
++              admit_audio_event(&s, &audio_queue, audio_remote, s.logger.segment(), event.getLogMonoTime(), sample_rate,
++                                reinterpret_cast<const uint8_t *>(audio_data.begin()), audio_data.size());
++            } else {
++              for (auto* encoder : encoders_with_audio) {
++                if (encoder && encoder->writer) {
++                  encoder->writer->write_audio((uint8_t*)audio_data.begin(), audio_data.size(), event.getLogMonoTime() / 1000, sample_rate);
++                  encoder->audio_initialized = true;
++                }
+               }
+             }
+           }
+@@ -407,13 +794,21 @@ void loggerd_thread() {
+           if (service.encoder) {
+             s.last_camera_seen_tms = millis_since_boot();
+             bytes_count += handle_encoder_msg(&s, msg, service.name, remote_encoders[sock], encoder_infos_dict[service.name]);
++            if (deterministic_mode) {
++              auto info_it = encoder_infos_dict.find(service.name);
++              if (info_it != encoder_infos_dict.end() && info_it->second.include_audio) {
++                flush_queued_audio_for_segment(&s, &audio_queue, &remote_encoders[sock],
++                                               s.logger.segment(), loggerd_monotonic_now());
++              }
++            }
+           } else {
+             s.logger.write((uint8_t *)msg->getData(), msg->getSize(), in_qlog);
+             bytes_count += msg->getSize();
+             delete msg;
+           }
+ 
+-          rotate_if_needed(&s);
++          service_audio_expiry();
++          service_rotation_clock();
+ 
+           if ((++msg_count % 10000) == 0) {
+             double seconds = (millis_since_boot() - start_ts) / 1000.0;
+@@ -432,6 +827,8 @@ void loggerd_thread() {
+         }
+       }
+     }
++    service_audio_expiry();
++    service_rotation_clock();
+   }
+ 
+   LOGW("closing logger");
+diff --git a/system/loggerd/tests/test_loggerd.py b/system/loggerd/tests/test_loggerd.py
+index 28aa7a356..105b5f0f8 100644
+--- a/system/loggerd/tests/test_loggerd.py
++++ b/system/loggerd/tests/test_loggerd.py
+@@ -16,6 +16,7 @@ from cereal.services import SERVICE_LIST
+ from openpilot.common.basedir import BASEDIR
+ from openpilot.common.params import Params
+ from openpilot.common.timeout import Timeout
++from openpilot.system.hardware import KA2
+ from openpilot.system.hardware.hw import Paths
+ from openpilot.system.loggerd.xattr_cache import getxattr
+ from openpilot.system.loggerd.deleter import PRESERVE_ATTR_NAME, PRESERVE_ATTR_VALUE
+@@ -37,6 +38,16 @@ class TestLoggerd:
+     log_dirs = sorted(Path(Paths.log_root()).iterdir(), key=lambda f: f.stat().st_mtime)
+     return log_dirs[-1]
+ 
++  def _run_ka2_valid_dma_rotation(self, tmp_path, monkeypatch):
++    from openpilot.system.loggerd.tests.test_loggerd_liveness import (
++      _build_test_binaries,
++      _run_lifecycle_and_cleanup,
++    )
++
++    repo_root = Path(__file__).resolve().parents[3]
++    binaries = _build_test_binaries(repo_root)
++    _run_lifecycle_and_cleanup(tmp_path / "ka2_valid_dma_rotation", monkeypatch, binaries, "valid")
++
+   def _get_log_dir(self, x):
+     for l in x.splitlines():
+       for p in l.split(' '):
+@@ -188,7 +199,11 @@ class TestLoggerd:
+       assert getattr(initData, initData_key) == v
+       assert logged_params[param_key].decode() == v
+ 
+-  def test_rotation(self):
++  def test_rotation(self, tmp_path, monkeypatch):
++    if KA2:
++      self._run_ka2_valid_dma_rotation(tmp_path, monkeypatch)
++      return
++
+     Params().put("RecordFront", True)
+ 
+     expected_files = {"rlog.zst", "qlog.zst", "qcamera.ts", "fcamera.hevc", "dcamera.hevc", "ecamera.hevc"}
+@@ -206,6 +221,10 @@ class TestLoggerd:
+       assert len(diff) == 0, f"didn't get all expected files. seg={n} {route_path=}, {diff=}\n{logged=} {expected_files=}"
+ 
+   def test_ka2_deterministic_rotation_alignment(self, tmp_path, monkeypatch):
++    if KA2:
++      self._run_ka2_valid_dma_rotation(tmp_path, monkeypatch)
++      return
++
+     loggerd = managed_processes["loggerd"]
+     encoderd = managed_processes["encoderd"]
+     assert loggerd.proc is None and encoderd.proc is None, "loggerd test processes must not already be running"
+@@ -219,8 +238,6 @@ class TestLoggerd:
+     monkeypatch.setenv("LOGGERD_TEST", "1")
+     monkeypatch.setenv("LOGGERD_TEST_DETERMINISTIC", "1")
+     monkeypatch.setenv("LOGGERD_SEGMENT_LENGTH", str(segment_length))
+-    monkeypatch.setenv("ENCODER_ZERO_COPY", "0")
+-
+     params = Params(str(params_root))
+     params.put_bool("RecordFront", True)
+     params.put_bool("RecordAudio", True)
+@@ -477,6 +494,9 @@ class TestLoggerd:
+ 
+   @pytest.mark.parametrize("record_front", [True, False])
+   def test_record_front(self, record_front):
++    if KA2:
++      pytest.skip("synthetic VisionIPC buffers are shared memory; KA2 full-resolution MPP requires DMA-BUF inputs")
++
+     params = Params()
+     params.put_bool("RecordFront", record_front)
+ 
+diff --git a/system/loggerd/tests/test_mpp_encoder.cc b/system/loggerd/tests/test_mpp_encoder.cc
+index 57a3f8aab..6e62ca300 100644
+--- a/system/loggerd/tests/test_mpp_encoder.cc
++++ b/system/loggerd/tests/test_mpp_encoder.cc
+@@ -1,340 +1,28 @@
+-#define __STDC_CONSTANT_MACROS
+-
+ #include "system/loggerd/encoder/mpp_encoder_input.h"
+ 
+-#include <cstdint>
++#include <fcntl.h>
+ #include <cstdio>
+ #include <cstdlib>
+-#include <string>
+-#include <vector>
+-
+-struct MppEncoderTestState {
+-  bool use_zero_copy = false;
+-  MppBuffer buffer = nullptr;
+-  uint32_t import_failures = 0;
+-  bool fallback_logged = false;
+-};
+-
+-struct MppEncoderTestAccess {
+-  template <typename ImportFn, typename PoolReadyFn, typename InitPoolFn,
+-            typename AcquireFn, typename CopyFn, typename SubmitFn, typename FallbackFn>
+-  static bool encode(MppEncoderTestState &state, ImportFn import_fn,
+-                     PoolReadyFn pool_ready_fn, InitPoolFn init_pool_fn,
+-                     AcquireFn acquire_fn, CopyFn copy_fn, SubmitFn submit_fn,
+-                     FallbackFn fallback_fn) {
+-    return mpp_encoder_internal::encode_full_resolution_frame(
+-      state.use_zero_copy, state.buffer, state.import_failures, state.fallback_logged,
+-      import_fn, pool_ready_fn, init_pool_fn, acquire_fn, copy_fn, submit_fn, fallback_fn);
+-  }
++#include <unistd.h>
+ 
+-  static void reset(MppEncoderTestState &state) {
+-    mpp_encoder_internal::reset_import_state(state.buffer, state.import_failures, state.fallback_logged);
+-  }
+-};
+-
+-static void require(bool condition, const char *expression, int line) {
+-  if (!condition) {
+-    std::fprintf(stderr, "check failed at line %d: %s\n", line, expression);
++static void require(bool ok, const char *condition, int line) {
++  if (!ok) {
++    std::fprintf(stderr, "check failed at line %d: %s\n", line, condition);
+     std::exit(1);
+   }
+ }
+ 
+-#define REQUIRE(condition) require((condition), #condition, __LINE__)
+-
+-static uint8_t buffer_tokens[256] = {};
+-
+-static MppBuffer buffer_token(uintptr_t index) {
+-  return &buffer_tokens[index];
+-}
+-
+-static void test_first_import_failure_copies_and_submits_same_frame() {
+-  MppEncoderTestState state{true, nullptr, 0, false};
+-  const MppBuffer copy_buffer = buffer_token(1);
+-  int frame_id = 41;
+-  int copied_frame_id = -1;
+-  int import_calls = 0;
+-  int pool_ready_calls = 0;
+-  int pool_init_calls = 0;
+-  int acquire_calls = 0;
+-  int copy_calls = 0;
+-  int submit_calls = 0;
+-  int fallback_calls = 0;
+-  std::vector<std::string> order;
+-
+-  const bool submitted = MppEncoderTestAccess::encode(
+-    state,
+-    [&]() -> MppBuffer {
+-      order.push_back("import");
+-      ++import_calls;
+-      return nullptr;
+-    },
+-    [&]() {
+-      order.push_back("pool-ready");
+-      ++pool_ready_calls;
+-      return false;
+-    },
+-    [&]() {
+-      order.push_back("pool-init");
+-      ++pool_init_calls;
+-      return true;
+-    },
+-    [&]() {
+-      order.push_back("acquire");
+-      ++acquire_calls;
+-      return copy_buffer;
+-    },
+-    [&](MppBuffer buffer) {
+-      order.push_back("copy");
+-      REQUIRE(buffer == copy_buffer);
+-      ++copy_calls;
+-      copied_frame_id = frame_id;
+-      return true;
+-    },
+-    [&](MppBuffer buffer) {
+-      order.push_back("submit");
+-      REQUIRE(buffer == copy_buffer);
+-      REQUIRE(copied_frame_id == frame_id);
+-      ++submit_calls;
+-      return true;
+-    },
+-    [&](uint32_t failures, bool should_log) {
+-      order.push_back("fallback");
+-      REQUIRE(failures == 1);
+-      REQUIRE(should_log);
+-      ++fallback_calls;
+-    });
+-
+-  REQUIRE(submitted);
+-  REQUIRE(!state.use_zero_copy);
+-  REQUIRE(state.import_failures == 1);
+-  REQUIRE(state.fallback_logged);
+-  REQUIRE(import_calls == 1);
+-  REQUIRE(pool_ready_calls == 1);
+-  REQUIRE(pool_init_calls == 1);
+-  REQUIRE(acquire_calls == 1);
+-  REQUIRE(copy_calls == 1);
+-  REQUIRE(submit_calls == 1);
+-  REQUIRE(fallback_calls == 1);
+-  REQUIRE(order == std::vector<std::string>({"import", "fallback", "pool-ready",
+-                                            "pool-init", "acquire", "copy", "submit"}));
+-}
+-
+-static void test_latch_survives_close_open_state_reset() {
+-  MppEncoderTestState state{true, nullptr, 0, false};
+-  int initial_import_calls = 0;
+-  int initial_copy_calls = 0;
+-  int initial_submit_calls = 0;
+-
+-  const bool fallback_submitted = MppEncoderTestAccess::encode(
+-    state,
+-    [&]() -> MppBuffer {
+-      ++initial_import_calls;
+-      return nullptr;
+-    },
+-    []() { return true; },
+-    []() {
+-      REQUIRE(false);
+-      return false;
+-    },
+-    []() { return buffer_token(2); },
+-    [&](MppBuffer) {
+-      ++initial_copy_calls;
+-      return true;
+-    },
+-    [&](MppBuffer) {
+-      ++initial_submit_calls;
+-      return true;
+-    },
+-    [](uint32_t failures, bool should_log) {
+-      REQUIRE(failures == 1);
+-      REQUIRE(should_log);
+-    });
+-
+-  REQUIRE(fallback_submitted);
+-  REQUIRE(!state.use_zero_copy);
+-  REQUIRE(initial_import_calls == 1);
+-  REQUIRE(initial_copy_calls == 1);
+-  REQUIRE(initial_submit_calls == 1);
+-
+-  // Production calls this same helper from both encoder_close() and encoder_open().
+-  MppEncoderTestAccess::reset(state);
+-  MppEncoderTestAccess::reset(state);
+-  REQUIRE(!state.use_zero_copy);
+-  REQUIRE(state.buffer == nullptr);
+-  REQUIRE(state.import_failures == 0);
+-  REQUIRE(!state.fallback_logged);
+-
+-  const MppBuffer second_frame_buffer = buffer_token(3);
+-  int frame_id = 42;
+-  int copied_frame_id = -1;
+-  int import_calls = 0;
+-  int copy_calls = 0;
+-  int submit_calls = 0;
+-
+-  const bool submitted = MppEncoderTestAccess::encode(
+-    state,
+-    [&]() -> MppBuffer {
+-      ++import_calls;
+-      return buffer_token(99);
+-    },
+-    []() { return true; },
+-    []() {
+-      REQUIRE(false);
+-      return false;
+-    },
+-    [&]() { return second_frame_buffer; },
+-    [&](MppBuffer buffer) {
+-      REQUIRE(buffer == second_frame_buffer);
+-      ++copy_calls;
+-      copied_frame_id = frame_id;
+-      return true;
+-    },
+-    [&](MppBuffer buffer) {
+-      REQUIRE(buffer == second_frame_buffer);
+-      REQUIRE(copied_frame_id == frame_id);
+-      ++submit_calls;
+-      return true;
+-    },
+-    [](uint32_t, bool) { REQUIRE(false); });
+-
+-  REQUIRE(submitted);
+-  REQUIRE(!state.use_zero_copy);
+-  REQUIRE(import_calls == 0);
+-  REQUIRE(copy_calls == 1);
+-  REQUIRE(submit_calls == 1);
+-}
+-
+-static void test_pool_allocation_failure_does_not_submit() {
+-  MppEncoderTestState state{true, nullptr, 0, false};
+-  int import_calls = 0;
+-  int pool_init_calls = 0;
+-  int acquire_calls = 0;
+-  int copy_calls = 0;
+-  int submit_calls = 0;
+-
+-  const bool submitted = MppEncoderTestAccess::encode(
+-    state,
+-    [&]() -> MppBuffer {
+-      ++import_calls;
+-      return nullptr;
+-    },
+-    []() { return false; },
+-    [&]() {
+-      ++pool_init_calls;
+-      return false;
+-    },
+-    [&]() {
+-      ++acquire_calls;
+-      return buffer_token(4);
+-    },
+-    [&](MppBuffer) {
+-      ++copy_calls;
+-      return true;
+-    },
+-    [&](MppBuffer) {
+-      ++submit_calls;
+-      return true;
+-    },
+-    [](uint32_t failures, bool should_log) {
+-      REQUIRE(failures == 1);
+-      REQUIRE(should_log);
+-    });
+-
+-  REQUIRE(!submitted);
+-  REQUIRE(!state.use_zero_copy);
+-  REQUIRE(state.buffer == nullptr);
+-  REQUIRE(import_calls == 1);
+-  REQUIRE(pool_init_calls == 1);
+-  REQUIRE(acquire_calls == 0);
+-  REQUIRE(copy_calls == 0);
+-  REQUIRE(submit_calls == 0);
+-}
+-
+-static void test_copy_failure_does_not_submit() {
+-  MppEncoderTestState state{true, nullptr, 0, false};
+-  int copy_calls = 0;
+-  int submit_calls = 0;
+-
+-  const bool submitted = MppEncoderTestAccess::encode(
+-    state,
+-    []() -> MppBuffer { return nullptr; },
+-    []() { return true; },
+-    []() {
+-      REQUIRE(false);
+-      return false;
+-    },
+-    []() { return buffer_token(5); },
+-    [&](MppBuffer) {
+-      ++copy_calls;
+-      return false;
+-    },
+-    [&](MppBuffer) {
+-      ++submit_calls;
+-      return true;
+-    },
+-    [](uint32_t failures, bool should_log) {
+-      REQUIRE(failures == 1);
+-      REQUIRE(should_log);
+-    });
+-
+-  REQUIRE(!submitted);
+-  REQUIRE(!state.use_zero_copy);
+-  REQUIRE(state.buffer == nullptr);
+-  REQUIRE(copy_calls == 1);
+-  REQUIRE(submit_calls == 0);
+-}
+-
+-static void test_successful_import_submits_without_copy() {
+-  MppEncoderTestState state{true, nullptr, 4, false};
+-  const MppBuffer imported_buffer = buffer_token(6);
+-  int import_calls = 0;
+-  int pool_ready_calls = 0;
+-  int submit_calls = 0;
+-
+-  const bool submitted = MppEncoderTestAccess::encode(
+-    state,
+-    [&]() {
+-      ++import_calls;
+-      return imported_buffer;
+-    },
+-    [&]() {
+-      ++pool_ready_calls;
+-      return false;
+-    },
+-    []() {
+-      REQUIRE(false);
+-      return false;
+-    },
+-    []() {
+-      REQUIRE(false);
+-      return buffer_token(7);
+-    },
+-    [](MppBuffer) {
+-      REQUIRE(false);
+-      return false;
+-    },
+-    [&](MppBuffer buffer) {
+-      REQUIRE(buffer == imported_buffer);
+-      ++submit_calls;
+-      return true;
+-    },
+-    [](uint32_t, bool) { REQUIRE(false); });
++#define CHECK(condition) require((condition), #condition, __LINE__)
+ 
+-  REQUIRE(submitted);
+-  REQUIRE(state.use_zero_copy);
+-  REQUIRE(state.buffer == imported_buffer);
+-  REQUIRE(state.import_failures == 0);
+-  REQUIRE(import_calls == 1);
+-  REQUIRE(pool_ready_calls == 0);
+-  REQUIRE(submit_calls == 1);
++static void test_rejects_ordinary_files() {
++  const int fd = open("/dev/null", O_RDONLY | O_CLOEXEC);
++  CHECK(fd >= 0);
++  CHECK(!mpp_encoder_internal::is_dma_buf_fd(fd));
++  CHECK(close(fd) == 0);
++  CHECK(!mpp_encoder_internal::is_dma_buf_fd(-1));
+ }
+ 
+ int main() {
+-  test_first_import_failure_copies_and_submits_same_frame();
+-  test_latch_survives_close_open_state_reset();
+-  test_pool_allocation_failure_does_not_submit();
+-  test_copy_failure_does_not_submit();
+-  test_successful_import_submits_without_copy();
+-  std::puts("MPP fallback helper behavior checks passed");
+-  return 0;
++  test_rejects_ordinary_files();
++  std::puts("MPP encoder DMA-BUF validation tests passed");
+ }
+diff --git a/system/loggerd/tests/test_mpp_encoder.py b/system/loggerd/tests/test_mpp_encoder.py
+index 67899547e..b496ed210 100644
+--- a/system/loggerd/tests/test_mpp_encoder.py
++++ b/system/loggerd/tests/test_mpp_encoder.py
+@@ -4,7 +4,7 @@ import shutil
+ import subprocess
+ 
+ 
+-def test_mpp_encoder_private_input_helper(tmp_path):
++def test_mpp_encoder_dma_buf_validation(tmp_path):
+   repo_root = Path(__file__).resolve().parents[3]
+   native_test = Path(__file__).with_suffix(".cc")
+   compiler = shutil.which("clang++")
+diff --git a/system/loggerd/tests/test_dmabuf_fixture.py b/system/loggerd/tests/test_dmabuf_fixture.py
+new file mode 100644
+index 000000000..50baf8599
+--- /dev/null
++++ b/system/loggerd/tests/test_dmabuf_fixture.py
+@@ -0,0 +1,327 @@
++import fcntl
++import gc
++import os
++from pathlib import Path
++import platform
++import re
++import select
++import shutil
++import struct
++import subprocess
++import time
++import uuid
++
++import pytest
++
++from msgq.visionipc import VisionIpcClient, VisionStreamType
++from openpilot.system.hardware import KA2
++
++
++WIDTH = 1920
++HEIGHT = 1200
++STRIDE = (WIDTH + 15) & ~15
++UV_OFFSET = STRIDE * HEIGHT
++BUFFER_SIZE = UV_OFFSET * 3 // 2
++BUFFERS_PER_STREAM = 4
++
++DMA_BUF_IOCTL_SYNC = 0x40086200
++DMA_BUF_SYNC_READ = 1
++DMA_BUF_SYNC_END = 4
++
++STREAMS = (
++  (VisionStreamType.VISION_STREAM_ROAD, 0),
++  (VisionStreamType.VISION_STREAM_DRIVER, 1),
++  (VisionStreamType.VISION_STREAM_WIDE_ROAD, 2),
++)
++
++
++def _test_environment(tmp_path: Path) -> tuple[dict[str, str], str]:
++  root = tmp_path.resolve()
++  env = os.environ.copy()
++  env["LOG_ROOT"] = str(root / "logs")
++  env["PARAMS_ROOT"] = str(root / "params")
++  prefix = f"loggerd_dmabuf_{os.getpid()}_{uuid.uuid4().hex[:8]}"
++  env["OPENPILOT_PREFIX"] = prefix
++  env.pop("ZMQ", None)
++  env.pop("CEREAL_FAKE", None)
++  for key in ("LOG_ROOT", "PARAMS_ROOT"):
++    path = Path(env[key]).resolve()
++    assert path.is_relative_to(root), f"{key} escaped isolated test root: {path}"
++    path.mkdir(parents=True, exist_ok=True)
++  assert "/" not in prefix and ".." not in prefix
++  return env, prefix
++
++
++def _wait_line(process: subprocess.Popen[str], timeout: float) -> str:
++  assert process.stdout is not None
++  readable, _, _ = select.select([process.stdout], [], [], timeout)
++  if not readable:
++    raise AssertionError(f"publisher did not produce output within {timeout}s; returncode={process.poll()}")
++  line = process.stdout.readline()
++  assert line, f"publisher closed stdout; returncode={process.poll()}"
++  return line.rstrip("\n")
++
++
++def _wait_matching_line(process: subprocess.Popen[str], expected: str, timeout: float) -> str:
++  deadline = time.monotonic() + timeout
++  lines = []
++  while time.monotonic() < deadline:
++    line = _wait_line(process, max(0.0, deadline - time.monotonic()))
++    lines.append(line)
++    if line == expected:
++      return line
++    if line.startswith("ERROR") or line.startswith("VisionIPC DMA-BUF fixture failed:"):
++      raise AssertionError(f"publisher reported an error: {line}")
++  raise AssertionError(f"publisher never printed {expected!r}; output={lines!r}")
++
++
++def _send_frame(process: subprocess.Popen[str], stream: int, frame_id: int,
++                timestamp_sof: int | None = None, timestamp_eof: int | None = None) -> None:
++  assert process.stdin is not None
++  timestamp_sof = frame_id * 1000 if timestamp_sof is None else timestamp_sof
++  timestamp_eof = timestamp_sof + 500 if timestamp_eof is None else timestamp_eof
++  process.stdin.write(f"FRAME {stream} {frame_id} {timestamp_sof} {timestamp_eof}\n")
++  process.stdin.flush()
++  _wait_matching_line(process, f"SENT {stream} {frame_id}", 3.0)
++
++
++def _recv_frame(client: VisionIpcClient, timeout_ms: int = 2000):
++  deadline = time.monotonic() + timeout_ms / 1000
++  while time.monotonic() < deadline:
++    frame = client.recv(50)
++    if frame is not None:
++      return frame
++  raise AssertionError(f"VisionIPC receive timed out on stream {client}")
++
++
++def _pattern(stream: int, frame_id: int) -> tuple[int, int, int]:
++  return (
++    16 + ((frame_id * 13 + stream * 29) % 200),
++    32 + ((frame_id * 7 + stream * 17) % 190),
++    32 + ((frame_id * 11 + stream * 23) % 190),
++  )
++
++
++def _sync_for_cpu_read(fd: int) -> None:
++  fcntl.ioctl(fd, DMA_BUF_IOCTL_SYNC, struct.pack("Q", DMA_BUF_SYNC_READ))
++
++
++def _sync_for_cpu_read_end(fd: int) -> None:
++  fcntl.ioctl(fd, DMA_BUF_IOCTL_SYNC, struct.pack("Q", DMA_BUF_SYNC_END | DMA_BUF_SYNC_READ))
++
++
++def _fd_is_open(fd: int) -> bool:
++  try:
++    fcntl.fcntl(fd, fcntl.F_GETFD)
++    return True
++  except OSError:
++    return False
++
++
++def _mapping_exists(address: int) -> bool:
++  with open("/proc/self/maps") as maps:
++    for line in maps:
++      interval = line.split(maxsplit=1)[0]
++      start, end = (int(part, 16) for part in interval.split("-", 1))
++      if start <= address < end:
++        return True
++  return False
++
++
++def _assert_camera_stack_idle() -> None:
++  pgrep = shutil.which("pgrep")
++  fuser = shutil.which("fuser")
++  assert pgrep is not None and fuser is not None, "pgrep and fuser are required for the board safety preflight"
++
++  for name in ("camerad", "encoderd", "loggerd"):
++    result = subprocess.run([pgrep, "-x", name], text=True, capture_output=True, check=False)
++    assert result.returncode == 1, f"camera/recording process {name} is active or process check failed: {result.stdout}{result.stderr}"
++    print(f"preflight pgrep -x {name}: no active process")
++
++  device_pattern = re.compile(r"^(video.*|media.*|v4l-subdev.*|mpp_service|rga)$")
++  device_nodes = [path for path in Path("/dev").iterdir() if device_pattern.match(path.name) and path.is_char_device()]
++  assert device_nodes, "no KA2 video/MPP device nodes found; target is not the expected board"
++  for path in sorted(device_nodes):
++    result = subprocess.run([fuser, "-v", str(path)], text=True, capture_output=True, check=False)
++    print(f"preflight fuser -v {path}: exit={result.returncode} {result.stdout}{result.stderr}", end="")
++    assert result.returncode == 1, f"device {path} is in use or fuser failed: {result.stdout}{result.stderr}"
++
++
++@pytest.mark.xdist_group("loggerd_tests")
++def test_visionipc_dmabuf_fixture(tmp_path, monkeypatch):
++  if not KA2 or platform.machine() != "aarch64" or not Path("/dev/dma_heap/system").exists():
++    pytest.skip("fixture qualification requires the pinned KA2 DMA-heap device")
++
++  _assert_camera_stack_idle()
++
++  repo_root = Path(__file__).resolve().parents[3]
++  scons = shutil.which("scons")
++  assert scons is not None, "SCons is required to build the DMA-BUF VisionIPC publisher"
++  target = "build/system/loggerd/tests/visionipc_dmabuf_publisher"
++  binary = repo_root / target
++  build_command = [scons, "-j2", target]
++  print("fixture compile command:", build_command)
++  compiled = subprocess.run(build_command, cwd=repo_root, text=True, capture_output=True, check=False)
++  print(compiled.stdout, end="")
++  print(compiled.stderr, end="")
++  assert compiled.returncode == 0, f"fixture compile exited {compiled.returncode}"
++  assert binary.is_file(), f"SCons did not produce {binary}"
++
++  env, prefix = _test_environment(tmp_path)
++  # MSGQ maps queues beneath /dev/shm/msgq_<prefix>; it does not create this
++  # directory itself. OpenpilotPrefix normally owns that setup, but its cleanup
++  # also removes unrelated roots, so keep the fixture's queue directory local
++  # and remove only its three known endpoints below.
++  msgq_dir = Path("/dev/shm") / f"msgq_{prefix}"
++  assert not msgq_dir.exists(), f"isolated MSGQ directory already exists: {msgq_dir}"
++  msgq_dir.mkdir(mode=0o700)
++  socket_path = Path(f"/tmp/{prefix}_visionipc_camerad")
++  process = None
++  owns_socket_path = False
++  clients: dict[int, VisionIpcClient] = {}
++  received_fds: list[int] = []
++  received_fd_identities: list[tuple[int, int]] = []
++  client_mapping_addresses: list[int] = []
++  try:
++    for key in ("LOG_ROOT", "PARAMS_ROOT", "OPENPILOT_PREFIX"):
++      monkeypatch.setenv(key, env[key])
++    monkeypatch.delenv("ZMQ", raising=False)
++    monkeypatch.delenv("CEREAL_FAKE", raising=False)
++    assert not socket_path.exists(), f"isolated fixture socket already exists: {socket_path}"
++
++    _assert_camera_stack_idle()
++    process = subprocess.Popen([str(binary), "--serve"], cwd=repo_root, env=env,
++                               stdin=subprocess.PIPE, stdout=subprocess.PIPE,
++                               stderr=subprocess.STDOUT, text=True, bufsize=1)
++    owns_socket_path = True
++    ready = _wait_matching_line(process,
++                                f"READY streams=road,driver,wideRoad width={WIDTH} height={HEIGHT} "
++                                f"stride={STRIDE} uv_offset={UV_OFFSET} buffers={BUFFERS_PER_STREAM} backing=dma_heap", 10.0)
++    assert ready
++
++    for stream_type, stream_id in STREAMS:
++      client = VisionIpcClient("camerad", stream_type, False)
++      deadline = time.monotonic() + 5.0
++      connected = False
++      while time.monotonic() < deadline:
++        if client.connect(False):
++          connected = True
++          break
++        time.sleep(0.01)
++      assert connected, f"could not connect to isolated stream {stream_id}"
++      assert client.num_buffers == BUFFERS_PER_STREAM
++      assert client.width == WIDTH and client.height == HEIGHT
++      assert client.stride == STRIDE and client.uv_offset == UV_OFFSET
++      assert client.buffer_len == BUFFER_SIZE
++      clients[stream_id] = client
++
++    observed_y_values: dict[int, set[int]] = {stream_id: set() for _, stream_id in STREAMS}
++    for stream_type, stream_id in STREAMS:
++      client = clients[stream_id]
++      observed_indices = set()
++      for n in range(BUFFERS_PER_STREAM):
++        frame_id = 100 + stream_id * 10 + n
++        _send_frame(process, stream_id, frame_id)
++        received = _recv_frame(client)
++        assert received is not None
++        assert received.width == WIDTH and received.height == HEIGHT
++        assert received.stride == STRIDE and received.uv_offset == UV_OFFSET
++        assert received.fd >= 0 and fcntl.fcntl(received.fd, fcntl.F_GETFD) >= 0
++        assert received.idx == frame_id % BUFFERS_PER_STREAM
++        assert client.valid and client.frame_id == frame_id
++        assert client.timestamp_sof == frame_id * 1000
++        assert client.timestamp_eof == frame_id * 1000 + 500
++
++        expected_y, expected_u, expected_v = _pattern(stream_id, frame_id)
++        _sync_for_cpu_read(received.fd)
++        try:
++          data = received.data
++          assert data.size == BUFFER_SIZE
++          assert int(data[0]) == expected_y
++          assert int(data[STRIDE * (HEIGHT - 1) + WIDTH - 1]) == expected_y
++          assert int(data[UV_OFFSET]) == expected_u
++          assert int(data[UV_OFFSET + 1]) == expected_v
++          assert int(data[BUFFER_SIZE - 2]) == expected_u
++          assert int(data[BUFFER_SIZE - 1]) == expected_v
++          observed_y_values[stream_id].add(int(data[0]))
++          client_mapping_addresses.append(int(data.__array_interface__["data"][0]))
++        finally:
++          _sync_for_cpu_read_end(received.fd)
++
++        received_fds.append(received.fd)
++        observed_indices.add(received.idx)
++        data = None
++        received = None
++      assert observed_indices == set(range(BUFFERS_PER_STREAM))
++      assert len(observed_y_values[stream_id]) == BUFFERS_PER_STREAM, "frame content did not change"
++
++    # Each received fd is a duplicate of one of the publisher's open DMA-BUFs.
++    publisher_fd_dir = Path(f"/proc/{process.pid}/fd")
++    publisher_fds = [int(entry.name) for entry in publisher_fd_dir.iterdir() if entry.name.isdigit()]
++    publisher_stats = {(os.stat(f"/proc/{process.pid}/fd/{fd}").st_dev,
++                        os.stat(f"/proc/{process.pid}/fd/{fd}").st_ino) for fd in publisher_fds}
++    for fd in received_fds:
++      stat = os.fstat(fd)
++      identity = (stat.st_dev, stat.st_ino)
++      assert identity in publisher_stats, "received fd is not backed by a publisher-owned DMA-BUF"
++      received_fd_identities.append(identity)
++      assert fcntl.fcntl(fd, fcntl.F_GETFD) >= 0
++    assert process.poll() is None, "publisher exited while client fds were still in use"
++
++    # Closing clients must close the received fds and their imported mappings,
++    # while the publisher still owns its original DMA-BUF fds/mappings.
++    client = None
++    clients.clear()
++    gc.collect()
++    assert all(not _fd_is_open(fd) for fd in received_fds)
++    assert not any(_mapping_exists(address) for address in client_mapping_addresses)
++    assert process.poll() is None, "publisher did not retain its buffers through client shutdown"
++    publisher_fds_after_client_close = [int(entry.name) for entry in publisher_fd_dir.iterdir() if entry.name.isdigit()]
++    publisher_stats_after_client_close = {
++      (os.stat(f"/proc/{process.pid}/fd/{fd}").st_dev, os.stat(f"/proc/{process.pid}/fd/{fd}").st_ino)
++      for fd in publisher_fds_after_client_close
++    }
++    assert all(identity in publisher_stats_after_client_close for identity in received_fd_identities), \
++      "publisher released an external DMA-BUF before client shutdown"
++
++    assert process.stdin is not None
++    process.stdin.write("STOP\n")
++    process.stdin.flush()
++    _wait_matching_line(process, "CLEANUP_OK", 10.0)
++    assert process.wait(timeout=10.0) == 0
++    assert not socket_path.exists(), "publisher left its isolated VisionIPC socket behind"
++  finally:
++    client = None
++    received = None
++    data = None
++    clients.clear()
++    gc.collect()
++    for fd in received_fds:
++      if _fd_is_open(fd):
++        os.close(fd)
++    if process is not None and process.poll() is None:
++      if process.stdin is not None:
++        try:
++          process.stdin.write("STOP\n")
++          process.stdin.flush()
++        except BrokenPipeError:
++          pass
++      try:
++        process.wait(timeout=3.0)
++      except subprocess.TimeoutExpired:
++        process.kill()
++        process.wait(timeout=3.0)
++    if process is not None and process.stdout is not None:
++      remaining_output = process.stdout.read()
++      if remaining_output:
++        print(remaining_output, end="")
++      process.stdout.close()
++    if process is not None and process.stdin is not None and not process.stdin.closed:
++      process.stdin.close()
++    if owns_socket_path:
++      socket_path.unlink(missing_ok=True)
++    # This directory belongs only to the fresh test prefix.
++    try:
++      shutil.rmtree(msgq_dir, ignore_errors=True)
++    finally:
++      shutil.rmtree(tmp_path, ignore_errors=True)
+diff --git a/system/loggerd/tests/test_encoderd_recovery.cc b/system/loggerd/tests/test_encoderd_recovery.cc
+new file mode 100644
+index 000000000..e7ab8036f
+--- /dev/null
++++ b/system/loggerd/tests/test_encoderd_recovery.cc
+@@ -0,0 +1,202 @@
++#define main encoderd_program_main
++#include "system/loggerd/encoderd.cc"
++#undef main
++
++#include <cstring>
++#include <fcntl.h>
++#include <iostream>
++#include <linux/memfd.h>
++#include <rga/rga.h>
++#include <rga/im2d.h>
++#include <stdexcept>
++#include <sys/mman.h>
++#include <sys/syscall.h>
++#include <unistd.h>
++
++static void check(bool condition, const char *message) {
++  if (!condition) throw std::runtime_error(message);
++}
++
++struct ScopedFd {
++  int value = -1;
++  ~ScopedFd() { if (value >= 0) close(value); }
++};
++
++struct ScopedMapping {
++  void *address = MAP_FAILED;
++  size_t size = 0;
++  ~ScopedMapping() { if (address != MAP_FAILED) munmap(address, size); }
++};
++
++static void test_strict_authority_parse() {
++  int value = -1;
++  check(parse_nonnegative_int_strict("0", &value) && value == 0, "zero authority should parse");
++  check(parse_nonnegative_int_strict("123", &value) && value == 123, "decimal authority should parse");
++  for (const std::string bad : {"", "-1", "+1", "1junk", " 1", "2147483648"}) {
++    check(!parse_nonnegative_int_strict(bad, &value), "malformed or negative authority must be rejected");
++  }
++}
++
++static void test_reopen_counter_deltas() {
++  MppEncoder qroad(qcam_encoder_info, 1920, 1200);
++  check(qroad.segment_transition_reopen_count() == 0 &&
++        qroad.failure_recovery_reopen_count() == 0 && qroad.failure_retry_count() == 0,
++        "qRoad reopen counters must start at zero");
++  qroad.note_segment_transition_reopen();
++  check(qroad.segment_transition_reopen_count() == 1 &&
++        qroad.failure_recovery_reopen_count() == 0 && qroad.failure_retry_count() == 0,
++        "a planned qRoad segment reopen must not count as failure recovery or retry");
++  qroad.note_failure_retry_started();
++  qroad.note_failure_recovery_reopen();
++  check(qroad.segment_transition_reopen_count() == 1 &&
++        qroad.failure_recovery_reopen_count() == 1 && qroad.failure_retry_count() == 1,
++        "qRoad retry and failure-recovery counters must remain distinct from planned transitions");
++}
++
++static void test_mpp_fault_mode(const std::string &mode) {
++  MppEncoder encoder(main_road_encoder_info, 1920, 1200);
++  encoder.encoder_open();
++  check(encoder.encoder_is_open(), "MPP test encoder must open on KA2");
++  VisionBuf buffer;
++  buffer.width = 1920;
++  buffer.height = 1200;
++  buffer.fd = -1;
++  VisionIpcBufExtra extra = {.frame_id = 41, .timestamp_sof = 1000, .timestamp_eof = 2000, .valid = true};
++
++  if (mode == "reject") {
++    check(encoder.encode_frame(&buffer, &extra) == -1, "reject seam must return an input error");
++    check(encoder.rejected_count() == 1 && encoder.input_submitted_count() == 0,
++          "reject seam must not count a submitted input");
++    check(encoder.pending_frame_ids().empty(), "rejected input must not leave a pending identity");
++  } else if (mode == "silent") {
++    check(encoder.encode_frame(&buffer, &extra) == 1, "silent seam accepts the input");
++    check(encoder.input_submitted_count() == 1 && encoder.packet_published_count() == 0,
++          "silent input submission must not count as packet progress");
++    const auto ids = encoder.pending_frame_ids();
++    check(ids.size() == 1 && ids.front() == extra.frame_id,
++          "silent output must retain the exact pending frame identity");
++  } else if (mode == "drain_timeout") {
++    check(encoder.inject_test_drain_timeout(extra), "drain timeout seam must arm once");
++    const auto ids = encoder.pending_frame_ids();
++    check(ids.size() == 1 && ids.front() == extra.frame_id,
++          "drain timeout must retain the exact pending identity");
++    check(!encoder.flush_pending_packets(1, false), "drain timeout must remain pending");
++  } else if (mode == "invalid_fd") {
++    ScopedFd fd{open("/dev/null", O_RDONLY | O_CLOEXEC)};
++    check(fd.value >= 0, "open /dev/null");
++    buffer.fd = fd.value;
++    check(encoder.encode_frame(&buffer, &extra) == -1, "ordinary file descriptor must be rejected");
++    check(encoder.rejected_count() == 1 && encoder.input_submitted_count() == 0,
++          "invalid DMA-BUF must be rejected before input submission");
++    check(encoder.pending_frame_ids().empty(), "invalid DMA-BUF must not retain a frame identity");
++  } else if (mode == "shm") {
++    constexpr size_t shm_size = 1920 * 1200 * 3 / 2;
++    ScopedFd fd{static_cast<int>(syscall(SYS_memfd_create, "loggerd-test-shm-nv12", MFD_CLOEXEC))};
++    check(fd.value >= 0, "memfd_create shared-memory input");
++    check(ftruncate(fd.value, shm_size) == 0, "ftruncate shared-memory input");
++    ScopedMapping mapping{mmap(nullptr, shm_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd.value, 0), shm_size};
++    check(mapping.address != MAP_FAILED, "mmap shared-memory input");
++    std::memset(mapping.address, 0x80, shm_size);
++    buffer.fd = fd.value;
++    buffer.addr = mapping.address;
++    buffer.len = shm_size;
++    buffer.mmap_len = shm_size;
++    check(encoder.encode_frame(&buffer, &extra) == -1,
++          "full-resolution MPP must reject a memfd-backed non-DMA-BUF NV12 input without a copy route");
++    check(encoder.rejected_count() == 1 && encoder.input_submitted_count() == 0,
++          "one shared-memory DMA-BUF validation rejection must happen before any MPP input submission");
++    check(encoder.pending_frame_ids().empty(), "shared-memory rejection must not retain a frame identity");
++  } else {
++    throw std::runtime_error("unknown MPP fault mode");
++  }
++
++  check(encoder.packet_published_count() == 0, "fault modes must not fabricate published packets");
++  encoder.set_flush_pending_on_close(false);
++  encoder.encoder_close();
++}
++
++static void test_shm_qroad_rga() {
++  constexpr int input_width = 1920;
++  constexpr int input_height = 1200;
++  constexpr size_t input_size = input_width * input_height * 3 / 2;
++  ScopedFd fd{static_cast<int>(syscall(SYS_memfd_create, "loggerd-test-shm-qroad-rga", MFD_CLOEXEC))};
++  check(fd.value >= 0, "memfd_create qRoad RGA shared-memory input");
++  check(ftruncate(fd.value, input_size) == 0, "ftruncate qRoad RGA shared-memory input");
++  ScopedMapping input{mmap(nullptr, input_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd.value, 0), input_size};
++  check(input.address != MAP_FAILED, "mmap qRoad RGA shared-memory input");
++  std::memset(input.address, 0x80, input_size);
++
++  const int output_width = qcam_encoder_info.frame_width;
++  const int output_height = qcam_encoder_info.frame_height;
++  const int output_stride = (output_width + 15) & ~15;
++  const int output_vstride = (output_height + 15) & ~15;
++  const size_t output_size = output_stride * output_vstride * 3 / 2;
++  ScopedMapping output{mmap(nullptr, output_size, PROT_READ | PROT_WRITE,
++                            MAP_PRIVATE | MAP_ANONYMOUS, -1, 0), output_size};
++  check(output.address != MAP_FAILED, "mmap qRoad RGA output buffer");
++
++  const auto src = wrapbuffer_virtualaddr(input.address, input_width, input_height, RK_FORMAT_YCbCr_420_SP);
++  const auto dst = wrapbuffer_virtualaddr(output.address, output_stride, output_vstride, RK_FORMAT_YCbCr_420_SP);
++  const int rga_status = imresize(src, dst,
++                                  static_cast<double>(output_width) / input_width,
++                                  static_cast<double>(output_height) / input_height, IM_SYNC);
++  std::cout << "RGA_SHM_API_" << (rga_status >= 0 ? "ACCEPTED" : "REJECTED")
++            << " status=" << rga_status << " detail=" << imStrError(static_cast<IM_STATUS>(rga_status)) << '\n';
++  if (rga_status < 0) return;
++
++  MppEncoder qroad(qcam_encoder_info, input_width, input_height);
++  qroad.encoder_open();
++  if (!qroad.encoder_is_open()) {
++    std::cout << "QROAD_SHM_MPP_OPEN_FAILED api_only=1\n";
++    return;
++  }
++  qroad.set_segment_num(0);
++  VisionBuf buffer;
++  buffer.width = input_width;
++  buffer.height = input_height;
++  buffer.fd = fd.value;
++  buffer.addr = input.address;
++  buffer.len = input_size;
++  buffer.mmap_len = input_size;
++
++  int encode_error = 0;
++  for (uint32_t frame_id = 1; frame_id <= 12; ++frame_id) {
++    VisionIpcBufExtra extra = {
++      .frame_id = frame_id,
++      .timestamp_sof = static_cast<uint64_t>(frame_id) * 33333333ULL,
++      .timestamp_eof = static_cast<uint64_t>(frame_id) * 33333333ULL + 1000000ULL,
++      .valid = true,
++    };
++    const int result = qroad.encode_frame(&buffer, &extra);
++    if (result < 0) {
++      encode_error = result;
++      break;
++    }
++  }
++  qroad.encoder_close();
++  const uint64_t published = qroad.packet_published_count();
++  std::cout << "QROAD_SHM_MPP submitted=" << qroad.input_submitted_count()
++            << " published=" << published
++            << " rejected=" << qroad.rejected_count()
++            << " empty=" << qroad.empty_packet_count()
++            << " encode_error=" << encode_error
++            << " result=" << (published > 0 ? "PACKET" : "NO_PACKET") << '\n';
++}
++
++int main(int argc, char **argv) {
++  try {
++    if (argc != 2) throw std::runtime_error("expected one mode: parse|counter_contract|reject|silent|drain_timeout|invalid_fd|shm|shm_rga");
++    const std::string mode = argv[1];
++    if (mode == "parse") test_strict_authority_parse();
++    else if (mode == "counter_contract") test_reopen_counter_deltas();
++    else if (mode == "shm_rga") test_shm_qroad_rga();
++    else test_mpp_fault_mode(mode);
++    std::cout << (mode == "shm" ? "SHM non-DMA-BUF rejection" :
++                  mode == "shm_rga" ? "qRoad RGA shared-memory probe" : "encoderd recovery contract")
++              << " passed: " << mode << '\n';
++  } catch (const std::exception &error) {
++    std::cerr << "encoderd recovery contract failure: " << error.what() << '\n';
++    return 1;
++  }
++  return 0;
++}
+diff --git a/system/loggerd/tests/test_encoderd_recovery.py b/system/loggerd/tests/test_encoderd_recovery.py
+new file mode 100644
+index 000000000..2cc2a11eb
+--- /dev/null
++++ b/system/loggerd/tests/test_encoderd_recovery.py
+@@ -0,0 +1,105 @@
++import os
++from pathlib import Path
++import shutil
++import subprocess
++import uuid
++
++import pytest
++
++from openpilot.system.hardware import KA2
++from openpilot.system.loggerd.tests.test_dmabuf_fixture import _assert_camera_stack_idle
++
++
++TARGET = "build/system/loggerd/tests/test_encoderd_recovery"
++
++
++def _build_recovery_helper(repo_root: Path) -> Path:
++  scons = shutil.which("scons")
++  assert scons is not None, "SCons is required to build the encoderd recovery contract helper"
++  command = [scons, "-Q", "--ccflags=-DLOGGERD_TEST_BUILD", TARGET]
++  result = subprocess.run(command, cwd=repo_root, text=True, capture_output=True, check=False)
++  print("recovery helper build:", " ".join(command))
++  print(result.stdout, end="")
++  print(result.stderr, end="")
++  assert result.returncode == 0, f"recovery helper build exited {result.returncode}"
++  binary = repo_root / TARGET
++  assert binary.is_file(), f"missing test binary: {binary}"
++  return binary
++
++
++def _isolated_env(tmp_path: Path, monkeypatch) -> tuple[dict[str, str], Path]:
++  root = tmp_path.resolve()
++  log_root = root / "logs"
++  params_root = root / "params"
++  log_root.mkdir(parents=True, exist_ok=True)
++  params_root.mkdir(parents=True, exist_ok=True)
++  env = os.environ.copy()
++  prefix = f"encoderd_recovery_{os.getpid()}_{uuid.uuid4().hex[:8]}"
++  env.update({
++    "LOG_ROOT": str(log_root),
++    "PARAMS_ROOT": str(params_root),
++    "OPENPILOT_PREFIX": prefix,
++    "LOGGERD_TEST": "1",
++    "LOGGERD_TEST_DETERMINISTIC": "1",
++    "LOGGERD_SEGMENT_LENGTH": "5",
++    "ENCODERD_DETERMINISTIC_DISABLE": "0",
++    "LOGGERD_TEST_MPP_FAULT_STREAM": "roadEncodeData",
++  })
++  for key in ("LOG_ROOT", "PARAMS_ROOT", "OPENPILOT_PREFIX", "LOGGERD_TEST",
++              "LOGGERD_TEST_DETERMINISTIC", "LOGGERD_SEGMENT_LENGTH",
++              "ENCODERD_DETERMINISTIC_DISABLE"):
++    monkeypatch.setenv(key, env[key])
++  msgq_dir = Path("/dev/shm") / f"msgq_{prefix}"
++  assert not msgq_dir.exists(), f"test prefix already exists: {msgq_dir}"
++  msgq_dir.mkdir(mode=0o700)
++  return env, msgq_dir
++
++
++def _run_encoderd_authority_parser_and_mpp_recovery_seams(tmp_path, monkeypatch):
++  if not KA2:
++    pytest.skip("recovery integration requires RK3588 MPP")
++
++  repo_root = Path(__file__).resolve().parents[3]
++  binary = _build_recovery_helper(repo_root)
++  # These contract probes construct no MPP context and need no device preflight.
++  for mode in ("parse", "counter_contract"):
++    parse_env, parse_msgq = _isolated_env(tmp_path / mode, monkeypatch)
++    try:
++      parsed = subprocess.run([str(binary), mode], cwd=repo_root, env=parse_env,
++                              text=True, capture_output=True, check=False, timeout=10)
++      print(parsed.stdout, end="")
++      print(parsed.stderr, end="")
++      assert parsed.returncode == 0, parsed.stdout + parsed.stderr
++    finally:
++      shutil.rmtree(parse_msgq, ignore_errors=True)
++
++  for mode in ("invalid_fd", "shm", "shm_rga", "reject", "silent", "drain_timeout"):
++    _assert_camera_stack_idle()
++    env, msgq_dir = _isolated_env(tmp_path / mode, monkeypatch)
++    if mode == "shm_rga":
++      env.pop("LOGGERD_TEST_MPP_FAULT_STREAM", None)
++      env.pop("LOGGERD_TEST_MPP_FAULT_MODE", None)
++      monkeypatch.delenv("LOGGERD_TEST_MPP_FAULT_STREAM", raising=False)
++      monkeypatch.delenv("LOGGERD_TEST_MPP_FAULT_MODE", raising=False)
++    else:
++      env["LOGGERD_TEST_MPP_FAULT_MODE"] = mode
++      for key, value in env.items():
++        if key.startswith("LOGGERD_TEST_MPP_"):
++          monkeypatch.setenv(key, value)
++    try:
++      result = subprocess.run([str(binary), mode], cwd=repo_root, env=env,
++                              text=True, capture_output=True, check=False, timeout=15)
++      print(result.stdout, end="")
++      print(result.stderr, end="")
++      assert result.returncode == 0, f"MPP mode {mode} exited {result.returncode}: {result.stdout}{result.stderr}"
++    finally:
++      shutil.rmtree(msgq_dir, ignore_errors=True)
++
++
++@pytest.mark.xdist_group("loggerd_tests")
++def test_encoderd_authority_parser_and_mpp_recovery_seams(tmp_path, monkeypatch):
++  try:
++    _run_encoderd_authority_parser_and_mpp_recovery_seams(tmp_path, monkeypatch)
++  finally:
++    shutil.rmtree(tmp_path, ignore_errors=True)
++
+diff --git a/system/loggerd/tests/test_loggerd_liveness.py b/system/loggerd/tests/test_loggerd_liveness.py
+new file mode 100644
+index 000000000..38b658bf6
+--- /dev/null
++++ b/system/loggerd/tests/test_loggerd_liveness.py
+@@ -0,0 +1,546 @@
++from collections import defaultdict
++import gc
++import json
++import os
++from pathlib import Path
++import signal
++import shutil
++import subprocess
++import time
++import uuid
++
++import pytest
++
++import cereal.messaging as messaging
++from cereal import log
++from msgq.visionipc import VisionStreamType
++from openpilot.common.params import Params
++from openpilot.system.hardware import KA2
++from openpilot.system.loggerd.tests.test_dmabuf_fixture import (
++  _assert_camera_stack_idle,
++  _send_frame,
++  _test_environment,
++  _wait_matching_line,
++)
++from openpilot.tools.lib.logreader import LogReader
++
++
++LOGGERD_TARGET = "system/loggerd/loggerd"
++ENCODERD_TARGET = "system/loggerd/encoderd"
++PUBLISHER_TARGET = "build/system/loggerd/tests/visionipc_dmabuf_publisher"
++FPS = 20
++WIDTH = 1920
++HEIGHT = 1200
++FRAME_BYTES = WIDTH * HEIGHT * 3 // 2
++FRAME_DURATION_NS = 1_000_000_000 // FPS
++EXPECTED_FILES = {"rlog.zst", "qlog.zst", "qcamera.ts", "fcamera.hevc", "dcamera.hevc", "ecamera.hevc"}
++INDEX_SERVICES = {
++  "roadEncodeIdx": ("fcamera.hevc", 0, WIDTH, HEIGHT),
++  "driverEncodeIdx": ("dcamera.hevc", 1, WIDTH, HEIGHT),
++  "wideRoadEncodeIdx": ("ecamera.hevc", 2, WIDTH, HEIGHT),
++  "qRoadEncodeIdx": ("qcamera.ts", 0, 526, 330),
++}
++CAMERAS = (
++  (VisionStreamType.VISION_STREAM_ROAD, "roadCameraState"),
++  (VisionStreamType.VISION_STREAM_DRIVER, "driverCameraState"),
++  (VisionStreamType.VISION_STREAM_WIDE_ROAD, "wideRoadCameraState"),
++)
++
++
++def _build_test_binaries(repo_root: Path) -> dict[str, Path]:
++  scons = shutil.which("scons")
++  assert scons is not None, "SCons is required to build the isolated lifecycle targets"
++  command = [
++    scons, "-Q", "-j2", "--ccflags=-DLOGGERD_TEST_BUILD",
++    LOGGERD_TARGET, ENCODERD_TARGET, PUBLISHER_TARGET,
++  ]
++  result = subprocess.run(command, cwd=repo_root, text=True, capture_output=True, check=False)
++  print("KA2 test-build command:", " ".join(command))
++  print(result.stdout, end="")
++  print(result.stderr, end="")
++  assert result.returncode == 0, f"test-build exited {result.returncode}"
++  binaries = {
++    "loggerd": repo_root / LOGGERD_TARGET,
++    "encoderd": repo_root / ENCODERD_TARGET,
++    "publisher": repo_root / PUBLISHER_TARGET,
++  }
++  assert all(path.is_file() for path in binaries.values()), f"missing test-build binaries: {binaries}"
++  return binaries
++
++
++def _make_params_and_environment(tmp_path: Path, monkeypatch, fault_mode: str | None,
++                                 legacy_mode: bool = False):
++  env, prefix = _test_environment(tmp_path)
++  env.update({
++    "LOGGERD_TEST": "1",
++    "LOGGERD_TEST_DETERMINISTIC": "0" if legacy_mode else "1",
++    "LOGGERD_SEGMENT_LENGTH": "2",
++    "ENCODERD_DETERMINISTIC_DISABLE": "1" if legacy_mode else "0",
++  })
++  if fault_mode is not None:
++    env["LOGGERD_TEST_MPP_FAULT_STREAM"] = "roadEncodeData"
++    env["LOGGERD_TEST_MPP_FAULT_MODE"] = fault_mode
++  else:
++    env.pop("LOGGERD_TEST_MPP_FAULT_STREAM", None)
++    env.pop("LOGGERD_TEST_MPP_FAULT_MODE", None)
++
++  for key, value in env.items():
++    if key in ("LOG_ROOT", "PARAMS_ROOT", "OPENPILOT_PREFIX", "LOGGERD_TEST",
++               "LOGGERD_TEST_DETERMINISTIC", "LOGGERD_SEGMENT_LENGTH",
++               "LOGGERD_TEST_MPP_FAULT_STREAM", "LOGGERD_TEST_MPP_FAULT_MODE",
++               "ENCODERD_DETERMINISTIC_DISABLE"):
++      if value is None:
++        monkeypatch.delenv(key, raising=False)
++      else:
++        monkeypatch.setenv(key, value)
++
++  params = Params(env["PARAMS_ROOT"])
++  params.put_bool("RecordFront", True)
++  params.put_bool("RecordAudio", True)
++  msgq_dir = Path("/dev/shm") / f"msgq_{prefix}"
++  assert not msgq_dir.exists(), f"isolated MSGQ directory already exists: {msgq_dir}"
++  msgq_dir.mkdir(mode=0o700)
++  return env, prefix, params, msgq_dir
++
++
++def _read_param(params: Params, key: str, timeout: float = 1.0) -> str | None:
++  deadline = time.monotonic() + timeout
++  while time.monotonic() < deadline:
++    value = params.get(key)
++    if value is not None:
++      return value.decode() if isinstance(value, bytes) else str(value)
++    time.sleep(0.01)
++  return None
++
++
++def _read_raw_param(params: Params, key: str, timeout: float = 1.0) -> str | None:
++  """Read test-only Params written by C++ but not registered in Python's key table."""
++  path = Path(params.get_param_path(key))
++  deadline = time.monotonic() + timeout
++  while True:
++    try:
++      value = path.read_text()
++      if value:
++        return value
++    except FileNotFoundError:
++      pass
++    if time.monotonic() >= deadline:
++      return None
++    time.sleep(0.01)
++
++
++def _wait_process_started(proc: subprocess.Popen, label: str) -> None:
++  assert proc.poll() is None, f"{label} exited before the lifecycle started (returncode={proc.returncode})"
++
++
++def _stop_process(proc: subprocess.Popen | None, name: str, timeout: float = 8.0) -> None:
++  if proc is None or proc.poll() is not None:
++    return
++  try:
++    proc.send_signal(signal.SIGINT)
++    proc.wait(timeout=timeout)
++  except subprocess.TimeoutExpired:
++    proc.kill()
++    proc.wait(timeout=3.0)
++  assert proc.poll() is not None, f"test-owned {name} process did not stop"
++
++
++def _ffprobe(path: Path) -> dict:
++  command = [
++    "ffprobe", "-v", "error", "-show_entries", "stream=codec_name,codec_type,width,height",
++    "-of", "json", str(path),
++  ]
++  result = subprocess.run(command, text=True, capture_output=True, check=False, timeout=20)
++  assert result.returncode == 0, f"ffprobe failed for {path}: {result.stderr}"
++  return json.loads(result.stdout)
++
++
++def _decode_video_and_check_pixels(path: Path, codec: str, width: int, height: int,
++                                   frame_ids: list[int], stream_value: int) -> None:
++  ffmpeg = shutil.which("ffmpeg")
++  assert ffmpeg is not None, "ffmpeg is required to decode generated video for the DMA-BUF lifecycle assertion"
++  probe = _ffprobe(path)
++  video = [stream for stream in probe["streams"] if stream["codec_type"] == "video"]
++  assert len(video) == 1
++  assert video[0]["codec_name"] == codec
++  assert (video[0]["width"], video[0]["height"]) == (width, height)
++
++  command = [ffmpeg, "-v", "error", "-i", str(path), "-map", "0:v:0", "-f", "rawvideo", "-pix_fmt", "yuv420p", "-"]
++  process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
++  assert process.stdout is not None
++  frame_size = width * height * 3 // 2
++  decoded = 0
++  try:
++    for frame_id in frame_ids:
++      raw = process.stdout.read(frame_size)
++      assert len(raw) == frame_size, f"decoded frame count ended before EncodeIdx frame {frame_id} in {path}"
++      center_y = raw[(height // 2) * width + (width // 2)]
++      expected_y = 16 + ((frame_id * 13 + stream_value * 29) % 200)
++      assert abs(center_y - expected_y) <= 15, (
++        f"decoded pixel does not match DMA-BUF frame identity {frame_id} in {path}: "
++        f"expected Y={expected_y}, observed Y={center_y}"
++      )
++      decoded += 1
++    extra = process.stdout.read(1)
++    assert extra == b"", f"decoder emitted more frames than EncodeIdx lists for {path}"
++    returncode = process.wait(timeout=15)
++    stderr = process.stderr.read().decode(errors="replace") if process.stderr is not None else ""
++    assert returncode == 0, f"ffmpeg decode failed for {path}: {stderr}"
++  finally:
++    if process.poll() is None:
++      process.kill()
++      process.wait(timeout=3)
++    process.stdout.close()
++    if process.stderr is not None:
++      process.stderr.close()
++  assert decoded == len(frame_ids)
++
++
++def _validate_segments(log_root: Path, params: Params, reports: dict[int, dict], last_frame_id: int,
++                       scenario: str, encoderd_log: str) -> None:
++  segment_dirs = sorted(log_root.glob("*--*"), key=lambda path: int(path.name.rsplit("--", 1)[1]))
++  segments = [int(path.name.rsplit("--", 1)[1]) for path in segment_dirs]
++  assert segments == [0, 1, 2], f"expected two runtime rotations, found {segments}"
++
++  frame_ids_by_segment: dict[int, dict[str, list[int]]] = defaultdict(lambda: defaultdict(list))
++  for segment_num, segment_dir in enumerate(segment_dirs):
++    expected_start = log.Sentinel.SentinelType.startOfRoute if segment_num == 0 else log.Sentinel.SentinelType.startOfSegment
++    expected_end = log.Sentinel.SentinelType.endOfRoute if segment_num == 2 else log.Sentinel.SentinelType.endOfSegment
++    files = {path.name for path in segment_dir.iterdir() if path.is_file()}
++    if scenario in ("valid", "legacy"):
++      assert files == EXPECTED_FILES, f"segment {segment_num} file set changed: {files ^ EXPECTED_FILES}"
++    elif scenario == "shm":
++      expected_shm_files = {"rlog.zst", "qlog.zst", "qcamera.ts"}
++      assert files == expected_shm_files, (
++        f"SHM full-resolution rejects must not create fabricated video files: {files ^ expected_shm_files}"
++      )
++    else:
++      assert "qcamera.ts" in files and "rlog.zst" in files and "qlog.zst" in files, (
++        f"failed sibling scenario lost qRoad or route logs in segment {segment_num}: {files}"
++      )
++      if scenario in ("reject", "silent"):
++        assert "fcamera.hevc" not in files, "permanently unavailable road output unexpectedly created a video file"
++
++    rlog = list(LogReader(str(segment_dir / "rlog.zst")))
++    assert rlog[0].which() == "initData"
++    assert any(message.which() == "rawAudioData" for message in rlog)
++    assert rlog[1].sentinel.type == expected_start
++    assert rlog[-1].sentinel.type == expected_end
++
++    qlog = list(LogReader(str(segment_dir / "qlog.zst")))
++    assert qlog[0].which() == "initData"
++    assert qlog[1].sentinel.type == expected_start
++    assert qlog[-1].sentinel.type == expected_end
++    for message in qlog:
++      service = message.which()
++      if service not in INDEX_SERVICES:
++        continue
++      index = getattr(message, service)
++      assert index.segmentNum == segment_num, f"cross-segment EncodeIdx in {segment_dir}: {service}={index.segmentNum}"
++      assert 1 <= index.frameId <= last_frame_id
++      frame_ids_by_segment[segment_num][service].append(index.frameId)
++
++    assert "qRoadEncodeIdx" in frame_ids_by_segment[segment_num], f"qRoad emitted no indexes in segment {segment_num}"
++    qcamera = segment_dir / "qcamera.ts"
++    media = _ffprobe(qcamera)
++    assert any(stream["codec_type"] == "video" and stream["codec_name"] == "h264" for stream in media["streams"])
++    assert any(stream["codec_type"] == "audio" for stream in media["streams"]), "qRoad lost its audio track"
++    decoded_audio = subprocess.run(
++      ["ffmpeg", "-v", "error", "-i", str(qcamera), "-map", "0:a:0", "-f", "s16le", "-acodec", "pcm_s16le", "-"],
++      capture_output=True, check=False, timeout=20,
++    )
++    assert decoded_audio.returncode == 0 and len(decoded_audio.stdout) > 0, f"qRoad audio decode failed: {decoded_audio.stderr!r}"
++
++    if scenario in ("valid", "legacy"):
++      for service, (filename, stream_value, width, height) in INDEX_SERVICES.items():
++        frame_ids = frame_ids_by_segment[segment_num][service]
++        assert frame_ids, f"{service} emitted no packets in segment {segment_num}"
++        assert len(frame_ids) == len(set(frame_ids)), f"duplicate {service} frame ids in segment {segment_num}"
++        if service != "qRoadEncodeIdx":
++          assert frame_ids == sorted(frame_ids), f"out-of-order {service} identities"
++        _decode_video_and_check_pixels(segment_dir / filename, "h264" if service == "qRoadEncodeIdx" else "hevc",
++                                       width, height, frame_ids, stream_value)
++    elif scenario == "shm":
++      qroad_ids = frame_ids_by_segment[segment_num]["qRoadEncodeIdx"]
++      assert qroad_ids == sorted(qroad_ids) and len(qroad_ids) == len(set(qroad_ids))
++      assert not any(frame_ids_by_segment[segment_num].get(service)
++                     for service in ("roadEncodeIdx", "driverEncodeIdx", "wideRoadEncodeIdx")), (
++        f"full-resolution SHM rejection fabricated an encoded index: {frame_ids_by_segment[segment_num]}"
++      )
++      _decode_video_and_check_pixels(segment_dir / "qcamera.ts", "h264", 526, 330, qroad_ids, 0)
++
++  qroad_counters = []
++  for line in encoderd_log.splitlines():
++    marker = "LOGGERD_TEST_MPP_COUNTERS "
++    if marker not in line:
++      continue
++    fields = dict(part.split("=", 1) for part in line.split(marker, 1)[1].split() if "=" in part)
++    if fields.get("stream") != "qRoadEncodeData":
++      continue
++    qroad_counters.append((
++      int(fields["cur_seg"]),
++      int(fields["segment_transition_reopen_count"]),
++      int(fields["failure_recovery_reopen_count"]),
++      int(fields["failure_retry_count"]),
++    ))
++  if scenario == "legacy":
++    assert not qroad_counters, f"legacy rotation must not emit deterministic MPP counter snapshots: {qroad_counters}"
++  else:
++    expected_counters = [(1, 1, 0, 0), (2, 2, 0, 0)]
++    assert qroad_counters == expected_counters, (
++      "qRoad must add exactly one planned transition reopen per boundary without failure recovery/retry; "
++      f"expected (segment, planned, recovery, retry)={expected_counters}, observed={qroad_counters}"
++    )
++  if scenario == "drain_timeout":
++    drain_lines = [line for line in encoderd_log.splitlines()
++                   if "shared 900 ms drain deadline expired" in line and "roadEncodeData" in line]
++    assert drain_lines, "drain_timeout arm did not exercise the shared 900 ms road-output drain deadline"
++
++  if scenario == "shm":
++    for stream in ("roadEncodeData", "wideRoadEncodeData", "driverEncodeData"):
++      assert any("refusing non-DMA-BUF input fd" in line and f"for {stream}" in line
++                 for line in encoderd_log.splitlines()), (
++        f"full-resolution MPP did not log non-DMA-BUF rejection for {stream}"
++      )
++    assert "for qRoadEncodeData" not in encoderd_log, "qRoad must use RGA resize without full-resolution DMA-BUF import"
++
++  if scenario == "legacy":
++    assert not reports, f"legacy mode must not publish deterministic rotation reports: {reports}"
++    assert _read_raw_param(params, "LoggerdRotationReport") is None, "legacy mode published a deterministic report"
++    assert "shared 900 ms drain deadline expired" not in encoderd_log
++    assert "packet progress watchdog" not in encoderd_log
++    assert "retry in " not in encoderd_log
++    return
++
++  current_route = _read_param(params, "CurrentRoute")
++  assert current_route
++  for segment in (1, 2):
++    report = reports.get(segment)
++    assert report is not None, f"missing LoggerdRotationReport for segment {segment}"
++    assert set(report) == {"route", "epoch", "segment", "degraded", "missing_streams", "elapsed_ms", "known_drop_counts"}
++    assert report["route"] == current_route
++    assert report["epoch"] == segment + 1 and report["segment"] == segment
++    assert type(report["degraded"]) is bool
++    assert type(report["elapsed_ms"]) is int and 0 <= report["elapsed_ms"] <= 5050
++    assert set(report["known_drop_counts"]) == {
++      "stale_video_messages", "future_video_queue_drops", "audio_no_writer_events",
++      "audio_expired_events", "audio_capacity_drops",
++    }
++    assert all(type(value) is int and value >= 0 for value in report["known_drop_counts"].values())
++    assert type(report["missing_streams"]) is list
++    assert len(report["missing_streams"]) == len(set(report["missing_streams"]))
++    configured_order = ["roadEncodeData", "qRoadEncodeData", "wideRoadEncodeData", "driverEncodeData"]
++    assert report["missing_streams"] == [name for name in configured_order if name in report["missing_streams"]]
++    if scenario == "valid":
++      assert report["missing_streams"] == [] and report["degraded"] is False
++      assert all(value == 0 for value in report["known_drop_counts"].values())
++    elif scenario == "shm":
++      expected_missing = ["roadEncodeData", "wideRoadEncodeData", "driverEncodeData"]
++      assert report["missing_streams"] == expected_missing and report["degraded"] is True
++      assert all(value == 0 for value in report["known_drop_counts"].values())
++    else:
++      assert "qRoadEncodeData" not in report["missing_streams"], "qRoad readiness must survive a sibling fault"
++      assert all(value == 0 for value in report["known_drop_counts"].values()), (
++        "encoder-only rejects/stalls must not increment loggerd-observed drop counters"
++      )
++      if scenario in ("reject", "silent"):
++        assert "roadEncodeData" in report["missing_streams"] and report["degraded"] is True
++      else:
++        assert report["degraded"] is bool(report["missing_streams"] or any(report["known_drop_counts"].values()))
++
++
++def _run_lifecycle(tmp_path: Path, monkeypatch, binaries: dict[str, Path], scenario: str) -> None:
++  if not KA2:
++    pytest.skip("full MPP lifecycle requires KA2")
++
++  _assert_camera_stack_idle()
++  fault_mode = None if scenario in ("valid", "legacy", "shm") else scenario
++  env, prefix, params, msgq_dir = _make_params_and_environment(
++    tmp_path, monkeypatch, fault_mode, legacy_mode=(scenario == "legacy"))
++  repo_root = Path(__file__).resolve().parents[3]
++  fixture_binary = binaries["publisher"]
++  assert fixture_binary.is_file()
++  vipc_socket = Path(f"/tmp/{prefix}_visionipc_camerad")
++  assert not vipc_socket.exists(), f"isolated VisionIPC socket already exists: {vipc_socket}"
++
++  publisher = None
++  loggerd = None
++  encoderd = None
++  pm = None
++  publisher_stdout = None
++  loggerd_output = None
++  encoderd_output = None
++  loggerd_log_path = Path(env["LOG_ROOT"]).parent / "loggerd.stdout.log"
++  encoderd_log_path = Path(env["LOG_ROOT"]).parent / "encoderd.stdout.log"
++  reports: dict[int, dict] = {}
++  observed_segment_times: dict[int, float] = {}
++  last_frame_id = 0
++  try:
++    _assert_camera_stack_idle()
++    publisher_mode = "--serve-shm" if scenario == "shm" else "--serve"
++    publisher = subprocess.Popen([str(fixture_binary), publisher_mode], cwd=repo_root, env=env,
++                                 stdin=subprocess.PIPE, stdout=subprocess.PIPE,
++                                 stderr=subprocess.STDOUT, text=True, bufsize=1)
++    backing = "shm" if scenario == "shm" else "dma_heap"
++    _wait_matching_line(
++      publisher,
++      f"READY streams=road,driver,wideRoad width=1920 height=1200 stride=1920 "
++      f"uv_offset=2304000 buffers=4 backing={backing}",
++      10,
++    )
++    pm = messaging.PubMaster([state for _, state in CAMERAS] + ["rawAudioData"])
++
++    loggerd_output = loggerd_log_path.open("w")
++    encoderd_output = encoderd_log_path.open("w")
++    loggerd = subprocess.Popen([str(binaries["loggerd"])], cwd=repo_root, env=env,
++                               stdout=loggerd_output, stderr=subprocess.STDOUT, text=True)
++    encoderd = subprocess.Popen([str(binaries["encoderd"])], cwd=repo_root, env=env,
++                                stdout=encoderd_output, stderr=subprocess.STDOUT, text=True)
++
++    for _, state_name in CAMERAS:
++      assert pm.wait_for_readers_to_update(state_name, timeout=10), f"loggerd/encoderd did not subscribe to {state_name}"
++    assert pm.wait_for_readers_to_update("rawAudioData", timeout=10), "loggerd did not subscribe to rawAudioData"
++    assert _read_param(params, "LoggerdSegment", timeout=10) == "0"
++    observed_segment_times[0] = time.monotonic()
++
++    frame = time.monotonic()
++    audio_samples = (b"\xe8\x03\x18\xfc" * 400)
++    post_segment_two = 0
++    deadline = time.monotonic() + 24
++    while time.monotonic() < deadline:
++      last_frame_id += 1
++      target = frame + last_frame_id / FPS
++      delay = target - time.monotonic()
++      if delay > 0:
++        time.sleep(delay)
++      timestamp = last_frame_id * FRAME_DURATION_NS
++      for stream_type, state_name in CAMERAS:
++        _send_frame(publisher, int(stream_type), last_frame_id, timestamp, timestamp + FRAME_DURATION_NS // 2)
++        camera_state = messaging.new_message(state_name)
++        getattr(camera_state, state_name).frameId = last_frame_id
++        pm.send(state_name, camera_state)
++      audio = messaging.new_message("rawAudioData")
++      audio.rawAudioData.data = audio_samples
++      audio.rawAudioData.sampleRate = 16000
++      pm.send("rawAudioData", audio)
++
++      segment_value = _read_param(params, "LoggerdSegment", timeout=0.1)
++      if segment_value is not None:
++        segment = int(segment_value)
++        observed_segment_times.setdefault(segment, time.monotonic())
++        if segment >= 1:
++          report_text = _read_raw_param(params, "LoggerdRotationReport", timeout=0.05)
++          if report_text:
++            try:
++              report = json.loads(report_text)
++              if report.get("segment") == segment:
++                reports[segment] = report
++            except json.JSONDecodeError:
++              pass
++        if segment >= 2:
++          post_segment_two += 1
++          if post_segment_two >= 20:
++            break
++
++      _wait_process_started(loggerd, "loggerd")
++      _wait_process_started(encoderd, "encoderd")
++      _wait_process_started(publisher, "SHM publisher" if scenario == "shm" else "DMA-BUF publisher")
++    else:
++      raise AssertionError(f"loggerd did not complete two rotations; reports={reports}")
++
++    assert post_segment_two >= 20, "did not keep sending frames after the second boundary"
++    if scenario == "legacy":
++      assert not reports, f"legacy mode must not publish LoggerdRotationReport: {reports}"
++      assert _read_raw_param(params, "LoggerdRotationReport") is None
++      intervals = [observed_segment_times[n] - observed_segment_times[n - 1] for n in (1, 2)]
++      assert all(interval < 6.5 for interval in intervals), (
++        f"legacy all-ready rotation waited for the deterministic deadline: intervals={intervals}"
++      )
++    else:
++      assert len(reports) == 2, f"did not observe both segment reports: {reports}"
++  finally:
++    pm = None
++    gc.collect()
++    _stop_process(encoderd, "encoderd")
++    _stop_process(loggerd, "loggerd")
++    if publisher is not None and publisher.poll() is None:
++      try:
++        assert publisher.stdin is not None
++        publisher.stdin.write("STOP\n")
++        publisher.stdin.flush()
++        _wait_matching_line(publisher, "CLEANUP_OK", 10)
++        publisher.wait(timeout=10)
++      except Exception:
++        publisher.kill()
++        publisher.wait(timeout=3)
++    if publisher is not None:
++      if publisher.stdout is not None:
++        publisher_stdout = publisher.stdout.read()
++        publisher.stdout.close()
++      if publisher.stdin is not None and not publisher.stdin.closed:
++        publisher.stdin.close()
++    for handle in (loggerd_output, encoderd_output):
++      if handle is not None:
++        handle.close()
++    loggerd_log = loggerd_log_path.read_text(errors="replace") if loggerd_log_path.exists() else ""
++    encoderd_log = encoderd_log_path.read_text(errors="replace") if encoderd_log_path.exists() else ""
++    print("publisher stdout after command reads:\n", publisher_stdout or "(no remaining output)")
++    print("complete loggerd stdout:\n", loggerd_log or "(empty)")
++    print("complete encoderd stdout:\n", encoderd_log or "(empty)")
++    param_snapshot = {
++      key: _read_param(params, key, timeout=0.05)
++      for key in ("CurrentRoute", "LoggerdSegment", "LoggerdSegmentEpoch", "LoggerdRotateState")
++    }
++    param_snapshot["LoggerdRotationReport"] = _read_raw_param(params, "LoggerdRotationReport", timeout=0.05)
++    print("isolated Params at cleanup:", json.dumps(param_snapshot, sort_keys=True))
++    log_root = Path(env["LOG_ROOT"])
++    segment_files = [
++      (segment.name, sorted((item.name, item.stat().st_size) for item in segment.iterdir() if item.is_file()))
++      for segment in sorted(log_root.glob("*--*"))
++    ] if log_root.exists() else []
++    print("isolated segment files at cleanup:", json.dumps(segment_files, sort_keys=True))
++    assert not vipc_socket.exists(), f"test publisher left VisionIPC socket {vipc_socket}"
++    shutil.rmtree(msgq_dir, ignore_errors=True)
++
++  _validate_segments(Path(env["LOG_ROOT"]), params, reports, last_frame_id, scenario, encoderd_log)
++
++
++def _run_lifecycle_and_cleanup(tmp_path: Path, monkeypatch, binaries: dict[str, Path], scenario: str) -> None:
++  try:
++    _run_lifecycle(tmp_path, monkeypatch, binaries, scenario)
++  finally:
++    shutil.rmtree(tmp_path, ignore_errors=True)
++
++
++@pytest.mark.xdist_group("loggerd_tests")
++def test_ka2_valid_dmabuf_rotation_end_to_end(tmp_path, monkeypatch):
++  if not KA2:
++    pytest.skip("full deterministic KA2 MPP lifecycle requires KA2")
++  binaries = _build_test_binaries(Path(__file__).resolve().parents[3])
++  _run_lifecycle_and_cleanup(tmp_path / "valid", monkeypatch, binaries, "valid")
++
++
++@pytest.mark.parametrize("fault_mode", ["reject", "silent", "drain_timeout"])
++@pytest.mark.xdist_group("loggerd_tests")
++def test_ka2_output_fault_preserves_qroad(tmp_path, monkeypatch, fault_mode):
++  if not KA2:
++    pytest.skip("per-output MPP failure isolation requires KA2")
++  binaries = _build_test_binaries(Path(__file__).resolve().parents[3])
++  _run_lifecycle_and_cleanup(tmp_path / fault_mode, monkeypatch, binaries, fault_mode)
++
++
++@pytest.mark.xdist_group("loggerd_tests")
++def test_ka2_shm_rejection_preserves_qroad(tmp_path, monkeypatch):
++  if not KA2:
++    pytest.skip("full SHM RGA/MPP lifecycle requires KA2")
++  binaries = _build_test_binaries(Path(__file__).resolve().parents[3])
++  _run_lifecycle_and_cleanup(tmp_path / "shm", monkeypatch, binaries, "shm")
++
++
++@pytest.mark.xdist_group("loggerd_tests")
++def test_loggerd_legacy_mode_preserves_rotation_behavior(tmp_path, monkeypatch):
++  if not KA2:
++    pytest.skip("isolated RK3588 deterministic-disable compatibility run requires KA2")
++  binaries = _build_test_binaries(Path(__file__).resolve().parents[3])
++  _run_lifecycle_and_cleanup(tmp_path / "legacy", monkeypatch, binaries, "legacy")
++
+diff --git a/system/loggerd/tests/test_loggerd_rotation.cc b/system/loggerd/tests/test_loggerd_rotation.cc
+new file mode 100644
+index 000000000..739f256d3
+--- /dev/null
++++ b/system/loggerd/tests/test_loggerd_rotation.cc
+@@ -0,0 +1,250 @@
++#define main loggerd_program_main
++#include "system/loggerd/loggerd.cc"
++#undef main
++
++#include <cstdlib>
++#include <iostream>
++#include <stdexcept>
++#include <thread>
++
++static void check(bool condition, const char *message) {
++  if (!condition) throw std::runtime_error(message);
++}
++
++static std::string exact_empty_report() {
++  LoggerdDropCounts drops;
++  return make_rotation_report("route", 1, 2, false, {}, 0, drops);
++}
++
++static std::string wait_for_param_contains(Params *params, const std::string &key,
++                                           const std::vector<std::string> &expected_fragments) {
++  const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(5);
++  while (std::chrono::steady_clock::now() < deadline) {
++    std::string value = params->get(key);
++    if (!value.empty() && std::all_of(expected_fragments.begin(), expected_fragments.end(),
++                                      [&value](const std::string &fragment) {
++                                        return value.find(fragment) != std::string::npos;
++                                      })) {
++      return value;
++    }
++    std::this_thread::sleep_for(std::chrono::milliseconds(5));
++  }
++  throw std::runtime_error("timed out waiting for expected isolated Params contents in " + key);
++}
++
++static void clear_param_if_present(Params *params, const std::string &key) {
++  if (!params->get(key).empty()) check(params->remove(key) == 0, "remove stale isolated Params value");
++}
++
++static void test_rotation_clock_and_report() {
++  LoggerdState state;
++  state.max_waiting = 2;
++  logger_rotate(&state);
++  Params params;
++  check(params.get("LoggerdRotationReport").empty(), "startup logger_rotate must not emit a runtime report");
++
++  loggerd_test_advance_monotonic_ms(5000);
++  std::chrono::steady_clock::time_point decision{};
++  check(!rotate_if_needed(&state, &decision), "readiness deadline must start without committing early");
++  check(state.rotation_started, "rotation must start at configured segment duration");
++  const auto started_at = state.rotation_started_at;
++
++  loggerd_test_advance_monotonic_ms(4999);
++  check(!rotate_if_needed(&state, &decision), "rotation must wait until the exact readiness deadline");
++  loggerd_test_advance_monotonic_ms(1);
++  check(rotate_if_needed(&state, &decision), "rotation must commit at the five second deadline");
++  check(std::chrono::duration_cast<std::chrono::milliseconds>(decision - started_at).count() == 5000,
++        "commit decision must carry exact fake-clock elapsed time");
++
++  LoggerdState ready_state;
++  ready_state.max_waiting = 1;
++  logger_rotate(&ready_state);
++  loggerd_test_advance_monotonic_ms(5000);
++  check(!rotate_if_needed(&ready_state, &decision), "ready-state rotation must first publish started");
++  ready_state.ready_to_rotate = ready_state.max_waiting;
++  check(rotate_if_needed(&ready_state, &decision), "all-ready rotation must commit immediately");
++  check(decision == ready_state.rotation_started_at, "all-ready commit must have zero deadline wait");
++  logger_rotate(&ready_state);
++  check(ready_state.ready_to_rotate == 0 && !ready_state.rotation_started,
++        "every commit must reset readiness for the next epoch");
++
++  const std::string expected =
++    "{\"route\":\"route\",\"epoch\":1,\"segment\":2,\"degraded\":false,"
++    "\"missing_streams\":[],\"elapsed_ms\":0,\"known_drop_counts\":{"
++    "\"stale_video_messages\":0,\"future_video_queue_drops\":0,"
++    "\"audio_no_writer_events\":0,\"audio_expired_events\":0,\"audio_capacity_drops\":0}}";
++  check(exact_empty_report() == expected, "rotation report must have the exact seven-key contract");
++}
++
++static void test_missing_stream_report() {
++  LoggerdState state;
++  logger_rotate(&state);
++  state.rotation_started = true;
++  state.rotation_started_at = loggerd_monotonic_now();
++  RemoteEncoder ready;
++  RemoteEncoder missing;
++  ready.marked_ready_to_rotate = true;
++  std::unordered_map<std::string, RemoteEncoder *> remotes{{"road", &ready}, {"qRoad", &missing}};
++  std::map<std::string, EncoderInfo> infos;
++  LoggerdAudioQueue queue;
++  Params params;
++  clear_param_if_present(&params, "LoggerdRotationReport");
++  commit_deterministic_runtime_rotation(&state, {"road", "qRoad"}, remotes, infos,
++                                       &queue, nullptr, &params, loggerd_monotonic_now());
++  const std::string report = wait_for_param_contains(
++    &params, "LoggerdRotationReport", {"\"segment\":1", "\"epoch\":2", "\"missing_streams\":[\"qRoad\"]"});
++  std::cout << "MISSING_REPORT " << report << '\n';
++  check(report.find("\"missing_streams\":[\"qRoad\"]") != std::string::npos,
++        "missing-stream report must preserve configured order and exact names");
++  check(report.find("\"degraded\":true") != std::string::npos,
++        "missing-stream report must be degraded");
++}
++
++static void test_audio_order_capacity_and_terminal_drop() {
++  LoggerdState state;
++  LoggerdAudioQueue queue;
++  RemoteEncoder remote;
++  std::vector<uint8_t> payload(200 * 1024, 0x5a);
++  admit_audio_event(&state, &queue, &remote, 0, 200, 16000, payload.data(), payload.size());
++  admit_audio_event(&state, &queue, &remote, 0, 100, 16000, payload.data(), 32 * 1024);
++  check(queue.events.size() == 2, "admitted audio events must be retained whole");
++  check(queue.events.front().log_mono_time == 100 && queue.events.back().log_mono_time == 200,
++        "queued audio must be timestamp ordered");
++
++  const size_t before_capacity_rejection = queue.bytes;
++  std::vector<std::pair<uint64_t, std::vector<uint8_t>>> before_events;
++  for (const auto &event : queue.events) before_events.emplace_back(event.log_mono_time, event.data);
++  admit_audio_event(&state, &queue, &remote, 0, 300, 16000, payload.data(), 64 * 1024);
++  check(queue.bytes == before_capacity_rejection && queue.events.size() == 2,
++        "capacity rejection must preserve the existing queue unchanged");
++  for (size_t i = 0; i < queue.events.size(); ++i) {
++    check(queue.events[i].log_mono_time == before_events[i].first && queue.events[i].data == before_events[i].second,
++          "capacity rejection must preserve queued payload bytes and timestamp order");
++  }
++  check(state.drop_counts.audio_capacity_drops == 1,
++        "one over-capacity input event must count once");
++
++  LoggerdAudioQueue expiry_queue;
++  LoggerdState expiry_state;
++  admit_audio_event(&expiry_state, &expiry_queue, &remote, 0, 1, 16000, payload.data(), 100);
++  const auto expires_at = expiry_queue.events.front().expires_at;
++  expire_queued_audio(&expiry_state, &expiry_queue, expires_at - std::chrono::milliseconds(1));
++  check(expiry_state.drop_counts.audio_expired_events == 0, "audio must remain until its exact expiry");
++  expire_queued_audio(&expiry_state, &expiry_queue, expires_at);
++  check(expiry_state.drop_counts.audio_expired_events == 1 && expiry_queue.events.empty(),
++        "expiry must be terminal at the exact expiry timestamp");
++}
++
++static void test_audio_expiry_wins_commit_tie() {
++  LoggerdState state;
++  logger_rotate(&state);
++  state.rotation_started = true;
++  state.rotation_started_at = loggerd_monotonic_now();
++  LoggerdAudioQueue queue;
++  RemoteEncoder remote;
++  const uint8_t payload[] = {1, 2, 3, 4};
++  admit_audio_event(&state, &queue, &remote, state.logger.segment(), 100, 16000,
++                    payload, sizeof(payload));
++  const auto decision = queue.events.front().expires_at;
++  std::unordered_map<std::string, RemoteEncoder *> remotes{{"qRoadEncodeData", &remote}};
++  std::map<std::string, EncoderInfo> infos;
++  Params params;
++  clear_param_if_present(&params, "LoggerdRotationReport");
++  commit_deterministic_runtime_rotation(&state, {}, remotes, infos, &queue, &remote, &params, decision);
++
++  check(queue.events.empty(), "commit must dispose old-segment queued audio");
++  check(state.drop_counts.audio_expired_events == 0,
++        "commit resets the local drop window after emitting its report");
++  const std::string report = wait_for_param_contains(
++    &params, "LoggerdRotationReport", {"\"segment\":1", "\"epoch\":2", "\"audio_expired_events\":1"});
++  std::cout << "REPORT " << report << '\n';
++  check(report.find("\"audio_expired_events\":1") != std::string::npos,
++        "an exact expiry/commit tie must be reported as expired");
++  check(report.find("\"audio_no_writer_events\":0") != std::string::npos,
++        "an expiry/commit tie must not be double-counted as no-writer");
++}
++
++static void wait_for_param(Params *params, const std::string &key, const std::string &expected) {
++  const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(5);
++  while (std::chrono::steady_clock::now() < deadline) {
++    if (params->get(key) == expected) return;
++    std::this_thread::sleep_for(std::chrono::milliseconds(5));
++  }
++  throw std::runtime_error("timed out waiting for isolated Params key " + key + "=" + expected);
++}
++
++static void test_no_message_event_loop_deadline() {
++  Params params;
++  clear_param_if_present(&params, "LoggerdRotationReport");
++  do_exit = false;
++  std::thread logger_thread([]() { loggerd_thread(); });
++  try {
++    wait_for_param(&params, "LoggerdSegment", "0");
++    loggerd_test_advance_monotonic_ms(5000);
++    wait_for_param(&params, "LoggerdRotateState", "started");
++    loggerd_test_advance_monotonic_ms(5000);
++    wait_for_param(&params, "LoggerdSegment", "1");
++    const std::string report = wait_for_param_contains(
++      &params, "LoggerdRotationReport", {"\"segment\":1", "\"epoch\":2", "\"elapsed_ms\":5000"});
++    std::cout << "NO_MESSAGE_REPORT " << report << '\n';
++    check(report.find("\"elapsed_ms\":5000") != std::string::npos,
++          "no-message runtime commit must report the exact five-second deadline");
++    check(report.find("\"degraded\":true") != std::string::npos,
++          "no-message rotation must identify missing configured streams");
++  } catch (...) {
++    do_exit = true;
++    logger_thread.join();
++    throw;
++  }
++  do_exit = true;
++  logger_thread.join();
++}
++
++static void test_non_rk3588_loggerd_legacy_guard() {
++#if defined(RK3588)
++  throw std::runtime_error("compile-only legacy guard target still defines RK3588");
++#else
++  check(!deterministic_ka2_mode(), "non-RK3588 build must disable deterministic KA2 mode");
++  check(!deterministic_ka2_protocol_active(),
++        "LOGGERD_TEST_DETERMINISTIC must not activate KA2 protocol in a non-RK3588 build");
++
++  Params params;
++  clear_param_if_present(&params, "LoggerdRotationReport");
++  LoggerdState state;
++  state.max_waiting = 1;
++  logger_rotate(&state);
++  check(params.get("LoggerdRotationReport").empty(), "non-RK3588 startup must not publish a rotation report");
++  const int startup_segment = state.logger.segment();
++  state.ready_to_rotate = state.max_waiting;
++  std::chrono::steady_clock::time_point decision{};
++  check(!rotate_if_needed(&state, &decision), "legacy rotation path must not return a deterministic commit decision");
++  check(state.logger.segment() == startup_segment + 1,
++        "legacy all-ready rotation must proceed without waiting for a deterministic deadline");
++  check(params.get("LoggerdRotationReport").empty(), "non-RK3588 runtime rotation must not publish a report");
++  std::cout << "NON_RK3588_LOGGERD_GUARD deterministic_test_mode=" << deterministic_test_mode
++            << " protocol_active=0 startup_report=none runtime_report=none all_ready_rotated=1\n";
++#endif
++}
++
++int main(int argc, char **argv) {
++  try {
++    if (argc == 2 && std::string(argv[1]) == "--non-rk3588-legacy-guard") {
++      test_non_rk3588_loggerd_legacy_guard();
++      return 0;
++    }
++    check(argc == 1, "unexpected loggerd rotation test argument");
++    check(loggerd_test_monotonic_ms() == 0, "test fake clock must start at zero");
++    loggerd_test_enable_monotonic_clock();
++    check(loggerd_test_monotonic_ms() == 0, "explicit fake-clock enable must preserve the zero origin");
++    test_rotation_clock_and_report();
++    test_missing_stream_report();
++    test_audio_order_capacity_and_terminal_drop();
++    test_audio_expiry_wins_commit_tie();
++    test_no_message_event_loop_deadline();
++    std::cout << "loggerd rotation, report, and audio contracts passed\n";
++  } catch (const std::exception &error) {
++    std::cerr << "loggerd rotation contract failure: " << error.what() << '\n';
++    return 1;
++  }
++  return 0;
++}
+diff --git a/system/loggerd/tests/test_loggerd_rotation.py b/system/loggerd/tests/test_loggerd_rotation.py
+new file mode 100644
+index 000000000..9daac09df
+--- /dev/null
++++ b/system/loggerd/tests/test_loggerd_rotation.py
+@@ -0,0 +1,166 @@
++import json
++import os
++from pathlib import Path
++import shutil
++import subprocess
++import uuid
++
++import pytest
++
++from openpilot.system.hardware import KA2
++from openpilot.system.loggerd.tests.test_dmabuf_fixture import _assert_camera_stack_idle
++
++
++RUN_ID = "loggerd-ka2-efficiency-20261029"
++TARGET = "build/system/loggerd/tests/test_loggerd_rotation"
++
++
++def _build_rotation_helper(repo_root: Path) -> Path:
++  scons = shutil.which("scons")
++  assert scons is not None, "SCons is required to build the loggerd rotation contract helper"
++  command = [scons, "-Q", "--ccflags=-DLOGGERD_TEST_BUILD", TARGET]
++  result = subprocess.run(command, cwd=repo_root, text=True, capture_output=True, check=False)
++  print("rotation helper build:", " ".join(command))
++  print(result.stdout, end="")
++  print(result.stderr, end="")
++  assert result.returncode == 0, f"rotation helper build exited {result.returncode}"
++  binary = repo_root / TARGET
++  assert binary.is_file(), f"missing test binary: {binary}"
++  return binary
++
++
++def _run_loggerd_rotation_clock_report_and_audio_contracts(tmp_path, monkeypatch):
++  if not KA2:
++    pytest.skip("deterministic rotation contracts require the RK3588 target")
++  repo_root = Path(__file__).resolve().parents[3]
++  binary = _build_rotation_helper(repo_root)
++
++  log_root = (tmp_path / "logs").resolve()
++  params_root = (tmp_path / "params").resolve()
++  log_root.mkdir(parents=True)
++  params_root.mkdir(parents=True)
++  prefix = f"loggerd_rotation_{os.getpid()}_{uuid.uuid4().hex[:8]}"
++  env = os.environ.copy()
++  env.update({
++    "LOG_ROOT": str(log_root),
++    "PARAMS_ROOT": str(params_root),
++    "OPENPILOT_PREFIX": prefix,
++    "LOGGERD_TEST": "1",
++    "LOGGERD_TEST_DETERMINISTIC": "1",
++    "LOGGERD_SEGMENT_LENGTH": "5",
++    "ENCODERD_DETERMINISTIC_DISABLE": "0",
++  })
++  for key in ("LOG_ROOT", "PARAMS_ROOT", "OPENPILOT_PREFIX", "LOGGERD_TEST",
++              "LOGGERD_TEST_DETERMINISTIC", "LOGGERD_SEGMENT_LENGTH", "ENCODERD_DETERMINISTIC_DISABLE"):
++    monkeypatch.setenv(key, env[key])
++
++  msgq_dir = Path("/dev/shm") / f"msgq_{prefix}"
++  assert not msgq_dir.exists(), f"isolated MSGQ directory already exists: {msgq_dir}"
++  msgq_dir.mkdir(mode=0o700)
++  try:
++    _assert_camera_stack_idle()
++    result = subprocess.run([str(binary)], cwd=repo_root, env=env, text=True,
++                            capture_output=True, check=False, timeout=30)
++    print(result.stdout, end="")
++    print(result.stderr, end="")
++    assert result.returncode == 0, f"loggerd rotation helper exited {result.returncode}: {result.stdout}{result.stderr}"
++  finally:
++    shutil.rmtree(msgq_dir, ignore_errors=True)
++
++  report_lines = {
++    "REPORT": [line.partition(" ")[2] for line in result.stdout.splitlines() if line.startswith("REPORT ")],
++    "MISSING_REPORT": [line.partition(" ")[2] for line in result.stdout.splitlines()
++                       if line.startswith("MISSING_REPORT ")],
++  }
++  assert len(report_lines["REPORT"]) == 1 and len(report_lines["MISSING_REPORT"]) == 1, (
++    f"expected one audio-tie and one missing-stream report, got {report_lines!r}"
++  )
++  parsed_reports = [json.loads(report) for reports in report_lines.values() for report in reports]
++  expected_keys = {
++    "route", "epoch", "segment", "degraded", "missing_streams", "elapsed_ms", "known_drop_counts",
++  }
++  expected_drop_keys = {
++    "stale_video_messages", "future_video_queue_drops", "audio_no_writer_events",
++    "audio_expired_events", "audio_capacity_drops",
++  }
++  configured_order = ["road", "qRoad"]
++  for report in parsed_reports:
++    assert set(report) == expected_keys
++    assert type(report["route"]) is str
++    assert type(report["epoch"]) is int and report["epoch"] >= 0
++    assert type(report["segment"]) is int and report["segment"] >= 0
++    assert report["epoch"] == report["segment"] + 1
++    assert type(report["degraded"]) is bool
++    assert type(report["elapsed_ms"]) is int and report["elapsed_ms"] >= 0
++    missing = report["missing_streams"]
++    assert type(missing) is list and all(type(name) is str for name in missing)
++    assert len(missing) == len(set(missing))
++    assert missing == [name for name in configured_order if name in missing]
++    drops = report["known_drop_counts"]
++    assert set(drops) == expected_drop_keys
++    assert all(type(value) is int and value >= 0 for value in drops.values())
++    assert report["degraded"] is bool(missing or any(drops.values()))
++
++  missing_report = json.loads(report_lines["MISSING_REPORT"][0])
++  assert missing_report["missing_streams"] == ["qRoad"]
++  assert missing_report["degraded"] is True
++  tie_report = json.loads(report_lines["REPORT"][0])
++  assert tie_report["missing_streams"] == []
++  assert tie_report["known_drop_counts"]["audio_expired_events"] == 1
++  assert tie_report["known_drop_counts"]["audio_no_writer_events"] == 0
++  assert tie_report["degraded"] is True
++
++
++@pytest.mark.xdist_group("loggerd_tests")
++def test_non_rk3588_loggerd_legacy_guard_compile_only(tmp_path, monkeypatch):
++  if not KA2:
++    pytest.skip("compile-only non-RK3588 guard probe is scoped to the pinned KA2 build host")
++
++  repo_root = Path(__file__).resolve().parents[3]
++  scons = shutil.which("scons")
++  assert scons is not None, "SCons is required for the compile-only non-RK3588 guard probe"
++  build_env = os.environ.copy()
++  build_env.pop("OPENPILOT_DEVICE", None)
++  command = [scons, "-Q", "--ccflags=-URK3588 -DLOGGERD_TEST_BUILD", TARGET]
++  print("compile-only non-RK3588 loggerd guard target:", " ".join(command))
++  print("no device identity override; RK3588 is undefined only in this loggerd guard test build")
++  built = subprocess.run(command, cwd=repo_root, env=build_env, text=True, capture_output=True, check=False)
++  print(built.stdout, end="")
++  print(built.stderr, end="")
++  assert built.returncode == 0, f"non-RK3588 loggerd guard build exited {built.returncode}"
++
++  log_root = (tmp_path / "logs").resolve()
++  params_root = (tmp_path / "params").resolve()
++  log_root.mkdir(parents=True)
++  params_root.mkdir(parents=True)
++  prefix = f"loggerd_legacy_guard_{os.getpid()}_{uuid.uuid4().hex[:8]}"
++  env = os.environ.copy()
++  env.pop("OPENPILOT_DEVICE", None)
++  env.update({
++    "LOG_ROOT": str(log_root),
++    "PARAMS_ROOT": str(params_root),
++    "OPENPILOT_PREFIX": prefix,
++    "LOGGERD_TEST": "1",
++    "LOGGERD_TEST_DETERMINISTIC": "1",
++    "LOGGERD_SEGMENT_LENGTH": "2",
++    "ENCODERD_DETERMINISTIC_DISABLE": "0",
++  })
++  for key in ("LOG_ROOT", "PARAMS_ROOT", "OPENPILOT_PREFIX", "LOGGERD_TEST",
++              "LOGGERD_TEST_DETERMINISTIC", "LOGGERD_SEGMENT_LENGTH", "ENCODERD_DETERMINISTIC_DISABLE"):
++    monkeypatch.setenv(key, env[key])
++  binary = repo_root / TARGET
++  result = subprocess.run([str(binary), "--non-rk3588-legacy-guard"], cwd=repo_root, env=env,
++                          text=True, capture_output=True, check=False, timeout=15)
++  print(result.stdout, end="")
++  print(result.stderr, end="")
++  assert result.returncode == 0, f"non-RK3588 loggerd guard helper exited {result.returncode}"
++  assert "NON_RK3588_LOGGERD_GUARD deterministic_test_mode=1 protocol_active=0" in result.stdout
++
++
++@pytest.mark.xdist_group("loggerd_tests")
++def test_loggerd_rotation_clock_report_and_audio_contracts(tmp_path, monkeypatch):
++  try:
++    _run_loggerd_rotation_clock_report_and_audio_contracts(tmp_path, monkeypatch)
++  finally:
++    shutil.rmtree(tmp_path, ignore_errors=True)
++
+diff --git a/system/loggerd/tests/visionipc_dmabuf_publisher.cc b/system/loggerd/tests/visionipc_dmabuf_publisher.cc
+new file mode 100644
+index 000000000..0d6fa2b96
+--- /dev/null
++++ b/system/loggerd/tests/visionipc_dmabuf_publisher.cc
+@@ -0,0 +1,298 @@
++#include <cerrno>
++#include <cinttypes>
++#include <cstdio>
++#include <cstdlib>
++#include <cstring>
++#include <dirent.h>
++#include <fcntl.h>
++#include <linux/dma-buf.h>
++#include <linux/dma-heap.h>
++#include <linux/memfd.h>
++#include <sys/ioctl.h>
++#include <sys/mman.h>
++#include <sys/stat.h>
++#include <sys/syscall.h>
++#include <unistd.h>
++
++#include <array>
++#include <fstream>
++#include <iostream>
++#include <memory>
++#include <sstream>
++#include <stdexcept>
++#include <string>
++#include <vector>
++
++#include "msgq/visionipc/visionipc_server.h"
++
++namespace {
++
++constexpr size_t WIDTH = 1920;
++constexpr size_t HEIGHT = 1200;
++constexpr size_t STRIDE = (WIDTH + 15) & ~size_t{15};
++constexpr size_t UV_OFFSET = STRIDE * HEIGHT;
++constexpr size_t BUFFER_SIZE = UV_OFFSET * 3 / 2;
++constexpr size_t FRAME_ID_SIZE = sizeof(uint64_t);
++constexpr size_t ALLOCATION_SIZE = BUFFER_SIZE + FRAME_ID_SIZE;
++constexpr size_t BUFFERS_PER_STREAM = 4;
++constexpr const char *DMA_HEAP_PATH = "/dev/dma_heap/system";
++
++constexpr std::array<VisionStreamType, 3> STREAMS = {
++  VISION_STREAM_ROAD,
++  VISION_STREAM_DRIVER,
++  VISION_STREAM_WIDE_ROAD,
++};
++
++void require(bool ok, const std::string &message) {
++  if (!ok) throw std::runtime_error(message);
++}
++
++int retry_ioctl(int fd, unsigned long request, void *arg) {
++  int ret;
++  do {
++    ret = ioctl(fd, request, arg);
++  } while (ret < 0 && errno == EINTR);
++  return ret;
++}
++
++void sync_dma_buf(int fd, uint64_t flags) {
++  dma_buf_sync sync = {.flags = flags};
++  require(retry_ioctl(fd, DMA_BUF_IOCTL_SYNC, &sync) == 0,
++          "DMA_BUF_IOCTL_SYNC failed: " + std::string(strerror(errno)));
++}
++
++int allocate_dma_buf(size_t len) {
++  const int heap_fd = open(DMA_HEAP_PATH, O_RDONLY | O_CLOEXEC);
++  require(heap_fd >= 0, "open(" + std::string(DMA_HEAP_PATH) + ") failed: " + strerror(errno));
++
++  dma_heap_allocation_data allocation = {};
++  allocation.len = len;
++  allocation.fd_flags = O_RDWR | O_CLOEXEC;
++  const int ret = retry_ioctl(heap_fd, DMA_HEAP_IOCTL_ALLOC, &allocation);
++  const int saved_errno = errno;
++  close(heap_fd);
++  errno = saved_errno;
++  require(ret == 0, "DMA_HEAP_IOCTL_ALLOC failed: " + std::string(strerror(errno)));
++  return static_cast<int>(allocation.fd);
++}
++
++int allocate_shm_buf(size_t len) {
++  const int fd = static_cast<int>(syscall(SYS_memfd_create, "loggerd-test-visionipc-shm", MFD_CLOEXEC));
++  require(fd >= 0, "memfd_create failed: " + std::string(strerror(errno)));
++  if (ftruncate(fd, static_cast<off_t>(len)) != 0) {
++    const int saved_errno = errno;
++    close(fd);
++    errno = saved_errno;
++    throw std::runtime_error("ftruncate memfd failed: " + std::string(strerror(errno)));
++  }
++  return fd;
++}
++
++class ExternalVisionBuf {
++public:
++  explicit ExternalVisionBuf(bool shm_backed) {
++    fd = shm_backed ? allocate_shm_buf(ALLOCATION_SIZE) : allocate_dma_buf(ALLOCATION_SIZE);
++    addr = mmap(nullptr, ALLOCATION_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
++    if (addr == MAP_FAILED) {
++      const int saved_errno = errno;
++      close(fd);
++      fd = -1;
++      errno = saved_errno;
++      throw std::runtime_error("mmap dma-buf failed: " + std::string(strerror(errno)));
++    }
++
++    buf.fd = fd;
++    buf.addr = addr;
++    buf.len = BUFFER_SIZE;
++    buf.mmap_len = ALLOCATION_SIZE;
++    buf.frame_id_in_buf = true;
++    buf.frame_id = reinterpret_cast<uint64_t *>(static_cast<uint8_t *>(addr) + BUFFER_SIZE);
++    buf.init_yuv(WIDTH, HEIGHT, STRIDE, UV_OFFSET);
++  }
++
++  ExternalVisionBuf(const ExternalVisionBuf &) = delete;
++  ExternalVisionBuf &operator=(const ExternalVisionBuf &) = delete;
++
++  ~ExternalVisionBuf() {
++    if (addr != MAP_FAILED && addr != nullptr) munmap(addr, ALLOCATION_SIZE);
++    if (fd >= 0) close(fd);
++  }
++
++  VisionBuf buf;
++  int fd = -1;
++  void *addr = nullptr;
++};
++
++using StreamBuffers = std::vector<std::unique_ptr<ExternalVisionBuf>>;
++using AllBuffers = std::array<StreamBuffers, STREAMS.size()>;
++
++uint8_t y_value(VisionStreamType stream, uint32_t frame_id) {
++  return static_cast<uint8_t>(16 + ((frame_id * 13 + static_cast<uint32_t>(stream) * 29) % 200));
++}
++
++uint8_t u_value(VisionStreamType stream, uint32_t frame_id) {
++  return static_cast<uint8_t>(32 + ((frame_id * 7 + static_cast<uint32_t>(stream) * 17) % 190));
++}
++
++uint8_t v_value(VisionStreamType stream, uint32_t frame_id) {
++  return static_cast<uint8_t>(32 + ((frame_id * 11 + static_cast<uint32_t>(stream) * 23) % 190));
++}
++
++void write_pattern(VisionBuf &buf, uint32_t frame_id, bool dma_buf) {
++  const auto stream = buf.type;
++  const uint8_t y = y_value(stream, frame_id);
++  const uint8_t u = u_value(stream, frame_id);
++  const uint8_t v = v_value(stream, frame_id);
++
++  if (dma_buf) sync_dma_buf(buf.fd, DMA_BUF_SYNC_START | DMA_BUF_SYNC_WRITE);
++  std::memset(buf.y, y, UV_OFFSET);
++  for (size_t i = 0; i < BUFFER_SIZE - UV_OFFSET; i += 2) {
++    buf.uv[i] = u;
++    buf.uv[i + 1] = v;
++  }
++  buf.set_frame_id(frame_id);
++  if (dma_buf) sync_dma_buf(buf.fd, DMA_BUF_SYNC_END | DMA_BUF_SYNC_WRITE);
++}
++
++struct BufferResource {
++  int fd;
++  uintptr_t address;
++  dev_t device;
++  ino_t inode;
++};
++
++bool buffer_fd_identity_is_open(dev_t device, ino_t inode) {
++  DIR *dir = opendir("/proc/self/fd");
++  require(dir != nullptr, "opendir(/proc/self/fd) failed");
++  const int scan_fd = dirfd(dir);
++  bool found = false;
++  while (dirent *entry = readdir(dir)) {
++    if (entry->d_name[0] == '.') continue;
++    char *end = nullptr;
++    const long fd = strtol(entry->d_name, &end, 10);
++    if (end == entry->d_name || *end != '\0' || fd == scan_fd) continue;
++    struct stat stat_buf = {};
++    if (fstat(static_cast<int>(fd), &stat_buf) == 0 &&
++        stat_buf.st_dev == device && stat_buf.st_ino == inode) {
++      found = true;
++      break;
++    }
++  }
++  closedir(dir);
++  return found;
++}
++
++bool mapping_exists(uintptr_t address) {
++  std::ifstream maps("/proc/self/maps");
++  std::string line;
++  while (std::getline(maps, line)) {
++    uintptr_t start = 0;
++    uintptr_t end = 0;
++    char dash = 0;
++    std::istringstream row(line);
++    row >> std::hex >> start >> dash >> end;
++    if (row && dash == '-' && address >= start && address < end) return true;
++  }
++  return false;
++}
++
++AllBuffers allocate_stream_buffers(VisionIpcServer &server, bool shm_backed) {
++  AllBuffers all;
++  for (size_t stream_idx = 0; stream_idx < STREAMS.size(); ++stream_idx) {
++    std::vector<VisionBuf *> external;
++    external.reserve(BUFFERS_PER_STREAM);
++    all[stream_idx].reserve(BUFFERS_PER_STREAM);
++    for (size_t i = 0; i < BUFFERS_PER_STREAM; ++i) {
++      auto buffer = std::make_unique<ExternalVisionBuf>(shm_backed);
++      external.push_back(&buffer->buf);
++      all[stream_idx].push_back(std::move(buffer));
++    }
++    server.register_external_buffers(STREAMS[stream_idx], external);
++  }
++  return all;
++}
++
++void send_frame(VisionIpcServer &server, VisionStreamType stream, uint32_t frame_id,
++                uint64_t timestamp_sof, uint64_t timestamp_eof, size_t buffer_idx, bool shm_backed) {
++  VisionBuf *buffer = server.get_buffer(stream, static_cast<int>(buffer_idx));
++  write_pattern(*buffer, frame_id, !shm_backed);
++  VisionIpcBufExtra extra = {
++    .frame_id = frame_id,
++    .timestamp_sof = timestamp_sof,
++    .timestamp_eof = timestamp_eof,
++    .valid = true,
++  };
++  server.send(buffer, &extra, false);
++}
++
++void run_server(bool shm_backed) {
++  std::vector<BufferResource> resources;
++  AllBuffers buffers;
++  {
++    VisionIpcServer server("camerad");
++    buffers = allocate_stream_buffers(server, shm_backed);
++    for (const auto &stream : buffers) {
++      for (const auto &buffer : stream) {
++        struct stat stat_buf = {};
++        require(fstat(buffer->fd, &stat_buf) == 0, "fstat DMA-heap buffer failed");
++        resources.push_back({buffer->fd, reinterpret_cast<uintptr_t>(buffer->addr),
++                             stat_buf.st_dev, stat_buf.st_ino});
++      }
++    }
++    server.start_listener();
++    std::cout << "READY streams=road,driver,wideRoad width=" << WIDTH << " height=" << HEIGHT
++              << " stride=" << STRIDE << " uv_offset=" << UV_OFFSET << " buffers="
++              << BUFFERS_PER_STREAM << " backing=" << (shm_backed ? "shm" : "dma_heap") << std::endl;
++
++    std::string line;
++    while (std::getline(std::cin, line)) {
++      if (line == "STOP") break;
++      std::istringstream command(line);
++      std::string verb;
++      int stream_value = -1;
++      uint32_t frame_id = 0;
++      uint64_t timestamp_sof = 0;
++      uint64_t timestamp_eof = 0;
++      command >> verb >> stream_value >> frame_id >> timestamp_sof >> timestamp_eof;
++      if (!command || verb != "FRAME" || stream_value < VISION_STREAM_ROAD || stream_value > VISION_STREAM_WIDE_ROAD) {
++        std::cout << "ERROR malformed command" << std::endl;
++        continue;
++      }
++      const auto stream = static_cast<VisionStreamType>(stream_value);
++      const size_t buffer_idx = frame_id % BUFFERS_PER_STREAM;
++      send_frame(server, stream, frame_id, timestamp_sof, timestamp_eof, buffer_idx, shm_backed);
++      std::cout << "SENT " << stream_value << " " << frame_id << std::endl;
++    }
++  }
++
++  buffers = {};
++  for (const auto &resource : resources) {
++    require(!buffer_fd_identity_is_open(resource.device, resource.inode),
++            "DMA-heap buffer fd leaked after publisher shutdown");
++    require(!mapping_exists(resource.address), "DMA-heap mapping leaked after publisher shutdown");
++  }
++  // VisionIPC's listener LOGD lazily starts swaglog's process-global ZeroMQ
++  // context. Its eventfd/epoll descriptors remain open until process exit, so
++  // cleanup is checked against the fixture's actual DMA-BUF identities/maps.
++  std::cout << "CLEANUP_OK\n";
++}
++
++}  // namespace
++
++int main(int argc, char **argv) {
++  try {
++    require(argc == 2, "usage: visionipc_dmabuf_publisher --serve|--serve-shm");
++    const std::string mode = argv[1];
++    if (mode == "--serve") {
++      run_server(false);
++    } else if (mode == "--serve-shm") {
++      run_server(true);
++    } else {
++      throw std::runtime_error("unknown mode: " + mode);
++    }
++  } catch (const std::exception &e) {
++    std::cerr << "VisionIPC DMA-BUF fixture failed: " << e.what() << std::endl;
++    return 1;
++  }
++  return 0;
++}

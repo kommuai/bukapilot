@@ -1,0 +1,152 @@
+{
+  "evidence_paths": {
+    "ffmpeg_ring": "skillset-saves/runs/sidecamerad-mvp-20261113/build/evidence/ac4-scale-time-ffmpeg-observer-r1.bin",
+    "jsonl": "skillset-saves/runs/sidecamerad-mvp-20261113/build/evidence/ac4-scale-time-diagnostic-r1.jsonl",
+    "scale_ring": "skillset-saves/runs/sidecamerad-mvp-20261113/build/evidence/ac4-scale-time-observer-r1.bin"
+  },
+  "execution": {
+    "argv": [
+      "/usr/bin/ffmpeg",
+      "-nostdin",
+      "-hide_banner",
+      "-loglevel",
+      "error",
+      "-thread_queue_size",
+      "1",
+      "-threads",
+      "1",
+      "-filter_threads",
+      "1",
+      "-f",
+      "v4l2",
+      "-input_format",
+      "mjpeg",
+      "-framerate",
+      "20",
+      "-video_size",
+      "1280x720",
+      "-i",
+      "/dev/video60",
+      "-an",
+      "-sn",
+      "-dn",
+      "-vf",
+      "scale=1280:720:flags=neighbor,format=nv12",
+      "-pix_fmt",
+      "nv12",
+      "-threads",
+      "1",
+      "-fps_mode",
+      "passthrough",
+      "-f",
+      "rawvideo",
+      "pipe:1"
+    ],
+    "capture_elapsed_s": 2.551645884,
+    "capture_error": null,
+    "cleanup_method": "SIGINT then close reader pipe",
+    "complete_output_frames": 27,
+    "device_by_path": "/dev/v4l/by-path/platform-xhci-hcd.11.auto-usb-0:1:1.0-video-index0",
+    "device_by_path_resolved": "/dev/video60",
+    "device_format": "1280x720 MJPEG",
+    "ffmpeg_sha256_before_after": [
+      "9af5a141b45d32f64fe7bb5cd2c939d56fb9972234705513c45575ef7a1da38e",
+      "9af5a141b45d32f64fe7bb5cd2c939d56fb9972234705513c45575ef7a1da38e"
+    ],
+    "max_complete_frames": 600,
+    "output_format": "1280x720 NV12 rawvideo",
+    "partial_frame_bytes": 0,
+    "payload_saved": false,
+    "process_returncode": 255,
+    "product_source_drift": false,
+    "requested_fps": 20,
+    "sidecamerad_sha256_before_after": [
+      "494fb8b88fda8bcf1d8301225019f4f01f4b77a0bb5cb3e69dde47ed96e1309b",
+      "494fb8b88fda8bcf1d8301225019f4f01f4b77a0bb5cb3e69dde47ed96e1309b"
+    ],
+    "stop_reason": "first post-warmup complete EOF gap over 60 ms",
+    "trigger": {
+      "from_eof_mono_ns": 34511361444684,
+      "from_frame": 26,
+      "gap_ms": 61.031951,
+      "to_eof_mono_ns": 34511422476635,
+      "to_frame": 27
+    },
+    "warmup_frames": 20
+  },
+  "limitations": [
+    "LD_PRELOAD observer overhead is not calibrated.",
+    "The direct sws_scale API does not include frame PTS; its nearest-time attribution is indicative.",
+    "A single instrumented capture localizes and compares work-versus-wait timing but is not an AC-4 acceptance run."
+  ],
+  "reader": {
+    "gaps_over_60ms": 1,
+    "max_gap_ms": 61.031951,
+    "mean_gap_ms": 51.295284571428574,
+    "post_warmup_intervals": 7
+  },
+  "rings": {
+    "ffmpeg_observer": {
+      "events": 113,
+      "magic": 4702659972666835781,
+      "overflow": 0,
+      "stdout_bytes_recorded": 0
+    },
+    "scale_observer": {
+      "events": 28,
+      "magic": 4702659968120212549,
+      "overflow": 0
+    }
+  },
+  "scale_call_statistics": {
+    "sws_scale": {
+      "calls": 0,
+      "thread_cpu_ms_max": null,
+      "thread_cpu_ms_mean": null,
+      "thread_cpu_ms_p95": null,
+      "wall_ms_max": null,
+      "wall_ms_mean": null,
+      "wall_ms_p50": null,
+      "wall_ms_p95": null,
+      "wall_ms_p99": null
+    },
+    "sws_scale_frame": {
+      "calls": 28,
+      "thread_cpu_ms_max": 26.050042,
+      "thread_cpu_ms_mean": 21.076388214285714,
+      "thread_cpu_ms_p95": 25.230542,
+      "wall_ms_max": 26.07689,
+      "wall_ms_mean": 21.521628142857143,
+      "wall_ms_p50": 23.009305,
+      "wall_ms_p95": 25.57814,
+      "wall_ms_p99": 26.07689
+    }
+  },
+  "schema_version": 1,
+  "stage_counts": {
+    "decoder": 28,
+    "filter_sink": 28,
+    "mux": 28,
+    "scale_frame": 28,
+    "scale_slice": 0,
+    "v4l2_dqbuf": 29
+  },
+  "trigger_timeline": {
+    "decoder_pts_matching_filter": 1987992,
+    "filter_sink_pts_near_mux": 1987992,
+    "matching_direct_sws_scale_calls_by_time": [],
+    "matching_sws_scale_frame": [
+      {
+        "dst_pts": 1987992,
+        "src_pts": 1987992,
+        "thread_cpu_ms": 23.135583,
+        "wall_minus_cpu_ms": 0.0038049999999998363,
+        "wall_ms": 23.139388
+      }
+    ],
+    "mux_pts": 40,
+    "reader_from_frame": 26,
+    "reader_gap_ms": 61.031951,
+    "reader_to_frame": 27
+  }
+}

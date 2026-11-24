@@ -1,0 +1,16 @@
+bringing up nodes...
+bringing up nodes...
+
+............                                                             [100%]
+============================= slowest 10 durations =============================
+0.05s setup    system/sensord/tests/test_polling_pacing.py::test_sensor_read_errors_are_logged_and_still_paced
+0.05s setup    system/sensord/tests/test_fixed_calculations.py::test_icm42670_accel_fixed_scale_and_rotation_match_previous_formula
+0.04s setup    system/sensord/tests/test_polling_pacing.py::test_invalid_iterations_are_paced_without_publishing
+0.03s setup    system/sensord/tests/test_fixed_calculations.py::test_lsm6ds3_accel_fixed_scale_matches_previous_formula
+0.03s setup    system/sensord/tests/test_fixed_calculations.py::test_lsm6ds3_gyro_fixed_scale_matches_previous_formula
+0.03s teardown system/sensord/tests/test_fixed_calculations.py::test_lsm6ds3_gyro_fixed_scale_matches_previous_formula
+0.02s call     system/sensord/tests/test_gyro_buffer.py::test_calibration_preserves_ordered_signed_16_bit_samples_and_statistics
+0.01s teardown system/sensord/tests/test_event_construction.py::test_lsm6ds3_temperature_event_keeps_ignored_timestamp_and_unset_ids
+0.01s teardown system/sensord/tests/test_fixed_calculations.py::test_mmc5603_fixed_scale_and_set_reset_order_match_previous_formula
+0.01s teardown system/sensord/tests/test_gyro_buffer.py::test_calibration_preserves_ordered_signed_16_bit_samples_and_statistics
+12 passed in 4.97s

@@ -1,0 +1,35 @@
+probe=sidecamerad current-binding local live smoke
+observed_at=2026-11-13T09:15:24.361971+00:00
+target=/data/openpilot local host; physical UVC decoder via /dev/v4l/by-path/platform-xhci-hcd.11.auto-usb-0:1:1.0-video-index0
+entry_command=python3 system/sidecamerad.py
+start_discovery=unavailable; check_runtime.py requires Python >=3.13, host is Python 3.12.3
+readiness_window_s=8; predicate=at least 10 unique messages on each transport and >=1 matching frame ID before timeout
+polling=local cereal sub_sock + local VisionIpcClient, timeout 50ms; smoke flow=receive side camera frames and check Params
+params_root=temporary isolated directory; child_ZMQ_initial=1; parent_ZMQ=None
+sidecamerad_pid=1191814
+visionipc_connected=True
+visionipc_size=[1280, 720]; stride=1280; bytes=1382400
+unique_visionipc_frames=122; unique_cereal_frames=117
+matching_frame_ids=117; sample=[1, 2, 3, 5, 6, 7, 8, 9]
+availability_while_live={"backLeftCameraState": false, "backRightCameraState": false, "frontLeftCameraState": true, "frontRightCameraState": false}
+tcp_listeners_9007_9010=[]
+brief_live_smoke=PASS
+shutdown_exit=0
+availability_after_shutdown={"backLeftCameraState": false, "backRightCameraState": false, "frontLeftCameraState": false, "frontRightCameraState": false}
+child_output_begin
+sidecamerad frontRightCameraState: no device configured (SIDECAM_FRONT_RIGHT); unavailable
+sidecamerad backLeftCameraState: no device configured (SIDECAM_BACK_LEFT); unavailable
+sidecamerad backRightCameraState: no device configured (SIDECAM_BACK_RIGHT); unavailable
+child_output_end
+teardown=PASS; process stopped, all availability flags false, camera TCP listeners absent
+temporary_params_root_removed=True
+input_sha256[system/sidecamerad.py]=494fb8b88fda8bcf1d8301225019f4f01f4b77a0bb5cb3e69dde47ed96e1309b
+input_sha256[system/manager/process_config.py]=b7fdfda2878cae1fa6b354ed512bc33ad66f1abe1ed25c90ed980b547a8aa02d
+input_sha256[common/params_keys.h]=c2925ebd8f9f26cc04951afb0e3c67ac7cb20a1c370b79aa93a25a4aaef2a031
+input_sha256[common/params_pyx.so]=3108e29407f31b9bd86a86ccafc82a4f98a225884412987a24be5c357dbfb586
+input_sha256[cereal/log.capnp]=d5c0372d714e65461942874c91c522b205ce208261b382283839ed03b9731f64
+input_sha256[cereal/services.py]=cacd4b749d9a0a3e19e3c466784dcf34925f263fdca3c26af72578c47d740a6b
+input_sha256[msgq_repo/msgq/visionipc/visionbuf.h]=c971a1afa601f5bb8f560de6fb1dd78c2121cee61ea41c169f00a4154566e870
+input_sha256[msgq_repo/msgq/visionipc/visionipc_pyx.pyx]=36247e353901eb80e52735c91f466151b3026e77152dde9ad9e3bcd682c66f32
+input_sha256[msgq_repo/msgq/visionipc/visionipc_server.cc]=36b383bfcaf10eaa69f6844a579c86204b4a07464a889208fe059a6c1202d198
+cadence_reference=earlier five-minute run: 6000 paired frames; mean_fps=19.999396661241942; max_gap_ms=123.185415; gaps_over_60ms=743; CADENCE_ACCEPTANCE=FAIL; do not infer 20fps cadence acceptance from this brief smoke

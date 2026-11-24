@@ -1,0 +1,16 @@
+repeat10_validation=copy started_utc=2026-10-31T02:40:21Z mem_before_kb=1943748
+class_harness_mode=copy binary_class=MppEncoder dma_heap=system streams=road+qRoad fps=20 frames=100 buffers=24
+rga_api version 1.10.0_[8]
+road_route_configured_zero_copy=0 road_imported_fds=0 road_import_failures=0 road_fallback_logged=0 qroad_route_configured_zero_copy=0 qroad_imported_fds=0 qroad_import_failures=0 qroad_fallback_logged=0
+road_submit_us_median=6108 p95=8441 p99=10295 n=100
+qroad_submit_us_median=4059 p95=5252 p99=5642 n=100
+road_accepted=100 road_failures=0 road_packets=100 road_payload_bytes=1215073 road_stream_bytes=1215239
+qroad_accepted=100 qroad_failures=0 qroad_packets=100 qroad_payload_bytes=105434
+cpu_sample_ns=370318969 wall_total_ms=5033 peak_rss_kb=13440
+harness_exit_code=0
+stream_sha256=536f157d8d5e30bb5c981f89403e9f1f235a5bb7de19fe80011addb79571850f
+codec_name=hevc
+width=1920
+height=1200
+nb_read_frames=100
+decoded_pixel_sha256=2af5951a0c1f46a13a299080741448820822773039d8dfedd898b0e49d21ffba

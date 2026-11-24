@@ -1,0 +1,96 @@
+{
+  "artifacts": [
+    "evidence/tests-r10-run-r220.log",
+    "evidence/tests-r10-run-r229.log",
+    "evidence/tests-r10-gap-closure.log"
+  ],
+  "result": {
+    "status": "pass"
+  },
+  "tool": "pytest 9.0.2 via python3 -m pytest",
+  "command": "python3 -m pytest -s -v -n0 -x system/loggerd/tests/test_mpp_encoder.py system/loggerd/tests/test_loggerd_rotation.py system/loggerd/tests/test_encoderd_recovery.py system/loggerd/tests/test_dmabuf_fixture.py system/loggerd/tests/test_loggerd_liveness.py system/loggerd/tests/test_loggerd.py::TestLoggerd::test_rotation system/loggerd/tests/test_loggerd.py::TestLoggerd::test_ka2_deterministic_rotation_alignment",
+  "observed_at": "2026-10-31T10:11:43Z",
+  "inputs": [
+    {
+      "path": "system/loggerd/loggerd.cc",
+      "sha256": "3a2e621adc50f44f727a12b0d8deb7410a4c502948ae2297069aa40b4ea8f5a9"
+    },
+    {
+      "path": "system/loggerd/loggerd.h",
+      "sha256": "be831a312bedac0b997eaea6a932f63f2ca265f35c5881c96c9c0a17097e1034"
+    },
+    {
+      "path": "system/loggerd/encoderd.cc",
+      "sha256": "9e2ef373325dc6eb7deec19cf65deb0a23b3fd3e19edbf27009c93fc135bbd10"
+    },
+    {
+      "path": "system/loggerd/encoder/mpp_encoder.cc",
+      "sha256": "24537361363ace4fd11485fca4284938f22e9b73fdb13ff84f100dd8368d5477"
+    },
+    {
+      "path": "system/loggerd/encoder/mpp_encoder.h",
+      "sha256": "253c02a7c10624d0333f3360cb13281d6edb1ede10efe91e705c03ac284e8f43"
+    },
+    {
+      "path": "system/loggerd/encoder/mpp_encoder_input.h",
+      "sha256": "965e011ff0676341996a13974f7c86f87a26bc72441765eefc68f115ee068ce3"
+    },
+    {
+      "path": "system/loggerd/SConscript",
+      "sha256": "4ef88831a84c24cde07114ffd4b43f163b4e43ea02260caba400d98c2127173b"
+    },
+    {
+      "path": "system/loggerd/tests/test_loggerd.py",
+      "sha256": "0e6404662d1dad2ff6ba1fe8ff13d41e55f3f30494fe833d41d996de44a013bb"
+    },
+    {
+      "path": "system/loggerd/tests/test_mpp_encoder.cc",
+      "sha256": "4ba25c832faa0c5385d8cd1a5c02bac626099bcaf03635067b2501146004460d"
+    },
+    {
+      "path": "system/loggerd/tests/test_mpp_encoder.py",
+      "sha256": "533f179729d841dfe0386d34ebc92a282f0395e867a4f057e4ce623a6b7964b4"
+    },
+    {
+      "path": "system/loggerd/tests/test_loggerd_rotation.cc",
+      "sha256": "bf185f8d3b9335182d347e010af35b1a20913b15bdeb8ad35a23b19edf1e7962"
+    },
+    {
+      "path": "system/loggerd/tests/test_loggerd_rotation.py",
+      "sha256": "d40aa6644fc2ccefe952c7310c242c8a950348a2f980b9f3740db458fc50b85f"
+    },
+    {
+      "path": "system/loggerd/tests/test_encoderd_recovery.cc",
+      "sha256": "9c7317eedf4f446507702fb8f9b29ccfe4e161a7d0115c46105e1677f60c080f"
+    },
+    {
+      "path": "system/loggerd/tests/test_encoderd_recovery.py",
+      "sha256": "aa5cddc9ace90969362375873e7d9cfeb225a80ec3cd4ce5bf716ba950f3ffd6"
+    },
+    {
+      "path": "system/loggerd/tests/test_dmabuf_fixture.py",
+      "sha256": "cfc0baf39d00be3871f7e8359083adc86266e29333e3b2dc09cd349e175a7b9c"
+    },
+    {
+      "path": "system/loggerd/tests/visionipc_dmabuf_publisher.cc",
+      "sha256": "0994305f86b1c7c1481d3276ee2dd5b5fd81d033847db822a198568941fefad9"
+    },
+    {
+      "path": "system/loggerd/tests/test_loggerd_liveness.py",
+      "sha256": "c024ff8fb62baba3a5601dab6cba5198115a5d18397c3f783b29fc5e98480b61"
+    }
+  ],
+  "environment": "KA2/RK3588 aarch64 board; isolated temp roots; test-build subprocesses; synthetic four-slot DMA-heap and memfd SHM VisionIPC fixtures; no live camera/V4L2 or production Params/log roots",
+  "coverage_gaps": [
+    {
+      "requirement": "AC-12 non-KA2 legacy service runtime",
+      "status": "unproven",
+      "reason": "No genuine non-KA2 runtime target is available. The -URK3588 loggerd unit helper proves only the deterministic-mode guard; the TICI override aborted at actual-board detection before test code."
+    },
+    {
+      "requirement": "live V4L2 DMA-BUF exporter/fence/reuse behavior and deployed production MPP post-EOS",
+      "status": "unproven",
+      "reason": "Approved fixture uses synthetic DMA-heap/memfd buffers and test-build paths."
+    }
+  ]
+}

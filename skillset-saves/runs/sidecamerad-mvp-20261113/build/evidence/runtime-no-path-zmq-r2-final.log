@@ -1,0 +1,12 @@
+Probe: no camera paths, child ZMQ=1, isolated Params; pid=1066060
+startup_Param={"backLeftCameraState": false, "backRightCameraState": false, "frontLeftCameraState": false, "frontRightCameraState": false}; socket_exists=False; threads=['python3', 'python3', 'python3', 'python3', 'python3', 'ZMQbg/Reaper', 'ZMQbg/IO/0']; TCP_listeners=[]
+idle_elapsed_s=62.041; still_alive=True; Param={"backLeftCameraState": false, "backRightCameraState": false, "frontLeftCameraState": false, "frontRightCameraState": false}
+sidecamerad stdout/stderr:
+sidecamerad frontLeftCameraState: no device configured (SIDECAM_FRONT_LEFT); unavailable
+sidecamerad frontRightCameraState: no device configured (SIDECAM_FRONT_RIGHT); unavailable
+sidecamerad backLeftCameraState: no device configured (SIDECAM_BACK_LEFT); unavailable
+sidecamerad backRightCameraState: no device configured (SIDECAM_BACK_RIGHT); unavailable
+sidecamerad: no valid camera paths configured; waiting for shutdown
+missing_feed_warning_counts={"backLeftCameraState": 1, "backRightCameraState": 1, "frontLeftCameraState": 1, "frontRightCameraState": 1}
+sigterm_exit=0; final_Param={"backLeftCameraState": false, "backRightCameraState": false, "frontLeftCameraState": false, "frontRightCameraState": false}; socket_exists=False; TCP_listeners=[]
+NO_PATH_FINAL_RESULT=PASS

@@ -1,0 +1,10 @@
+{
+  "acquired_at": "2026-11-13T04:00:37.361316+00:00",
+  "heartbeat": "2026-11-13T04:04:28.078312+00:00",
+  "owner": "admiral",
+  "revision": 2,
+  "run_id": "sidecamerad-mvp-20261113",
+  "schema_version": 1,
+  "session_pin": true,
+  "status": "held"
+}

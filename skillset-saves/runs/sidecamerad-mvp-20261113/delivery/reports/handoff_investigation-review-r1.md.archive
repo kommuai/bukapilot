@@ -1,0 +1,51 @@
+---
+submission_id: sidecamerad-mvp-20261113_handoff-2_attempt-1_2026-11-15T08:56:55Z
+revision: "1"
+package_path: skillset-saves/runs/sidecamerad-mvp-20261113/investigation/manifest.json
+submission_status: VERDICT_RECORDED
+verdict: APPROVED
+---
+
+# Cross-stage handoff: investigation review
+
+## Package
+
+- Boundary: `investigation-review` (INVESTIGATE returning to BUILD)
+- Investigation revision: `1`
+- Investigation submission: `sidecamerad-mvp-20261113_investigation-ac4-timing-r1`
+- Manifest: `skillset-saves/runs/sidecamerad-mvp-20261113/investigation/manifest.json`
+- Manifest SHA-256: `e45ce07c656af195fa57d36a726f7a976e7a902ce6eadbdd304b194d77e7ae14`
+- Report: `skillset-saves/runs/sidecamerad-mvp-20261113/investigation/reports/investigation-package.md`
+- Report SHA-256: `b4afe53167fb5ff722d3b8174f7e339f98d3cc66578d84d420e12acb8e6bc796`
+- Canonical investigation self-check: passed under Python 3.13.15 with zero failures and warnings.
+
+## Finding and fix path
+
+The current-source five-minute capture reproduces the AC-4 maximum-gap failure: 6,050 selected matching frames over 302.506666 seconds, 20.000523 fps mean cadence, 89.163715 ms maximum EOF gap, and 753 of 6,049 gaps above 60 ms. Direct V4L2 timestamps were regular in a separate capture, while a no-IPC FFmpeg raw-pipe reader reproduced gaps above 60 ms. The evidence localizes the measured jitter, at medium confidence, to the FFmpeg raw-output and full-frame pipe-read completion path before IPC. It does not separate FFmpeg decode/output timing from host/Python scheduling.
+
+The bounded BUILD fix path is to carry and validate each frame's monotonic source timestamp with its decoded NV12 payload, publish the verified source EOF timestamp, and retain actual read/publication latency separately. Do not smooth timestamps or synthesize a fixed 20 fps schedule. First verify frame-to-timestamp alignment, then rerun the five-minute AC-4 acceptance probe. If source timestamp mapping is unavailable or cadence still fails, investigate FFmpeg and host scheduling rather than treating timestamp relabeling as a fix.
+
+## Open evidence limits
+
+- AC-4 cadence still fails on current source. AC-6 physical reconnect/sibling continuity and AC-8 four-camera soak/CPU headroom remain unverified because only one decoder is available.
+- FFmpeg decode/output timing and host/Python scheduling remain unresolved. The investigation package names the same-frame correlated observation that would distinguish them.
+- Product source remains unchanged. The active read-only guard must be formally released by Admiral before BUILD edits any source files.
+
+## Next consumer
+
+Submit the investigation package to `gatekeeper-admiral` for `investigation-review`. If approved, route the bounded fix path back to `build/build-management`, which schedules implementation through `build/bob-the-builder` only after the read-only guard is formally released.
+
+This is an intermediate phase handoff; a final delivery package is not in scope.
+
+## Cross-stage verdict
+
+- Gate: `gatekeeper-admiral`
+- Verdict: **APPROVED** for `investigation-review` revision `1`.
+- Verdict ID: `cdd9f8aeddfda05863ba405d59eb990efc8e376e70e4c56ba8e7f6fce8c9744c`.
+- Durable verdict: `skillset-saves/runs/sidecamerad-mvp-20261113/investigation/verdict_investigation-review.cross-stage.json`, SHA-256 `49e9ebb87d8829cff22dbce7851f273c0f1e7e27c5744eced63d108198c8032f`.
+- Judgment: `skillset-saves/runs/sidecamerad-mvp-20261113/investigation/verdict_investigation-review.cross-stage.judgment.json`, SHA-256 `7a56d4e71dc0fa42070f3f058a36397d588d05924d56c8dd4f13d078fd3db4ef`.
+- Delivery-shape validator: zero failures; its conditional final-summary slot was resolved as out of scope for this intermediate handoff.
+
+## Next consumer
+
+Route the approved bounded fix path to `build/build-management`. Source changes remain blocked until the active read-only guard is formally released by its recorded owner through `unfreeze`.

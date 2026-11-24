@@ -1,0 +1,32 @@
+AC-4 source PTS / monotonic completion correlation
+COMMAND: /usr/bin/ffmpeg -nostdin -hide_banner -loglevel info -copyts -thread_queue_size 1 -threads 1 -filter_threads 1 -f v4l2 -timestamps default -input_format mjpeg -framerate 20 -video_size 1280x720 -i /dev/v4l/by-path/platform-xhci-hcd.11.auto-usb-0:1:1.0-video-index0 -an -sn -dn -vf scale=1280:720:flags=neighbor,format=nv12,showinfo -pix_fmt nv12 -threads 1 -fps_mode passthrough -frames:v 240 -f rawvideo pipe:1
+EXIT_CODE: 0
+READ_ERROR: None
+SHOWINFO_TIME_BASE: 1/1000000
+{"checksum_matches": 0, "checksum_total": 240, "exit_code": 0, "frame_indices_contiguous": true, "frames_read": 240, "read_arrival_gap_ms": {"max": 81.283273, "mean": 49.885330288702924, "min": 6.66728}, "read_error": null, "read_latency_ms": {"max": 790.597884, "mean": 97.22035380416666, "min": 69.421499}, "showinfo_indices_contiguous": true, "showinfo_records": 240, "source_hash_drift": {}, "source_hashes": {"cereal/log.capnp": "d5c0372d714e65461942874c91c522b205ce208261b382283839ed03b9731f64", "cereal/services.py": "cacd4b749d9a0a3e19e3c466784dcf34925f263fdca3c26af72578c47d740a6b", "common/params_keys.h": "c2925ebd8f9f26cc04951afb0e3c67ac7cb20a1c370b79aa93a25a4aaef2a031", "common/params_pyx.so": "3108e29407f31b9bd86a86ccafc82a4f98a225884412987a24be5c357dbfb586", "msgq_repo/msgq/visionipc/visionbuf.h": "c971a1afa601f5bb8f560de6fb1dd78c2121cee61ea41c169f00a4154566e870", "msgq_repo/msgq/visionipc/visionipc_pyx.pyx": "36247e353901eb80e52735c91f466151b3026e77152dde9ad9e3bcd682c66f32", "msgq_repo/msgq/visionipc/visionipc_server.cc": "36b383bfcaf10eaa69f6844a579c86204b4a07464a889208fe059a6c1202d198", "system/manager/process_config.py": "b7fdfda2878cae1fa6b354ed512bc33ad66f1abe1ed25c90ed980b547a8aa02d", "system/sidecamerad.py": "494fb8b88fda8bcf1d8301225019f4f01f4b77a0bb5cb3e69dde47ed96e1309b"}, "source_pts_gap_ms": {"max": 720.06, "mean": 52.80338912133891, "min": 47.897}, "source_pts_monotonic": true, "source_time_base": {"den": 1000000, "num": 1}}
+SAMPLE_FIRST_5:
+{"checksum_matches_raw": false, "raw_crc32": "38FBFF18", "raw_index": 0, "read_completed_monotonic_ns": 7360985368884, "read_latency_ns": 790597884, "showinfo_checksum": "65D0F968", "source_pts": 7360194771, "source_pts_monotonic_ns": 7360194771000, "source_time_base": {"den": 1000000, "num": 1}}
+{"checksum_matches_raw": false, "raw_crc32": "6D39A435", "raw_index": 1, "read_completed_monotonic_ns": 7360992036164, "read_latency_ns": 77205164, "showinfo_checksum": "F05CB76A", "source_pts": 7360914831, "source_pts_monotonic_ns": 7360914831000, "source_time_base": {"den": 1000000, "num": 1}}
+{"checksum_matches_raw": false, "raw_crc32": "9387CDD4", "raw_index": 2, "read_completed_monotonic_ns": 7361049498180, "read_latency_ns": 82654180, "showinfo_checksum": "7A0AE04F", "source_pts": 7360966844, "source_pts_monotonic_ns": 7360966844000, "source_time_base": {"den": 1000000, "num": 1}}
+{"checksum_matches_raw": false, "raw_crc32": "DE79F9BF", "raw_index": 3, "read_completed_monotonic_ns": 7361107241322, "read_latency_ns": 92454322, "showinfo_checksum": "F1785DA3", "source_pts": 7361014787, "source_pts_monotonic_ns": 7361014787000, "source_time_base": {"den": 1000000, "num": 1}}
+{"checksum_matches_raw": false, "raw_crc32": "719E506A", "raw_index": 4, "read_completed_monotonic_ns": 7361158789058, "read_latency_ns": 91940058, "showinfo_checksum": "A431EF73", "source_pts": 7361066849, "source_pts_monotonic_ns": 7361066849000, "source_time_base": {"den": 1000000, "num": 1}}
+SAMPLE_LAST_5:
+{"checksum_matches_raw": false, "raw_crc32": "F156B852", "raw_index": 235, "read_completed_monotonic_ns": 7372703935863, "read_latency_ns": 89146863, "showinfo_checksum": "75B22DE5", "source_pts": 7372614789, "source_pts_monotonic_ns": 7372614789000, "source_time_base": {"den": 1000000, "num": 1}}
+{"checksum_matches_raw": false, "raw_crc32": "A38175D9", "raw_index": 236, "read_completed_monotonic_ns": 7372763261059, "read_latency_ns": 96503059, "showinfo_checksum": "1188D94A", "source_pts": 7372666758, "source_pts_monotonic_ns": 7372666758000, "source_time_base": {"den": 1000000, "num": 1}}
+{"checksum_matches_raw": false, "raw_crc32": "67FEEDCB", "raw_index": 237, "read_completed_monotonic_ns": 7372816178431, "read_latency_ns": 101365431, "showinfo_checksum": "DA5040AD", "source_pts": 7372714813, "source_pts_monotonic_ns": 7372714813000, "source_time_base": {"den": 1000000, "num": 1}}
+{"checksum_matches_raw": false, "raw_crc32": "1CD1C5FA", "raw_index": 238, "read_completed_monotonic_ns": 7372858990028, "read_latency_ns": 92219028, "showinfo_checksum": "EE38A550", "source_pts": 7372766771, "source_pts_monotonic_ns": 7372766771000, "source_time_base": {"den": 1000000, "num": 1}}
+{"checksum_matches_raw": false, "raw_crc32": "DCCB444B", "raw_index": 239, "read_completed_monotonic_ns": 7372907962823, "read_latency_ns": 93181823, "showinfo_checksum": "C19F1B48", "source_pts": 7372814781, "source_pts_monotonic_ns": 7372814781000, "source_time_base": {"den": 1000000, "num": 1}}
+FFMPEG_STDERR_START
+Input #0, video4linux2,v4l2, from '/dev/v4l/by-path/platform-xhci-hcd.11.auto-usb-0:1:1.0-video-index0':
+  Duration: N/A, start: 7360.194771, bitrate: N/A
+  Stream #0:0: Video: mjpeg (Baseline), yuvj422p(pc, bt470bg/unknown/unknown), 1280x720, 20 fps, 20 tbr, 1000k tbn
+Stream mapping:
+  Stream #0:0 -> #0:0 (mjpeg (native) -> rawvideo (native))
+[swscaler @ 0x557e788ff0] deprecated pixel format used, make sure you did set range correctly
+[Parsed_showinfo_2 @ 0x557e72dfe0] config in time_base: 1/1000000, frame_rate: 20/1
+[Parsed_showinfo_2 @ 0x557e72dfe0] config out time_base: 0/0, frame_rate: 0/0
+[swscaler @ 0x557e788ff0] deprecated pixel format used, make sure you did set range correctly
+    Last message repeated 2 times
+[Parsed_showinfo_2 @ 0x557e72dfe0] n:   0 pts:7360194771 pts_time:7360.19 duration:  50000 duration_time:0.05    fmt:nv12 cl:center sar:0/1 s:1280x720 i:P iskey:1 type:I checksum:65D0F968 plane_checksum:[3203D79C 7A8721CC] mean:[92 107] stdev:[59.9 37.6]
+[Parsed_showinfo_2 @ 0x557e72dfe0] color_range:tv color_space:bt470bg color_primaries:unknown color_trc:unknown
+FFMPEG_STDERR_END

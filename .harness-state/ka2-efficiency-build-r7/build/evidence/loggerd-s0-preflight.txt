@@ -1,0 +1,18 @@
+preflight_timestamp_utc=2026-10-30T07:49:13.645511+00:00
+arch=rc=0 stdout='aarch64' stderr=''
+ka2_marker=True
+mpp_device=True
+process_loggerd=rc=1 stdout='' stderr=''
+process_encoderd=rc=1 stdout='' stderr=''
+process_camerad=rc=1 stdout='' stderr=''
+mpp_holders=rc=1 stdout='' stderr=''
+disk_/tmp=total:838860800,free:838819840,used_percent:0.00
+disk_/data=total:8729751552,free:2004910080,used_percent:77.03
+memory_kB={'MemTotal': 3730980, 'MemAvailable': 2763604};used_percent:25.93
+thermal_zones=thermal_zone0:soc-thermal:46.230C,thermal_zone1:bigcore0-thermal:46.230C,thermal_zone2:bigcore1-thermal:46.230C,thermal_zone3:littlecore-thermal:47.153C,thermal_zone4:center-thermal:46.230C,thermal_zone5:gpu-thermal:46.230C,thermal_zone6:npu-thermal:46.230C
+existing_build_evidence_bytes=829983
+planned_direct_mpp_probe=not_started
+probe_elapsed_ceiling_seconds=600
+probe_generated_output_ceiling_bytes=805306368
+memory_abort_percent=80
+thermal_abort_celsius=80

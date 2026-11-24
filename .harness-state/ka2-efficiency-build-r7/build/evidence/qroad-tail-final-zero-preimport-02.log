@@ -1,0 +1,125 @@
+phase=final mode=zero-preimport repetition=02 started_utc=2026-10-31T03:17:53Z mem_before_kb=1882184 shm_used_bytes=19357696
+thermal_cooling_state /sys/class/thermal/cooling_device0/cur_state=0
+thermal_cooling_state /sys/class/thermal/cooling_device1/cur_state=0
+thermal_cooling_state /sys/class/thermal/cooling_device2/cur_state=0
+thermal_cooling_state /sys/class/thermal/cooling_device4/cur_state=0
+cpu_frequency /sys/devices/system/cpu/cpufreq/policy0/scaling_cur_freq=1200000
+cpu_frequency /sys/devices/system/cpu/cpufreq/policy4/scaling_cur_freq=1416000
+cpu_frequency /sys/devices/system/cpu/cpufreq/policy6/scaling_cur_freq=408000
+investigation_mode=zero-preimport binary_class=MppEncoder dma_heap=system streams=road+qRoad fps=20 frames=100 buffers=24
+memory_snapshot=after_open road_pool_buffers=0 road_pool_bytes=0 qroad_pool_buffers=6 qroad_pool_bytes=1596672 road_import_handles=0 road_import_handle_bytes=0 dma_buf_objects=1 dma_buf_total_bytes=266240 vmrss='	   23012 kB' vmhwm='	   23012 kB' memavailable='    1779204 kB' cmafree='               0 kB'
+preimport_count=24 preimport_us=34
+memory_snapshot=after_preimport road_pool_buffers=0 road_pool_bytes=0 qroad_pool_buffers=6 qroad_pool_bytes=1596672 road_import_handles=24 road_import_handle_bytes=82944000 dma_buf_objects=1 dma_buf_total_bytes=266240 vmrss='	   23012 kB' vmhwm='	   23012 kB' memavailable='    1779204 kB' cmafree='               0 kB'
+rga_api version 1.10.0_[8]
+frame_latency mode=zero-preimport frame=1 road_us=6983 qroad_us=3836
+frame_latency mode=zero-preimport frame=2 road_us=5004 qroad_us=3922
+frame_latency mode=zero-preimport frame=3 road_us=4965 qroad_us=4158
+frame_latency mode=zero-preimport frame=4 road_us=6374 qroad_us=5664
+frame_latency mode=zero-preimport frame=5 road_us=5211 qroad_us=5467
+frame_latency mode=zero-preimport frame=6 road_us=5784 qroad_us=4302
+frame_latency mode=zero-preimport frame=7 road_us=5627 qroad_us=4015
+frame_latency mode=zero-preimport frame=8 road_us=5056 qroad_us=4510
+frame_latency mode=zero-preimport frame=9 road_us=5154 qroad_us=5279
+frame_latency mode=zero-preimport frame=10 road_us=5830 qroad_us=5064
+frame_latency mode=zero-preimport frame=11 road_us=5759 qroad_us=5240
+frame_latency mode=zero-preimport frame=12 road_us=4978 qroad_us=3641
+frame_latency mode=zero-preimport frame=13 road_us=4955 qroad_us=4138
+frame_latency mode=zero-preimport frame=14 road_us=5976 qroad_us=5148
+frame_latency mode=zero-preimport frame=15 road_us=5928 qroad_us=4051
+frame_latency mode=zero-preimport frame=16 road_us=6278 qroad_us=5148
+frame_latency mode=zero-preimport frame=17 road_us=6134 qroad_us=3668
+frame_latency mode=zero-preimport frame=18 road_us=4870 qroad_us=3531
+frame_latency mode=zero-preimport frame=19 road_us=5046 qroad_us=3483
+frame_latency mode=zero-preimport frame=20 road_us=4984 qroad_us=4156
+frame_latency mode=zero-preimport frame=21 road_us=6988 qroad_us=4954
+frame_latency mode=zero-preimport frame=22 road_us=4823 qroad_us=3463
+frame_latency mode=zero-preimport frame=23 road_us=4917 qroad_us=3524
+frame_latency mode=zero-preimport frame=24 road_us=5047 qroad_us=4569
+frame_latency mode=zero-preimport frame=25 road_us=5172 qroad_us=5302
+frame_latency mode=zero-preimport frame=26 road_us=4922 qroad_us=3897
+frame_latency mode=zero-preimport frame=27 road_us=5282 qroad_us=4270
+frame_latency mode=zero-preimport frame=28 road_us=4715 qroad_us=3591
+frame_latency mode=zero-preimport frame=29 road_us=4636 qroad_us=3812
+frame_latency mode=zero-preimport frame=30 road_us=4726 qroad_us=4346
+frame_latency mode=zero-preimport frame=31 road_us=5523 qroad_us=6665
+frame_latency mode=zero-preimport frame=32 road_us=4731 qroad_us=3336
+frame_latency mode=zero-preimport frame=33 road_us=4615 qroad_us=3341
+frame_latency mode=zero-preimport frame=34 road_us=4689 qroad_us=3495
+frame_latency mode=zero-preimport frame=35 road_us=4594 qroad_us=3565
+frame_latency mode=zero-preimport frame=36 road_us=4839 qroad_us=3492
+frame_latency mode=zero-preimport frame=37 road_us=4814 qroad_us=4123
+frame_latency mode=zero-preimport frame=38 road_us=5287 qroad_us=5119
+frame_latency mode=zero-preimport frame=39 road_us=4657 qroad_us=3401
+frame_latency mode=zero-preimport frame=40 road_us=4664 qroad_us=3686
+frame_latency mode=zero-preimport frame=41 road_us=4794 qroad_us=4626
+frame_latency mode=zero-preimport frame=42 road_us=4889 qroad_us=4456
+frame_latency mode=zero-preimport frame=43 road_us=4994 qroad_us=4090
+frame_latency mode=zero-preimport frame=44 road_us=4772 qroad_us=3645
+frame_latency mode=zero-preimport frame=45 road_us=4657 qroad_us=3473
+frame_latency mode=zero-preimport frame=46 road_us=5214 qroad_us=5084
+frame_latency mode=zero-preimport frame=47 road_us=6097 qroad_us=5416
+frame_latency mode=zero-preimport frame=48 road_us=4775 qroad_us=3639
+frame_latency mode=zero-preimport frame=49 road_us=4684 qroad_us=3894
+frame_latency mode=zero-preimport frame=50 road_us=4832 qroad_us=4268
+frame_latency mode=zero-preimport frame=51 road_us=4672 qroad_us=3423
+frame_latency mode=zero-preimport frame=52 road_us=5086 qroad_us=3413
+frame_latency mode=zero-preimport frame=53 road_us=4594 qroad_us=4196
+frame_latency mode=zero-preimport frame=54 road_us=5015 qroad_us=4577
+frame_latency mode=zero-preimport frame=55 road_us=4840 qroad_us=4126
+frame_latency mode=zero-preimport frame=56 road_us=5233 qroad_us=4111
+frame_latency mode=zero-preimport frame=57 road_us=5520 qroad_us=3818
+frame_latency mode=zero-preimport frame=58 road_us=4728 qroad_us=3472
+frame_latency mode=zero-preimport frame=59 road_us=4841 qroad_us=4318
+frame_latency mode=zero-preimport frame=60 road_us=5812 qroad_us=5838
+frame_latency mode=zero-preimport frame=61 road_us=5119 qroad_us=5373
+frame_latency mode=zero-preimport frame=62 road_us=5238 qroad_us=3808
+frame_latency mode=zero-preimport frame=63 road_us=4702 qroad_us=3661
+frame_latency mode=zero-preimport frame=64 road_us=4742 qroad_us=4477
+frame_latency mode=zero-preimport frame=65 road_us=5013 qroad_us=6460
+frame_latency mode=zero-preimport frame=66 road_us=4578 qroad_us=3382
+frame_latency mode=zero-preimport frame=67 road_us=4686 qroad_us=3464
+frame_latency mode=zero-preimport frame=68 road_us=4745 qroad_us=3925
+frame_latency mode=zero-preimport frame=69 road_us=4771 qroad_us=4690
+frame_latency mode=zero-preimport frame=70 road_us=5131 qroad_us=4702
+frame_latency mode=zero-preimport frame=71 road_us=6486 qroad_us=3784
+frame_latency mode=zero-preimport frame=72 road_us=4785 qroad_us=3417
+frame_latency mode=zero-preimport frame=73 road_us=4654 qroad_us=3604
+frame_latency mode=zero-preimport frame=74 road_us=4724 qroad_us=4045
+frame_latency mode=zero-preimport frame=75 road_us=5180 qroad_us=6251
+frame_latency mode=zero-preimport frame=76 road_us=5888 qroad_us=5837
+frame_latency mode=zero-preimport frame=77 road_us=5130 qroad_us=5249
+frame_latency mode=zero-preimport frame=78 road_us=5162 qroad_us=3613
+frame_latency mode=zero-preimport frame=79 road_us=4751 qroad_us=3800
+frame_latency mode=zero-preimport frame=80 road_us=4588 qroad_us=3507
+frame_latency mode=zero-preimport frame=81 road_us=4773 qroad_us=3382
+frame_latency mode=zero-preimport frame=82 road_us=4699 qroad_us=3385
+frame_latency mode=zero-preimport frame=83 road_us=4727 qroad_us=3505
+frame_latency mode=zero-preimport frame=84 road_us=4865 qroad_us=3801
+frame_latency mode=zero-preimport frame=85 road_us=4729 qroad_us=3348
+frame_latency mode=zero-preimport frame=86 road_us=5128 qroad_us=3983
+frame_latency mode=zero-preimport frame=87 road_us=4673 qroad_us=3275
+frame_latency mode=zero-preimport frame=88 road_us=4624 qroad_us=3333
+frame_latency mode=zero-preimport frame=89 road_us=4601 qroad_us=3408
+frame_latency mode=zero-preimport frame=90 road_us=5051 qroad_us=4589
+frame_latency mode=zero-preimport frame=91 road_us=13608 qroad_us=4163
+frame_latency mode=zero-preimport frame=92 road_us=6656 qroad_us=5134
+frame_latency mode=zero-preimport frame=93 road_us=5461 qroad_us=4122
+frame_latency mode=zero-preimport frame=94 road_us=5150 qroad_us=3649
+frame_latency mode=zero-preimport frame=95 road_us=4712 qroad_us=3844
+frame_latency mode=zero-preimport frame=96 road_us=5370 qroad_us=5050
+frame_latency mode=zero-preimport frame=97 road_us=4849 qroad_us=4436
+frame_latency mode=zero-preimport frame=98 road_us=5134 qroad_us=5216
+frame_latency mode=zero-preimport frame=99 road_us=4675 qroad_us=3844
+frame_latency mode=zero-preimport frame=100 road_us=4688 qroad_us=3552
+memory_snapshot=after_timed_frames road_pool_buffers=0 road_pool_bytes=0 qroad_pool_buffers=6 qroad_pool_bytes=1596672 road_import_handles=24 road_import_handle_bytes=82944000 dma_buf_objects=1 dma_buf_total_bytes=180224 vmrss='	   28092 kB' vmhwm='	   29000 kB' memavailable='    1770368 kB' cmafree='               0 kB'
+road_route_configured_zero_copy=1 road_imported_fds=24 road_import_failures=0 road_fallback_logged=0 qroad_route_configured_zero_copy=0 qroad_imported_fds=0 qroad_import_failures=0 qroad_fallback_logged=0
+memory_snapshot=before_close road_pool_buffers=0 road_pool_bytes=0 qroad_pool_buffers=6 qroad_pool_bytes=1596672 road_import_handles=24 road_import_handle_bytes=82944000 dma_buf_objects=1 dma_buf_total_bytes=180224 vmrss='	   28092 kB' vmhwm='	   29000 kB' memavailable='    1770368 kB' cmafree='               0 kB'
+memory_snapshot=after_close road_pool_buffers=0 road_pool_bytes=0 qroad_pool_buffers=0 qroad_pool_bytes=0 road_import_handles=0 road_import_handle_bytes=0 dma_buf_objects=1 dma_buf_total_bytes=266240 vmrss='	   28704 kB' vmhwm='	   29000 kB' memavailable='    1783296 kB' cmafree='               0 kB'
+road_submit_us_median=4922 p95=6374 p99=6988 n=100
+qroad_submit_us_median=3983 p95=5664 p99=6460 n=100
+road_accepted=100 road_failures=0 road_packets=100 road_payload_bytes=1215073 road_stream_bytes=1215239
+qroad_accepted=100 qroad_failures=0 qroad_packets=100 qroad_payload_bytes=105434
+preimport_us=34 cpu_sample_ns=272376121 wall_total_ms=5041 peak_rss_kb=29000 vmrss='	   28704 kB' vmhwm='	   29000 kB'
+memory_snapshot=before_input_release road_pool_buffers=0 road_pool_bytes=0 qroad_pool_buffers=0 qroad_pool_bytes=0 road_import_handles=0 road_import_handle_bytes=0 dma_buf_objects=1 dma_buf_total_bytes=266240 vmrss='	   28704 kB' vmhwm='	   29000 kB' memavailable='    1790708 kB' cmafree='               0 kB'
+process_final_rss vmrss='	   28704 kB' vmhwm='	   29000 kB' memavailable='    1871660 kB' cmafree='               0 kB'
+launch_exit_code=0 completed_utc=2026-10-31T03:17:58Z mem_after_kb=1878876

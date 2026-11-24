@@ -1,0 +1,17 @@
+Approved investigation r7 bounded GDB sampling — single failed attempt; no retry
+Run revision at start: 130; investigation revision 7; UID/EUID 1000/1000
+Device: /dev/video60; FFmpeg PID: 1187639; source hash before/after: 494fb8b88fda8bcf1d8301225019f4f01f4b77a0bb5cb3e69dde47ed96e1309b / 494fb8b88fda8bcf1d8301225019f4f01f4b77a0bb5cb3e69dde47ed96e1309b; drift=False
+Exact attempted FFmpeg argv: ['/usr/bin/ffmpeg', '-nostdin', '-hide_banner', '-loglevel', 'error', '-thread_queue_size', '1', '-threads', '1', '-filter_threads', '1', '-f', 'v4l2', '-input_format', 'mjpeg', '-framerate', '20', '-video_size', '1280x720', '-i', '/dev/video60', '-an', '-sn', '-dn', '-vf', 'scale=1280:720:flags=neighbor,format=nv12', '-pix_fmt', 'nv12', '-threads', '1', '-fps_mode', 'passthrough', '-frames:v', '600', '-f', 'rawvideo', 'pipe:1']
+Attempt result: 2/600 frames; 2764800/829440000 bytes; exit=255; watchdog triggers=0; GDB attach attempts=0; GDB snapshots=0
+Abort: RuntimeError: watchdog/GDB thread did not finish for frame 1
+Runner defect: Frame 1 completed before the 60ms watchdog threshold. The runner canceled its timer, then treated the timer thread briefly remaining alive during cancellation as a fatal error. It terminated FFmpeg after 2 complete frames before any watchdog trigger or GDB attach.
+Command-scope deviation: The attempted FFmpeg argv included -frames:v 600 as a finite-output cap, although the later steering explicitly prohibited adding it; this attempt is not a compliant r7 capture and was not repeated.
+Cleanup: FFmpeg child reaped; pipes closed; watchdog timers joined; child reaped=True; watchdog timers joined; no FFmpeg or GDB process remains.
+Read intervals: {'count': 1, 'gt60ms': 0, 'max': 21.609, 'mean': 21.609, 'p95': 21.609} (not acceptance evidence). Frame 0 was startup; frame 1 completed in 21.609ms, before watchdog threshold.
+FFmpeg stderr captured at cleanup:
+[vost#0:0/rawvideo @ 0x559c72bbf0] Error submitting a packet to the muxer: Immediate exit requested
+[out#0/rawvideo @ 0x559c72a640] Error muxing a packet
+[out#0/rawvideo @ 0x559c72a640] Error writing trailer: Immediate exit requested
+[out#0/rawvideo @ 0x559c72a640] Error closing file: Immediate exit requested
+
+No frame payload was saved. No GDB attach occurred; no strace or other tracer was used. No source edits or product tests occurred. Exactly one attempt was made, and it was not retried.

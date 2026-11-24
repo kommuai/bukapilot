@@ -1,0 +1,3 @@
+command: python3 -m py_compile system/sensord/sensord.py system/manager/process_config.py system/manager/test/test_manager.py
+surface: approved r4 implementation paths
+exit_code: 0

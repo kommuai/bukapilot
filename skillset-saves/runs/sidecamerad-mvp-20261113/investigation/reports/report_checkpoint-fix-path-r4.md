@@ -1,0 +1,9 @@
+# Checkpoint — bounded fix path revision 4
+
+Owner: BUILD through build/build-management. The next step is one read-only 600-frame default-argv FFmpeg trace on the same assigned camera, with no source/argv change and no frame payload saved. Keep the current one FFmpeg thread, one filter thread, queue size 1, fixed mode/reader, and all other settings unchanged.
+
+Instrument FFmpeg with per-thread strace timestamps/durations for `ioctl`, `futex`, `poll`/`ppoll`, `select`/`pselect6`, `epoll_wait`, and `read`/`readv`/`write`/`writev`. Use `-f -ttt -T`; keep read/write arguments raw-only so frame bytes are not logged, and retain ioctl request/buffer metadata only. In the Python controller, record monotonic timestamps after each complete raw-frame read and per-thread `/proc/<ffmpeg-pid>/task/*/schedstat` runtime/runqueue deltas at the same frame boundaries. Bracket realtime-to-monotonic clocks so FFmpeg TID syscall intervals can be compared with Python read intervals.
+
+For every >60 ms read gap, report overlapping per-thread syscall wait IDs/durations, runtime delta and runqueue-delay delta. A long `DQBUF`/poll/futex wait would support a kernel-input or synchronization wait; runtime accumulation without a long blocking syscall would point to user-space processing but would not prove it; runqueue-delay growth would support runnable scheduling delay. If no wait or scheduler signal aligns, preserve the remaining uncertainty rather than label CPU work as proven.
+
+This probe is bounded to 600 frames and timing/metadata only. `strace` changes scheduling, and post-read `/proc` snapshots add overhead to the next interval; those observer effects limit causal interpretation. It is diagnostic evidence only, not an AC-4 pass or a production fix. Preserve `timestampEof` as host-monotonic time after full raw-frame read; FFmpeg PTS remain V4L2 SOE, not EOF.

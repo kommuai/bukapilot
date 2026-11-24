@@ -1,0 +1,16 @@
+probe=single_system_heap_dmabuf_mpp_import
+frame_width=1920 frame_height=1200 nv12_bytes=3456000 max_allocation=4194304
+heap=/dev/dma_heap/system dma_fd=12 allocated_bytes=3456000
+dma_fd_identity=/dmabuf:1032062-g0-dmabuf-impor
+dma_fd_mode=0600 dma_fd_device=9 dma_fd_inode=1
+dma_buf_sync_start_rc=0 errno=2 (No such file or directory)
+dma_buf_sync_end_rc=0 errno=2 (No such file or directory)
+mpp_create=0 ctx=present api=present
+mpp_init_encoder_hevc=0
+fd_size_import_ret=0 imported=present
+ptr_retry_import=not_needed
+mpp_buffer_put=0
+mpp_destroy=0
+frames_submitted=0 packets_received=0 output_bytes=0
+munmap_ok=true close_dma_fd=0
+timeout_wrapper_exit=0

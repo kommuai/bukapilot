@@ -1,0 +1,19 @@
+2026-10-30T18:28:44+00:00
+hostname=kommu-870ce22d4093b701
+Linux kommu-870ce22d4093b701 5.10.198 #24 SMP Tue Sep 1 08:26:21 UTC 2026 aarch64 aarch64 aarch64 GNU/Linux
+c30b920d13b072d271122408822192e6e427b8ecac4ed289e3cecd64b7d37b47  /tmp/ka2-efficiency-r7-mergecheck/system/loggerd/encoderd
+ea762b7da71b63a73cdf14d053d84b091654aee5e5c4f26ceb1449b8fb8d92f9  /lib/aarch64-linux-gnu/librockchip_mpp.so.1
+    Build ID: a956b9960bf8e8ebb08b7e560570ff4c85449b1d
+	librockchip_mpp.so.1 => /lib/aarch64-linux-gnu/librockchip_mpp.so.1 (0x0000007f832b0000)
+
+processes:
+   3574 system.loggerd. system.loggerd.deleter
+   3592 python3         python3 -m system.loggerd.uploader
+
+users of device nodes:
+
+memory:
+MemAvailable:    2034828 kB
+CmaTotal:         262144 kB
+CmaFree:               0 kB
+/dev/mmcblk0p12     8525148 6253576   1816920      78% /data

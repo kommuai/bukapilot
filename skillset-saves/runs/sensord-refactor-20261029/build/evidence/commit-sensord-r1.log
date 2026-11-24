@@ -1,0 +1,15 @@
+Outcome: committed and verified
+Commit: d8eb1aba581225ffcae9e777d07080cb37147675
+Branch: camera
+Subject: Reduce sensord polling CPU usage
+Committed paths (7):
+system/sensord/sensord.py
+system/sensord/sensors/icm42670_accel.py
+system/sensord/sensors/icm42670_gyro.py
+system/sensord/tests/test_event_construction.py
+system/sensord/tests/test_fixed_calculations.py
+system/sensord/tests/test_gyro_buffer.py
+system/sensord/tests/test_polling_pacing.py
+Sensord worktree after commit: clean
+Other pre-existing worktree changes were not staged or included.
+No tests were run during the commit step; the focused offline suite passed earlier in this run (12 tests).

@@ -1,0 +1,155 @@
+{
+  "boundary": "design-to-build",
+  "changed_evidence": [
+    "acceptance",
+    "architecture",
+    "decisions",
+    "interfaces",
+    "plan",
+    "security_seed"
+  ],
+  "checked_at": "2026-10-29T13:06:02.269245+00:00",
+  "declared_schema_version": 2,
+  "evidence_digests": {
+    "acceptance": "f3eebde2c6e32e168af9f3295731113c620875a6ff43c2d77146963ef5d894ba",
+    "architecture": "3650c0cbbb404b1cdd493b15ff2ac1cdc7994a7be9ec4facce29919c288a65ff",
+    "decisions": "c174d90d919b41730ecb21ac059ebbee599b4c12703711613027851d0678ef64",
+    "interfaces": "6bdd551ecdf99e7bd262be0e67b34ed483d8e068464f973357cd7d3721e247c3",
+    "plan": "f3eebde2c6e32e168af9f3295731113c620875a6ff43c2d77146963ef5d894ba",
+    "security_seed": "47ff25bf670d76b3c6993325fb7ff5fd927a2e90341bba92aa997740b89c49a9",
+    "stack_lock": "e80e04e2361f105b4317eb5748f9ea2736b0eb911458fd737c68a87918e200ed",
+    "taste_snapshot": "4682921d44bc4cdb2a2056b837383d08e219fcd0d96281fe3dfc886316f312a8",
+    "ui_evidence": "21164a3a23c71148516c8d049d06c710bcb54a44308d97e3ba576bb0002c7f53"
+  },
+  "evidence_root": "/data/media/supremeteam/42c6eb550c629191187c/skillset-saves/runs/sensord-refactor-20261029",
+  "evidence_root_kind": "run",
+  "failures": [],
+  "gate_spec_digest": "b2995ffa29a827c2bf101391788bf1228eb38869ad7c0a601a4126734ee6c7c1",
+  "gate_spec_is_shipped": true,
+  "idempotency_drift": false,
+  "judgment": {
+    "by_owner": {},
+    "escalation": null,
+    "findings": [
+      {
+        "basis": {
+          "kind": "contract",
+          "ref": "Design Packet Validation Sequence",
+          "source": "design/gatekeeper-design/references/workflow.md"
+        },
+        "evidence": [
+          "reports/report_interfaces.md",
+          "reports/report_architecture.md",
+          "reports/design-package.md"
+        ],
+        "id": "INFO-API-CONTRACTS-OUT-OF-SCOPE",
+        "key": "interfaces",
+        "owner": "architect",
+        "severity": "Info",
+        "statement": "The shape validator's conditional API-contract finding is resolved as out of scope: IF-1 is an internal process-lifecycle contract, with no HTTP, webhook, or request/response endpoint. Existing KA2 cereal services and payloads remain unchanged."
+      },
+      {
+        "basis": {
+          "kind": "contract",
+          "ref": "Design Packet Validation Sequence",
+          "source": "design/gatekeeper-design/references/workflow.md"
+        },
+        "evidence": [
+          "reports/report_interfaces.md",
+          "reports/report_architecture.md",
+          "reports/design-package.md",
+          "manifest:evidence.ui_evidence"
+        ],
+        "id": "INFO-UI-HANDOFF-OUT-OF-SCOPE",
+        "key": "ui_evidence",
+        "owner": "architect",
+        "severity": "Info",
+        "statement": "The conditional frontend/UI finding is resolved as out of scope: this daemon and its machine consumers introduce no user-facing surface, and the manifest carries the architect's sanctioned no-surface applicability record."
+      },
+      {
+        "basis": {
+          "artifact": "../intake/report_grilling.md",
+          "kind": "decision",
+          "ref": "D-20"
+        },
+        "evidence": [
+          "reports/report_architecture.md",
+          "reports/report_interfaces.md",
+          "reports/implementation-spec.md"
+        ],
+        "id": "INFO-NON-KA2-OFF-TARGET-UNGUARDED",
+        "key": "architecture",
+        "owner": "architect",
+        "severity": "Info",
+        "statement": "Residual risk accepted under D-20: managed or direct non-KA2 invocation is not rejected and may reach the fixed bus-3 path. Non-KA2 behavior is explicitly outside the confirmed KA2 contract; this is not a claim of off-target safety and does not require reinstating a platform guard."
+      },
+      {
+        "basis": {
+          "artifact": "../intake/report_grilling.md",
+          "kind": "decision",
+          "ref": "D-3"
+        },
+        "evidence": [
+          "reports/delivery-plan.md",
+          "reports/implementation-spec.md"
+        ],
+        "id": "INFO-TARGET-VALIDATION-DEFERRED",
+        "key": "plan",
+        "owner": "planner",
+        "severity": "Info",
+        "statement": "Physical board and sensor identity, startup, live cadence, shutdown, and target CPU/RSS remain unverified and are explicitly deferred under D-3. The plan correctly stops at build/review and makes no hardware-readiness or target-performance claim."
+      }
+    ],
+    "gate": "gatekeeper-design",
+    "intake": {
+      "artifact": "../intake/report_grilling.md"
+    },
+    "valid": true,
+    "verdict": "APPROVED"
+  },
+  "judgment_failures": [],
+  "manifest": "manifest.json",
+  "manifest_schema_version": 2,
+  "mechanical_only": false,
+  "missing": [],
+  "mixed_revisions": false,
+  "owner": "commander",
+  "package_fingerprint": "4bd563fa71a93b825d334a8bae430c815635dc6da2e4270041700485d627488d",
+  "pass": true,
+  "prior_record": {
+    "gate_spec_digest": "b2995ffa29a827c2bf101391788bf1228eb38869ad7c0a601a4126734ee6c7c1",
+    "gate_spec_is_shipped": true,
+    "judgment": {
+      "gate": "gatekeeper-design",
+      "valid": true,
+      "verdict": "APPROVED"
+    },
+    "path": "/data/media/supremeteam/42c6eb550c629191187c/skillset-saves/runs/sensord-refactor-20261029/design/verdict_design-to-build.json"
+  },
+  "prior_reusable": null,
+  "registry_is_shipped": true,
+  "revise_packet": {
+    "actions_by_owner": {},
+    "by_key": {},
+    "by_owner": {},
+    "judgment_by_owner": {},
+    "unassigned": []
+  },
+  "revision": "r4",
+  "revision_cycle": {
+    "boundary_revise_rounds": 0,
+    "consecutive_revise": 0,
+    "gate": "gatekeeper-design",
+    "held_for_user": false,
+    "history": "verdict_design-to-build.cycles.json"
+  },
+  "run_id": "sensord-refactor-20261029",
+  "submission_id": "sensord-refactor-20261029-design-r4",
+  "unchanged_evidence": [
+    "stack_lock",
+    "taste_snapshot",
+    "ui_evidence"
+  ],
+  "verdict_id": "758dae8eff09975000a76ad0f5850194eb9ec97afbd33a4ad8a0ca927908ae0d",
+  "warnings": []
+}

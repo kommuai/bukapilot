@@ -1,0 +1,106 @@
+{
+  "boundary": "build-to-review",
+  "changed_evidence": null,
+  "checked_at": "2026-10-31T13:59:52.908414+00:00",
+  "declared_schema_version": 2,
+  "evidence_digests": {
+    "approved_design_revision": "13f63d5fa0a1cc96f660e78415ba84585a6d846705bae4747ae7aeecab688293",
+    "implementation": "285bf959ee62c2a8cc52034186c0a023f1b7339b475193c485f02e7884429914",
+    "runtime": "c930512f2cd3ac7700109683ffa5ad316425bed297ac248caa3457e42ca6731c",
+    "security_evidence": "531789ae05a9d03014e457046518624189ee55c0cf1993743d6cd2e9b82598bf",
+    "tests": "0d86f8c079c531d76e8c7ff320e750643217e8c29f68dccf30d800eace3386f4",
+    "traceability": "b1ce632c7ab8fb3035d83a61e27fe5e1b73fda59edca65b41cebc94d166b6efb"
+  },
+  "evidence_root": "/data/openpilot/.harness-state/ka2-efficiency-build-r7/layout-probe-r10/skillset-saves/runs/loggerd-ka2-efficiency-20261029",
+  "evidence_root_kind": "run",
+  "failures": [],
+  "gate_spec_digest": "b2995ffa29a827c2bf101391788bf1228eb38869ad7c0a601a4126734ee6c7c1",
+  "gate_spec_is_shipped": true,
+  "idempotency_drift": false,
+  "judgment": {
+    "by_owner": {},
+    "escalation": null,
+    "findings": [
+      {
+        "basis": {
+          "kind": "contract",
+          "ref": "build-to-review fallback_values and applicability_records for security_evidence",
+          "source": "gates.yaml"
+        },
+        "evidence": [
+          "manifest:evidence.security_evidence"
+        ],
+        "id": "INFO-SECURITY-WAIVER-CONFIRMED",
+        "key": "security_evidence",
+        "owner": "security-builder",
+        "severity": "Info",
+        "statement": "The package-shape check marked a conditional security artifact because there is no standalone security report. The schema-2 manifest carries the sanctioned typed no-trust-boundary applicability record. Inspection of the 18 changed first-party loggerd production, build, and test files confirms no external actor, endpoint, credential, privilege boundary, or cereal schema changed; the waiver is applicable."
+      },
+      {
+        "basis": {
+          "kind": "contract",
+          "ref": "Save Protocol: gatekeeper-build writes the build-to-review verdict record",
+          "source": "build/gatekeeper-build/SKILL.md"
+        },
+        "evidence": [],
+        "id": "INFO-CURRENT-GATE-VERDICT-SLOT",
+        "key": null,
+        "owner": "build-management",
+        "severity": "Info",
+        "statement": "The package-shape check noted that no gatekeeper-build verdict existed when its precheck ran. This is the current initial submission, and this gate is now writing the required verdict record at the canonical path."
+      },
+      {
+        "basis": {
+          "kind": "contradiction"
+        },
+        "evidence": [
+          "reports/report_tests_r10.md",
+          "reports/report_runtime_health_r10.md"
+        ],
+        "id": "INFO-STALE-TEST-REPORT-REFRESH-NOTE",
+        "key": "tests",
+        "owner": "test-builder",
+        "severity": "Info",
+        "statement": "The test report retains a sentence saying health-check must refresh runtime evidence before build submission. The r269 production smoke, runtime report, and typed runtime probe already provide that refresh and pass on the same source hashes, so this is stale report wording rather than a missing runtime result. The note should be clarified in a future report-only update; it does not require rerunning tests or runtime validation."
+      }
+    ],
+    "gate": "gatekeeper-build",
+    "intake": {
+      "artifact": "../intake/report_grilling.md"
+    },
+    "valid": true,
+    "verdict": "APPROVED"
+  },
+  "judgment_failures": [],
+  "manifest": "manifest.json",
+  "manifest_schema_version": 2,
+  "mechanical_only": false,
+  "missing": [],
+  "mixed_revisions": false,
+  "owner": "build-management",
+  "package_fingerprint": "774312237abface7b92f6c93ebc6145ea2940ccb6c7839086c26b9d68135e916",
+  "pass": true,
+  "prior_record": null,
+  "prior_reusable": null,
+  "registry_is_shipped": true,
+  "revise_packet": {
+    "actions_by_owner": {},
+    "by_key": {},
+    "by_owner": {},
+    "judgment_by_owner": {},
+    "unassigned": []
+  },
+  "revision": 266,
+  "revision_cycle": {
+    "boundary_revise_rounds": 0,
+    "consecutive_revise": 0,
+    "gate": "gatekeeper-build",
+    "held_for_user": false,
+    "history": "verdict_build-to-review.cycles.json"
+  },
+  "run_id": "loggerd-ka2-efficiency-20261029",
+  "submission_id": "loggerd-ka2-efficiency-20261029-build-r10",
+  "unchanged_evidence": null,
+  "verdict_id": "c10b81939237079d6932ae7729e685f6a646def2fa51eb746863b6b2aab559c0",
+  "warnings": []
+}

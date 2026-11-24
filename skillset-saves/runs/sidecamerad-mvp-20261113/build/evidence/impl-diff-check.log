@@ -1,0 +1,2 @@
+command: git diff --check -- common/params_keys.h system/manager/process_config.py system/sidecamerad.py
+exit_code: 0

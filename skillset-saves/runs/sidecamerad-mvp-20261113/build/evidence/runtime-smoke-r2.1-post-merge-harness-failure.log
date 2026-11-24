@@ -1,0 +1,11 @@
+probe=sidecamerad current-binding local live smoke
+observed_at=2026-11-13T09:14:30.010728+00:00
+target=/data/openpilot local host; physical UVC decoder via /dev/v4l/by-path/platform-xhci-hcd.11.auto-usb-0:1:1.0-video-index0
+entry_command=python3 system/sidecamerad.py
+start_discovery=unavailable; check_runtime.py requires Python >=3.13, host is Python 3.12.3
+readiness_window_s=8; predicate=at least 10 unique messages on each transport and >=1 matching frame ID before timeout
+polling=local cereal sub_sock + local VisionIpcClient, timeout 50ms; smoke flow=receive side camera frames and check Params
+params_root=temporary isolated directory; child_ZMQ_initial=1; parent_ZMQ=None
+Traceback (most recent call last):
+  File "<stdin>", line 25, in <module>
+NameError: name 'stat_is_char' is not defined

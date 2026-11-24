@@ -1,0 +1,18 @@
+Python: 3.12.3 (CPython)
+Host: aarch64; samples per calibration: 300
+Each timed call allocates its buffer, ingests 300 prebuilt triples, runs fmean/pstdev, and classifies.
+timeit: 9 repeats x 800 calls per strategy and dataset; report median and minimum ns/call.
+
+Dataset: signed-endpoints/nonstationary
+Exact output parity: means, population stddevs, stationary result, selected bias all match: ((0.49333333333333335, -0.5, -0.06333333333333334), (2676.8285893239827, 2676.8285880870294, 2675.4619550005855), False, (0.0, 0.0, 0.0))
+tuple-list baseline: median=782925.1 ns/call; min=781960.0 ns/call
+current three-array: median=1197756.2 ns/call; min=1191978.9 ns/call
+proposed interleaved: median=909891.0 ns/call; min=909309.5 ns/call
+Proposed/current median ratio: 0.760x
+
+Dataset: stationary
+Exact output parity: means, population stddevs, stationary result, selected bias all match: ((10.5, -20.0, 29.5), (0.5, 0.816496580927726, 0.5), True, (10.5, -20.0, 29.5))
+tuple-list baseline: median=764678.9 ns/call; min=764258.9 ns/call
+current three-array: median=1171803.7 ns/call; min=1167452.7 ns/call
+proposed interleaved: median=889981.6 ns/call; min=882769.7 ns/call
+Proposed/current median ratio: 0.759x

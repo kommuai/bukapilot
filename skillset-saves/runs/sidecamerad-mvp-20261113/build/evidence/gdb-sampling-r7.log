@@ -1,0 +1,216 @@
+Approved r7 one-shot GDB sampling diagnostic — corrected attempt 2
+Run revision 131; investigation revision 7; UID/EUID 1000/1000
+Device configured=/dev/v4l/by-path/platform-xhci-hcd.11.auto-usb-0:1:1.0-video-index0; resolved=/dev/video60
+FFmpeg PID=1220095; exact default argv=['/usr/bin/ffmpeg', '-nostdin', '-hide_banner', '-loglevel', 'error', '-thread_queue_size', '1', '-threads', '1', '-filter_threads', '1', '-f', 'v4l2', '-input_format', 'mjpeg', '-framerate', '20', '-video_size', '1280x720', '-i', '/dev/v4l/by-path/platform-xhci-hcd.11.auto-usb-0:1:1.0-video-index0', '-an', '-sn', '-dn', '-vf', 'scale=1280:720:flags=neighbor,format=nv12', '-pix_fmt', 'nv12', '-threads', '1', '-fps_mode', 'passthrough', '-f', 'rawvideo', 'pipe:1']
+Frames=600/600; bytes=829440000/829440000; status=complete; FFmpeg termination exit=-9; child reaped=True
+Source hash before/after=494fb8b88fda8bcf1d8301225019f4f01f4b77a0bb5cb3e69dde47ed96e1309b/494fb8b88fda8bcf1d8301225019f4f01f4b77a0bb5cb3e69dde47ed96e1309b; drift=False
+Read intervals={'count': 599, 'mean': 49.974, 'p95': 64.672, 'max': 1098.139, 'gt60ms': 65}
+Watchdog triggers=63; successful snapshots=3; snapshot attempts=3; suppressed triggers=60
+Watchdog cleanup: idle=True; joined=True
+
+SNAPSHOT #1 frame=2 status=success trigger_ns=23297564779330 attach_ns=23298605002927 detach_ns=23298624779664 full_read_completion_ns=23297568087702 pause_ms=19.777
+PID verification: {'pid': 1220095, 'ppid': 1220090, 'expected_ppid': 1220090, 'exe': '/usr/bin/ffmpeg', 'expected_exe': '/usr/bin/ffmpeg', 'cmdline': ['/usr/bin/ffmpeg', '-nostdin', '-hide_banner', '-loglevel', 'error', '-thread_queue_size', '1', '-threads', '1', '-filter_threads', '1', '-f', 'v4l2', '-input_format', 'mjpeg', '-framerate', '20', '-video_size', '1280x720', '-i', '/dev/v4l/by-path/platform-xhci-hcd.11.auto-usb-0:1:1.0-video-index0', '-an', '-sn', '-dn', '-vf', 'scale=1280:720:flags=neighbor,format=nv12', '-pix_fmt', 'nv12', '-threads', '1', '-fps_mode', 'passthrough', '-f', 'rawvideo', 'pipe:1'], 'expected_cmdline': ['/usr/bin/ffmpeg', '-nostdin', '-hide_banner', '-loglevel', 'error', '-thread_queue_size', '1', '-threads', '1', '-filter_threads', '1', '-f', 'v4l2', '-input_format', 'mjpeg', '-framerate', '20', '-video_size', '1280x720', '-i', '/dev/v4l/by-path/platform-xhci-hcd.11.auto-usb-0:1:1.0-video-index0', '-an', '-sn', '-dn', '-vf', 'scale=1280:720:flags=neighbor,format=nv12', '-pix_fmt', 'nv12', '-threads', '1', '-fps_mode', 'passthrough', '-f', 'rawvideo', 'pipe:1'], 'live': True, 'exe_match': True, 'cmdline_match': True, 'verified': True}
+GDB argv: ['/usr/bin/gdb', '--quiet', '--batch', '--nx', '--pid', '1220095', '-ex', 'set pagination off', '-ex', 'set confirm off', '-ex', 'set debuginfod enabled off', '-ex', 'python import time; print("GDB_ATTACH_MONO_NS="+str(time.monotonic_ns()))', '-ex', 'info threads', '-ex', 'thread apply all bt 16', '-ex', 'detach', '-ex', 'python print("GDB_DETACH_MONO_NS="+str(time.monotonic_ns()))', '-ex', 'quit']
+LWP map: ['1220095', '1220132', '1220133', '1220137']; stack LWPs: ['1220095', '1220132', '1220133', '1220137']; backtrace usable=True; detach ack=True
+--- GDB output ---
+[New LWP 1220137]
+[New LWP 1220133]
+[New LWP 1220132]
+
+This GDB supports auto-downloading debuginfo from the following URLs:
+  <https://debuginfod.ubuntu.com>
+Enable debuginfod for this session? (y or [n]) [answered N; input not from terminal]
+Debuginfod has been disabled.
+To make this setting permanent, add 'set debuginfod enabled off' to .gdbinit.
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/aarch64-linux-gnu/libthread_db.so.1".
+0x0000007f99e51d6c in ?? () from /lib/aarch64-linux-gnu/libc.so.6
+GDB_ATTACH_MONO_NS=23298605002927
+  Id   Target Id                                           Frame 
+* 1    Thread 0x7f9a03d020 (LWP 1220095) "ffmpeg"          0x0000007f99e51d6c in ?? () from /lib/aarch64-linux-gnu/libc.so.6
+  2    Thread 0x7f84a951e0 (LWP 1220137) "mux0:rawvideo"   0x0000007f99eb1d48 in write () from /lib/aarch64-linux-gnu/libc.so.6
+  3    Thread 0x7f8546e1e0 (LWP 1220133) "dmx0:video4linu" 0x0000007f99e8bd90 in clock_nanosleep () from /lib/aarch64-linux-gnu/libc.so.6
+  4    Thread 0x7f85c7e1e0 (LWP 1220132) "dec0:0:mjpeg"    0x0000007f99e51d6c in ?? () from /lib/aarch64-linux-gnu/libc.so.6
+
+Thread 4 (Thread 0x7f85c7e1e0 (LWP 1220132) "dec0:0:mjpeg"):
+#0  0x0000007f99e51d6c in ??? () at /lib/aarch64-linux-gnu/libc.so.6
+#1  0x0000007f99e549f0 in pthread_cond_wait () at /lib/aarch64-linux-gnu/libc.so.6
+#2  0x000000558016ff5c in ??? ()
+#3  0x000000558014e43c in ??? ()
+#4  0x0000007f99e5582c in ??? () at /lib/aarch64-linux-gnu/libc.so.6
+#5  0x0000007f99ebba0c in ??? () at /lib/aarch64-linux-gnu/libc.so.6
+
+Thread 3 (Thread 0x7f8546e1e0 (LWP 1220133) "dmx0:video4linu"):
+#0  0x0000007f99e8bd90 in clock_nanosleep () at /lib/aarch64-linux-gnu/libc.so.6
+#1  0x0000007f99e960bc in nanosleep () at /lib/aarch64-linux-gnu/libc.so.6
+#2  0x0000007f9a0c5488 in av_usleep () at /lib/aarch64-linux-gnu/libavutil.so.58
+#3  0x0000005580152d14 in ??? ()
+#4  0x0000007f99e5582c in ??? () at /lib/aarch64-linux-gnu/libc.so.6
+#5  0x0000007f99ebba0c in ??? () at /lib/aarch64-linux-gnu/libc.so.6
+
+Thread 2 (Thread 0x7f84a951e0 (LWP 1220137) "mux0:rawvideo"):
+#0  0x0000007f99eb1d48 in write () at /lib/aarch64-linux-gnu/libc.so.6
+#1  0x0000007f9c64b66c in ??? () at /lib/aarch64-linux-gnu/libavformat.so.60
+#2  0x0000007f9c61426c in ??? () at /lib/aarch64-linux-gnu/libavformat.so.60
+#3  0x0000007f9c614808 in ??? () at /lib/aarch64-linux-gnu/libavformat.so.60
+#4  0x0000007f9c615ae8 in avio_write () at /lib/aarch64-linux-gnu/libavformat.so.60
+#5  0x0000007f9c72f530 in ??? () at /lib/aarch64-linux-gnu/libavformat.so.60
+#6  0x0000007f9c6fb1b8 in ??? () at /lib/aarch64-linux-gnu/libavformat.so.60
+#7  0x0000007f9c6fb5c0 in ??? () at /lib/aarch64-linux-gnu/libavformat.so.60
+#8  0x0000007f9c6fda90 in av_interleaved_write_frame () at /lib/aarch64-linux-gnu/libavformat.so.60
+#9  0x000000558015e260 in ??? ()
+#10 0x000000558015e888 in ??? ()
+#11 0x0000007f99e5582c in ??? () at /lib/aarch64-linux-gnu/libc.so.6
+#12 0x0000007f99ebba0c in ??? () at /lib/aarch64-linux-gnu/libc.so.6
+
+Thread 1 (Thread 0x7f9a03d020 (LWP 1220095) "ffmpeg"):
+#0  0x0000007f99e51d6c in ??? () at /lib/aarch64-linux-gnu/libc.so.6
+#1  0x0000007f99e549f0 in pthread_cond_wait () at /lib/aarch64-linux-gnu/libc.so.6
+#2  0x0000007f9a0c4fa4 in av_thread_message_queue_recv () at /lib/aarch64-linux-gnu/libavutil.so.58
+#3  0x00000055801542dc in ??? ()
+#4  0x000000558014d488 in main ()
+[Inferior 1 (process 1220095) detached]
+GDB_DETACH_MONO_NS=23298624779664
+
+SNAPSHOT #2 frame=3 status=success trigger_ns=23298662542012 attach_ns=23299701311864 detach_ns=23299722061600 full_read_completion_ns=23298666226926 pause_ms=20.75
+PID verification: {'pid': 1220095, 'ppid': 1220090, 'expected_ppid': 1220090, 'exe': '/usr/bin/ffmpeg', 'expected_exe': '/usr/bin/ffmpeg', 'cmdline': ['/usr/bin/ffmpeg', '-nostdin', '-hide_banner', '-loglevel', 'error', '-thread_queue_size', '1', '-threads', '1', '-filter_threads', '1', '-f', 'v4l2', '-input_format', 'mjpeg', '-framerate', '20', '-video_size', '1280x720', '-i', '/dev/v4l/by-path/platform-xhci-hcd.11.auto-usb-0:1:1.0-video-index0', '-an', '-sn', '-dn', '-vf', 'scale=1280:720:flags=neighbor,format=nv12', '-pix_fmt', 'nv12', '-threads', '1', '-fps_mode', 'passthrough', '-f', 'rawvideo', 'pipe:1'], 'expected_cmdline': ['/usr/bin/ffmpeg', '-nostdin', '-hide_banner', '-loglevel', 'error', '-thread_queue_size', '1', '-threads', '1', '-filter_threads', '1', '-f', 'v4l2', '-input_format', 'mjpeg', '-framerate', '20', '-video_size', '1280x720', '-i', '/dev/v4l/by-path/platform-xhci-hcd.11.auto-usb-0:1:1.0-video-index0', '-an', '-sn', '-dn', '-vf', 'scale=1280:720:flags=neighbor,format=nv12', '-pix_fmt', 'nv12', '-threads', '1', '-fps_mode', 'passthrough', '-f', 'rawvideo', 'pipe:1'], 'live': True, 'exe_match': True, 'cmdline_match': True, 'verified': True}
+GDB argv: ['/usr/bin/gdb', '--quiet', '--batch', '--nx', '--pid', '1220095', '-ex', 'set pagination off', '-ex', 'set confirm off', '-ex', 'set debuginfod enabled off', '-ex', 'python import time; print("GDB_ATTACH_MONO_NS="+str(time.monotonic_ns()))', '-ex', 'info threads', '-ex', 'thread apply all bt 16', '-ex', 'detach', '-ex', 'python print("GDB_DETACH_MONO_NS="+str(time.monotonic_ns()))', '-ex', 'quit']
+LWP map: ['1220095', '1220132', '1220133', '1220137']; stack LWPs: ['1220095', '1220132', '1220133', '1220137']; backtrace usable=True; detach ack=True
+--- GDB output ---
+[New LWP 1220137]
+[New LWP 1220133]
+[New LWP 1220132]
+
+This GDB supports auto-downloading debuginfo from the following URLs:
+  <https://debuginfod.ubuntu.com>
+Enable debuginfod for this session? (y or [n]) [answered N; input not from terminal]
+Debuginfod has been disabled.
+To make this setting permanent, add 'set debuginfod enabled off' to .gdbinit.
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/aarch64-linux-gnu/libthread_db.so.1".
+0x0000007f9b197600 in ?? () from /lib/aarch64-linux-gnu/libswscale.so.7
+GDB_ATTACH_MONO_NS=23299701311864
+  Id   Target Id                                           Frame 
+* 1    Thread 0x7f9a03d020 (LWP 1220095) "ffmpeg"          0x0000007f9b197600 in ?? () from /lib/aarch64-linux-gnu/libswscale.so.7
+  2    Thread 0x7f84a951e0 (LWP 1220137) "mux0:rawvideo"   0x0000007f99eb1d48 in write () from /lib/aarch64-linux-gnu/libc.so.6
+  3    Thread 0x7f8546e1e0 (LWP 1220133) "dmx0:video4linu" 0x0000007f99e51d6c in ?? () from /lib/aarch64-linux-gnu/libc.so.6
+  4    Thread 0x7f85c7e1e0 (LWP 1220132) "dec0:0:mjpeg"    0x0000007f99e51d6c in ?? () from /lib/aarch64-linux-gnu/libc.so.6
+
+Thread 4 (Thread 0x7f85c7e1e0 (LWP 1220132) "dec0:0:mjpeg"):
+#0  0x0000007f99e51d6c in ??? () at /lib/aarch64-linux-gnu/libc.so.6
+#1  0x0000007f99e549f0 in pthread_cond_wait () at /lib/aarch64-linux-gnu/libc.so.6
+#2  0x000000558016ff5c in ??? ()
+#3  0x000000558014e43c in ??? ()
+#4  0x0000007f99e5582c in ??? () at /lib/aarch64-linux-gnu/libc.so.6
+#5  0x0000007f99ebba0c in ??? () at /lib/aarch64-linux-gnu/libc.so.6
+
+Thread 3 (Thread 0x7f8546e1e0 (LWP 1220133) "dmx0:video4linu"):
+#0  0x0000007f99e51d6c in ??? () at /lib/aarch64-linux-gnu/libc.so.6
+#1  0x0000007f99e549f0 in pthread_cond_wait () at /lib/aarch64-linux-gnu/libc.so.6
+#2  0x0000007f9a0c4eb4 in av_thread_message_queue_send () at /lib/aarch64-linux-gnu/libavutil.so.58
+#3  0x0000005580152b34 in ??? ()
+#4  0x0000007f99e5582c in ??? () at /lib/aarch64-linux-gnu/libc.so.6
+#5  0x0000007f99ebba0c in ??? () at /lib/aarch64-linux-gnu/libc.so.6
+
+Thread 2 (Thread 0x7f84a951e0 (LWP 1220137) "mux0:rawvideo"):
+#0  0x0000007f99eb1d48 in write () at /lib/aarch64-linux-gnu/libc.so.6
+#1  0x0000007f9c64b66c in ??? () at /lib/aarch64-linux-gnu/libavformat.so.60
+#2  0x0000007f9c61426c in ??? () at /lib/aarch64-linux-gnu/libavformat.so.60
+#3  0x0000007f9c614808 in ??? () at /lib/aarch64-linux-gnu/libavformat.so.60
+#4  0x0000007f9c615ae8 in avio_write () at /lib/aarch64-linux-gnu/libavformat.so.60
+#5  0x0000007f9c72f530 in ??? () at /lib/aarch64-linux-gnu/libavformat.so.60
+#6  0x0000007f9c6fb1b8 in ??? () at /lib/aarch64-linux-gnu/libavformat.so.60
+#7  0x0000007f9c6fb5c0 in ??? () at /lib/aarch64-linux-gnu/libavformat.so.60
+#8  0x0000007f9c6fda90 in av_interleaved_write_frame () at /lib/aarch64-linux-gnu/libavformat.so.60
+#9  0x000000558015e260 in ??? ()
+#10 0x000000558015e888 in ??? ()
+#11 0x0000007f99e5582c in ??? () at /lib/aarch64-linux-gnu/libc.so.6
+#12 0x0000007f99ebba0c in ??? () at /lib/aarch64-linux-gnu/libc.so.6
+
+Thread 1 (Thread 0x7f9a03d020 (LWP 1220095) "ffmpeg"):
+#0  0x0000007f9b197600 in ??? () at /lib/aarch64-linux-gnu/libswscale.so.7
+#1  0x0000007f9b1ba6fc in ??? () at /lib/aarch64-linux-gnu/libswscale.so.7
+#2  0x0000007f9b19f07c in ??? () at /lib/aarch64-linux-gnu/libswscale.so.7
+#3  0x0000007f9b19ff88 in sws_receive_slice () at /lib/aarch64-linux-gnu/libswscale.so.7
+#4  0x0000007f9b1a0078 in sws_scale_frame () at /lib/aarch64-linux-gnu/libswscale.so.7
+#5  0x0000007f9cbbdbe0 in ??? () at /lib/aarch64-linux-gnu/libavfilter.so.9
+#6  0x0000007f9cbbdd98 in ??? () at /lib/aarch64-linux-gnu/libavfilter.so.9
+#7  0x0000007f9ca3a320 in ??? () at /lib/aarch64-linux-gnu/libavfilter.so.9
+#8  0x0000007f9ca3f868 in av_buffersrc_add_frame_flags () at /lib/aarch64-linux-gnu/libavfilter.so.9
+#9  0x000000558015cb3c in ??? ()
+#10 0x000000558014f974 in ??? ()
+#11 0x0000005580177828 in ??? ()
+#12 0x000000558014d834 in main ()
+[Inferior 1 (process 1220095) detached]
+GDB_DETACH_MONO_NS=23299722061600
+
+SNAPSHOT #3 frame=4 status=success trigger_ns=23299755961701 attach_ns=23300693756543 detach_ns=23300713669488 full_read_completion_ns=23299759481532 pause_ms=19.913
+PID verification: {'pid': 1220095, 'ppid': 1220090, 'expected_ppid': 1220090, 'exe': '/usr/bin/ffmpeg', 'expected_exe': '/usr/bin/ffmpeg', 'cmdline': ['/usr/bin/ffmpeg', '-nostdin', '-hide_banner', '-loglevel', 'error', '-thread_queue_size', '1', '-threads', '1', '-filter_threads', '1', '-f', 'v4l2', '-input_format', 'mjpeg', '-framerate', '20', '-video_size', '1280x720', '-i', '/dev/v4l/by-path/platform-xhci-hcd.11.auto-usb-0:1:1.0-video-index0', '-an', '-sn', '-dn', '-vf', 'scale=1280:720:flags=neighbor,format=nv12', '-pix_fmt', 'nv12', '-threads', '1', '-fps_mode', 'passthrough', '-f', 'rawvideo', 'pipe:1'], 'expected_cmdline': ['/usr/bin/ffmpeg', '-nostdin', '-hide_banner', '-loglevel', 'error', '-thread_queue_size', '1', '-threads', '1', '-filter_threads', '1', '-f', 'v4l2', '-input_format', 'mjpeg', '-framerate', '20', '-video_size', '1280x720', '-i', '/dev/v4l/by-path/platform-xhci-hcd.11.auto-usb-0:1:1.0-video-index0', '-an', '-sn', '-dn', '-vf', 'scale=1280:720:flags=neighbor,format=nv12', '-pix_fmt', 'nv12', '-threads', '1', '-fps_mode', 'passthrough', '-f', 'rawvideo', 'pipe:1'], 'live': True, 'exe_match': True, 'cmdline_match': True, 'verified': True}
+GDB argv: ['/usr/bin/gdb', '--quiet', '--batch', '--nx', '--pid', '1220095', '-ex', 'set pagination off', '-ex', 'set confirm off', '-ex', 'set debuginfod enabled off', '-ex', 'python import time; print("GDB_ATTACH_MONO_NS="+str(time.monotonic_ns()))', '-ex', 'info threads', '-ex', 'thread apply all bt 16', '-ex', 'detach', '-ex', 'python print("GDB_DETACH_MONO_NS="+str(time.monotonic_ns()))', '-ex', 'quit']
+LWP map: ['1220095', '1220132', '1220133', '1220137']; stack LWPs: ['1220095', '1220132', '1220133', '1220137']; backtrace usable=True; detach ack=True
+--- GDB output ---
+[New LWP 1220137]
+[New LWP 1220133]
+[New LWP 1220132]
+
+This GDB supports auto-downloading debuginfo from the following URLs:
+  <https://debuginfod.ubuntu.com>
+Enable debuginfod for this session? (y or [n]) [answered N; input not from terminal]
+Debuginfod has been disabled.
+To make this setting permanent, add 'set debuginfod enabled off' to .gdbinit.
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/aarch64-linux-gnu/libthread_db.so.1".
+0x0000007f99e51d6c in ?? () from /lib/aarch64-linux-gnu/libc.so.6
+GDB_ATTACH_MONO_NS=23300693756543
+  Id   Target Id                                           Frame 
+* 1    Thread 0x7f9a03d020 (LWP 1220095) "ffmpeg"          0x0000007f99e51d6c in ?? () from /lib/aarch64-linux-gnu/libc.so.6
+  2    Thread 0x7f84a951e0 (LWP 1220137) "mux0:rawvideo"   0x0000007f99eb1d48 in write () from /lib/aarch64-linux-gnu/libc.so.6
+  3    Thread 0x7f8546e1e0 (LWP 1220133) "dmx0:video4linu" 0x0000007f99e51d6c in ?? () from /lib/aarch64-linux-gnu/libc.so.6
+  4    Thread 0x7f85c7e1e0 (LWP 1220132) "dec0:0:mjpeg"    0x0000007f99e51d6c in ?? () from /lib/aarch64-linux-gnu/libc.so.6
+
+Thread 4 (Thread 0x7f85c7e1e0 (LWP 1220132) "dec0:0:mjpeg"):
+#0  0x0000007f99e51d6c in ??? () at /lib/aarch64-linux-gnu/libc.so.6
+#1  0x0000007f99e549f0 in pthread_cond_wait () at /lib/aarch64-linux-gnu/libc.so.6
+#2  0x000000558016ff5c in ??? ()
+#3  0x000000558014e43c in ??? ()
+#4  0x0000007f99e5582c in ??? () at /lib/aarch64-linux-gnu/libc.so.6
+#5  0x0000007f99ebba0c in ??? () at /lib/aarch64-linux-gnu/libc.so.6
+
+Thread 3 (Thread 0x7f8546e1e0 (LWP 1220133) "dmx0:video4linu"):
+#0  0x0000007f99e51d6c in ??? () at /lib/aarch64-linux-gnu/libc.so.6
+#1  0x0000007f99e549f0 in pthread_cond_wait () at /lib/aarch64-linux-gnu/libc.so.6
+#2  0x0000007f9a0c4eb4 in av_thread_message_queue_send () at /lib/aarch64-linux-gnu/libavutil.so.58
+#3  0x0000005580152b34 in ??? ()
+#4  0x0000007f99e5582c in ??? () at /lib/aarch64-linux-gnu/libc.so.6
+#5  0x0000007f99ebba0c in ??? () at /lib/aarch64-linux-gnu/libc.so.6
+
+Thread 2 (Thread 0x7f84a951e0 (LWP 1220137) "mux0:rawvideo"):
+#0  0x0000007f99eb1d48 in write () at /lib/aarch64-linux-gnu/libc.so.6
+#1  0x0000007f9c64b66c in ??? () at /lib/aarch64-linux-gnu/libavformat.so.60
+#2  0x0000007f9c61426c in ??? () at /lib/aarch64-linux-gnu/libavformat.so.60
+#3  0x0000007f9c614808 in ??? () at /lib/aarch64-linux-gnu/libavformat.so.60
+#4  0x0000007f9c615ae8 in avio_write () at /lib/aarch64-linux-gnu/libavformat.so.60
+#5  0x0000007f9c72f530 in ??? () at /lib/aarch64-linux-gnu/libavformat.so.60
+#6  0x0000007f9c6fb1b8 in ??? () at /lib/aarch64-linux-gnu/libavformat.so.60
+#7  0x0000007f9c6fb5c0 in ??? () at /lib/aarch64-linux-gnu/libavformat.so.60
+#8  0x0000007f9c6fda90 in av_interleaved_write_frame () at /lib/aarch64-linux-gnu/libavformat.so.60
+#9  0x000000558015e260 in ??? ()
+#10 0x000000558015e888 in ??? ()
+#11 0x0000007f99e5582c in ??? () at /lib/aarch64-linux-gnu/libc.so.6
+#12 0x0000007f99ebba0c in ??? () at /lib/aarch64-linux-gnu/libc.so.6
+
+Thread 1 (Thread 0x7f9a03d020 (LWP 1220095) "ffmpeg"):
+#0  0x0000007f99e51d6c in ??? () at /lib/aarch64-linux-gnu/libc.so.6
+#1  0x0000007f99e549f0 in pthread_cond_wait () at /lib/aarch64-linux-gnu/libc.so.6
+#2  0x000000558016fd94 in ??? ()
+#3  0x000000558015ed00 in ??? ()
+#4  0x00000055801570b0 in ??? ()
+#5  0x0000005580157d14 in ??? ()
+#6  0x00000055801596e0 in ??? ()
+#7  0x000000558015c0ec in ??? ()
+#8  0x000000558014d880 in main ()
+[Inferior 1 (process 1220095) detached]
+GDB_DETACH_MONO_NS=23300713669488
+
+Attempt 1 preserved byte-for-byte: report SHA-256 4302a653ae5b14a9a7a6afd194b2e489465c1067033c087ba15c1872880b3dda; log SHA-256 825c970caea2cb44ff0ead6a57db25a73b08884067b00dd343b28e41b59f770f; JSON SHA-256 449a90ffacefd409befce3f8758b81c3aa522fdab2e0c941eecfc878ae6b5e12.
+No frame payload saved. No strace or other tracer. This diagnostic is not AC-4 acceptance; GDB pauses perturb intervals and stacks are callsite evidence only, not causality.

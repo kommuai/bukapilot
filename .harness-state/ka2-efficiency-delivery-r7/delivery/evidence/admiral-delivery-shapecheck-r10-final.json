@@ -1,0 +1,70 @@
+{
+  "boundary": "cross-stage handoff (admiral)",
+  "package_path": "/data/openpilot/.harness-state/ka2-efficiency-delivery-r7/delivery",
+  "gate_status": "STRUCTURE_OK",
+  "checks_run": [
+    "package_links",
+    "required_artifacts",
+    "lineage",
+    "skip_records",
+    "blocked_phrases",
+    "idempotency",
+    "harness_doctrine"
+  ],
+  "counts": {
+    "fail": 0,
+    "unchecked": 0,
+    "total": 7
+  },
+  "findings": [
+    {
+      "code": "ARTIFACT_PRESENT",
+      "severity": "info",
+      "status": "PASS",
+      "message": "cross-stage handoff record with submission/verdict frontmatter present.",
+      "location": "reports/handoff_design-to-build.md"
+    },
+    {
+      "code": "ARTIFACT_PRESENT",
+      "severity": "info",
+      "status": "PASS",
+      "message": "package or delivery summary the next consumer reads present.",
+      "location": "reports/delivery-package.md"
+    },
+    {
+      "code": "REVISION_COHERENT",
+      "severity": "info",
+      "status": "PASS",
+      "message": "All revision-bearing artifacts agree on revision r10.",
+      "location": "package"
+    },
+    {
+      "code": "NO_SKIP_RECORDS",
+      "severity": "info",
+      "status": "PASS",
+      "message": "No skip records in package (none claimed).",
+      "location": "package"
+    },
+    {
+      "code": "BLOCKED_PHRASE_CLEAN",
+      "severity": "info",
+      "status": "PASS",
+      "message": "No blocked phrases or contamination markers found.",
+      "location": "package"
+    },
+    {
+      "code": "NEW_SUBMISSION",
+      "severity": "info",
+      "status": "PASS",
+      "message": "Submission id/revision differ from the prior verdict; evaluating as a fresh submission.",
+      "location": "/data/media/supremeteam/42c6eb550c629191187c/skillset-saves/runs/loggerd-ka2-efficiency-20261029/design/verdict_design-to-build-r9.cross-stage.json"
+    },
+    {
+      "code": "NO_RUNTIME_INTERVENTION",
+      "severity": "info",
+      "status": "PASS",
+      "message": "Package does not add or change a cross-cutting runtime intervention; harness-doctrine \u00a75 not engaged.",
+      "location": "package"
+    }
+  ]
+}

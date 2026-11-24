@@ -1,0 +1,10 @@
+{
+  "acquired_at": "2026-11-04T01:53:38.430401+00:00",
+  "heartbeat": "2026-11-04T01:54:26.265856+00:00",
+  "owner": "admiral",
+  "revision": 32,
+  "run_id": "ubloxd-daemon-removal-20261103",
+  "schema_version": 1,
+  "session_pin": true,
+  "status": "held"
+}

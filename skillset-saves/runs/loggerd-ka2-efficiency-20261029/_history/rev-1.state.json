@@ -1,0 +1,26 @@
+{
+  "active_owner": "admiral",
+  "artifact_hashes": {
+    "skillset-saves/runs/loggerd-ka2-efficiency-20261029/intake/report_grilling.md": "29d1d00df2f15ec449fa8aa07df8ab2cb900f81c5042759730c0c9621ba357a6"
+  },
+  "evidence_paths": [
+    "skillset-saves/runs/loggerd-ka2-efficiency-20261029/intake/report_grilling.md"
+  ],
+  "execution_mode": "agent",
+  "hook_registration_status": "missing",
+  "mcp_registry_check": "not-needed",
+  "next_action": "select earliest incomplete boundary",
+  "parent_revision": null,
+  "persistence_probe": "ok",
+  "protocol_state": "INTAKE",
+  "revision": 1,
+  "run_id": "loggerd-ka2-efficiency-20261029",
+  "runtime_readiness_check": "not-ready",
+  "schema_version": 1,
+  "session_pin": true,
+  "skills_engaged": [
+    "session-memory"
+  ],
+  "status": "active",
+  "timestamp": "2026-10-29T16:25:32.682583+00:00"
+}

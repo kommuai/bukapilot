@@ -1,0 +1,46 @@
+target=local KA2/RK3588 board, isolated synthetic DMA-heap VisionIPC
+production_binaries=/data/openpilot/system/loggerd/loggerd,/data/openpilot/system/loggerd/encoderd
+runner_command=/usr/local/venv/bin/python3 skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/runtime-r10-smoke-runner-r267.py
+LOGGERD_TEST=1 LOGGERD_SEGMENT_LENGTH=2 (timing overrides only; deterministic mode unset)
+test-only hooks/counters/fault injection compiled out; no fault selectors set
+readiness_window=10s for subscriptions and segment 0; lifecycle_window=24s for segments 1 and 2
+predicate=both processes alive; camera/audio subscriptions present; reports 1/2 healthy; three segments have all six files; qRoad H264+audio decode
+probe_result=fail
+error=RuntimeError: missing rotation report for segment 1; postflight=pass
+   4.990s fresh board preflight passed: no active camera/logger/encoder processes and no device users
+   4.991s dependencies present: /dev/dma_heap/system, /dev/mpp_service, /dev/rga
+   4.992s created isolated test MSGQ path /dev/shm/msgq_loggerd_runtime_135953_f7727376
+   5.001s DMA-heap VisionIPC publisher ready: READY streams=road,driver,wideRoad width=1920 height=1200 stride=1920 uv_offset=2304000 buffers=4 backing=dma_heap
+   5.001s PubMaster for camera states and rawAudioData initialized before daemon launch
+   5.002s production loggerd started pid=136307; command=/data/openpilot/system/loggerd/loggerd
+   5.002s production encoderd started pid=136309; command=/data/openpilot/system/loggerd/encoderd
+   5.103s startup ready: subscribed reader for roadCameraState
+   5.103s startup ready: subscribed reader for driverCameraState
+   5.103s startup ready: subscribed reader for wideRoadCameraState
+   5.103s startup ready: subscribed reader for rawAudioData
+   5.153s startup ready: LoggerdSegment=0; loggerd and encoderd still alive
+   5.220s readiness progression: LoggerdSegment=0; process_alive=true
+   5.220s 2s liveness poll: loggerd=alive encoderd=alive segment=0
+   7.221s 2s liveness poll: loggerd=alive encoderd=alive segment=0
+   7.414s readiness progression: LoggerdSegment=1; process_alive=true
+   9.265s 2s liveness poll: loggerd=alive encoderd=alive segment=1
+   9.420s readiness progression: LoggerdSegment=2; process_alive=true
+  10.370s smoke flow complete: frames_sent=104; reports_seen=[]
+  10.585s encoderd stopped returncode=0
+  11.553s loggerd stopped returncode=0
+  11.553s FAIL: RuntimeError: missing rotation report for segment 1
+  11.560s Traceback (most recent call last): |   File "/data/openpilot/skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/runtime-r10-smoke-runner-r267.py", line 255, in <module> |     raise RuntimeError(f'missing rotation report for segment {segment}') | RuntimeError: missing rotation report for segment 1 | 
+  11.838s DMA-heap publisher stopped returncode=0; CLEANUP_OK
+  11.839s loggerd stdout follows:
+LOGGERD system/loggerd/loggerd.cc: logging to /data/loggerd_runtime_r10_135953_h4_symro/logs/2026-10-31--13-12-58--0
+LOGGERD system/loggerd/loggerd.cc: rotated to /data/loggerd_runtime_r10_135953_h4_symro/logs/2026-10-31--13-12-58--1
+LOGGERD system/loggerd/loggerd.cc: rotated to /data/loggerd_runtime_r10_135953_h4_symro/logs/2026-10-31--13-12-58--2
+LOGGERD system/loggerd/loggerd.cc: closing logger
+  11.839s encoderd stdout follows:
+ENCODERD system/loggerd/encoderd.cc: encoder road_cam_encoder init 1920x1200
+ENCODERD system/loggerd/encoderd.cc: encoder driver_cam_encoder init 1920x1200
+ENCODERD system/loggerd/encoderd.cc: encoder wide_road_cam_encoder init 1920x1200
+ENCODERD rga_api version 1.10.0_[8]
+PUBLISHER READY streams=road,driver,wideRoad width=1920 height=1200 stride=1920 uv_offset=2304000 buffers=4 backing=dma_heap
+PUBLISHER CLEANUP_OK
+  15.957s postflight passed: isolated socket/MSGQ removed and board device nodes idle

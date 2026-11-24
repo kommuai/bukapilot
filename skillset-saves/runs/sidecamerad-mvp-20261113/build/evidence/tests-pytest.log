@@ -1,0 +1,42 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-9.0.2, pluggy-1.6.0 -- /usr/local/venv/bin/python3
+cachedir: .pytest_cache
+Using --randomly-seed=2670365879
+rootdir: /data/openpilot
+configfile: pyproject.toml
+plugins: timeout-2.4.0, repeat-0.9.4, xdist-3.7.1.dev24+g2b4372bd6, randomly-4.0.1, asyncio-1.3.0, mock-3.15.1, cpp-2.6.0
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=function, asyncio_default_test_loop_scope=function
+created: 5/5 workers
+5 workers [8 items]
+
+scheduling tests via LoadGroupScheduling
+
+system/manager/test/test_sidecamerad.py::test_params_default_and_json_dict_round_trip 
+system/manager/test/test_sidecamerad.py::test_no_paths_acknowledges_each_feed_and_waits_for_signal 
+system/manager/test/test_sidecamerad.py::test_manager_enables_sidecamerad_by_default_and_keeps_camerad 
+system/manager/test/test_sidecamerad.py::test_main_removes_inherited_zmq_before_ipc_and_pubmaster 
+[gw4] [ 12%] PASSED system/manager/test/test_sidecamerad.py::test_params_default_and_json_dict_round_trip 
+[gw1] [ 25%] PASSED system/manager/test/test_sidecamerad.py::test_main_removes_inherited_zmq_before_ipc_and_pubmaster 
+system/manager/test/test_sidecamerad.py::test_side_camera_service_stream_and_schema_mapping_is_stable 
+[gw3] [ 37%] PASSED system/manager/test/test_sidecamerad.py::test_no_paths_acknowledges_each_feed_and_waits_for_signal 
+system/manager/test/test_sidecamerad.py::test_explicit_device_paths_resolve_only_to_video_character_nodes 
+[gw4] [ 50%] PASSED system/manager/test/test_sidecamerad.py::test_side_camera_service_stream_and_schema_mapping_is_stable 
+system/manager/test/test_sidecamerad.py::test_worker_clears_availability_after_capture_failure 
+[gw3] [ 62%] PASSED system/manager/test/test_sidecamerad.py::test_worker_clears_availability_after_capture_failure 
+[gw0] [ 75%] PASSED system/manager/test/test_sidecamerad.py::test_explicit_device_paths_resolve_only_to_video_character_nodes 
+[gw2] [ 87%] PASSED system/manager/test/test_sidecamerad.py::test_manager_enables_sidecamerad_by_default_and_keeps_camerad 
+system/manager/test/test_sidecamerad.py::test_availability_writes_only_state_transitions_and_recovers_write_failure 
+[gw2] [100%] PASSED system/manager/test/test_sidecamerad.py::test_availability_writes_only_state_transitions_and_recovers_write_failure 
+
+============================= slowest 10 durations =============================
+1.94s call     system/manager/test/test_sidecamerad.py::test_manager_enables_sidecamerad_by_default_and_keeps_camerad
+0.02s setup    system/manager/test/test_sidecamerad.py::test_explicit_device_paths_resolve_only_to_video_character_nodes
+0.01s setup    system/manager/test/test_sidecamerad.py::test_no_paths_acknowledges_each_feed_and_waits_for_signal
+0.01s teardown system/manager/test/test_sidecamerad.py::test_manager_enables_sidecamerad_by_default_and_keeps_camerad
+0.01s setup    system/manager/test/test_sidecamerad.py::test_params_default_and_json_dict_round_trip
+0.01s teardown system/manager/test/test_sidecamerad.py::test_main_removes_inherited_zmq_before_ipc_and_pubmaster
+0.01s teardown system/manager/test/test_sidecamerad.py::test_no_paths_acknowledges_each_feed_and_waits_for_signal
+0.01s setup    system/manager/test/test_sidecamerad.py::test_manager_enables_sidecamerad_by_default_and_keeps_camerad
+0.01s teardown system/manager/test/test_sidecamerad.py::test_explicit_device_paths_resolve_only_to_video_character_nodes
+0.01s call     system/manager/test/test_sidecamerad.py::test_side_camera_service_stream_and_schema_mapping_is_stable
+============================== 8 passed in 7.06s ===============================

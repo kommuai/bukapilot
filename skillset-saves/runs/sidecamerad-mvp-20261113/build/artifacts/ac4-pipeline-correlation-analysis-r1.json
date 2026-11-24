@@ -1,0 +1,182 @@
+{
+  "assessment": {
+    "camera_source_cadence_fault_supported": false,
+    "confidence": "high for the repeated captured events; hardware delivery versus input-thread scheduling remains unresolved for the smaller DQBUF-latency component",
+    "limits": [
+      "The event observers were not independently calibrated.",
+      "The current run observed DQBUF intervals above 60 ms despite regular SOE intervals; those intervals do not distinguish USB/driver delivery from FFmpeg input-thread scheduling.",
+      "The current 600-frame run maxed at 77.761 ms and did not recapture the earlier uninstrumented 90.982 ms maximum.",
+      "The CPU correlation is observational, not a controlled intervention; JPEG content complexity and host scheduling may both contribute."
+    ],
+    "primary_finding": "Software FFmpeg decode/filter service-time variability is the primary cause of reproduced steady-state >60 ms output gaps.",
+    "product_source_or_argv_changed": false,
+    "startup_explanation": false
+  },
+  "cadence_comparison": {
+    "camera_v4l2_soe_intervals_ms": {
+      "max": 52.209,
+      "mean": 50.000222413793104,
+      "over_60ms": 0,
+      "p95": 52.038,
+      "p99": 52.091
+    },
+    "gap_excess_over_dqbuf_intervals_ms": {
+      "max": 22.435922,
+      "mean": 0.00933048965517217,
+      "p95": 12.739632,
+      "p99": 20.562663
+    },
+    "normal_output_intervals_at_or_below_60ms": {
+      "count": 503,
+      "dqbuf_interval_mean_ms": 49.346,
+      "reader_gap_mean_ms": 47.682,
+      "source_soe_interval_mean_ms": 50.163
+    },
+    "slow_output_intervals_over_60ms": {
+      "count": 77,
+      "dqbuf_interval_mean_ms": 54.212,
+      "dqbuf_intervals_over_60ms": 27,
+      "reader_gap_mean_ms": 65.157,
+      "source_soe_interval_mean_ms": 48.937,
+      "source_soe_intervals_over_60ms": 0
+    },
+    "v4l2_dqbuf_completion_intervals_ms": {
+      "max": 61.207115,
+      "mean": 49.99238930344828,
+      "over_60ms": 40,
+      "p95": 60.670778,
+      "p99": 60.829736
+    }
+  },
+  "capture": {
+    "cleanup": {
+      "ffmpeg_returncode": 255,
+      "no_remaining_ffmpeg_or_camera_holder": true,
+      "stop": "SIGINT after 600 complete outputs, then close reader pipe"
+    },
+    "complete_output_frames": 600,
+    "conditional_reader_gap_over_60ms": {
+      "count": 77,
+      "max": 77.761182,
+      "p50": 63.643,
+      "p95": 73.361,
+      "p99": 77.761182
+    },
+    "output_gap_region_counts_over_60ms": {
+      "frames_101_200": "12/100",
+      "frames_201_300": "15/100",
+      "frames_21_100": "13/80",
+      "frames_301_400": "16/100",
+      "frames_401_500": "12/100",
+      "frames_501_600": "9/100"
+    },
+    "post_warmup_intervals": 580,
+    "reader_gap_ms": {
+      "max": 77.761182,
+      "mean": 50.00171979310345,
+      "p50": 50.376281,
+      "p95": 64.848545,
+      "p99": 71.419197
+    },
+    "reader_gap_rate_over_60ms": 0.13275862068965516,
+    "reader_gaps_over_60ms": 77,
+    "reader_gaps_over_70ms": 12,
+    "reader_gaps_over_75ms": 1,
+    "reader_gaps_over_80ms": 0,
+    "warmup_frames": 20
+  },
+  "evidence_paths": {
+    "api_ring": "skillset-saves/runs/sidecamerad-mvp-20261113/build/evidence/ac4-pipeline-correlation-api-observer-r1.bin",
+    "event_log": "skillset-saves/runs/sidecamerad-mvp-20261113/build/evidence/ac4-pipeline-correlation-diagnostic-r1.jsonl",
+    "ffmpeg_ring": "skillset-saves/runs/sidecamerad-mvp-20261113/build/evidence/ac4-pipeline-correlation-ffmpeg-observer-r1.bin",
+    "prior_dqbuf_output_summary": "skillset-saves/runs/sidecamerad-mvp-20261113/build/artifacts/dqbuf-output-correlation-r2.3-r1.json",
+    "raw_summary": "skillset-saves/runs/sidecamerad-mvp-20261113/build/artifacts/ac4-pipeline-correlation-diagnostic-r1.json",
+    "runner": "skillset-saves/runs/sidecamerad-mvp-20261113/build/artifacts/ac4-pipeline-correlation-runner-r1.py",
+    "scale_ring": "skillset-saves/runs/sidecamerad-mvp-20261113/build/evidence/ac4-pipeline-correlation-scale-observer-r1.bin",
+    "standalone_v4l2_log": "skillset-saves/runs/sidecamerad-mvp-20261113/investigation/evidence/v4l2-capture-timestamps-60s.log"
+  },
+  "ffmpeg_api_costs": {
+    "av_read_frame_ms": {
+      "thread_cpu_mean": 0.0177,
+      "wall_max": 0.2342,
+      "wall_mean": 0.0205,
+      "wall_p95": 0.0443
+    },
+    "avcodec_send_packet_thread_cpu_ms": {
+      "max": 30.272,
+      "mean": 12.364,
+      "p95": 17.07
+    },
+    "buffersink_get_frame_and_mux_are_small_relative_to_decode_filter": true,
+    "buffersrc_add_frame_thread_cpu_ms": {
+      "max": 31.412,
+      "mean": 20.706,
+      "p95": 25.949
+    },
+    "sws_scale_frame_thread_cpu_ms": {
+      "max": 31.333,
+      "mean": 20.655,
+      "p95": 25.904
+    }
+  },
+  "hashes": {
+    "ffmpeg": "9af5a141b45d32f64fe7bb5cd2c939d56fb9972234705513c45575ef7a1da38e",
+    "sidecamerad_source": "494fb8b88fda8bcf1d8301225019f4f01f4b77a0bb5cb3e69dde47ed96e1309b",
+    "source_hash_drift": false
+  },
+  "independent_hardware_context": {
+    "prior_same_run_dqbuf_output_correlation": {
+      "dqbuf_steady_intervals_over_60ms": 0,
+      "dqbuf_steady_max_ms": 58.634,
+      "exact_dqbuf_to_output_sequence_identity_proven": false,
+      "output_write_interval_count": 598,
+      "output_write_intervals_over_60ms": 146,
+      "output_write_max_ms": 89.58,
+      "source_soe_steady_intervals_over_60ms": 0,
+      "source_soe_steady_max_ms": 52.128
+    },
+    "standalone_v4l2_capture": {
+      "duration_s": 60.22,
+      "separate_startup_0_to_1_ms": 167.987,
+      "steady_intervals": 1198,
+      "steady_intervals_over_60ms": 0,
+      "steady_max_ms": 52.287,
+      "steady_mean_ms": 49.995553
+    }
+  },
+  "processing_correlation": {
+    "largest_gap": {
+      "decode_filter_cpu_change_ms": 16.389,
+      "decode_filter_cpu_previous_ms": 21.386,
+      "decode_filter_cpu_target_ms": 37.775,
+      "dqbuf_interval_ms": 60.982,
+      "from_frame": 160,
+      "reader_gap_ms": 77.761182,
+      "service_latency_increase_ms": 16.779,
+      "source_soe_interval_ms": 47.992,
+      "to_frame": 161
+    },
+    "pearson_reader_gap_excess_vs_decode_filter_cpu_change": 0.9367,
+    "pearson_reader_gap_vs_dqbuf_interval": 0.6144,
+    "pearson_reader_gap_vs_source_soe_interval": -0.3313,
+    "per_frame_decode_filter_cpu_ms": {
+      "all_frame_max": 45.135,
+      "all_frame_p50": 33.677,
+      "all_frame_p95": 40.674,
+      "all_frame_p99": 42.909
+    },
+    "previous_frame_decode_filter_cpu_mean_ms": {
+      "reader_gap_at_or_below_60ms": 34.173,
+      "reader_gap_over_60ms": 26.676
+    },
+    "target_frame_decode_filter_cpu_mean_ms": {
+      "reader_gap_at_or_below_60ms": 32.556,
+      "reader_gap_over_60ms": 37.284
+    },
+    "target_minus_previous_decode_filter_cpu_mean_ms": {
+      "reader_gap_at_or_below_60ms": -1.617,
+      "reader_gap_over_60ms": 10.608
+    }
+  },
+  "schema_version": 1
+}

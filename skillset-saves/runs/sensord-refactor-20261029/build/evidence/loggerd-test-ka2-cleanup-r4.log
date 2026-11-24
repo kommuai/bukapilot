@@ -1,0 +1,28 @@
+Command: LD_LIBRARY_PATH=/usr/local/lib pytest system/loggerd/tests/test_encoder.py
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-9.0.2, pluggy-1.6.0
+Using --randomly-seed=2096347498
+rootdir: /data/openpilot
+configfile: pyproject.toml
+plugins: timeout-2.4.0, repeat-0.9.4, xdist-3.7.1.dev24+g2b4372bd6, randomly-4.0.1, asyncio-1.3.0, mock-3.15.1, cpp-2.6.0
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=function, asyncio_default_test_loop_scope=function
+created: 8/8 workers
+8 workers [0 items]
+
+
+==================================== ERRORS ====================================
+____________ ERROR collecting system/loggerd/tests/test_encoder.py _____________
+ImportError while importing test module '/data/openpilot/system/loggerd/tests/test_encoder.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/usr/local/uv/python/cpython-3.12.3-linux-aarch64-gnu/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+system/loggerd/tests/test_encoder.py:10: in <module>
+    from parameterized import parameterized
+E   ModuleNotFoundError: No module named 'parameterized'
+=========================== short test summary info ============================
+ERROR system/loggerd/tests/test_encoder.py - ImportError while importing test...
+=============================== 1 error in 4.08s ===============================
+
+Runner exit status: 1

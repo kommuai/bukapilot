@@ -1,0 +1,2 @@
+command: rg -n -i (lsm6ds3|mmc5603|tizi-lsmc|LSM \+ MMC|sensord.{0,30}(TICI|tizi)|(TICI|tizi).{0,30}sensord) system/sensord system/manager selfdrive/test system/loggerd/tests Jenkinsfile
+exit_code: 1

@@ -1,0 +1,204 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-9.0.2, pluggy-1.6.0 -- /usr/local/venv/bin/python3
+cachedir: .pytest_cache
+Using --randomly-seed=3345861335
+rootdir: /data/openpilot
+configfile: pyproject.toml
+plugins: timeout-2.4.0, repeat-0.9.4, xdist-3.7.1.dev24+g2b4372bd6, randomly-4.0.1, asyncio-1.3.0, mock-3.15.1, cpp-2.6.0
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=function, asyncio_default_test_loop_scope=function
+collecting ... collected 1 item
+
+system/loggerd/tests/test_loggerd_liveness.py::test_non_rk3588_hardware_pc_legacy_lifecycle_on_ka2_host KA2 test-build command: /usr/local/venv/bin/scons -Q -j2 --ccflags=-DLOGGERD_TEST_BUILD system/loggerd/loggerd system/loggerd/encoderd build/system/loggerd/tests/visionipc_dmabuf_publisher
+scons: `system/loggerd/loggerd' is up to date.
+scons: `system/loggerd/encoderd' is up to date.
+scons: `build/system/loggerd/tests/visionipc_dmabuf_publisher' is up to date.
+KA2-host non-RK3588/HardwarePC test-build command: /usr/local/venv/bin/scons -Q --ccflags=-DLOGGERD_TEST_BUILD build/system/loggerd/tests/loggerd_non_rk3588 build/system/loggerd/tests/encoderd_non_rk3588
+hardware identity is untouched; dedicated SCons targets compile with -URK3588, without __TICI__
+scons: `build/system/loggerd/tests/loggerd_non_rk3588' is up to date.
+scons: `build/system/loggerd/tests/encoderd_non_rk3588' is up to date.
+preflight pgrep -x camerad: no active process
+preflight pgrep -x encoderd: no active process
+preflight pgrep -x loggerd: no active process
+preflight fuser -v /dev/media0: exit=1 preflight fuser -v /dev/media1: exit=1 preflight fuser -v /dev/media2: exit=1 preflight fuser -v /dev/media3: exit=1 preflight fuser -v /dev/media4: exit=1 preflight fuser -v /dev/media5: exit=1 preflight fuser -v /dev/mpp_service: exit=1 preflight fuser -v /dev/rga: exit=1 preflight fuser -v /dev/v4l-subdev0: exit=1 preflight fuser -v /dev/v4l-subdev1: exit=1 preflight fuser -v /dev/v4l-subdev10: exit=1 preflight fuser -v /dev/v4l-subdev11: exit=1 preflight fuser -v /dev/v4l-subdev12: exit=1 preflight fuser -v /dev/v4l-subdev13: exit=1 preflight fuser -v /dev/v4l-subdev14: exit=1 preflight fuser -v /dev/v4l-subdev2: exit=1 preflight fuser -v /dev/v4l-subdev3: exit=1 preflight fuser -v /dev/v4l-subdev4: exit=1 preflight fuser -v /dev/v4l-subdev5: exit=1 preflight fuser -v /dev/v4l-subdev6: exit=1 preflight fuser -v /dev/v4l-subdev7: exit=1 preflight fuser -v /dev/v4l-subdev8: exit=1 preflight fuser -v /dev/v4l-subdev9: exit=1 preflight fuser -v /dev/video0: exit=1 preflight fuser -v /dev/video1: exit=1 preflight fuser -v /dev/video10: exit=1 preflight fuser -v /dev/video11: exit=1 preflight fuser -v /dev/video12: exit=1 preflight fuser -v /dev/video13: exit=1 preflight fuser -v /dev/video14: exit=1 preflight fuser -v /dev/video15: exit=1 preflight fuser -v /dev/video16: exit=1 preflight fuser -v /dev/video17: exit=1 preflight fuser -v /dev/video18: exit=1 preflight fuser -v /dev/video19: exit=1 preflight fuser -v /dev/video2: exit=1 preflight fuser -v /dev/video20: exit=1 preflight fuser -v /dev/video21: exit=1 preflight fuser -v /dev/video22: exit=1 preflight fuser -v /dev/video23: exit=1 preflight fuser -v /dev/video24: exit=1 preflight fuser -v /dev/video25: exit=1 preflight fuser -v /dev/video26: exit=1 preflight fuser -v /dev/video27: exit=1 preflight fuser -v /dev/video28: exit=1 preflight fuser -v /dev/video29: exit=1 preflight fuser -v /dev/video3: exit=1 preflight fuser -v /dev/video30: exit=1 preflight fuser -v /dev/video31: exit=1 preflight fuser -v /dev/video32: exit=1 preflight fuser -v /dev/video33: exit=1 preflight fuser -v /dev/video34: exit=1 preflight fuser -v /dev/video35: exit=1 preflight fuser -v /dev/video36: exit=1 preflight fuser -v /dev/video37: exit=1 preflight fuser -v /dev/video38: exit=1 preflight fuser -v /dev/video39: exit=1 preflight fuser -v /dev/video4: exit=1 preflight fuser -v /dev/video40: exit=1 preflight fuser -v /dev/video41: exit=1 preflight fuser -v /dev/video42: exit=1 preflight fuser -v /dev/video43: exit=1 preflight fuser -v /dev/video44: exit=1 preflight fuser -v /dev/video45: exit=1 preflight fuser -v /dev/video46: exit=1 preflight fuser -v /dev/video47: exit=1 preflight fuser -v /dev/video48: exit=1 preflight fuser -v /dev/video49: exit=1 preflight fuser -v /dev/video5: exit=1 preflight fuser -v /dev/video50: exit=1 preflight fuser -v /dev/video51: exit=1 preflight fuser -v /dev/video52: exit=1 preflight fuser -v /dev/video53: exit=1 preflight fuser -v /dev/video54: exit=1 preflight fuser -v /dev/video55: exit=1 preflight fuser -v /dev/video56: exit=1 preflight fuser -v /dev/video57: exit=1 preflight fuser -v /dev/video58: exit=1 preflight fuser -v /dev/video59: exit=1 preflight fuser -v /dev/video6: exit=1 preflight fuser -v /dev/video7: exit=1 preflight fuser -v /dev/video8: exit=1 preflight fuser -v /dev/video9: exit=1 preflight pgrep -x camerad: no active process
+preflight pgrep -x encoderd: no active process
+preflight pgrep -x loggerd: no active process
+preflight fuser -v /dev/media0: exit=1 preflight fuser -v /dev/media1: exit=1 preflight fuser -v /dev/media2: exit=1 preflight fuser -v /dev/media3: exit=1 preflight fuser -v /dev/media4: exit=1 preflight fuser -v /dev/media5: exit=1 preflight fuser -v /dev/mpp_service: exit=1 preflight fuser -v /dev/rga: exit=1 preflight fuser -v /dev/v4l-subdev0: exit=1 preflight fuser -v /dev/v4l-subdev1: exit=1 preflight fuser -v /dev/v4l-subdev10: exit=1 preflight fuser -v /dev/v4l-subdev11: exit=1 preflight fuser -v /dev/v4l-subdev12: exit=1 preflight fuser -v /dev/v4l-subdev13: exit=1 preflight fuser -v /dev/v4l-subdev14: exit=1 preflight fuser -v /dev/v4l-subdev2: exit=1 preflight fuser -v /dev/v4l-subdev3: exit=1 preflight fuser -v /dev/v4l-subdev4: exit=1 preflight fuser -v /dev/v4l-subdev5: exit=1 preflight fuser -v /dev/v4l-subdev6: exit=1 preflight fuser -v /dev/v4l-subdev7: exit=1 preflight fuser -v /dev/v4l-subdev8: exit=1 preflight fuser -v /dev/v4l-subdev9: exit=1 preflight fuser -v /dev/video0: exit=1 preflight fuser -v /dev/video1: exit=1 preflight fuser -v /dev/video10: exit=1 preflight fuser -v /dev/video11: exit=1 preflight fuser -v /dev/video12: exit=1 preflight fuser -v /dev/video13: exit=1 preflight fuser -v /dev/video14: exit=1 preflight fuser -v /dev/video15: exit=1 preflight fuser -v /dev/video16: exit=1 preflight fuser -v /dev/video17: exit=1 preflight fuser -v /dev/video18: exit=1 preflight fuser -v /dev/video19: exit=1 preflight fuser -v /dev/video2: exit=1 preflight fuser -v /dev/video20: exit=1 preflight fuser -v /dev/video21: exit=1 preflight fuser -v /dev/video22: exit=1 preflight fuser -v /dev/video23: exit=1 preflight fuser -v /dev/video24: exit=1 preflight fuser -v /dev/video25: exit=1 preflight fuser -v /dev/video26: exit=1 preflight fuser -v /dev/video27: exit=1 preflight fuser -v /dev/video28: exit=1 preflight fuser -v /dev/video29: exit=1 preflight fuser -v /dev/video3: exit=1 preflight fuser -v /dev/video30: exit=1 preflight fuser -v /dev/video31: exit=1 preflight fuser -v /dev/video32: exit=1 preflight fuser -v /dev/video33: exit=1 preflight fuser -v /dev/video34: exit=1 preflight fuser -v /dev/video35: exit=1 preflight fuser -v /dev/video36: exit=1 preflight fuser -v /dev/video37: exit=1 preflight fuser -v /dev/video38: exit=1 preflight fuser -v /dev/video39: exit=1 preflight fuser -v /dev/video4: exit=1 preflight fuser -v /dev/video40: exit=1 preflight fuser -v /dev/video41: exit=1 preflight fuser -v /dev/video42: exit=1 preflight fuser -v /dev/video43: exit=1 preflight fuser -v /dev/video44: exit=1 preflight fuser -v /dev/video45: exit=1 preflight fuser -v /dev/video46: exit=1 preflight fuser -v /dev/video47: exit=1 preflight fuser -v /dev/video48: exit=1 preflight fuser -v /dev/video49: exit=1 preflight fuser -v /dev/video5: exit=1 preflight fuser -v /dev/video50: exit=1 preflight fuser -v /dev/video51: exit=1 preflight fuser -v /dev/video52: exit=1 preflight fuser -v /dev/video53: exit=1 preflight fuser -v /dev/video54: exit=1 preflight fuser -v /dev/video55: exit=1 preflight fuser -v /dev/video56: exit=1 preflight fuser -v /dev/video57: exit=1 preflight fuser -v /dev/video58: exit=1 preflight fuser -v /dev/video59: exit=1 preflight fuser -v /dev/video6: exit=1 preflight fuser -v /dev/video7: exit=1 preflight fuser -v /dev/video8: exit=1 preflight fuser -v /dev/video9: exit=1 INV-GDB-3: loggerd short-write breakpoint and SIGABRT capture log=/data/openpilot/skillset-saves/runs/loggerd-ka2-efficiency-20261029/investigation/evidence/gdb-data-root-confirm-gdb-r257.log
+publisher stdout after command reads:
+ (no remaining output)
+complete loggerd stdout:
+ Breakpoint 1 at 0x36358: file system/loggerd/zstd_writer.cc, line 67.
+>Undefined command: "silent".  Try "help".
+No symbol "written" in current context.
+No symbol "file_" in current context.
+No stack.
+The program is not being run.
+This command cannot be used at the top level.
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/aarch64-linux-gnu/libthread_db.so.1".
+[New Thread 0x7fec7be3e0 (LWP 34509)]
+[New Thread 0x7febfae3e0 (LWP 34510)]
+[Detaching after vfork from child process 34512]
+Error in testing condition for breakpoint 1:
+value has been optimized out
+
+Thread 1 "loggerd_non_rk3" hit Breakpoint 1, ZstdFileWriter::flushCache (this=..., last_chunk=...) at system/loggerd/zstd_writer.cc:67
+67	    assert(written == output.pos);
+  Num  Description       Connection           Executable        
+* 1    process 34453     1 (native)           /data/openpilot/build/system/loggerd/tests/loggerd_non_rk3588 
+
+Thread 3 (Thread 0x7febfae3e0 (LWP 34510) "ZMQbg/IO/0"):
+#0  0x0000007ff529bd34 in epoll_pwait () at /lib/aarch64-linux-gnu/libc.so.6
+#1  0x0000007ff7f36338 in ??? () at /lib/aarch64-linux-gnu/libzmq.so.5
+#2  0x0000007ff7f669a0 in ??? () at /lib/aarch64-linux-gnu/libzmq.so.5
+#3  0x0000007ff523582c in ??? () at /lib/aarch64-linux-gnu/libc.so.6
+#4  0x0000007ff529ba0c in ??? () at /lib/aarch64-linux-gnu/libc.so.6
+
+Thread 2 (Thread 0x7fec7be3e0 (LWP 34509) "ZMQbg/Reaper"):
+#0  0x0000007ff529bd34 in epoll_pwait () at /lib/aarch64-linux-gnu/libc.so.6
+#1  0x0000007ff7f36338 in ??? () at /lib/aarch64-linux-gnu/libzmq.so.5
+#2  0x0000007ff7f669a0 in ??? () at /lib/aarch64-linux-gnu/libzmq.so.5
+#3  0x0000007ff523582c in ??? () at /lib/aarch64-linux-gnu/libc.so.6
+#4  0x0000007ff529ba0c in ??? () at /lib/aarch64-linux-gnu/libc.so.6
+
+Thread 1 (Thread 0x7ff6819020 (LWP 34453) "loggerd_non_rk3"):
+#0  ZstdFileWriter::flushCache (this=this@entry=..., last_chunk=...) at system/loggerd/zstd_writer.cc:67
+#1  0x0000005555586478 in ZstdFileWriter::flush (this=..., force=...) at system/loggerd/zstd_writer.cc:50
+#2  0x0000005555585348 in LoggerState::write (this=this@entry=..., data=..., size=..., in_qlog=...) at system/loggerd/logger.cc:234
+#3  0x00000055555851c4 in LoggerState::write (this=..., bytes=..., in_qlog=...) at ./system/loggerd/logger.h:26
+#4  LoggerState::next (this=...) at system/loggerd/logger.cc:213
+#5  0x0000005555576c64 in logger_rotate (s=s@entry=...) at system/loggerd/loggerd.cc:115
+#6  0x000000555557bdc4 in loggerd_thread () at system/loggerd/loggerd.cc:663
+#7  0x000000555557d4dc in main (argc=..., argv=...) at system/loggerd/loggerd.cc:857
+Error in testing condition for breakpoint 1:
+value has been optimized out
+
+Thread 1 "loggerd_non_rk3" hit Breakpoint 1, ZstdFileWriter::flushCache (this=..., last_chunk=...) at system/loggerd/zstd_writer.cc:67
+67	    assert(written == output.pos);
+
+complete encoderd stdout:
+ [libx264 @ 0x7fa4013bc0] using cpu capabilities: ARMv8 NEON
+[libx264 @ 0x7fa4013bc0] profile High, level 2.1, 4:2:0, 8-bit
+[libx264 @ 0x7fa4013bc0] using cpu capabilities: ARMv8 NEON
+[libx264 @ 0x7fa4013bc0] profile High, level 2.1, 4:2:0, 8-bit
+[libx264 @ 0x7fa4013bc0] using cpu capabilities: ARMv8 NEON
+[libx264 @ 0x7fa4013bc0] profile High, level 2.1, 4:2:0, 8-bit
+[libx264 @ 0x7fa4013bc0] using cpu capabilities: ARMv8 NEON
+[libx264 @ 0x7fa4013bc0] profile High, level 2.1, 4:2:0, 8-bit
+system/loggerd/encoderd.cc: encoder road_cam_encoder init 1920x1200
+system/loggerd/encoderd.cc: encoder wide_road_cam_encoder init 1920x1200
+system/loggerd/encoderd.cc: encoder driver_cam_encoder init 1920x1200
+system/loggerd/encoderd.cc: encoder driver_cam_encoder reconnecting vipc (stalled, no frame for 3003.6 ms)
+system/loggerd/encoderd.cc: encoder wide_road_cam_encoder reconnecting vipc (stalled, no frame for 3003.7 ms)
+system/loggerd/encoderd.cc: encoder road_cam_encoder reconnecting vipc (stalled, no frame for 3003.2 ms)
+system/loggerd/encoderd.cc: encoder driver_cam_encoder init 1920x1200
+system/loggerd/encoderd.cc: encoder wide_road_cam_encoder init 1920x1200
+system/loggerd/encoderd.cc: encoder road_cam_encoder init 1920x1200
+system/loggerd/encoderd.cc: encoder wide_road_cam_encoder reconnecting vipc (stalled, no frame for 3003.3 ms)
+system/loggerd/encoderd.cc: encoder driver_cam_encoder reconnecting vipc (stalled, no frame for 3004.0 ms)
+system/loggerd/encoderd.cc: encoder road_cam_encoder reconnecting vipc (stalled, no frame for 3004.1 ms)
+system/loggerd/encoderd.cc: encoder wide_road_cam_encoder init 1920x1200
+system/loggerd/encoderd.cc: encoder driver_cam_encoder init 1920x1200
+system/loggerd/encoderd.cc: encoder road_cam_encoder init 1920x1200
+system/loggerd/encoderd.cc: encoder wide_road_cam_encoder reconnecting vipc (stalled, no frame for 3003.9 ms)
+system/loggerd/encoderd.cc: encoder driver_cam_encoder reconnecting vipc (stalled, no frame for 3003.1 ms)
+system/loggerd/encoderd.cc: encoder road_cam_encoder reconnecting vipc (stalled, no frame for 3004.1 ms)
+system/loggerd/encoderd.cc: encoder wide_road_cam_encoder init 1920x1200
+system/loggerd/encoderd.cc: encoder driver_cam_encoder init 1920x1200
+system/loggerd/encoderd.cc: encoder road_cam_encoder init 1920x1200
+
+isolated Params at cleanup: {"CurrentRoute": null, "LoggerdRotateState": null, "LoggerdRotationReport": null, "LoggerdSegment": null, "LoggerdSegmentEpoch": null}
+isolated segment files at cleanup: [["2026-10-31--12-43-36--0", [["qlog.zst", 0], ["rlog.lock", 0], ["rlog.zst", 0]]]]
+FAILED
+
+=================================== FAILURES ===================================
+___________ test_non_rk3588_hardware_pc_legacy_lifecycle_on_ka2_host ___________
+
+tmp_path = PosixPath('/data/openpilot/.harness-state/ka2-efficiency-build-r7/data-basetemp-r257/test_non_rk3588_hardware_pc_le0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f7ab5fb30>
+
+    @pytest.mark.xdist_group("loggerd_tests")
+    def test_non_rk3588_hardware_pc_legacy_lifecycle_on_ka2_host(tmp_path, monkeypatch):
+      if not KA2:
+        pytest.skip("isolated non-RK3588 software-branch qualification requires the pinned KA2 host")
+      repo_root = Path(__file__).resolve().parents[3]
+      publisher = _build_test_binaries(repo_root)["publisher"]
+      legacy_binaries = _build_legacy_pc_binaries(repo_root)
+      binaries = {**legacy_binaries, "publisher": publisher}
+>     _run_lifecycle_and_cleanup(tmp_path / "legacy_non_rk", monkeypatch, binaries, "legacy_non_rk")
+
+system/loggerd/tests/test_loggerd_liveness.py:585: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+system/loggerd/tests/test_loggerd_liveness.py:539: in _run_lifecycle_and_cleanup
+    _run_lifecycle(tmp_path, monkeypatch, binaries, scenario)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+tmp_path = PosixPath('/data/openpilot/.harness-state/ka2-efficiency-build-r7/data-basetemp-r257/test_non_rk3588_hardware_pc_le0/legacy_non_rk')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f7ab5fb30>
+binaries = {'encoderd': PosixPath('/data/openpilot/build/system/loggerd/tests/encoderd_non_rk3588'), 'loggerd': PosixPath('/data/.../loggerd_non_rk3588'), 'publisher': PosixPath('/data/openpilot/build/system/loggerd/tests/visionipc_dmabuf_publisher')}
+scenario = 'legacy_non_rk'
+
+    def _run_lifecycle(tmp_path: Path, monkeypatch, binaries: dict[str, Path], scenario: str) -> None:
+      if not KA2:
+        pytest.skip("full MPP lifecycle requires KA2")
+    
+      _assert_camera_stack_idle()
+      fault_mode = None if scenario in ("valid", "legacy", "legacy_non_rk", "shm") else scenario
+      env, prefix, params, msgq_dir = _make_params_and_environment(
+        tmp_path, monkeypatch, fault_mode, legacy_mode=(scenario in ("legacy", "legacy_non_rk")))
+      repo_root = Path(__file__).resolve().parents[3]
+      fixture_binary = binaries["publisher"]
+      assert fixture_binary.is_file()
+      vipc_socket = Path(f"/tmp/{prefix}_visionipc_camerad")
+      assert not vipc_socket.exists(), f"isolated VisionIPC socket already exists: {vipc_socket}"
+    
+      publisher = None
+      loggerd = None
+      encoderd = None
+      pm = None
+      publisher_stdout = None
+      loggerd_output = None
+      encoderd_output = None
+      loggerd_log_path = Path(env["LOG_ROOT"]).parent / "loggerd.stdout.log"
+      encoderd_log_path = Path(env["LOG_ROOT"]).parent / "encoderd.stdout.log"
+      reports: dict[int, dict] = {}
+      observed_segment_times: dict[int, float] = {}
+      last_frame_id = 0
+      try:
+        _assert_camera_stack_idle()
+        publisher_mode = "--serve-shm" if scenario == "shm" else "--serve"
+        publisher = subprocess.Popen([str(fixture_binary), publisher_mode], cwd=repo_root, env=env,
+                                     stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                                     stderr=subprocess.STDOUT, text=True, bufsize=1)
+        backing = "shm" if scenario == "shm" else "dma_heap"
+        _wait_matching_line(
+          publisher,
+          f"READY streams=road,driver,wideRoad width=1920 height=1200 stride=1920 "
+          f"uv_offset=2304000 buffers=4 backing={backing}",
+          10,
+        )
+        pm = messaging.PubMaster([state for _, state in CAMERAS] + ["rawAudioData"])
+    
+        loggerd_output = loggerd_log_path.open("w")
+        encoderd_output = encoderd_log_path.open("w")
+        loggerd = subprocess.Popen([str(binaries["loggerd"])], cwd=repo_root, env=env,
+                                   stdout=loggerd_output, stderr=subprocess.STDOUT, text=True)
+        encoderd = subprocess.Popen([str(binaries["encoderd"])], cwd=repo_root, env=env,
+                                    stdout=encoderd_output, stderr=subprocess.STDOUT, text=True)
+    
+        for _, state_name in CAMERAS:
+          assert pm.wait_for_readers_to_update(state_name, timeout=10), f"loggerd/encoderd did not subscribe to {state_name}"
+        assert pm.wait_for_readers_to_update("rawAudioData", timeout=10), "loggerd did not subscribe to rawAudioData"
+>       assert _read_param(params, "LoggerdSegment", timeout=10) == "0"
+E       AssertionError: assert None == '0'
+E        +  where None = _read_param(<common.params_pyx.Params object at 0x7f7add6850>, 'LoggerdSegment', timeout=10)
+
+system/loggerd/tests/test_loggerd_liveness.py:432: AssertionError
+============================= slowest 10 durations =============================
+23.74s call     system/loggerd/tests/test_loggerd_liveness.py::test_non_rk3588_hardware_pc_legacy_lifecycle_on_ka2_host
+0.01s setup    system/loggerd/tests/test_loggerd_liveness.py::test_non_rk3588_hardware_pc_legacy_lifecycle_on_ka2_host
+
+(1 durations < 0.005s hidden.  Use -vv to show these durations.)
+=========================== short test summary info ============================
+FAILED system/loggerd/tests/test_loggerd_liveness.py::test_non_rk3588_hardware_pc_legacy_lifecycle_on_ka2_host
+!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!!
+============================== 1 failed in 24.07s ==============================

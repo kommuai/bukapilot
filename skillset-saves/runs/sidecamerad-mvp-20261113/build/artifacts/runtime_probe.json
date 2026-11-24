@@ -1,0 +1,91 @@
+{
+  "artifacts": [
+    "evidence/runtime-smoke-zmq-r2-final.log",
+    "evidence/runtime-no-path-zmq-r2-final.log"
+  ],
+  "command": "Inline Python controller launched `python3 -m system.sidecamerad` twice with isolated PARAMS_ROOT: first all SIDECAM_* unset and child ZMQ=1 for a 62-second no-path liveness check, then only SIDECAM_FRONT_LEFT=/dev/v4l/by-path/platform-xhci-hcd.11.auto-usb-0:1:1.0-video-index0 and child ZMQ=1 for a 300-second concurrent cereal/VisionIPC capture; readers used local backend; TCP ports 9007-9010 and cleanup were checked.",
+  "dependencies": [
+    {
+      "name": "V4L2 UVC decoder",
+      "signal": "/dev/video60 opened through assigned by-path video-index0",
+      "status": "reachable"
+    },
+    {
+      "name": "FFmpeg",
+      "signal": "decoded 1280x720 MJPEG to complete NV12 frames",
+      "status": "reachable"
+    },
+    {
+      "name": "cereal camera state",
+      "signal": "frontLeftCameraState received all 6,000 frame IDs",
+      "status": "reachable"
+    },
+    {
+      "name": "VisionIPC",
+      "signal": "local sidecamerad stream connected at 1280x720 with three buffers",
+      "status": "reachable"
+    },
+    {
+      "name": "Params",
+      "signal": "isolated Param store read all-false, true after first dual publication, and all-false after shutdown",
+      "status": "reachable"
+    }
+  ],
+  "environment": "Local /data/openpilot Linux host; one UVC decoder at /dev/video60; child ZMQ=1 while controller and subscribers stayed on the local backend; isolated temporary Params roots; no video file written and /data/params untouched; no packages installed.",
+  "exit_code": 0,
+  "input_revision": 63,
+  "inputs": [
+    {
+      "path": "system/sidecamerad.py",
+      "sha256": "494fb8b88fda8bcf1d8301225019f4f01f4b77a0bb5cb3e69dde47ed96e1309b"
+    },
+    {
+      "path": "system/manager/process_config.py",
+      "sha256": "b7fdfda2878cae1fa6b354ed512bc33ad66f1abe1ed25c90ed980b547a8aa02d"
+    },
+    {
+      "path": "common/params_keys.h",
+      "sha256": "87d6e7cc658daaac97f0aff94706cec6b6a545b3d2413d22fcec4b9d2577c035"
+    },
+    {
+      "path": "common/params_pyx.so",
+      "sha256": "1ba74ad9f9831623e373dd3077102899e9efc49b3fee452b649795304d3c6722"
+    },
+    {
+      "path": "cereal/services.py",
+      "sha256": "cacd4b749d9a0a3e19e3c466784dcf34925f263fdca3c26af72578c47d740a6b"
+    },
+    {
+      "path": "cereal/log.capnp",
+      "sha256": "d5c0372d714e65461942874c91c522b205ce208261b382283839ed03b9731f64"
+    },
+    {
+      "path": "msgq_repo/msgq/visionipc/visionbuf.h",
+      "sha256": "c971a1afa601f5bb8f560de6fb1dd78c2121cee61ea41c169f00a4154566e870"
+    },
+    {
+      "path": "msgq_repo/msgq/visionipc/visionipc_pyx.pyx",
+      "sha256": "36247e353901eb80e52735c91f466151b3026e77152dde9ad9e3bcd682c66f32"
+    },
+    {
+      "path": "msgq_repo/msgq/visionipc/visionipc_server.cc",
+      "sha256": "36b383bfcaf10eaa69f6844a579c86204b4a07464a889208fe059a6c1202d198"
+    }
+  ],
+  "observed_at": "2026-11-13T08:36:56.941003+00:00",
+  "result": {
+    "ac2_no_path": "pass",
+    "ac4_one_camera_cadence": "fail",
+    "runtime_functional_status": "pass",
+    "status": "pass",
+    "summary": "The final r2.1 module remains alive with no paths and acknowledges all four missing feeds. With child ZMQ=1, one camera published 6,000 matching cereal/VisionIPC frame IDs over five minutes on local IPC, with valid nonzero 1,382,400-byte frames and no 9007-9010 TCP listeners. The process exited cleanly, reset all availability fields and removed the local socket. The strict AC-4 cadence threshold fails: mean 19.999396661 fps is below 20.0, maximum EOF gap is 123.185415 ms, and 743 intervals exceeded 60 ms."
+  },
+  "target_revision": "implementation r2.1, build run checkpoint 63, approved design r2",
+  "tool": "Python 3.12.3 entry-point controller with local cereal and VisionIPC clients, V4L2 and FFmpeg",
+  "warnings": [
+    "Cadence acceptance failed: mean 19.999396661 fps (<20.0), maximum EOF-to-EOF gap 123.185415 ms (>60 ms), and 743 intervals >60 ms. Raw per-frame interval series was not retained.",
+    "Only one physical decoder was available. Four-camera cadence/CPU headroom and the 30-minute AC-8 soak remain unverified.",
+    "AC-6 controlled disconnect/reconnect and sibling-camera continuity remain unverified.",
+    "The first controller attempt stopped after the first matched frame with a harness NameError; the corrected five-minute rerun is the final runtime artifact."
+  ]
+}

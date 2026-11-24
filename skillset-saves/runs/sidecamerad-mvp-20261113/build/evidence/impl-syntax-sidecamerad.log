@@ -1,0 +1,2 @@
+command: python3 -m py_compile system/sidecamerad.py system/manager/process_config.py
+exit_code: 0

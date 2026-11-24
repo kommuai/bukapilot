@@ -1,0 +1,1581 @@
+{
+  "canonical_logical_build": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build",
+  "historical_evidence_relocations": [
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/artifacts/dmabuf_fixture_probe_r8.json",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/artifacts/dmabuf_fixture_probe_r8.json",
+      "sha256": "51b64279aed9fe538b19657af4536d518e27c0e2ca3ca243e79f02184c153fb3"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/artifacts/tests-probe.json",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/artifacts/tests-probe.json",
+      "sha256": "93f995f5e4ed2f8b63ab023f737992d1babb4b9d1dba0b3e3dfe79e4624421b5"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/class-final-v1-log-manifest.sha256",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/class-final-v1-log-manifest.sha256",
+      "sha256": "9da976579f1cc2bfd605424aaee27fe7277a6c2713835fea5da784bb1532739d"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/class-final-v1-sample-sha256.txt",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/class-final-v1-sample-sha256.txt",
+      "sha256": "49f47229b4aef18b4e57344ced83da5a2bff99b45712aa580a997fd64930b8dd"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/class-pilot-pair-01-copy.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/class-pilot-pair-01-copy.log",
+      "sha256": "9d0b972814f9ec3dd98bbd4fc8d4a8cc1182e52a1075d288741eabdd7d1f24a2"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/class-pilot-pair-01-zero.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/class-pilot-pair-01-zero.log",
+      "sha256": "879383968da9f6e444c21f4c7b9dcede0772b158248b06ada2d4851470de9fe1"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/class-pilot-pair-02-copy.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/class-pilot-pair-02-copy.log",
+      "sha256": "f6d9151197bf9bf8fa61d0c70576cce59c66b4340815eac50d939ea01325c450"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/class-pilot-pair-02-zero.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/class-pilot-pair-02-zero.log",
+      "sha256": "8d658df1585e58b67122d1a6672021ea7549b144e13acf4e3f767777faab9f40"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/class-pilot-pair-03-copy.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/class-pilot-pair-03-copy.log",
+      "sha256": "8ffa048d457e9fafab6acfde9c278ab5e7155d4cde5c93bfe47df67dda3c023c"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/class-pilot-pair-03-zero.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/class-pilot-pair-03-zero.log",
+      "sha256": "0a57b5090a82166fffc242087e7689762dd6804dbfaf24a40f8f688cfa24dd01"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/class-pilot-pair-04-copy.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/class-pilot-pair-04-copy.log",
+      "sha256": "e4e1f31205d4d6ca170160a023e381dac910b8d74f3cec2fc76d28aef23581b9"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/class-pilot-pair-04-zero.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/class-pilot-pair-04-zero.log",
+      "sha256": "4483ce61febf1f6b2a2ad969fd3d79d34377a32bd6d0010906810432eb138584"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/class-pilot-pair-05-copy.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/class-pilot-pair-05-copy.log",
+      "sha256": "53327d5bec7a2be9ac4f47b4b0d5e296512c7a840c717419c5359f734798b365"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/class-pilot-pair-05-zero.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/class-pilot-pair-05-zero.log",
+      "sha256": "f4efef9dfb167d618af0981f6553d00c8620e3f7cbf36aa2f314f1dcb328c2bd"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/class-validation-copy-v1.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/class-validation-copy-v1.log",
+      "sha256": "922422c307869780ca26f123bdab13cb9bdb48f4d376dce5b7dcc10b5b852624"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/class-validation-zero-v1.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/class-validation-zero-v1.log",
+      "sha256": "e93a9c002d6918413f5d30853db9527bb8ba166f7669410612838c72f21b512e"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/class-warmup-copy-1-corrected.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/class-warmup-copy-1-corrected.log",
+      "sha256": "cea9cc1cc4125fae6691911b3c26d1bc9a58974d8ed2413e6c18dd3fcb4c2d2a"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/class-warmup-copy-1-observed.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/class-warmup-copy-1-observed.log",
+      "sha256": "cd8b9f19120d46b88f2e45ec723f46ddbefbe90d139a05b527ca84cb564baecd"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/class-warmup-copy-1.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/class-warmup-copy-1.log",
+      "sha256": "5a3a4a501fac6c8224dd2b15e4024b0abcb72100ad1a8b0a1ca5dc330054ea75"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/class-warmup-copy-2-observed.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/class-warmup-copy-2-observed.log",
+      "sha256": "cd9be7f0375fe3e52084fdbe53f3f9176c61c127a111d391afb7cf33357ca0d8"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/class-warmup-copy-3-observed.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/class-warmup-copy-3-observed.log",
+      "sha256": "c2bbdb5711cc6ca55f75507649f15b5ad722f413e8a26acc51e68618c03b22ad"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/class-warmup-zero-1-observed.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/class-warmup-zero-1-observed.log",
+      "sha256": "c3add30d9544fe25d7af1ddb00cb6997b39b40f7342910c8ce96d7cdceeed90f"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/class-warmup-zero-1.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/class-warmup-zero-1.log",
+      "sha256": "3b334da3bc6fa732f98f0534890a59fc4bf090f1ba3416893009edb124c0d14c"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/class-warmup-zero-2-observed.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/class-warmup-zero-2-observed.log",
+      "sha256": "07889874a518e0ab272641907840439d76378b3211b4bfc4f8f069d40c2f82ad"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/class-warmup-zero-3-observed.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/class-warmup-zero-3-observed.log",
+      "sha256": "3c53d3e0dd7af9b5922911a47a49a523b8039cc8b85e9a652d28354c7ced0e59"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/dmabuf_fixture_smoke_r8.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/dmabuf_fixture_smoke_r8.log",
+      "sha256": "9647414b0e4c517282f2f5de441547e5a72907aff0bb43395da757af2a95e98d"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/dmabuf_fixture_xdist_r8.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/dmabuf_fixture_xdist_r8.log",
+      "sha256": "480da392e472d4a7b0974ee4260a4a817a2f5390cb6ace087947283c1a0d3d86"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/encoder_default_and_copy_rotation_pytest.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/encoder_default_and_copy_rotation_pytest.log",
+      "sha256": "7ec3e398028e4d0ebf32bdcd148897dbcb1030a6639594e22fb534045d01ca2b"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/encoder_default_guard_final_build.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/encoder_default_guard_final_build.log",
+      "sha256": "f442a4f60426beeef9279a64b443ba5b25df3a8c03701e64f6f71531f46177ae"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/encoder_dma_guard_rotation_pytest.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/encoder_dma_guard_rotation_pytest.log",
+      "sha256": "ea6e76b552c1972cbc542042a1d9a6a30bd3b3d2953d3c0fe69e1f91b51ea008"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/encoder_no_fallback_scons_build.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/encoder_no_fallback_scons_build.log",
+      "sha256": "72651c62e73d671fcb2100d83316dd89cd3113391806a2d3e9e7b3ec239981d7"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/g0-dmabuf-import-probe",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/g0-dmabuf-import-probe",
+      "sha256": "636191845a84a6c3a45056abf3a735011ab510db506ac1635de032c1b46ac419"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/g0-dmabuf-import-probe-build.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/g0-dmabuf-import-probe-build.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/g0-dmabuf-import-probe-preflight.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/g0-dmabuf-import-probe-preflight.log",
+      "sha256": "0c7f0979451149ebc0c62747fefad917bb85c3b39ec15afda020d886f230121f"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/g0-dmabuf-import-probe-run.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/g0-dmabuf-import-probe-run.log",
+      "sha256": "a20a61ceaafa1f5f65888c206393e7fc55f64bb05398009a7eeb9f285d5793ae"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/g0-dmabuf-import-probe.cc",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/g0-dmabuf-import-probe.cc",
+      "sha256": "1fa29d17c4c10e9cbae2808e2a3dabd1958dfb729c3fe3ce793def33deff25f6"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/g0-mpp-encode-probe",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/g0-mpp-encode-probe",
+      "sha256": "5474d5f501d57c7bfa3ee9101c5379cefe2cd56f00792f44e8c861eac9ad0b85"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/g0-mpp-encode-probe-build.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/g0-mpp-encode-probe-build.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/g0-mpp-encode-probe-preflight.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/g0-mpp-encode-probe-preflight.log",
+      "sha256": "6d73f82d6ae692a786675fc5f14c3e8a20b0df7f4f56bcae96258b8044179006"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/g0-mpp-encode-probe-run.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/g0-mpp-encode-probe-run.log",
+      "sha256": "577dc476e8f556cddb805cd14971c3b18322d3ec64316394e7fbbde801f4d2f6"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/g0-mpp-encode-probe-run.sh",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/g0-mpp-encode-probe-run.sh",
+      "sha256": "716b269ad63326c306fa67d25ba31e20d96e9bc1da00a8386e750c6b2e3eacde"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/g0-mpp-encode-probe.cc",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/g0-mpp-encode-probe.cc",
+      "sha256": "139dbdf059805fd226dbc6dfe843d037f5d308437f218b04c848f48a06e66332"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/g0-mpp-init-probe-run-final.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/g0-mpp-init-probe-run-final.log",
+      "sha256": "a881b636802755a815fe6f654418e4ef337f796c0a7da9ad232a4b7841143c6b"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/g0-preflight-r7-fresh.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/g0-preflight-r7-fresh.log",
+      "sha256": "93763696580543a7a57a79ef05bc626768dcb8e1b885b9263e4353a3bc2ba046"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/g0-preflight.md",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/g0-preflight.md",
+      "sha256": "4f2d556b23c4bb2549885ed2c217cfc15eb2e09ac760036f01c3f9a507bb1547"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/impl-binary-inspection.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/impl-binary-inspection.log",
+      "sha256": "ab0f3ba322044f2f865e022f6d3eb0d476fa5504de69452f2b54cfa11779a37e"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/impl-build.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/impl-build.log",
+      "sha256": "bba8962fcda4839d73a515c57049d7e6125a4ea9e3a0131580691fd264798fe6"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/impl-candidate-build-final.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/impl-candidate-build-final.log",
+      "sha256": "3493a0f30f597a117e17e66223c15076e5ab9c4af4a0615d32a71612e6310bf9"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/impl-diff-check.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/impl-diff-check.log",
+      "sha256": "7c28d9e2a57c7e03a0026d43dcc1d2d7755b51e011fdd1cf6a5ce0599f16bf6e"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/impl-merged-overlay-build.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/impl-merged-overlay-build.log",
+      "sha256": "3493a0f30f597a117e17e66223c15076e5ab9c4af4a0615d32a71612e6310bf9"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/impl-merged-root-hashes.txt",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/impl-merged-root-hashes.txt",
+      "sha256": "932fefd1de1789cbec3aae00c23e0aa83d42de7d976a6f75c287711fa8d12650"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/impl-r10.diff",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/impl-r10.diff",
+      "sha256": "ce57a1045d9554d11355579c69833032e42e59f1dbb7401099dbca64da14c542"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/impl.diff",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/impl.diff",
+      "sha256": "cdf2a3721a82e686de9f6ee6ee26cef923cd2f2d42c4763368eeb9c86ad39396"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/ka2-speedup-benchmark-plan.md",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/ka2-speedup-benchmark-plan.md",
+      "sha256": "6f3ef32c1f78dc27ec5e629ed7e971adff09d4d3069d673115cc17e11946ab95"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/loggerd-copy-build.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/loggerd-copy-build.log",
+      "sha256": "bd7ac49f0b00fa30f983639beb3184f19c7979c5aad60ebba75e8ade81a0624a"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/loggerd-copy-diff-check.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/loggerd-copy-diff-check.log",
+      "sha256": "abd71f9809ca9def68d8c5f77a5dec459048e96139f2fa9808959ba759e9d00c"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/loggerd-copy-postflight-r2.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/loggerd-copy-postflight-r2.log",
+      "sha256": "b00f54547cb16e931ca410fb5e2123a9440c8948f78832688352883eb7f957c6"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/loggerd-copy-postflight-r3.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/loggerd-copy-postflight-r3.log",
+      "sha256": "0631b630bae2e0a19db376388704bb92787cbccbf7f1e091e5c74f14f86dcb1c"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/loggerd-copy-preflight-r1.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/loggerd-copy-preflight-r1.log",
+      "sha256": "4aca5c6b285dd88ba9b0970ddcae8bc3a09c6edf398c535a3bb9a92206d9ce27"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/loggerd-copy-preflight-r2.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/loggerd-copy-preflight-r2.log",
+      "sha256": "1b5c9f14201e315807a7badd471e3b2f2450654b0f675a3e70c529675f8e6f0d"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/loggerd-copy-preflight-r3.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/loggerd-copy-preflight-r3.log",
+      "sha256": "cb3e89f40558bcf7029850770605e914eb121566fc295e0b32dfaeae55f075f8"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/loggerd-copy-repeatability-comparison.json",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/loggerd-copy-repeatability-comparison.json",
+      "sha256": "475f196a112836c2cadc082a8ec11dd27091dc2b7efa8bdb56ba2d1e0c4e138d"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/loggerd-copy-repeatability-r1-r3-hashes.txt",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/loggerd-copy-repeatability-r1-r3-hashes.txt",
+      "sha256": "7e415904d9e1deed124ef1754bba8f6f42dd6bebbcca2b8871e431cdc2671c92"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/loggerd-copy-runtime-frame-summary.json",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/loggerd-copy-runtime-frame-summary.json",
+      "sha256": "f3129876b5e611e940d581b29b5081095ae1f4ab84b89782935614233287d196"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/loggerd-copy-runtime-r1-data/popen-gw1/test_ka2_deterministic_rotatio0/logs/2026-10-30--06-24-37--0/dcamera.hevc",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/loggerd-copy-runtime-r1-data/popen-gw1/test_ka2_deterministic_rotatio0/logs/2026-10-30--06-24-37--0/dcamera.hevc",
+      "sha256": "c87f23902b50409ca7fb6b1c19092055aab0add3a6632bdbf0e7c55f9832aa28"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/loggerd-copy-runtime-r1-data/popen-gw1/test_ka2_deterministic_rotatio0/logs/2026-10-30--06-24-37--0/ecamera.hevc",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/loggerd-copy-runtime-r1-data/popen-gw1/test_ka2_deterministic_rotatio0/logs/2026-10-30--06-24-37--0/ecamera.hevc",
+      "sha256": "c87f23902b50409ca7fb6b1c19092055aab0add3a6632bdbf0e7c55f9832aa28"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/loggerd-copy-runtime-r1-data/popen-gw1/test_ka2_deterministic_rotatio0/logs/2026-10-30--06-24-37--0/fcamera.hevc",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/loggerd-copy-runtime-r1-data/popen-gw1/test_ka2_deterministic_rotatio0/logs/2026-10-30--06-24-37--0/fcamera.hevc",
+      "sha256": "c87f23902b50409ca7fb6b1c19092055aab0add3a6632bdbf0e7c55f9832aa28"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/loggerd-copy-runtime-r1-data/popen-gw1/test_ka2_deterministic_rotatio0/logs/2026-10-30--06-24-37--0/qcamera.ts",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/loggerd-copy-runtime-r1-data/popen-gw1/test_ka2_deterministic_rotatio0/logs/2026-10-30--06-24-37--0/qcamera.ts",
+      "sha256": "674550b1cad0bcf330919955e7efbda6290c713156edc0230b0dcc2c9dbd50dd"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/loggerd-copy-runtime-r1-data/popen-gw1/test_ka2_deterministic_rotatio0/logs/2026-10-30--06-24-37--0/qlog.zst",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/loggerd-copy-runtime-r1-data/popen-gw1/test_ka2_deterministic_rotatio0/logs/2026-10-30--06-24-37--0/qlog.zst",
+      "sha256": "1a8adf0a13c17fb9b0a1c02fd9fd0896361ff2da123037e5ed75b179e776b9ce"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/loggerd-copy-runtime-r1-data/popen-gw1/test_ka2_deterministic_rotatio0/logs/2026-10-30--06-24-37--0/rlog.zst",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/loggerd-copy-runtime-r1-data/popen-gw1/test_ka2_deterministic_rotatio0/logs/2026-10-30--06-24-37--0/rlog.zst",
+      "sha256": "42971f1661e835fbf9c57e0da82abe1b8290fb045b8faef8a195d9135ebd4f8c"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/loggerd-copy-runtime-r1-data/popen-gw1/test_ka2_deterministic_rotatio0/logs/2026-10-30--06-24-37--1/dcamera.hevc",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/loggerd-copy-runtime-r1-data/popen-gw1/test_ka2_deterministic_rotatio0/logs/2026-10-30--06-24-37--1/dcamera.hevc",
+      "sha256": "5ff9086b3963b0c656847900495b33a181fe219d58859d1cd7a5197f6dc7898b"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/loggerd-copy-runtime-r1-data/popen-gw1/test_ka2_deterministic_rotatio0/logs/2026-10-30--06-24-37--1/ecamera.hevc",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/loggerd-copy-runtime-r1-data/popen-gw1/test_ka2_deterministic_rotatio0/logs/2026-10-30--06-24-37--1/ecamera.hevc",
+      "sha256": "5ff9086b3963b0c656847900495b33a181fe219d58859d1cd7a5197f6dc7898b"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/loggerd-copy-runtime-r1-data/popen-gw1/test_ka2_deterministic_rotatio0/logs/2026-10-30--06-24-37--1/fcamera.hevc",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/loggerd-copy-runtime-r1-data/popen-gw1/test_ka2_deterministic_rotatio0/logs/2026-10-30--06-24-37--1/fcamera.hevc",
+      "sha256": "5ff9086b3963b0c656847900495b33a181fe219d58859d1cd7a5197f6dc7898b"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/loggerd-copy-runtime-r1-data/popen-gw1/test_ka2_deterministic_rotatio0/logs/2026-10-30--06-24-37--1/qcamera.ts",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/loggerd-copy-runtime-r1-data/popen-gw1/test_ka2_deterministic_rotatio0/logs/2026-10-30--06-24-37--1/qcamera.ts",
+      "sha256": "6802311bd63da5a0ae7b513489d615d3f1a2a0143f4ccdb37e3dd5948bd548b6"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/loggerd-copy-runtime-r1-data/popen-gw1/test_ka2_deterministic_rotatio0/logs/2026-10-30--06-24-37--1/qlog.zst",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/loggerd-copy-runtime-r1-data/popen-gw1/test_ka2_deterministic_rotatio0/logs/2026-10-30--06-24-37--1/qlog.zst",
+      "sha256": "bea577bcb42c1ad705c0c3f2f2571a30044b16bb4fe1781690f238e9c98a7c19"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/loggerd-copy-runtime-r1-data/popen-gw1/test_ka2_deterministic_rotatio0/logs/2026-10-30--06-24-37--1/rlog.zst",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/loggerd-copy-runtime-r1-data/popen-gw1/test_ka2_deterministic_rotatio0/logs/2026-10-30--06-24-37--1/rlog.zst",
+      "sha256": "97a0c1c466ace8c8c52b928fec2fb62dc2052c05628bd9adca609f15d8071f77"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/loggerd-copy-runtime-r1.diff",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/loggerd-copy-runtime-r1.diff",
+      "sha256": "38a631809a00df4da59efffcbd00b3172375e26085c008501d50c628433fffe7"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/loggerd-copy-runtime-r2-summary.json",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/loggerd-copy-runtime-r2-summary.json",
+      "sha256": "3bfa91df18d70babd0317b41ca90b5c505394f74839ec86da79d1df3e0766688"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/loggerd-copy-runtime-r2.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/loggerd-copy-runtime-r2.log",
+      "sha256": "e976d2db6d10cc6f245a6a5f4beef19cb227930305e9bc4b07c9e779403538b5"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/loggerd-copy-runtime-r3-summary.json",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/loggerd-copy-runtime-r3-summary.json",
+      "sha256": "02582b830cd5046bc0906690a1cd85ea36242fa762e6bf4e88ded79afb77108a"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/loggerd-copy-runtime-r3.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/loggerd-copy-runtime-r3.log",
+      "sha256": "bb5ee027fcd386a723ce207a95578a885ef21ea8de1b37874b1b6b6d40632866"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/loggerd-copy-runtime-regression.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/loggerd-copy-runtime-regression.log",
+      "sha256": "e5741ba8d1574f35f499760ce865800ab79496ef872d1d53778bfe07d1979d03"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/loggerd-focused-rotation-failure.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/loggerd-focused-rotation-failure.log",
+      "sha256": "503e0ceb750ae2a8ca61d304d832732f62594acfe96a6a73f2ee6ce3761ae37b"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/loggerd-rotation-boundary-timeline.txt",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/loggerd-rotation-boundary-timeline.txt",
+      "sha256": "04ff6f97b12a711a6cb59461532bba1f3e70e7267bf86562e6767297d7aaeeb1"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/loggerd-rotation-frame-id-summary.txt",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/loggerd-rotation-frame-id-summary.txt",
+      "sha256": "1e7de0a1c7f781a2e58bc9ec4ab95de7f246095700d88329c9db8f7e13d71596"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/loggerd-s0-preflight.txt",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/loggerd-s0-preflight.txt",
+      "sha256": "86c733c3b38dc2fe4e5bbdde87c30c4515315d21bae2eb100319624af60ffcb3"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/loggerd-s0-static-review.txt",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/loggerd-s0-static-review.txt",
+      "sha256": "d8546194ece061371fd8479f08e5daa931d270f0751ff590ef322355c76f8063"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/loggerd-syntax-check.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/loggerd-syntax-check.log",
+      "sha256": "3a9cf47c31502b218b5740a629595f8aed7cc80c89f7e4e081981b6257cdc634"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/loggerd_shm_rotation_not_applicable_pytest.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/loggerd_shm_rotation_not_applicable_pytest.log",
+      "sha256": "2b38aaa91ac3ecd6afa9cacb2c644b35970b55b99a76f36a2c04fa0e88966343"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/mpp_encoder-refactor-compile.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/mpp_encoder-refactor-compile.log",
+      "sha256": "2e0ca0bf69a145f81568a73e55681ee99d151811d7cc54744cf90c0dc6810355"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/mpp_encoder_direct_class_harness.cc",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/mpp_encoder_direct_class_harness.cc",
+      "sha256": "d35225929b4f3e919244ec215200d9e1b6c4252e15a5e0cd008aebaad5cb832b"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/mpp_encoder_direct_class_harness_observed",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/mpp_encoder_direct_class_harness_observed",
+      "sha256": "0c4101c4b22daee9f83e782e1a378c1fc8a32c3ce79a19ee23b75f58c6035b4d"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/mpp_encoder_dma_buf_validation_pytest.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/mpp_encoder_dma_buf_validation_pytest.log",
+      "sha256": "7c6931837b583a3c239989719a03c9a03df350dce6088ea2e9b9bbbc7c00f8da"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/mpp_encoder_no_fallback_smoke.cc",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/mpp_encoder_no_fallback_smoke.cc",
+      "sha256": "5ed6eca01cd81fc8187f8e072a6577dc617a076805a3380244759ace83c7aa99"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/mpp_encoder_no_fallback_smoke.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/mpp_encoder_no_fallback_smoke.log",
+      "sha256": "d0908f9f38bf444b855aa89f213df4fc75fa771b1a9adc23fa514e16fe24a3eb"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/mpp_encoder_refactor_dma_guard_pytest.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/mpp_encoder_refactor_dma_guard_pytest.log",
+      "sha256": "df19bbe1df9d7c1d9a929650dbb76aed933ce4bbcf39326136b84b3ad510c5a7"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/mpp_encoder_refactor_pytest.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/mpp_encoder_refactor_pytest.log",
+      "sha256": "d5bd9773f97c0875b9fe9e30c8a32d803d24609dd7953735011a579e09ccfb56"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/mpp_encoder_zero_default_dma_guard_smoke-copy.framemd5",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/mpp_encoder_zero_default_dma_guard_smoke-copy.framemd5",
+      "sha256": "0ef875c179a3008b0f314e9701c55df473c3cdc5f92ca6471e8ae9eccdeb4761"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/mpp_encoder_zero_default_dma_guard_smoke-copy.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/mpp_encoder_zero_default_dma_guard_smoke-copy.log",
+      "sha256": "75847ae5872b98241430aeeca73e2e17c9809b0c5656e9d90f954910ad930590"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/mpp_encoder_zero_default_dma_guard_smoke-default.framemd5",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/mpp_encoder_zero_default_dma_guard_smoke-default.framemd5",
+      "sha256": "0ef875c179a3008b0f314e9701c55df473c3cdc5f92ca6471e8ae9eccdeb4761"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/mpp_encoder_zero_default_dma_guard_smoke-default.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/mpp_encoder_zero_default_dma_guard_smoke-default.log",
+      "sha256": "54d78a20f15cea5948564614198ad4d42444bfab4aa8175cff19584520aea8eb"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/mpp_encoder_zero_default_smoke-copy.framemd5",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/mpp_encoder_zero_default_smoke-copy.framemd5",
+      "sha256": "0ef875c179a3008b0f314e9701c55df473c3cdc5f92ca6471e8ae9eccdeb4761"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/mpp_encoder_zero_default_smoke-copy.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/mpp_encoder_zero_default_smoke-copy.log",
+      "sha256": "7f99f6a99bb56f5be19a522fc6ae849b40fcb5b6f7118907412bc2b62d156e6a"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/mpp_encoder_zero_default_smoke-default.framemd5",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/mpp_encoder_zero_default_smoke-default.framemd5",
+      "sha256": "0ef875c179a3008b0f314e9701c55df473c3cdc5f92ca6471e8ae9eccdeb4761"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/mpp_encoder_zero_default_smoke-default.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/mpp_encoder_zero_default_smoke-default.log",
+      "sha256": "4118069159fb457849e45b0ab7576f9b701b7cbd1ac00b32e75f322ce821c989"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/mpp_encoder_zero_default_smoke_rebuild.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/mpp_encoder_zero_default_smoke_rebuild.log",
+      "sha256": "05e953229ca3e5c1ae35ca01865194a7645a175812ed1874326d26dabb6a83b5"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-stage-disjoint-profile-copy-01.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-stage-disjoint-profile-copy-01.log",
+      "sha256": "8694f0416e164328d4ba02ce9d6399e62704b3ad86115643395ccd6feadd1ed4"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-stage-disjoint-profile-copy-02.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-stage-disjoint-profile-copy-02.log",
+      "sha256": "7eda8549c5a3a707d8c2f7869790fa6fcaa68c3b73dfb7d471826fd69a9311bd"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-stage-disjoint-profile-copy-03.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-stage-disjoint-profile-copy-03.log",
+      "sha256": "3ebeb9a03fd3598c0eca29267f6a614501d9778a62b94c57ee61343f87afc2b3"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-stage-disjoint-profile-copy-04.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-stage-disjoint-profile-copy-04.log",
+      "sha256": "88ec29da5dfe50f27bb2956f5cbd7c521f994a4bc95224fb110de38ff7f29405"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-stage-disjoint-profile-copy-05.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-stage-disjoint-profile-copy-05.log",
+      "sha256": "5b76d64f715114ce638c6e59f80dcbd6ac7f154f0832d72576b732f9549d1ced"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-stage-disjoint-profile-zero-01.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-stage-disjoint-profile-zero-01.log",
+      "sha256": "561bcf661e15bd581e69c6ddf53b3702ef7885dfd97df09ca76bae169eae98d9"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-stage-disjoint-profile-zero-02.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-stage-disjoint-profile-zero-02.log",
+      "sha256": "f5cf2c07962873049f56f7acdfc45ab9284d50fbe493cb04937dafea0e48467c"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-stage-disjoint-profile-zero-03.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-stage-disjoint-profile-zero-03.log",
+      "sha256": "687a8a0ccacd48911a0d79b5c348ba4dc3c7ef393b963f9dfed7c1cf61d9870c"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-stage-disjoint-profile-zero-04.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-stage-disjoint-profile-zero-04.log",
+      "sha256": "c0e4ba8d4183eba5d8e68b2b1bf02efbfd788b8268a1b8c9a28802ec5f3e17c2"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-stage-disjoint-profile-zero-05.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-stage-disjoint-profile-zero-05.log",
+      "sha256": "e5418dbed1cc4338e0e8f0f1d2d8f9d4cc4b39a9cafd6618059470a407a82bad"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-stage-disjoint-profile-zero-disjoint-01.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-stage-disjoint-profile-zero-disjoint-01.log",
+      "sha256": "429e6116488f8b2ea5c28e01852d2a7a8e0939e0760f6d1d52411b68a5e49422"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-stage-disjoint-profile-zero-disjoint-02.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-stage-disjoint-profile-zero-disjoint-02.log",
+      "sha256": "d048bbaff3785d2fab1281badac42bd804bc9604ded0b5e8cc2a8e9240c72406"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-stage-disjoint-profile-zero-disjoint-03.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-stage-disjoint-profile-zero-disjoint-03.log",
+      "sha256": "78650b5c6bee032f87d12525560cb4216db6c7cf1e6f5ceab2c8cc5b1f02d651"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-stage-disjoint-profile-zero-disjoint-04.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-stage-disjoint-profile-zero-disjoint-04.log",
+      "sha256": "2cd89c2efab6b99a77c3c23c0885831f2f288fe1ff7226aec1bbb77631933f0d"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-stage-disjoint-profile-zero-disjoint-05.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-stage-disjoint-profile-zero-disjoint-05.log",
+      "sha256": "ef5b59b54b678e4231b513d7613672f7a211d14be56039c670685519e9161e98"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-stage-disjoint-warmup-copy-01.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-stage-disjoint-warmup-copy-01.log",
+      "sha256": "8972c8630ce175937d9e0b4b1d4ebeb0b57907fb8d5ad760b4d9073f1cfb5f0a"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-stage-disjoint-warmup-copy-02.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-stage-disjoint-warmup-copy-02.log",
+      "sha256": "65be8a1037996b5c836a12cfd7fbb738e37d3600c4385847cd0c7b56e2b3e740"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-stage-disjoint-warmup-copy-03.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-stage-disjoint-warmup-copy-03.log",
+      "sha256": "bd4dfe8daf340eadbdf9e8cd3079e01cfdeb7112c26296722316d32bbc85cb52"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-stage-disjoint-warmup-zero-01.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-stage-disjoint-warmup-zero-01.log",
+      "sha256": "b9fe71e7ec783845fe2cc6c1131b62f9f3fabe537902ce7c23b41874b802c8c7"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-stage-disjoint-warmup-zero-02.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-stage-disjoint-warmup-zero-02.log",
+      "sha256": "ce06c2d2daae96cecd3f969e2faa79ea41b8934997f20c39c6904435106aa514"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-stage-disjoint-warmup-zero-03.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-stage-disjoint-warmup-zero-03.log",
+      "sha256": "0397ddb7607afa78174cab38298a2a91014af6ae5a2c39338509cc9d48b56b05"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-stage-disjoint-warmup-zero-disjoint-01.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-stage-disjoint-warmup-zero-disjoint-01.log",
+      "sha256": "c6cf1df9a4fa6eed9702a3ce2dfe395a3b4d5e6c2c4474e3533bf1309a14ee1e"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-stage-disjoint-warmup-zero-disjoint-02.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-stage-disjoint-warmup-zero-disjoint-02.log",
+      "sha256": "6a584a9e698f15a4be180f95a7d0e02f4978de4de5e5fe4ea1649c5f6dc88348"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-stage-disjoint-warmup-zero-disjoint-03.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-stage-disjoint-warmup-zero-disjoint-03.log",
+      "sha256": "36f601980d708bf4873b9f190a383880fdaf1eaa79627d2437750d643959b21b"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-stage-profile-copy-01.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-stage-profile-copy-01.log",
+      "sha256": "1f552c25f1f96e8e785cd3c68ac01e97e91c1edae4b86fe504f9500eef6e88cc"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-stage-profile-copy-02.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-stage-profile-copy-02.log",
+      "sha256": "fec9dad0bde2add40481783fafa4d7337d92e3496ceba14adfc9687bf96d750b"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-stage-profile-copy-03.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-stage-profile-copy-03.log",
+      "sha256": "5b7d4cca0f4cee10b956ca5f01645ac201e7fdce93508b12169623f65d0a99ef"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-stage-profile-copy-04.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-stage-profile-copy-04.log",
+      "sha256": "bc8b7bf8bee9fc2d89953b2e739a0bc1f0414c049a97234960d62538806cc53b"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-stage-profile-copy-05.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-stage-profile-copy-05.log",
+      "sha256": "28c32dd1660c848596d54aed027c88fa85405d0f2d04b1e91ce3b59040f7725a"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-stage-profile-zero-01.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-stage-profile-zero-01.log",
+      "sha256": "190b5536a5169b502f22b514a6949434bbe48913af871813abdd0d35b2027293"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-stage-profile-zero-02.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-stage-profile-zero-02.log",
+      "sha256": "80c0125c6195d253d5225e089a906b97f3f4a2763868bacf7c722c2d442a6995"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-stage-profile-zero-03.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-stage-profile-zero-03.log",
+      "sha256": "1b7496ce70b8fc5094fdc49071f54fa2102b5d8ad143716436f60102fa31fb93"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-stage-profile-zero-04.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-stage-profile-zero-04.log",
+      "sha256": "7a467826734090d1d33370fab1f1b0006d7a8749d9785272843e071465c392bf"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-stage-profile-zero-05.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-stage-profile-zero-05.log",
+      "sha256": "213035c6df47b1984553897fe37d73e8135cc55c38287c735c7106a32421f221"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-stage-warmup-copy-01.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-stage-warmup-copy-01.log",
+      "sha256": "0c7f399c8022ccad5c675cc9d8ac1960f9461b0dd0d5ab81a84055debf7dafdd"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-stage-warmup-copy-02.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-stage-warmup-copy-02.log",
+      "sha256": "46449937ab1433557e5ee6a328f6ac5af6e4550c11c7e8594d9df009ffb50c80"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-stage-warmup-copy-03.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-stage-warmup-copy-03.log",
+      "sha256": "2972f4e430ca712811ea00cb325a42c9d1646dabe1cfa914176e7d28b7edcc6e"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-stage-warmup-zero-01.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-stage-warmup-zero-01.log",
+      "sha256": "c56edbbf1d48baf74269394bc75a8c31516cbc6e706d602bd71fef8307cb0c02"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-stage-warmup-zero-02.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-stage-warmup-zero-02.log",
+      "sha256": "d6dbfb01b8693ab8324048f9e758bb2732ab0e8e25c92dbdc866e79c394ec62e"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-stage-warmup-zero-03.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-stage-warmup-zero-03.log",
+      "sha256": "25fb17ae4dbfd4543fa4c0ea5e61fa8f0264399500b93ee35c84610220474827"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-tail-final-copy-01.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-final-copy-01.log",
+      "sha256": "de10805d81d43e6f6aacbb329cae428bb42738db0382be1fe498d9b4bc4a027b"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-tail-final-copy-02.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-final-copy-02.log",
+      "sha256": "5d4c53bb7d2d2e01e81e84f30e52cc21e1cb37b6317cc2e132e28fbe88dcb412"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-tail-final-copy-03.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-final-copy-03.log",
+      "sha256": "8e118fb31e394d42838b1d99e0f3ec13b34f3819fb16dd5f945cc6ef8e6165bb"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-tail-final-copy-04.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-final-copy-04.log",
+      "sha256": "2f8f90a11ff62482b4f63353bf3f9f624ee7eebf05fd25f04166b4878bbcee6f"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-tail-final-copy-05.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-final-copy-05.log",
+      "sha256": "ef01262dce797fb65832daad75339777fd6689729c022d6391ee5bb98af9eead"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-tail-final-copy-06.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-final-copy-06.log",
+      "sha256": "c573c2b0c0475d731c99515f1e33e89de7d52dbdff0f8dfd237fb7532dbf677e"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-tail-final-copy-07.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-final-copy-07.log",
+      "sha256": "6536325f51bc6eda9a5505091d4352f05ae35587834621da07d08806df13a4d9"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-tail-final-copy-08.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-final-copy-08.log",
+      "sha256": "fe95c12c0b129fa806b73261265df5e8347119823edb0fcd7bb183fef4caa53a"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-tail-final-copy-09.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-final-copy-09.log",
+      "sha256": "136554058515542ad43cd339e91023c4858acf00348db0e8f9914a4c4d9918dd"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-tail-final-copy-10.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-final-copy-10.log",
+      "sha256": "cc27a111305c3db5ee27e3b5426259998f16cda57cb5ae790b4417e7cc5ab0f1"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-tail-final-qroad-only-01.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-final-qroad-only-01.log",
+      "sha256": "eb087345397a2a7bad832bdb043d388977bce0992e95a2a6d3e8b827937ce9da"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-tail-final-qroad-only-02.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-final-qroad-only-02.log",
+      "sha256": "d8424c97972e0e5602df36fb11b4a3e61e1e9a04a859e4b3edfab3073fa2ef84"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-tail-final-qroad-only-03.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-final-qroad-only-03.log",
+      "sha256": "ae86fef82f25bee27d9a2ea3bf613520b47d432ac199c2f88063ddb0d873ace0"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-tail-final-qroad-only-04.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-final-qroad-only-04.log",
+      "sha256": "409eac0c4fb31dd91a0482a5561fd5a9cf0361988d393b9ac7c1fbc5b23544bc"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-tail-final-qroad-only-05.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-final-qroad-only-05.log",
+      "sha256": "086bc082f1652cb2c392dbac38a1df118d9b4a00fcbb64b0a525c400555eaf11"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-tail-final-qroad-only-06.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-final-qroad-only-06.log",
+      "sha256": "85a904376eab6c1bc38d06060aaab8ec02fda882a5a0e888aa8515a1c682fdc0"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-tail-final-qroad-only-07.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-final-qroad-only-07.log",
+      "sha256": "6949048b538373fd717780a8c1adb11729893050128ae4ceb6b5dc68366d6011"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-tail-final-qroad-only-08.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-final-qroad-only-08.log",
+      "sha256": "4612148c9aec1ad8ab0b79fb07ec7530c2fa7d405025ef8ad84216d0b7a2bc28"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-tail-final-qroad-only-09.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-final-qroad-only-09.log",
+      "sha256": "0b0b223dc01aab611577f2cf446421cca55c10697395947e5ad5a95b7e8d2977"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-tail-final-qroad-only-10.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-final-qroad-only-10.log",
+      "sha256": "054676b3df2da95c42c524a5096d61280979ad76ac06c11d444a9d306a20b005"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-tail-final-zero-01.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-final-zero-01.log",
+      "sha256": "be869645475f996840e167ac78fded53d66cbbdb424c7e27b2abd543ef7fadb5"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-tail-final-zero-02.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-final-zero-02.log",
+      "sha256": "d3488adc7a9ce5a755218432bba836d068b2144c69df10dddad32a9af434974e"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-tail-final-zero-03.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-final-zero-03.log",
+      "sha256": "ee9447164b2034904a24344481f3f03a5901099d0a69f59873234120506dcccd"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-tail-final-zero-04.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-final-zero-04.log",
+      "sha256": "49c4946d226c38fca27dd9b8bc026fd668bc1980936300c57911b8569626e0dd"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-tail-final-zero-05.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-final-zero-05.log",
+      "sha256": "ababd1cb346d66e039ca191092b00797f24c9bdfe4411b702bc6c651b47cfe4b"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-tail-final-zero-06.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-final-zero-06.log",
+      "sha256": "9edee1c8fc4112dca160ceff9e2939e08de94b1fe226c529e5ed4fcb9af7a194"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-tail-final-zero-07.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-final-zero-07.log",
+      "sha256": "e2fac64b9fbe4ffe91b3903abce1b809d2a4b9f8546c2323f1f2420fac854a32"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-tail-final-zero-08.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-final-zero-08.log",
+      "sha256": "b655a33fa84d45956b26e7100769d59dd933e991796e4d55713c9cb093d7acef"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-tail-final-zero-09.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-final-zero-09.log",
+      "sha256": "eb3ec1827c728dfff2cf18b440a5296170c863febb93af45e46f21cccf6f11ca"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-tail-final-zero-10.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-final-zero-10.log",
+      "sha256": "fd8652d6573e7b61ffa407d6a11a772b1b296aa825feb34087afe93d33bc0fc9"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-tail-final-zero-preimport-01.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-final-zero-preimport-01.log",
+      "sha256": "1df1de7a0fc06ee80f50d1df86def7da4ad4e7e19101414fe17e24bc3e69ddb8"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-tail-final-zero-preimport-02.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-final-zero-preimport-02.log",
+      "sha256": "ad71a501ef0889945fefd720756b037dc321ce895c4b2aafdbdec17cba399954"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-tail-final-zero-preimport-03.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-final-zero-preimport-03.log",
+      "sha256": "604b246ef7430b7189ee64e21d4ba66d870a81c4922703839b2d259ad86871d0"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-tail-final-zero-preimport-04.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-final-zero-preimport-04.log",
+      "sha256": "614a124aadbbee296e1587fde90ea6f0ab0dedfff0ec97c77c81a33c9b94cd57"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-tail-final-zero-preimport-05.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-final-zero-preimport-05.log",
+      "sha256": "a0043a4f79e13d8c6948614e3d750dea466c569e5c0f70d476223b2064460a0a"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-tail-final-zero-preimport-06.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-final-zero-preimport-06.log",
+      "sha256": "0c2ffcfa633e30647e31c36c0ff63d0682d54701b09308547361ba99cf39f0cd"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-tail-final-zero-preimport-07.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-final-zero-preimport-07.log",
+      "sha256": "cfc32245c5052df1a0cbb57444ad4b2c1ac367c9d8e33b4f9ea3da6852d6cbf8"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-tail-final-zero-preimport-08.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-final-zero-preimport-08.log",
+      "sha256": "765df13c70de14948166c5f76959f88a0fdfe61b772bcdb176a8865416f6c100"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-tail-final-zero-preimport-09.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-final-zero-preimport-09.log",
+      "sha256": "73b660a55f6502690e02887b124a0d95af5a78005dd1118703876a251c5d1bb9"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-tail-final-zero-preimport-10.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-final-zero-preimport-10.log",
+      "sha256": "42529a6f3cc15759e8f8d1839d9e743c24e6616833b30120e8858e126acd3cd3"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-tail-final-zero-reverse-01.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-final-zero-reverse-01.log",
+      "sha256": "8bd65600f61879d8a886c8e1e6f008fd768987239f93d4458a227668081351dc"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-tail-final-zero-reverse-02.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-final-zero-reverse-02.log",
+      "sha256": "52447e1a64c441a542c5fef41759204338c07e283e80f4b9604aa32e938549ad"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-tail-final-zero-reverse-03.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-final-zero-reverse-03.log",
+      "sha256": "140b6ffff06b12675fee5e200da4cffa7048b4f41a89415669020c911ffe5c67"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-tail-final-zero-reverse-04.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-final-zero-reverse-04.log",
+      "sha256": "31509f83f008b7f3197ef5d41e672e50e1e5715639d191d912d8f58933be456f"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-tail-final-zero-reverse-05.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-final-zero-reverse-05.log",
+      "sha256": "06e5b648e6165bd955826b50c7b826e49e1b44f8316ddff92b46571442765a9e"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-tail-final-zero-reverse-06.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-final-zero-reverse-06.log",
+      "sha256": "55f175849ee044d250abb35e8050b8369eb7a539ad1e37fb1b99621d4754d65a"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-tail-final-zero-reverse-07.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-final-zero-reverse-07.log",
+      "sha256": "4285547110a6ee22c0802405e59cc2b6bbf3e1caa554ba02780b24185e46c134"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-tail-final-zero-reverse-08.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-final-zero-reverse-08.log",
+      "sha256": "b8759f0f02249ea6142a5f201fa7ef92b6bc33fd00df7ba6b39fa211934fa838"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-tail-final-zero-reverse-09.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-final-zero-reverse-09.log",
+      "sha256": "f49dd7e4f24906a40becc783d9dfdb734d67bda3cc90bc650de4925163738330"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-tail-final-zero-reverse-10.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-final-zero-reverse-10.log",
+      "sha256": "309961b9a3f4a3a701f344151e91d8bb38321d117f8d7f788d3fbef5437fed78"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-tail-memory-build.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-memory-build.log",
+      "sha256": "f1c8e22f03fa2a2ad699bf179dbbc1d2208d679b98ccf00bf50e13018951ced5"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-tail-memory-harness",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-memory-harness",
+      "sha256": "c5e4d50213739d02fa2c4343d56fb0a0a01992c5ba1362011744e0d2fedc2e30"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-tail-memory-harness.cc",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-memory-harness.cc",
+      "sha256": "26967b6f05283bc12948481153e46d7ff6f0557c8b10360634e66bc53a83442f"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-tail-memory-plan.md",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-memory-plan.md",
+      "sha256": "6204392a280d69bcac9cc92cdabfd5d50ac586077c9175a85441e8dbe166b225"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-tail-memory-preflight.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-memory-preflight.log",
+      "sha256": "8e799e86fbff256011fcf0befc73d03420ccde43646b9d598c8577c71bcd95f6"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-tail-pilot-copy-01.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-pilot-copy-01.log",
+      "sha256": "a9ab5f33866c4ea94c4079dc1d4e5d56591ec711b55509f9333c46e46dcfaa05"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-tail-pilot-copy-02.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-pilot-copy-02.log",
+      "sha256": "2d03c85a9586370ed01f252db7ae8986d3ca3d8f0724b98adb4a86f8d1a4213d"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-tail-pilot-copy-03.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-pilot-copy-03.log",
+      "sha256": "1b6f40dbe1645ef268853a94c18d7e59f0aff9182c0b7584b2fbaa1447ae5836"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-tail-pilot-copy-04.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-pilot-copy-04.log",
+      "sha256": "719d9013e14f4fbadd247efc4a1dee101eb4b341220eabf1f4f6e1944970588e"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-tail-pilot-copy-05.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-pilot-copy-05.log",
+      "sha256": "355524e9d16b0d4513153661c38e6e539e075cc62ba19a40f583ac17733274f3"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-tail-pilot-qroad-only-01.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-pilot-qroad-only-01.log",
+      "sha256": "0ec8b33beab3b808f383920750399c9d9331c9b62444461105f1b816096eb219"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-tail-pilot-qroad-only-02.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-pilot-qroad-only-02.log",
+      "sha256": "27c16541c3b78332d3f20c9d9b0db7a9b0aec2d16bdd75b343b6d6aa1828881d"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-tail-pilot-qroad-only-03.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-pilot-qroad-only-03.log",
+      "sha256": "0525038943049ef65c281e9f35159bb8904fb68ca759b79d7ec69f9522a783c4"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-tail-pilot-qroad-only-04.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-pilot-qroad-only-04.log",
+      "sha256": "4909edae9c457f8f9de78fbe7300549677e6333abd90e4e1fc197d7a1b7fc479"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-tail-pilot-qroad-only-05.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-pilot-qroad-only-05.log",
+      "sha256": "424d1a5c4beb9ccd8d405226f4c60736ad770cae9538a91eaa475f5ddfe13d3d"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-tail-pilot-zero-01.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-pilot-zero-01.log",
+      "sha256": "3863250226dd51d8760d56d4ee6e7cefb01b5f8148396f05e623c728b6f0df1e"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-tail-pilot-zero-02.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-pilot-zero-02.log",
+      "sha256": "0391f945b397fb05910933ed210df10d321d75202d09af0714f6e23636bacfda"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-tail-pilot-zero-03.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-pilot-zero-03.log",
+      "sha256": "633bbbd9f3eb1fae946f76cd9cdda1896de1df094c1a5ffb0e6b41ff8ba2639d"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-tail-pilot-zero-04.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-pilot-zero-04.log",
+      "sha256": "c3b1413d95c9232b37dc4dc663fcc89d3da33df0cc5ebca9c3cc0262d7620f3b"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-tail-pilot-zero-05.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-pilot-zero-05.log",
+      "sha256": "bc9e25e2c3f845ae9018e17f625dff4f4bd6eaf4eb119a4b99615759de2f727c"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-tail-pilot-zero-preimport-01.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-pilot-zero-preimport-01.log",
+      "sha256": "01204f4bd201b3f2b0bc312252901c0ac78ac96b3a42fb3b1779de28235b607e"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-tail-pilot-zero-preimport-02.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-pilot-zero-preimport-02.log",
+      "sha256": "c2cd98a3c1aef8160b65bce4f423eb45165730ebda713cd070abcd6915a50304"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-tail-pilot-zero-preimport-03.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-pilot-zero-preimport-03.log",
+      "sha256": "ed7db45eee23a5aef8f972f8ff0bcb48961f1c0d3c9e7900aa0c76d8bdc16039"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-tail-pilot-zero-preimport-04.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-pilot-zero-preimport-04.log",
+      "sha256": "8ae6ede925a12b00f2b853ee381b36cf7a540c336bd3cbba4b198a6aadb01c7b"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-tail-pilot-zero-preimport-05.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-pilot-zero-preimport-05.log",
+      "sha256": "c53be5662c3628ba4b522f826d306f64a2c39b39997ef7a1f40c52802d1cfd0f"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-tail-pilot-zero-reverse-01.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-pilot-zero-reverse-01.log",
+      "sha256": "a1ef81bd46b41b9139241e00fa53738bdb72970bc5ac8039d2dc51c878726e12"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-tail-pilot-zero-reverse-02.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-pilot-zero-reverse-02.log",
+      "sha256": "003a9501014505e030fc1e80a3c89f300041d3f198d642c9219d43b2f67f4c87"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-tail-pilot-zero-reverse-03.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-pilot-zero-reverse-03.log",
+      "sha256": "b8e58a3af7af5655b8e3b0d3dcf3a2f7fa8a2164361e5ed27748f8fcc94cf4de"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-tail-pilot-zero-reverse-04.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-pilot-zero-reverse-04.log",
+      "sha256": "2fef0035a12bc24fed7c6812c765fe9590de5bc5c42099ce7a1ab9590732322c"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-tail-pilot-zero-reverse-05.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-pilot-zero-reverse-05.log",
+      "sha256": "7d93eb3c2cf2ab4443ab2129fbd0028ba610a7fda8286d8e940756f6ea382c9d"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-tail-setup-failure-copy-01.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-setup-failure-copy-01.log",
+      "sha256": "6c914c3e5a28b4154cef13cce83312d8a71c40c9fce151dd6e2702917201642f"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-tail-setup-failure-msgq-dir-copy-01.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-setup-failure-msgq-dir-copy-01.log",
+      "sha256": "da538d735fa10b0656590690beed0839d91775f6dca2df8819a4f6caa928ff1f"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-tail-stage-build.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-stage-build.log",
+      "sha256": "731c1a655411e8a0f009faceaa130a2aaf12626204f70165630bd09cad652900"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-tail-stage-harness",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-stage-harness",
+      "sha256": "7af74b28f90be7f7da8a0955ccc9e5951cc512cbba90392cd217ec272ca0449f"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-tail-stage-harness.cc",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-stage-harness.cc",
+      "sha256": "b4e4a233b05fba8e8caff765a815644fecbf9460e2db2f0e8cabb371b1044087"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-tail-stage-mpp_encoder.cc",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-stage-mpp_encoder.cc",
+      "sha256": "7f1b509bfb0b68f081b7aac4da2ed0586d55f758e32b97963abbc7f26cb5a993"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-tail-stage-mpp_encoder.o",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-stage-mpp_encoder.o",
+      "sha256": "e27e2a951ee2045dd4b263bed35b1f177ef3a77f08017603131b8edfef428d74"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-tail-stage-probe.h",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-stage-probe.h",
+      "sha256": "9bbc87eb2ad319ea2c3165b5660de42103e65bf78c6a0fac825fbaa85b4ae13e"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-tail-stage-relink-corrected.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-stage-relink-corrected.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-tail-stage-relink.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-stage-relink.log",
+      "sha256": "e2d26e2fb9544b19fb59fd729368aab5c83b03886ace37588664bd1a02220a40"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-tail-warmup-copy-01.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-warmup-copy-01.log",
+      "sha256": "11be35cd4f69ea0eb9863b8d0426f4f4cd74a71c6a55adfc7938c3193ced4bc6"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-tail-warmup-copy-02.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-warmup-copy-02.log",
+      "sha256": "9e0dcfa560a32db0577fa5ee23db68f3f6b19cbc838dd122bc264990dc837572"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-tail-warmup-copy-03.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-warmup-copy-03.log",
+      "sha256": "fcb0fd9324eaa7b79caadc8d420520adf2fe7b1a4160bc38fd0061185b608dc8"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-tail-warmup-qroad-only-01.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-warmup-qroad-only-01.log",
+      "sha256": "56edbe13cc4095df456589599aa8f636987b32a099ece7a18d06ffc08bb730df"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-tail-warmup-qroad-only-02.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-warmup-qroad-only-02.log",
+      "sha256": "ed0f22dd62b65d421ad188c5e846aeba96e13127170ed8cb76da3fb6250714ab"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-tail-warmup-qroad-only-03.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-warmup-qroad-only-03.log",
+      "sha256": "2034287fc9ff71305888ffa211f4a103e1eb9eaab867f911814374582f3de323"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-tail-warmup-zero-01.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-warmup-zero-01.log",
+      "sha256": "cfe69fd3c9c2a0f5706d53ab799756d0709b73d78085c8d103ec9a805823c3da"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-tail-warmup-zero-02.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-warmup-zero-02.log",
+      "sha256": "b07a7c40ef19bf3bff2a84e42e58fba38673abaa10468602d747944decd188ed"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-tail-warmup-zero-03.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-warmup-zero-03.log",
+      "sha256": "8934e22649efa5beaf264c4985e49a0de71123105f46441b9fb669f6c1cee490"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-tail-warmup-zero-preimport-01.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-warmup-zero-preimport-01.log",
+      "sha256": "eddb949a8d125028550ddd817b78b54c4af066cf4e3408da09c035c857948fbe"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-tail-warmup-zero-preimport-02.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-warmup-zero-preimport-02.log",
+      "sha256": "8e4818c6ecc91779bc8195c4e9d1e7cf8c607e0de19e5d088575f0753c7f53e2"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-tail-warmup-zero-preimport-03.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-warmup-zero-preimport-03.log",
+      "sha256": "36582f98e27a1264c988db77fb1e8d86958536f28c44e5b9674336e49194540b"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-tail-warmup-zero-reverse-01.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-warmup-zero-reverse-01.log",
+      "sha256": "46db389f86c62a42b9522ea3b956c216c77591b1696b5e7e1531e8f9cd6a6ded"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-tail-warmup-zero-reverse-02.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-warmup-zero-reverse-02.log",
+      "sha256": "fd036dc3b1017679579373d1c2f98094c8baff1adda674291c3458b2aabb6716"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/qroad-tail-warmup-zero-reverse-03.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/qroad-tail-warmup-zero-reverse-03.log",
+      "sha256": "2f42a23d7f42bf8873d63e5fcd17e6a7b69e10a473671076f6012bc42c7b14db"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/rerun_20261030_023059/test_run_summary.json",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/rerun_20261030_023059/test_run_summary.json",
+      "sha256": "3c4cd258f8b8a5f9e0f7d4c1f8d7087c0967491338d71af2b2198a97f6a75179"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/run_ka2_class_final_pairs.sh",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/run_ka2_class_final_pairs.sh",
+      "sha256": "28b12e43628c08e2391bdca632f7d4227d49d55cefefedc2a320e6cf2797ca59"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/run_mpp_encoder_no_fallback_smoke.sh",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/run_mpp_encoder_no_fallback_smoke.sh",
+      "sha256": "0284248dc48c301056e4b274057fc4d45f049bdd9c0d015f5f0e45af0bc17775"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/run_mpp_encoder_zero_default_dma_guard_smoke.sh",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/run_mpp_encoder_zero_default_dma_guard_smoke.sh",
+      "sha256": "4ea26b08f43bd8810c3cb8ac0eca2ba1a36943232137de4670b4e5163a2714c8"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/run_mpp_encoder_zero_default_smoke.sh",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/run_mpp_encoder_zero_default_smoke.sh",
+      "sha256": "09a1e3eca1c08ff48c513c7c19f17c680be82875e957ffe8ce4532457cd065d2"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/run_qroad_tail_memory.sh",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/run_qroad_tail_memory.sh",
+      "sha256": "c3b52d0a8e72dc165c73d83673b55a7516e7ee7472794b3dea88b7bcf894f972"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/run_qroad_tail_stage_probe.sh",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/run_qroad_tail_stage_probe.sh",
+      "sha256": "73128736c854b18dcae30c87a36f5ba4777ce454d00c61c1e51441bf57474023"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/runtime-r10-build-r231.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/runtime-r10-build-r231.log",
+      "sha256": "545abdb7484aa1b2089e2b4b513043e3b185b2d9d86bce668ba4bd76e6dc6992"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/runtime-r10-build.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/runtime-r10-build.log",
+      "sha256": "9a37df7fe196170cb4d62f6e2b8c3ff14df7c01047a536c510e75f336640e43c"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/runtime-r10-dependencies.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/runtime-r10-dependencies.log",
+      "sha256": "7747fa1b50d472eeafa2ca4bbbce30ec0f67456427ad36e74377498350f0b746"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/runtime-r10-postflight-attempt1.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/runtime-r10-postflight-attempt1.log",
+      "sha256": "0b7ccf649b8e3ec83d9e508e0cef8224c6fcc150167f1d491ce881689d2ee8ec"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/runtime-r10-postflight-attempt2.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/runtime-r10-postflight-attempt2.log",
+      "sha256": "0b7ccf649b8e3ec83d9e508e0cef8224c6fcc150167f1d491ce881689d2ee8ec"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/runtime-r10-postflight-attempt3.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/runtime-r10-postflight-attempt3.log",
+      "sha256": "0b7ccf649b8e3ec83d9e508e0cef8224c6fcc150167f1d491ce881689d2ee8ec"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/runtime-r10-postflight-attempt4.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/runtime-r10-postflight-attempt4.log",
+      "sha256": "0b7ccf649b8e3ec83d9e508e0cef8224c6fcc150167f1d491ce881689d2ee8ec"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/runtime-r10-postflight-r231-attempt1.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/runtime-r10-postflight-r231-attempt1.log",
+      "sha256": "0b7ccf649b8e3ec83d9e508e0cef8224c6fcc150167f1d491ce881689d2ee8ec"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/runtime-r10-postflight.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/runtime-r10-postflight.log",
+      "sha256": "0b7ccf649b8e3ec83d9e508e0cef8224c6fcc150167f1d491ce881689d2ee8ec"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/runtime-r10-preflight-attempt1.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/runtime-r10-preflight-attempt1.log",
+      "sha256": "afdb7d33c83bb3be615e1a025719dd34f7d48bada715c4c9772f7d56421cbe8a"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/runtime-r10-preflight-attempt2.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/runtime-r10-preflight-attempt2.log",
+      "sha256": "afdb7d33c83bb3be615e1a025719dd34f7d48bada715c4c9772f7d56421cbe8a"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/runtime-r10-preflight-attempt3.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/runtime-r10-preflight-attempt3.log",
+      "sha256": "afdb7d33c83bb3be615e1a025719dd34f7d48bada715c4c9772f7d56421cbe8a"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/runtime-r10-preflight-attempt4.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/runtime-r10-preflight-attempt4.log",
+      "sha256": "afdb7d33c83bb3be615e1a025719dd34f7d48bada715c4c9772f7d56421cbe8a"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/runtime-r10-preflight-r231-attempt1.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/runtime-r10-preflight-r231-attempt1.log",
+      "sha256": "afdb7d33c83bb3be615e1a025719dd34f7d48bada715c4c9772f7d56421cbe8a"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/runtime-r10-preflight.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/runtime-r10-preflight.log",
+      "sha256": "afdb7d33c83bb3be615e1a025719dd34f7d48bada715c4c9772f7d56421cbe8a"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/runtime-r10-readiness.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/runtime-r10-readiness.log",
+      "sha256": "674ecc5a96b34dd51418bda5fe88bcee7a8cd501235b89f32d63f2a0e39e7d7d"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/runtime-r10-smoke-attempt1.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/runtime-r10-smoke-attempt1.log",
+      "sha256": "4d25b48dda36dde179e88ee2e2224070fc230fab53155a7e824fa1e39771313c"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/runtime-r10-smoke-attempt2.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/runtime-r10-smoke-attempt2.log",
+      "sha256": "3f2e08df92b2cc1addad87af61252d53f4ed39f3cacd479077b1ac5563ae99d4"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/runtime-r10-smoke-attempt3.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/runtime-r10-smoke-attempt3.log",
+      "sha256": "4f915259a5c51b51da4a589fb62ad319fc871923ae2487aadf5e3c53627d9ce8"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/runtime-r10-smoke-attempt4.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/runtime-r10-smoke-attempt4.log",
+      "sha256": "b6a11d8e357a1ce253f73c1caf6e7a5283a5da70dc0e6a692572df6de2690dff"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/runtime-r10-smoke-r231-attempt1.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/runtime-r10-smoke-r231-attempt1.log",
+      "sha256": "22d13b4066733afdd7246e3a51fcfec85e4b7a628d460c226c651fb9a058db0c"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/runtime-r10-smoke-runner.py",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/runtime-r10-smoke-runner.py",
+      "sha256": "fb4a78c2547cb6a5f48b278245ddc122e9ea6a17aa2102bb3d6803cedd289e15"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/runtime-r10-smoke.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/runtime-r10-smoke.log",
+      "sha256": "40bf8754e2a9080955543a53cbaf7f519f706846177f80679a893762ead150cc"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/runtime-r10-start-discovery.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/runtime-r10-start-discovery.log",
+      "sha256": "3f027a3e72324eeaba0d1228ef7c235fc2b22d33b5a94fb4a60045a4ed2b673b"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/runtime-r10-startup.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/runtime-r10-startup.log",
+      "sha256": "7e78b49a7b9c8a6bd71a78f59c8a2b12ae7229bd39de5b194573ec4211d689b1"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/source_diff_no_copy_fallbacks_r8.patch",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/source_diff_no_copy_fallbacks_r8.patch",
+      "sha256": "03149ab320d0fc95f42db474c1a11269dcf60a96e674721d3de8f5e40df8c759"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/tests-pytest.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/tests-pytest.log",
+      "sha256": "5475017575d3243b8b6bf21300c9407ed97553550e9f764538146db7eac5108e"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/tests-r10-full-postflight-r220.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/tests-r10-full-postflight-r220.log",
+      "sha256": "546b3e911fa4e8de2dea0b05c254453e7edc10c2859f163505926d99d8f99dc1"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/evidence/tests-r10-full-preflight-r220.log",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/tests-r10-full-preflight-r220.log",
+      "sha256": "546b3e911fa4e8de2dea0b05c254453e7edc10c2859f163505926d99d8f99dc1"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/report_copy_runtime_repeatability.md",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/report_copy_runtime_repeatability.md",
+      "sha256": "2e36fbbfd96d25ecd2ba6dd5a13b30c8c8d16b9ad0750311cf22eb52eb749f2d"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/reports/build-change-list-r10.md",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/reports/build-change-list-r10.md",
+      "sha256": "d6d92f05a6c840b5cdb02cd02954f8c7269fa67a1892ee6cd0204c1019581b4c"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/reports/build-change-list-r8.md",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/reports/build-change-list-r8.md",
+      "sha256": "9befed23a872a8c7f35bf86a44324cfc477f1fbe557bed4aca0451e2113b9888"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/reports/build-change-list-r9.md",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/reports/build-change-list-r9.md",
+      "sha256": "af7406aecd0cb17a4229729d99af0a6d8270e8645894dcff3735a34d9728dc44"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/reports/report_build-blocker.md",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/reports/report_build-blocker.md",
+      "sha256": "52aa9de921ac809d8f06ee4f93dbc54e0d2254652a0300b0ae85e8acb1ba3be1"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/reports/report_completeness_r7.md",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/reports/report_completeness_r7.md",
+      "sha256": "43dd457108b36f44de743013ce53b5fdecb8cfa8200ef5ce036abe990165d3c3"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/reports/report_copy_runtime_r1.md",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/reports/report_copy_runtime_r1.md",
+      "sha256": "a7665dca0d3130ed7d86c0690c0ca70b1ed2f95ff1d6caf7ddb9ea05e7b26cb5"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/reports/report_direct_class_benchmark_r7.md",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/reports/report_direct_class_benchmark_r7.md",
+      "sha256": "32963e17b080e00b9f25c46597ecd6987f2839954e0792f24a7ee4de55d60346"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/reports/report_direct_class_harness_setup_failure_r7.md",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/reports/report_direct_class_harness_setup_failure_r7.md",
+      "sha256": "ec881be268a11dea1d6f6caf0f755a7fe1d72cbc8754549026737645a7b43586"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/reports/report_direct_class_pilot_r7.md",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/reports/report_direct_class_pilot_r7.md",
+      "sha256": "b61ab73aa6d1e89bf7a64c3dc6cc2e2684d7ded41f07fd16d1d3d48b36f45617"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/reports/report_dmabuf_fixture_r8.md",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/reports/report_dmabuf_fixture_r8.md",
+      "sha256": "85905c38f551867c6b80619cf4c139aa866ebd20aa210ec23b1a29a1fa9b2a45"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/reports/report_encoder_default_on_refactor.md",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/reports/report_encoder_default_on_refactor.md",
+      "sha256": "8cb9211ac06472354a922a852cc0acd7439ef1fec426495ca6e07e6ad89a9878"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/reports/report_implementation.md",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/reports/report_implementation.md",
+      "sha256": "db9757c4178f1b17cd2e4558e3bf630a9eccf6eed8a98f0a9066fb66175d43f8"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/reports/report_ka2_encoder_speedup_final_r7.md",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/reports/report_ka2_encoder_speedup_final_r7.md",
+      "sha256": "eb8891407ca0aaea00a94fcbe0edd30a334bafec826a1907bf2352e2bdca0271"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/reports/report_mpp_encode_probe_plan_r7.md",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/reports/report_mpp_encode_probe_plan_r7.md",
+      "sha256": "91784856987baf5bb5c193f5b16ce40f91cf833dd00e4ae094c36f5f009ad523"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/reports/report_mpp_encode_probe_r7.md",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/reports/report_mpp_encode_probe_r7.md",
+      "sha256": "8269b82726bfe9fed3c7ee70c0d1ff3c4915bb69456faa59e46abd558cc4a46f"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/reports/report_mpp_import_probe_plan_r7.md",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/reports/report_mpp_import_probe_plan_r7.md",
+      "sha256": "6f90c3dd66999ac16fab9d163a015f801b5f517ed351892f1a3b6e402b9450d2"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/reports/report_no_copy_fallbacks_r8.md",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/reports/report_no_copy_fallbacks_r8.md",
+      "sha256": "227f011a1a08da6fb5368c7f4f9eae90b2162382a95fcf10655015089a92d2bd"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/reports/report_qroad_tail_memory_investigation.md",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/reports/report_qroad_tail_memory_investigation.md",
+      "sha256": "4b3f83eab668124b9d88aa0ac22c6567694a38db40d0a70083f54d447fd465c7"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/reports/report_rotation-gap.md",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/reports/report_rotation-gap.md",
+      "sha256": "8dccb1252004e2c6dcbf93f44ae3217bda65539995fef1c73197061a25b451ce"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/reports/report_runtime_health_r7.md",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/reports/report_runtime_health_r7.md",
+      "sha256": "f1370d385a2240844ac8e4b1ea7830fcac210d3c4ac3e466331231ca539e168d"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/reports/report_s0_feasibility.md",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/reports/report_s0_feasibility.md",
+      "sha256": "f48809a66ed98351d5a3a3da396d275499e703b3c6fa235b0b775f0665851200"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/reports/report_tests.md",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/reports/report_tests.md",
+      "sha256": "09aab13bdf40308c31aafe2b9be99736dca02a2493f0ebd2524aee079e5447f9"
+    },
+    {
+      "new_path": ".harness-state/ka2-efficiency-build-r7/build/reports/report_tests_r7.md",
+      "old_path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/reports/report_tests_r7.md",
+      "sha256": "a1ca76d29679e38f5e7d87946dbdb2c66afe89bccef9ccb2676793bf455918f2"
+    }
+  ],
+  "migration_checkpoint_revision": 237,
+  "preserved_old_build_tree": "/data/openpilot/.harness-state/ka2-efficiency-build-r7/build",
+  "preserved_old_build_tree_sha256": "d5215f9044bbf2e826f7d6035c1c07adcab4b51caabc6d15774f76247916fd02",
+  "preserved_preexisting_digest_drift": [
+    {
+      "action": "kept original registry entry unchanged; copied the existing bytes to the canonical snapshot path",
+      "observed_sha256": "7b07ddd4252a7ef8ea15212d1e7ff9ae038495579580cd42a5a52de929e6f015",
+      "path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/loggerd-expected-emitted-frame-ledger.csv",
+      "registered_sha256": "e2e1ae2067eba4a01e7795cddce48ea27ba81ad523bd15cdb8a66174c362b70e",
+      "snapshot_copy_sha256": "7b07ddd4252a7ef8ea15212d1e7ff9ae038495579580cd42a5a52de929e6f015"
+    },
+    {
+      "action": "kept original registry entry unchanged; copied the existing bytes to the canonical snapshot path",
+      "observed_sha256": "27625d6c70829ffd8fb8b46cfceaa5843d712cc3bc5ed6946598a70a6d0557c5",
+      "path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/rerun_20261030_023059/frame_ledger.csv",
+      "registered_sha256": "82e18f684b2b086e22d9da3f496a1bcecf5032863ee40c2b89a47d19abf6fb9a",
+      "snapshot_copy_sha256": "27625d6c70829ffd8fb8b46cfceaa5843d712cc3bc5ed6946598a70a6d0557c5"
+    }
+  ],
+  "run_id": "loggerd-ka2-efficiency-20261029",
+  "source_registry_revision": 236
+}

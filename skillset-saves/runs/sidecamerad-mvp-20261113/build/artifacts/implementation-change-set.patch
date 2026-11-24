@@ -1,0 +1,323 @@
+# Root tracked source changes
+diff --git a/cereal/log.capnp b/cereal/log.capnp
+index 2ed77addb..59192da66 100644
+--- a/cereal/log.capnp
++++ b/cereal/log.capnp
+@@ -2610,6 +2610,12 @@ struct Event {
+     bookmarkButton @148 :UserBookmark;
+     audioFeedback @149 :AudioFeedback;
+ 
++    # Auxiliary AHD-to-USB side cameras, published by sidecamerad.
++    frontLeftCameraState @150 :FrameData;
++    frontRightCameraState @151 :FrameData;
++    backLeftCameraState @152 :FrameData;
++    backRightCameraState @153 :FrameData;
++
+     # *********** debug ***********
+     testJoystick @52 :Joystick;
+     roadEncodeData @86 :EncodeData;
+diff --git a/cereal/services.py b/cereal/services.py
+index e7350acea..6fc642c39 100755
+--- a/cereal/services.py
++++ b/cereal/services.py
+@@ -66,6 +66,10 @@ _services: dict[str, tuple] = {
+   "carParams": (True, 0.02, 1),
+   "roadCameraState": (True, 20., 20),
+   "driverCameraState": (True, 20., 20),
++  "frontLeftCameraState": (False, 20.),
++  "frontRightCameraState": (False, 20.),
++  "backLeftCameraState": (False, 20.),
++  "backRightCameraState": (False, 20.),
+   "driverEncodeIdx": (False, 20., 1),
+   "driverStateV2": (True, 20., 10),
+   "driverMonitoringState": (True, 20., 10),
+diff --git a/system/manager/process_config.py b/system/manager/process_config.py
+index 1575cf43b..bcc1e66a9 100644
+--- a/system/manager/process_config.py
++++ b/system/manager/process_config.py
+@@ -71,6 +71,7 @@ procs = [
+   PythonProcess("logmessaged", "system.logmessaged", always_run),
+ 
+   NativeProcess("camerad", "system/camerad", ["./camerad"], driverview, enabled=not WEBCAM),
++  PythonProcess("sidecamerad", "system.sidecamerad", driverview, enabled=os.getenv("SIDECAMERAD") == "1"),
+   PythonProcess("webcamerad", "tools.webcam.camerad", driverview, enabled=WEBCAM),
+   PythonProcess("proclogd", "system.proclogd", only_onroad, enabled=platform.system() != "Darwin"),
+   PythonProcess("journald", "system.journald", only_onroad, platform.system() != "Darwin"),
+
+# msgq_repo source changes
+diff --git a/msgq/visionipc/visionbuf.h b/msgq/visionipc/visionbuf.h
+index 7fde768..5478688 100644
+--- a/msgq/visionipc/visionbuf.h
++++ b/msgq/visionipc/visionbuf.h
+@@ -24,6 +24,13 @@ enum VisionStreamType {
+   VISION_STREAM_ENC_ROAD,
+   VISION_STREAM_ENC_DRIVER,
+   VISION_STREAM_ENC_WIDE_ROAD,
++
++  // Side-camera streams are owned by sidecamerad and stay separate from the
++  // native camera and encoder streams above.
++  VISION_STREAM_SIDE_FRONT_LEFT,
++  VISION_STREAM_SIDE_FRONT_RIGHT,
++  VISION_STREAM_SIDE_BACK_LEFT,
++  VISION_STREAM_SIDE_BACK_RIGHT,
+   VISION_STREAM_MAX,
+ };
+ 
+diff --git a/msgq/visionipc/visionipc_pyx.pyx b/msgq/visionipc/visionipc_pyx.pyx
+index 16dd55e..cd9c74f 100644
+--- a/msgq/visionipc/visionipc_pyx.pyx
++++ b/msgq/visionipc/visionipc_pyx.pyx
+@@ -29,6 +29,10 @@ cpdef enum VisionStreamType:
+   VISION_STREAM_ENC_ROAD
+   VISION_STREAM_ENC_DRIVER
+   VISION_STREAM_ENC_WIDE_ROAD
++  VISION_STREAM_SIDE_FRONT_LEFT = 7
++  VISION_STREAM_SIDE_FRONT_RIGHT = 8
++  VISION_STREAM_SIDE_BACK_LEFT = 9
++  VISION_STREAM_SIDE_BACK_RIGHT = 10
+ 
+ 
+ cdef class VisionBuf:
+@@ -79,7 +83,7 @@ cdef class VisionIpcServer:
+   def create_buffers_with_sizes(self, VisionStreamType tp, size_t num_buffers, size_t width, size_t height, size_t size, size_t stride, size_t uv_offset):
+     self.server.create_buffers_with_sizes(tp, num_buffers, width, height, size, stride, uv_offset)
+ 
+-  def send(self, VisionStreamType tp, const unsigned char[:] data, uint32_t frame_id=0, uint64_t timestamp_sof=0, uint64_t timestamp_eof=0):
++  def send(self, VisionStreamType tp, const unsigned char[:] data, uint32_t frame_id=0, uint64_t timestamp_sof=0, uint64_t timestamp_eof=0, bool valid=False):
+     cdef cppVisionBuf * buf = self.server.get_buffer(tp)
+ 
+     # Populate buffer
+@@ -91,6 +95,7 @@ cdef class VisionIpcServer:
+     extra.frame_id = frame_id
+     extra.timestamp_sof = timestamp_sof
+     extra.timestamp_eof = timestamp_eof
++    extra.valid = valid
+ 
+     self.server.send(buf, &extra, False)
+ 
+diff --git a/msgq/visionipc/visionipc_server.cc b/msgq/visionipc/visionipc_server.cc
+index 1b44108..204796c 100644
+--- a/msgq/visionipc/visionipc_server.cc
++++ b/msgq/visionipc/visionipc_server.cc
+@@ -18,7 +18,7 @@
+ 
+ std::string get_endpoint_name(std::string name, VisionStreamType type){
+   if (messaging_use_zmq()){
+-    assert(name == "camerad" || name == "navd");
++    assert(name == "camerad" || name == "navd" || name == "sidecamerad");
+     return std::to_string(9000 + static_cast<int>(type));
+   } else {
+     return "visionipc_" + name + "_" + std::to_string(type);
+
+# New system/sidecamerad.py
+diff --git a/system/sidecamerad.py b/system/sidecamerad.py
+new file mode 100644
+index 000000000..41b454ada
+--- /dev/null
++++ b/system/sidecamerad.py
+@@ -0,0 +1,205 @@
++#!/usr/bin/env python3
++import os
++import re
++import select
++import signal
++import stat
++import subprocess
++import threading
++import time
++
++from cereal import messaging
++from msgq.visionipc import VisionIpcServer, VisionStreamType
++from openpilot.common.swaglog import cloudlog
++
++
++WIDTH = 1280
++HEIGHT = 720
++FRAME_BYTES = WIDTH * HEIGHT * 3 // 2
++FPS = 20
++FRAME_PERIOD_NS = 1_000_000_000 // FPS
++READ_POLL_MS = 250
++STARTUP_FRAME_TIMEOUT_S = 5
++FRAME_STALL_TIMEOUT_S = 2
++INITIAL_RETRY_S = 1
++MAX_RETRY_S = 30
++FFMPEG = "/usr/bin/ffmpeg"
++
++DEVICE_RE = re.compile(r"/dev/video[0-9]+\Z")
++
++CAMERAS = (
++  ("frontLeftCameraState", "SIDECAM_FRONT_LEFT", VisionStreamType.VISION_STREAM_SIDE_FRONT_LEFT),
++  ("frontRightCameraState", "SIDECAM_FRONT_RIGHT", VisionStreamType.VISION_STREAM_SIDE_FRONT_RIGHT),
++  ("backLeftCameraState", "SIDECAM_BACK_LEFT", VisionStreamType.VISION_STREAM_SIDE_BACK_LEFT),
++  ("backRightCameraState", "SIDECAM_BACK_RIGHT", VisionStreamType.VISION_STREAM_SIDE_BACK_RIGHT),
++)
++
++
++class CameraWorker(threading.Thread):
++  def __init__(self, service: str, device: str, stream: VisionStreamType, vipc: VisionIpcServer,
++               pm: messaging.PubMaster, stop_event: threading.Event):
++    super().__init__(name=f"sidecam-{service}", daemon=True)
++    self.service = service
++    self.device = device
++    self.stream = stream
++    self.vipc = vipc
++    self.pm = pm
++    self.stop_event = stop_event
++    self.frame = bytearray(FRAME_BYTES)
++    self.frame_view = memoryview(self.frame)
++    self.frame_id = 0
++
++  def _start_decoder(self) -> subprocess.Popen:
++    if not DEVICE_RE.fullmatch(self.device):
++      raise ValueError("device path must be /dev/videoN")
++    device_stat = os.stat(self.device)
++    if not stat.S_ISCHR(device_stat.st_mode):
++      raise OSError(f"{self.device} is not a character device")
++
++    argv = [
++      FFMPEG, "-nostdin", "-hide_banner", "-loglevel", "error",
++      "-thread_queue_size", "1", "-threads", "1", "-filter_threads", "1",
++      "-f", "v4l2", "-input_format", "mjpeg", "-framerate", str(FPS),
++      "-video_size", f"{WIDTH}x{HEIGHT}", "-i", self.device,
++      "-an", "-sn", "-dn", "-vf", f"scale={WIDTH}:{HEIGHT}:flags=neighbor,format=nv12", "-pix_fmt", "nv12",
++      "-threads", "1", "-fps_mode", "passthrough", "-f", "rawvideo", "pipe:1",
++    ]
++    # stderr goes straight to the null device: diagnostics cannot form an
++    # unbounded pipe, and only bounded lifecycle messages are logged here.
++    return subprocess.Popen(argv, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
++                            stderr=subprocess.DEVNULL, bufsize=0, close_fds=True)
++
++  def _stop_decoder(self, proc: subprocess.Popen | None) -> None:
++    if proc is None:
++      return
++    if proc.poll() is None:
++      try:
++        proc.terminate()
++      except ProcessLookupError:
++        pass
++      try:
++        proc.wait(timeout=1)
++      except subprocess.TimeoutExpired:
++        try:
++          proc.kill()
++        except ProcessLookupError:
++          pass
++        proc.wait()
++    if proc.stdout is not None:
++      try:
++        proc.stdout.close()
++      except OSError:
++        pass
++
++  def _publish(self, timestamp_eof: int) -> None:
++    timestamp_sof = timestamp_eof - FRAME_PERIOD_NS
++    frame_id = (self.frame_id + 1) & 0xFFFFFFFF
++    self.frame_id = frame_id
++
++    self.vipc.send(self.stream, self.frame_view, frame_id, timestamp_sof, timestamp_eof, True)
++
++    msg = messaging.new_message(self.service, valid=True, logMonoTime=timestamp_eof)
++    frame = getattr(msg, self.service)
++    frame.frameId = frame_id
++    frame.timestampSof = timestamp_sof
++    frame.timestampEof = timestamp_eof
++    self.pm.send(self.service, msg)
++
++  def _read_frames(self, proc: subprocess.Popen) -> None:
++    if proc.stdout is None:
++      raise RuntimeError("FFmpeg stdout pipe was not created")
++
++    fd = proc.stdout.fileno()
++    poller = select.poll()
++    poller.register(fd, select.POLLIN | select.POLLHUP | select.POLLERR)
++    frame_deadline = time.monotonic() + STARTUP_FRAME_TIMEOUT_S
++
++    while not self.stop_event.is_set():
++      offset = 0
++      while offset < FRAME_BYTES and not self.stop_event.is_set():
++        ready = poller.poll(READ_POLL_MS)
++        if not ready:
++          if proc.poll() is not None:
++            raise RuntimeError(f"FFmpeg exited with status {proc.returncode}")
++          if time.monotonic() >= frame_deadline:
++            raise RuntimeError("timed out waiting for a complete frame")
++          continue
++
++        try:
++          count = os.readv(fd, [self.frame_view[offset:]])
++        except InterruptedError:
++          continue
++        except BlockingIOError:
++          continue
++        if count == 0:
++          raise RuntimeError(f"FFmpeg ended after {offset} of {FRAME_BYTES} frame bytes")
++        offset += count
++
++      if self.stop_event.is_set():
++        return
++      if offset != FRAME_BYTES:
++        raise RuntimeError(f"short frame: {offset} of {FRAME_BYTES} bytes")
++      self._publish(time.monotonic_ns())
++      frame_deadline = time.monotonic() + FRAME_STALL_TIMEOUT_S
++
++  def run(self) -> None:
++    retry_s = INITIAL_RETRY_S
++    while not self.stop_event.is_set():
++      proc = None
++      try:
++        proc = self._start_decoder()
++        cloudlog.info(f"sidecamerad {self.service}: started {self.device}")
++        self._read_frames(proc)
++        retry_s = INITIAL_RETRY_S
++      except Exception as exc:
++        if not self.stop_event.is_set():
++          exit_code = proc.poll() if proc is not None else None
++          cloudlog.warning(f"sidecamerad {self.service}: capture stopped ({exc}, exit={exit_code})")
++      finally:
++        self._stop_decoder(proc)
++
++      if self.stop_event.is_set():
++        break
++      cloudlog.info(f"sidecamerad {self.service}: retrying in {retry_s}s")
++      if self.stop_event.wait(retry_s):
++        break
++      retry_s = min(MAX_RETRY_S, retry_s * 2)
++
++
++def main() -> None:
++  configured = []
++  for service, env_var, stream in CAMERAS:
++    device = os.getenv(env_var)
++    if not device:
++      continue
++    if not DEVICE_RE.fullmatch(device):
++      cloudlog.error(f"sidecamerad {service}: ignoring invalid {env_var} path")
++      continue
++    configured.append((service, device, stream))
++
++  if not configured:
++    cloudlog.info("sidecamerad: no camera paths configured")
++    return
++
++  stop_event = threading.Event()
++  signal.signal(signal.SIGINT, lambda *_: stop_event.set())
++  signal.signal(signal.SIGTERM, lambda *_: stop_event.set())
++
++  vipc = VisionIpcServer("sidecamerad")
++  for _, _, stream in configured:
++    vipc.create_buffers(stream, 3, WIDTH, HEIGHT)
++  vipc.start_listener()
++
++  pm = messaging.PubMaster([service for service, _, _ in configured])
++  workers = [CameraWorker(service, device, stream, vipc, pm, stop_event)
++             for service, device, stream in configured]
++  for worker in workers:
++    worker.start()
++
++  try:
++    while not stop_event.wait(1):
++      pass
++  finally:
++    stop_event.set()
++    for worker in workers:
++      worker.join()

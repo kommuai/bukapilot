@@ -1,0 +1,96 @@
+{
+  "artifacts": [
+    "evidence/runtime-smoke-r2.1-post-merge.log"
+  ],
+  "command": "Inline Python controller started `python3 system/sidecamerad.py` once with isolated PARAMS_ROOT and child ZMQ=1, only SIDECAM_FRONT_LEFT set to the authorized local by-path UVC decoder, and local cereal/VisionIPC subscribers; collected for 8 seconds, checked four-camera Param state and TCP listeners 9007-9010, then SIGTERM-stopped and verified clean reset.",
+  "dependencies": [
+    {
+      "name": "V4L2 UVC decoder",
+      "signal": "assigned by-path link resolved to /dev/video60 character device and FFmpeg produced frames",
+      "status": "reachable"
+    },
+    {
+      "name": "FFmpeg",
+      "signal": "live 1280x720 NV12 frames with stride 1280 and 1,382,400-byte buffers",
+      "status": "reachable"
+    },
+    {
+      "name": "cereal/msgq",
+      "signal": "117 unique frontLeftCameraState messages received; frame IDs intersected VisionIPC",
+      "status": "reachable"
+    },
+    {
+      "name": "VisionIPC",
+      "signal": "connected to sidecamerad front-left stream; 122 unique frames received",
+      "status": "reachable"
+    },
+    {
+      "name": "Params",
+      "signal": "isolated JSON Param showed front-left true and other feeds false while running, then all false after shutdown",
+      "status": "reachable"
+    },
+    {
+      "name": "local IPC transport",
+      "signal": "no TCP listeners on ports 9007-9010 although child was launched with ZMQ=1",
+      "status": "reachable"
+    }
+  ],
+  "environment": "Local /data/openpilot host at HEAD 6d92d63a2; physical decoder /dev/video60; Python 3.12.3; child started with ZMQ=1, parent subscribers used local backend; temporary isolated PARAMS_ROOT removed after shutdown; no recording file created; /data/params untouched; no packages installed.",
+  "exit_code": 0,
+  "input_revision": 68,
+  "inputs": [
+    {
+      "path": "system/sidecamerad.py",
+      "sha256": "494fb8b88fda8bcf1d8301225019f4f01f4b77a0bb5cb3e69dde47ed96e1309b"
+    },
+    {
+      "path": "system/manager/process_config.py",
+      "sha256": "b7fdfda2878cae1fa6b354ed512bc33ad66f1abe1ed25c90ed980b547a8aa02d"
+    },
+    {
+      "path": "common/params_keys.h",
+      "sha256": "c2925ebd8f9f26cc04951afb0e3c67ac7cb20a1c370b79aa93a25a4aaef2a031"
+    },
+    {
+      "path": "common/params_pyx.so",
+      "sha256": "3108e29407f31b9bd86a86ccafc82a4f98a225884412987a24be5c357dbfb586"
+    },
+    {
+      "path": "cereal/log.capnp",
+      "sha256": "d5c0372d714e65461942874c91c522b205ce208261b382283839ed03b9731f64"
+    },
+    {
+      "path": "cereal/services.py",
+      "sha256": "cacd4b749d9a0a3e19e3c466784dcf34925f263fdca3c26af72578c47d740a6b"
+    },
+    {
+      "path": "msgq_repo/msgq/visionipc/visionbuf.h",
+      "sha256": "c971a1afa601f5bb8f560de6fb1dd78c2121cee61ea41c169f00a4154566e870"
+    },
+    {
+      "path": "msgq_repo/msgq/visionipc/visionipc_pyx.pyx",
+      "sha256": "36247e353901eb80e52735c91f466151b3026e77152dde9ad9e3bcd682c66f32"
+    },
+    {
+      "path": "msgq_repo/msgq/visionipc/visionipc_server.cc",
+      "sha256": "36b383bfcaf10eaa69f6844a579c86204b4a07464a889208fe059a6c1202d198"
+    }
+  ],
+  "observed_at": "2026-11-13T09:15:24.361971+00:00",
+  "result": {
+    "ac4_one_camera_cadence": "prior five-minute run failed strict cadence threshold; this 8-second smoke makes no cadence claim",
+    "current_binding_brief_smoke": "pass",
+    "runtime_functional_status": "pass",
+    "status": "pass",
+    "summary": "Current rebuilt Params binding started sidecamerad and produced matching cereal and VisionIPC frame IDs on the connected front-left feed. During the 8-second smoke, 122 unique VisionIPC frames and 117 unique cereal messages were observed with 117 matching frame IDs, 1280x720 geometry, and a 1,382,400-byte payload. Availability was true only for front-left while live and all false after SIGTERM. No TCP listeners appeared on 9007-9010. This proves current-binding startup and dual publication on one decoder; it does not prove 20fps acceptance or four-camera operation."
+  },
+  "target_revision": "implementation r2.1 post-merge Params recovery; build run checkpoint 68; approved design r2; local source HEAD 6d92d63a2",
+  "tool": "Python 3.12.3 inline entry-point controller with local cereal/msgq and VisionIPC clients, Params, V4L2, and FFmpeg",
+  "warnings": [
+    "The current-binding smoke lasted 8 seconds and was scoped to one attached decoder; it is not a cadence or multi-camera soak.",
+    "The separate earlier five-minute measurement recorded 19.999396661241942 mean fps, 123.185415 ms maximum EOF gap, and 743/5,999 intervals over 60 ms; AC-4 cadence acceptance failed. See evidence/runtime-smoke-zmq-r2-final.log and its prior typed probe for source lineage.",
+    "Only one physical decoder was available; controlled disconnect/reconnect, sibling continuity, and the four-camera 30-minute AC-8 soak remain unverified.",
+    "The start-discovery helper did not run because its declared Python minimum is 3.13 while the host provides 3.12.3; the explicitly authorized local script entry point was exercised directly.",
+    "An initial controller attempt failed with a NameError before launching sidecamerad or opening the decoder; it is retained as evidence/runtime-smoke-r2.1-post-merge-harness-failure.log. The corrected run is this probe artifact."
+  ]
+}

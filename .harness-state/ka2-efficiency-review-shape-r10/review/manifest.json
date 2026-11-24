@@ -1,0 +1,244 @@
+{
+  "schema_version": 2,
+  "run_id": "loggerd-ka2-efficiency-20261029",
+  "submission_id": "loggerd-ka2-efficiency-20261029-review-r10",
+  "revision": 281,
+  "revisions": [
+    281
+  ],
+  "boundary": "review-to-delivery",
+  "owner": "code-chief",
+  "artifact_hashes": {
+    "../intake/report_grilling.md": "be2b70d7df1922b807604d970a8101bab4034d6c7a36832be00267fa5df24e1f",
+    "../design/manifest.json": "138f8b5075d6adf7741fb25bf570e225d52b10c32bb9a3fb200b67baa6c43ea1",
+    "../design/verdict_design-to-build-r10.json": "f25b3447111888de96608b9a47af5aae3bc6b00500f6923a125219e832b01f5b",
+    "../design/verdict_design-to-build-r10.cross-stage.json": "bc2d854ba4675408eb4c5329ee1252b4645f78075629aa4fe70d5f952042d75d",
+    "reports/deliverable_bug-review.md": "ce15c86debe1843d6853f7615b8aeb6e6e985b7bbe3758616e6e6720df9238b7",
+    "reports/deliverable_code-review.md": "9cfbe47e87b230c53314c5cc330dbc6d40133bac75d522c958e7fc7434a941c0",
+    "reports/deliverable_quality-review.md": "17c3962570cfc270173a71020d3d0a4dc261e0b1cdc61875b0826da3fa978a85",
+    "reports/review-package.md": "1fd20f1477b819b2de5e27f1fc0b3dc75a0e6f55328504e5c73b44f642ba12a5",
+    "artifacts/execution-manifest.json": "ca4bceb595e31c0867b8a3c9bc8af3f9eaf8a0c906dcd44149b3b2d8f268b3c7",
+    "evidence/snapshot_build_aggregate.diff": "f9ddb5a5f8d356e11c7cb4dc6b2a8dea325548a7df588c4723e4099fb5a562a4",
+    "evidence/snapshot_build_completeness.md": "b5d9052c96c69b4df5d52a486e8f23a2365ae31be440a4c90aa27248d2b19f88",
+    "evidence/snapshot_build_full_suite.log": "1a331173847b4e933a3be4d38f4e0a4e18e027514705de8d88e9a77a89cec328",
+    "evidence/snapshot_build_implementation.md": "b0208b64f775f35c02588e380a28800538cf7fd1ef797e5f9e59a670008414aa",
+    "evidence/snapshot_build_manifest.json": "bab525088e0507e9fff1ad099708afcfbf02622f88c82facf0cd2574d7484787",
+    "evidence/snapshot_build_package.md": "677b9a66722c2399e6ada6e3eb2a174b208495992df8cfd73b2b78cfe60a4622",
+    "evidence/snapshot_build_runtime_health.md": "da999830095353884fd24309c5bb36c17b5ba0d3accf83d3bc38f26a6fc62f84",
+    "evidence/snapshot_build_runtime_probe.json": "528ab4e04f008f13fb7417646560641d1ea914727b22b9b2d1ffb5856403e82e",
+    "evidence/snapshot_build_runtime_smoke.log": "556f5ff807a2825d20034656b758e6ca5d56701dbeba388416d4e624cacbaf2f",
+    "evidence/snapshot_build_tests.md": "81bb2b2edb12c92f647463f8668cc862d1dbe586b2bbfb97f2b9c1ae447f63d6",
+    "evidence/snapshot_build_tests_probe.json": "52f0d8b2b178d7f26178771efff2003dbad28046cbb5baeda419ff514061bd0b",
+    "evidence/snapshot_build_verdict_build-to-review.json": "76e69d9d53d296dc5ee5855758aa6eb8083421bcd1d6d78dfc9473d0cf92dbe5",
+    "evidence/snapshot_source_SConscript": "9423e0b617e2b99b50ee97e592c65d89925a6bbad0af6f8944eb78fb056c2373",
+    "evidence/snapshot_source_encoderd.cc": "fde3d8cb1adfd5308279df4c3c37989ebed7a63127a1f51ed1cbdb48e7eab8d9",
+    "evidence/snapshot_source_ffmpeg_encoder.cc": "7124dee947f6eb409e5fc0e720182f077554d470871dc5c400b6430abc1ea8de",
+    "evidence/snapshot_source_ffmpeg_encoder.h": "ca58013144a178daf80b1e483dcfd56a231d3af72129aec5a7052e8df269f8d8",
+    "evidence/snapshot_source_loggerd.cc": "3a2e621adc50f44f727a12b0d8deb7410a4c502948ae2297069aa40b4ea8f5a9",
+    "evidence/snapshot_source_loggerd.h": "be831a312bedac0b997eaea6a932f63f2ca265f35c5881c96c9c0a17097e1034",
+    "evidence/snapshot_source_mpp_encoder.cc": "24537361363ace4fd11485fca4284938f22e9b73fdb13ff84f100dd8368d5477",
+    "evidence/snapshot_source_mpp_encoder.h": "253c02a7c10624d0333f3360cb13281d6edb1ede10efe91e705c03ac284e8f43",
+    "evidence/snapshot_source_mpp_encoder_input.h": "965e011ff0676341996a13974f7c86f87a26bc72441765eefc68f115ee068ce3",
+    "evidence/snapshot_source_test_dmabuf_fixture.py": "cfc0baf39d00be3871f7e8359083adc86266e29333e3b2dc09cd349e175a7b9c",
+    "evidence/snapshot_source_test_encoderd_recovery.cc": "38872a2c9d5ffd9a8a4d5fa4cf09941c3e768b8001cd8414bc50416feaaf88fe",
+    "evidence/snapshot_source_test_encoderd_recovery.py": "685789745fdab9b6c4ebabad8f380dceba0efcb3dc1e8f25872faf068c816292",
+    "evidence/snapshot_source_test_loggerd.py": "0e6404662d1dad2ff6ba1fe8ff13d41e55f3f30494fe833d41d996de44a013bb",
+    "evidence/snapshot_source_test_loggerd_liveness.py": "f4911703b8d9a6e500336106b855a1182aabd135078c1c8ca58aadb3875efea9",
+    "evidence/snapshot_source_test_loggerd_rotation.cc": "bf185f8d3b9335182d347e010af35b1a20913b15bdeb8ad35a23b19edf1e7962",
+    "evidence/snapshot_source_test_loggerd_rotation.py": "677f4542e47d224f593b14e25951fab2236ac5ddc030afb87399427eb2a8a867",
+    "evidence/snapshot_source_test_mpp_encoder.cc": "4ba25c832faa0c5385d8cd1a5c02bac626099bcaf03635067b2501146004460d",
+    "evidence/snapshot_source_test_mpp_encoder.py": "533f179729d841dfe0386d34ebc92a282f0395e867a4f057e4ce623a6b7964b4",
+    "evidence/snapshot_source_visionipc_dmabuf_publisher.cc": "0994305f86b1c7c1481d3276ee2dd5b5fd81d033847db822a198568941fefad9",
+    "evidence/snapshot-copy-r279.log": "48ba44bf60c97669387895af5f8d24a50e95ddfc8bbe5219d0eef1b546526533",
+    "evidence/review-probes-r280.log": "083a10773bb2813bed7a1a73d2312b6758f36dc39d9b9a3ed1c08244f1c6ffa6",
+    "evidence/review-shape-check-r280.json": "40ac7bc2d5dada53ba86807c648f3e615ca9af7c9fa9d4d9d053c320c9d3280c"
+  },
+  "evidence": {
+    "review_verdict": {
+      "recommendation": "APPROVED",
+      "scope": "Bounded review approval for the r266 loggerd/encoderd change set; not a live-camera or release-readiness claim."
+    },
+    "findings": {
+      "items": [
+        {
+          "id": "CR-01",
+          "severity": "Major",
+          "status": "deferred",
+          "owner": "loggerd/MPP integration owner",
+          "reopen_trigger": "Before any live-camera or release-readiness claim, verify actual V4L2 DMA-BUF buffer-generation and fence/completion ordering while the deployed MPP has inputs in flight through sustained capture and segment rotation. If producer reuse can precede MPP completion, implement and verify an explicit ownership or synchronization contract."
+        },
+        {
+          "id": "QR-1",
+          "severity": "Minor",
+          "status": "open",
+          "owner": "loggerd maintainers",
+          "reopen_trigger": "When the deterministic-mode activation rule changes, add a shared helper or parity contract so loggerd and encoderd cannot drift."
+        },
+        {
+          "id": "CR-02",
+          "severity": "Info",
+          "status": "open",
+          "reason": "The test report contains stale runtime-refresh wording, while current r269 runtime evidence is valid and passing."
+        }
+      ]
+    },
+    "executed_probes": {
+      "artifacts": [
+        "evidence/review-probes-r280.log"
+      ],
+      "tool": "Python 3 read-only source and evidence integrity probe",
+      "command": "Verified each contained source and upstream build snapshot against its approved hash; checked the full-suite AC-6 records and production smoke result; no tests rerun.",
+      "observed_at": "2026-10-31T14:16:28Z",
+      "exit_code": 0,
+      "result": {
+        "status": "pass"
+      },
+      "inputs": [
+        {
+          "path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/review/evidence/snapshot_build_aggregate.diff",
+          "sha256": "f9ddb5a5f8d356e11c7cb4dc6b2a8dea325548a7df588c4723e4099fb5a562a4"
+        },
+        {
+          "path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/review/evidence/snapshot_build_completeness.md",
+          "sha256": "b5d9052c96c69b4df5d52a486e8f23a2365ae31be440a4c90aa27248d2b19f88"
+        },
+        {
+          "path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/review/evidence/snapshot_build_full_suite.log",
+          "sha256": "1a331173847b4e933a3be4d38f4e0a4e18e027514705de8d88e9a77a89cec328"
+        },
+        {
+          "path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/review/evidence/snapshot_build_implementation.md",
+          "sha256": "b0208b64f775f35c02588e380a28800538cf7fd1ef797e5f9e59a670008414aa"
+        },
+        {
+          "path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/review/evidence/snapshot_build_manifest.json",
+          "sha256": "bab525088e0507e9fff1ad099708afcfbf02622f88c82facf0cd2574d7484787"
+        },
+        {
+          "path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/review/evidence/snapshot_build_package.md",
+          "sha256": "677b9a66722c2399e6ada6e3eb2a174b208495992df8cfd73b2b78cfe60a4622"
+        },
+        {
+          "path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/review/evidence/snapshot_build_runtime_health.md",
+          "sha256": "da999830095353884fd24309c5bb36c17b5ba0d3accf83d3bc38f26a6fc62f84"
+        },
+        {
+          "path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/review/evidence/snapshot_build_runtime_probe.json",
+          "sha256": "528ab4e04f008f13fb7417646560641d1ea914727b22b9b2d1ffb5856403e82e"
+        },
+        {
+          "path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/review/evidence/snapshot_build_runtime_smoke.log",
+          "sha256": "556f5ff807a2825d20034656b758e6ca5d56701dbeba388416d4e624cacbaf2f"
+        },
+        {
+          "path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/review/evidence/snapshot_build_tests.md",
+          "sha256": "81bb2b2edb12c92f647463f8668cc862d1dbe586b2bbfb97f2b9c1ae447f63d6"
+        },
+        {
+          "path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/review/evidence/snapshot_build_tests_probe.json",
+          "sha256": "52f0d8b2b178d7f26178771efff2003dbad28046cbb5baeda419ff514061bd0b"
+        },
+        {
+          "path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/review/evidence/snapshot_build_verdict_build-to-review.json",
+          "sha256": "76e69d9d53d296dc5ee5855758aa6eb8083421bcd1d6d78dfc9473d0cf92dbe5"
+        },
+        {
+          "path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/review/evidence/snapshot_source_SConscript",
+          "sha256": "9423e0b617e2b99b50ee97e592c65d89925a6bbad0af6f8944eb78fb056c2373"
+        },
+        {
+          "path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/review/evidence/snapshot_source_encoderd.cc",
+          "sha256": "fde3d8cb1adfd5308279df4c3c37989ebed7a63127a1f51ed1cbdb48e7eab8d9"
+        },
+        {
+          "path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/review/evidence/snapshot_source_ffmpeg_encoder.cc",
+          "sha256": "7124dee947f6eb409e5fc0e720182f077554d470871dc5c400b6430abc1ea8de"
+        },
+        {
+          "path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/review/evidence/snapshot_source_ffmpeg_encoder.h",
+          "sha256": "ca58013144a178daf80b1e483dcfd56a231d3af72129aec5a7052e8df269f8d8"
+        },
+        {
+          "path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/review/evidence/snapshot_source_loggerd.cc",
+          "sha256": "3a2e621adc50f44f727a12b0d8deb7410a4c502948ae2297069aa40b4ea8f5a9"
+        },
+        {
+          "path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/review/evidence/snapshot_source_loggerd.h",
+          "sha256": "be831a312bedac0b997eaea6a932f63f2ca265f35c5881c96c9c0a17097e1034"
+        },
+        {
+          "path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/review/evidence/snapshot_source_mpp_encoder.cc",
+          "sha256": "24537361363ace4fd11485fca4284938f22e9b73fdb13ff84f100dd8368d5477"
+        },
+        {
+          "path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/review/evidence/snapshot_source_mpp_encoder.h",
+          "sha256": "253c02a7c10624d0333f3360cb13281d6edb1ede10efe91e705c03ac284e8f43"
+        },
+        {
+          "path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/review/evidence/snapshot_source_mpp_encoder_input.h",
+          "sha256": "965e011ff0676341996a13974f7c86f87a26bc72441765eefc68f115ee068ce3"
+        },
+        {
+          "path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/review/evidence/snapshot_source_test_dmabuf_fixture.py",
+          "sha256": "cfc0baf39d00be3871f7e8359083adc86266e29333e3b2dc09cd349e175a7b9c"
+        },
+        {
+          "path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/review/evidence/snapshot_source_test_encoderd_recovery.cc",
+          "sha256": "38872a2c9d5ffd9a8a4d5fa4cf09941c3e768b8001cd8414bc50416feaaf88fe"
+        },
+        {
+          "path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/review/evidence/snapshot_source_test_encoderd_recovery.py",
+          "sha256": "685789745fdab9b6c4ebabad8f380dceba0efcb3dc1e8f25872faf068c816292"
+        },
+        {
+          "path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/review/evidence/snapshot_source_test_loggerd.py",
+          "sha256": "0e6404662d1dad2ff6ba1fe8ff13d41e55f3f30494fe833d41d996de44a013bb"
+        },
+        {
+          "path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/review/evidence/snapshot_source_test_loggerd_liveness.py",
+          "sha256": "f4911703b8d9a6e500336106b855a1182aabd135078c1c8ca58aadb3875efea9"
+        },
+        {
+          "path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/review/evidence/snapshot_source_test_loggerd_rotation.cc",
+          "sha256": "bf185f8d3b9335182d347e010af35b1a20913b15bdeb8ad35a23b19edf1e7962"
+        },
+        {
+          "path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/review/evidence/snapshot_source_test_loggerd_rotation.py",
+          "sha256": "677f4542e47d224f593b14e25951fab2236ac5ddc030afb87399427eb2a8a867"
+        },
+        {
+          "path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/review/evidence/snapshot_source_test_mpp_encoder.cc",
+          "sha256": "4ba25c832faa0c5385d8cd1a5c02bac626099bcaf03635067b2501146004460d"
+        },
+        {
+          "path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/review/evidence/snapshot_source_test_mpp_encoder.py",
+          "sha256": "533f179729d841dfe0386d34ebc92a282f0395e867a4f057e4ce623a6b7964b4"
+        },
+        {
+          "path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/review/evidence/snapshot_source_visionipc_dmabuf_publisher.cc",
+          "sha256": "0994305f86b1c7c1481d3276ee2dd5b5fd81d033847db822a198568941fefad9"
+        },
+        {
+          "path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/intake/report_grilling.md",
+          "sha256": "be2b70d7df1922b807604d970a8101bab4034d6c7a36832be00267fa5df24e1f"
+        },
+        {
+          "path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/design/manifest.json",
+          "sha256": "138f8b5075d6adf7741fb25bf570e225d52b10c32bb9a3fb200b67baa6c43ea1"
+        },
+        {
+          "path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/design/verdict_design-to-build-r10.cross-stage.json",
+          "sha256": "bc2d854ba4675408eb4c5329ee1252b4645f78075629aa4fe70d5f952042d75d"
+        }
+      ]
+    },
+    "rendered_verification": {
+      "applicable": false,
+      "reason": "no visible surface changed - rendered verification not applicable",
+      "scope": "The reviewed change is backend loggerd/encoderd, MPP and internal test code; no user-visible surface changed.",
+      "decided_by": "code-chief"
+    },
+    "residual_risk": "The live V4L2 camera-buffer lifetime and synchronization path remains unqualified. The synthetic DMA-heap fixture and smoke do not prove that capture will not overwrite a buffer while asynchronous MPP reads it. Persistent live descriptor failures, deployed MPP post-EOS behavior, non-KA2 silicon and physical PC hardware are also unqualified. CR-01 remains deferred to the loggerd/MPP integration owner and must reopen before any live-camera or release-readiness claim.",
+    "revision_lineage": "r10 design approved by the design-to-build boundary; source revision 266 approved by build-to-review; review handoff r274; all specialist packets and integrity probes bind the same r266 source hashes; review submission revision 281."
+  }
+}

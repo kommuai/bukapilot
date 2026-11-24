@@ -1,0 +1,1119 @@
+diff --git a/Jenkinsfile b/Jenkinsfile
+index c095eda8a..7395c9da2 100644
+--- a/Jenkinsfile
++++ b/Jenkinsfile
+@@ -214,6 +214,7 @@ node {
+           step("test power draw", "pytest -s system/hardware/tici/tests/test_power_draw.py"),
+           step("test encoder", "LD_LIBRARY_PATH=/usr/local/lib pytest system/loggerd/tests/test_encoder.py", [diffPaths: ["system/loggerd/"]]),
+           step("test manager", "pytest system/manager/test/test_manager.py"),
++          step("test sensord", "pytest -n 0 -q system/sensord/tests", [diffPaths: ["system/sensord/"]]),
+         ])
+       },
+       'loopback': {
+@@ -236,12 +237,6 @@ node {
+           step("test exposure", "pytest system/camerad/test/test_exposure.py"),
+         ])
+       },
+-      'sensord': {
+-        deviceStage("LSM + MMC", "tizi-lsmc", ["UNSAFE=1"], [
+-          step("build", "cd system/manager && ./build.py"),
+-          step("test sensord", "pytest system/sensord/tests/test_sensord.py"),
+-        ])
+-      },
+       'replay': {
+         deviceStage("model-replay", "tizi-replay", ["UNSAFE=1"], [
+           step("build", "cd system/manager && ./build.py", [diffPaths: ["selfdrive/modeld/", "tinygrad_repo", "selfdrive/test/process_replay/model_replay.py"]]),
+diff --git a/selfdrive/test/test_onroad.py b/selfdrive/test/test_onroad.py
+index f57751c06..ad8687061 100644
+--- a/selfdrive/test/test_onroad.py
++++ b/selfdrive/test/test_onroad.py
+@@ -43,7 +43,6 @@ PROCS = {
+   "./camerad": 10.0,
+   "selfdrive.controls.plannerd": 8.0,
+   "selfdrive.ui.ui": 40.0,
+-  "system.sensord.sensord": 13.0,
+   "selfdrive.controls.radard": 2.0,
+   "selfdrive.modeld.modeld": 22.0,
+   "selfdrive.modeld.dmonitoringmodeld": 18.0,
+diff --git a/system/loggerd/tests/test_encoder.py b/system/loggerd/tests/test_encoder.py
+index e4dabd3df..2fef8b6c3 100644
+--- a/system/loggerd/tests/test_encoder.py
++++ b/system/loggerd/tests/test_encoder.py
+@@ -55,7 +55,6 @@ class TestEncoder:
+   def test_log_rotation(self, record_front):
+     Params().put_bool("RecordFront", record_front)
+ 
+-    managed_processes['sensord'].start()
+     managed_processes['loggerd'].start()
+     managed_processes['encoderd'].start()
+ 
+@@ -149,4 +148,3 @@ class TestEncoder:
+       managed_processes['loggerd'].stop()
+       managed_processes['encoderd'].stop()
+       managed_processes['camerad'].stop()
+-      managed_processes['sensord'].stop()
+diff --git a/system/manager/process_config.py b/system/manager/process_config.py
+index 7809b36d3..35a8378ae 100644
+--- a/system/manager/process_config.py
++++ b/system/manager/process_config.py
+@@ -94,7 +94,7 @@ procs = [
+   PythonProcess("modeld", "selfdrive.modeld.modeld", only_onroad),
+   PythonProcess("dmonitoringmodeld", "selfdrive.modeld.dmonitoringmodeld", driverview, enabled=(WEBCAM or not PC)),
+ 
+-  PythonProcess("sensord", "system.sensord.sensord", only_onroad, enabled=not PC),
++  PythonProcess("sensord", "system.sensord.sensord", only_onroad, enabled=KA2),
+   #PythonProcess("ui", "selfdrive.ui.ui", always_run, restart_if_crash=True),
+   PythonProcess("soundd", "selfdrive.ui.soundd", driverview),
+   PythonProcess("locationd", "selfdrive.locationd.locationd", only_onroad),
+diff --git a/system/manager/test/test_manager.py b/system/manager/test/test_manager.py
+index 34d07c672..d93eb13fb 100644
+--- a/system/manager/test/test_manager.py
++++ b/system/manager/test/test_manager.py
+@@ -16,6 +16,26 @@ MAX_STARTUP_TIME = 3
+ BLACKLIST_PROCS = ['manage_athenad', 'pandad', 'pigeond']
+ 
+ 
++def test_sensord_enabled_only_for_ka2_and_stays_onroad(monkeypatch):
++  from importlib import reload
++  import openpilot.system.hardware as hardware
++  import openpilot.system.manager.process_config as process_config
++
++  actual_ka2 = hardware.KA2
++  try:
++    for is_ka2 in (False, True):
++      monkeypatch.setattr(hardware, "KA2", is_ka2)
++      process_config = reload(process_config)
++      sensord = process_config.managed_processes["sensord"]
++
++      assert sensord.enabled is is_ka2
++      assert sensord.should_run(False, None, None) is False
++      assert sensord.should_run(True, None, None) is True
++  finally:
++    monkeypatch.setattr(hardware, "KA2", actual_ka2)
++    reload(process_config)
++
++
+ class TestManager:
+   def setup_method(self):
+     HARDWARE.set_power_save(False)
+diff --git a/system/sensord/sensord.py b/system/sensord/sensord.py
+index 712b5ae1a..80bf6bb8e 100755
+--- a/system/sensord/sensord.py
++++ b/system/sensord/sensord.py
+@@ -1,81 +1,20 @@
+ #!/usr/bin/env python3
+-import os
+ import time
+-import ctypes
+-import select
+ import threading
+ 
+ import cereal.messaging as messaging
+ from cereal.services import SERVICE_LIST
+-from openpilot.common.util import sudo_write
+ from openpilot.common.realtime import config_realtime_process, Ratekeeper
+ from openpilot.common.swaglog import cloudlog
+-from openpilot.common.gpio import gpiochip_get_ro_value_fd, gpioevent_data
+-from openpilot.system.hardware import HARDWARE, KA2
++from openpilot.system.hardware import KA2
+ 
+ from openpilot.system.sensord.sensors.i2c_sensor import Sensor
+-from openpilot.system.sensord.sensors.lsm6ds3_accel import LSM6DS3_Accel
+-from openpilot.system.sensord.sensors.lsm6ds3_gyro import LSM6DS3_Gyro
+-from openpilot.system.sensord.sensors.lsm6ds3_temp import LSM6DS3_Temp
+-from openpilot.system.sensord.sensors.mmc5603nj_magn import MMC5603NJ_Magn
+ from openpilot.system.sensord.sensors.icm42670_accel import ICM42670_Accel
+ from openpilot.system.sensord.sensors.icm42670_gyro import ICM42670_Gyro
+ from openpilot.system.sensord.sensors.icm42670_temp import ICM42670_Temp
+ from openpilot.system.sensord.sensors.lis2mdl_magn import LIS2MDL_Magn
+ 
+-I2C_BUS_IMU = 3 if KA2 else 1
+-
+-def interrupt_loop(sensors: list[tuple[Sensor, str, bool]], event) -> None:
+-  pm = messaging.PubMaster([service for sensor, service, interrupt in sensors if interrupt])
+-
+-  # Requesting both edges as the data ready pulse from the lsm6ds sensor is
+-  # very short (75us) and is mostly detected as falling edge instead of rising.
+-  # So if it is detected as rising the following falling edge is skipped.
+-  fd = gpiochip_get_ro_value_fd("sensord", 0, 84)
+-
+-  # Configure IRQ affinity
+-  irq_path = "/proc/irq/336/smp_affinity_list"
+-  if not os.path.exists(irq_path):
+-    irq_path = "/proc/irq/335/smp_affinity_list"
+-  if os.path.exists(irq_path):
+-    sudo_write('1\n', irq_path)
+-
+-  offset = time.time_ns() - time.monotonic_ns()
+-
+-  poller = select.poll()
+-  poller.register(fd, select.POLLIN | select.POLLPRI)
+-  while not event.is_set():
+-    events = poller.poll(100)
+-    if not events:
+-      cloudlog.error("poll timed out")
+-      continue
+-    if not (events[0][1] & (select.POLLIN | select.POLLPRI)):
+-      cloudlog.error("no poll events set")
+-      continue
+-
+-    dat = os.read(fd, ctypes.sizeof(gpioevent_data)*16)
+-    evd = gpioevent_data.from_buffer_copy(dat)
+-
+-    cur_offset = time.time_ns() - time.monotonic_ns()
+-    if abs(cur_offset - offset) > 10 * 1e6:  # ms
+-      cloudlog.warning(f"time jumped: {cur_offset} {offset}")
+-      offset = cur_offset
+-      continue
+-
+-    ts = evd.timestamp - cur_offset
+-    for sensor, service, interrupt in sensors:
+-      if interrupt:
+-        try:
+-          evt = sensor.get_event(ts)
+-          if not sensor.is_data_valid():
+-            continue
+-          msg = messaging.new_message(service, valid=True)
+-          setattr(msg, service, evt)
+-          pm.send(service, msg)
+-        except Sensor.DataNotReady:
+-          pass
+-        except Exception:
+-          cloudlog.exception(f"Error processing {service}")
++I2C_BUS_IMU = 3
+ 
+ 
+ def polling_loop(sensor: Sensor, service: str, event: threading.Event) -> None:
+@@ -93,32 +32,20 @@ def polling_loop(sensor: Sensor, service: str, event: threading.Event) -> None:
+     rk.keep_time()
+ 
+ def main() -> None:
++  if not KA2:
++    raise RuntimeError("sensord is only supported on KA2")
++
+   config_realtime_process([1, ], 1)
+ 
+-  if KA2:
+-    # KA2: ICM42670 + LIS2MDL, polling only (no GPIO 84 interrupt)
+-    sensors_cfg = [
+-      (ICM42670_Accel(I2C_BUS_IMU), "accelerometer", False),
+-      (ICM42670_Gyro(I2C_BUS_IMU), "gyroscope", False),
+-      (ICM42670_Temp(I2C_BUS_IMU), "temperatureSensor", False),
+-      (LIS2MDL_Magn(I2C_BUS_IMU), "magnetometer", False),
+-    ]
+-    use_interrupt_loop = False
+-  else:
+-    # TICI (tizi): LSM6DS3 + optional MMC5603, interrupt-driven accel/gyro
+-    sensors_cfg = [
+-      (LSM6DS3_Accel(I2C_BUS_IMU), "accelerometer", True),
+-      (LSM6DS3_Gyro(I2C_BUS_IMU), "gyroscope", True),
+-      (LSM6DS3_Temp(I2C_BUS_IMU), "temperatureSensor", False),
+-    ]
+-    if HARDWARE.get_device_type() == "tizi":
+-      sensors_cfg.append(
+-        (MMC5603NJ_Magn(I2C_BUS_IMU), "magnetometer", False),
+-      )
+-    use_interrupt_loop = True
++  sensors_cfg = [
++    (ICM42670_Accel(I2C_BUS_IMU), "accelerometer"),
++    (ICM42670_Gyro(I2C_BUS_IMU), "gyroscope"),
++    (ICM42670_Temp(I2C_BUS_IMU), "temperatureSensor"),
++    (LIS2MDL_Magn(I2C_BUS_IMU), "magnetometer"),
++  ]
+ 
+   # Reset sensors
+-  for sensor, _, _ in sensors_cfg:
++  for sensor, _ in sensors_cfg:
+     try:
+       sensor.reset()
+     except Exception:
+@@ -127,17 +54,14 @@ def main() -> None:
+   # Initialize sensors
+   exit_event = threading.Event()
+   threads: list[threading.Thread] = []
+-  if use_interrupt_loop:
+-    threads.append(threading.Thread(target=interrupt_loop, args=(sensors_cfg, exit_event), daemon=True))
+-  for sensor, service, interrupt in sensors_cfg:
++  for sensor, service in sensors_cfg:
+     try:
+       sensor.init()
+-      if not interrupt:
+-        threads.append(threading.Thread(
+-          target=polling_loop,
+-          args=(sensor, service, exit_event),
+-          daemon=True
+-        ))
++      threads.append(threading.Thread(
++        target=polling_loop,
++        args=(sensor, service, exit_event),
++        daemon=True
++      ))
+     except Exception:
+       cloudlog.exception(f"Error initializing {service} sensor")
+ 
+@@ -154,7 +78,7 @@ def main() -> None:
+       if t.is_alive():
+         t.join()
+ 
+-    for sensor, _, _ in sensors_cfg:
++    for sensor, _ in sensors_cfg:
+       try:
+         sensor.shutdown()
+       except Exception:
+diff --git a/system/sensord/sensors/lsm6ds3_accel.py b/system/sensord/sensors/lsm6ds3_accel.py
+deleted file mode 100644
+index 43863daa9..000000000
+--- a/system/sensord/sensors/lsm6ds3_accel.py
++++ /dev/null
+@@ -1,161 +0,0 @@
+-import os
+-import time
+-
+-from cereal import log
+-from openpilot.system.sensord.sensors.i2c_sensor import Sensor
+-
+-class LSM6DS3_Accel(Sensor):
+-  LSM6DS3_ACCEL_I2C_REG_DRDY_CFG  = 0x0B
+-  LSM6DS3_ACCEL_I2C_REG_INT1_CTRL = 0x0D
+-  LSM6DS3_ACCEL_I2C_REG_CTRL1_XL  = 0x10
+-  LSM6DS3_ACCEL_I2C_REG_CTRL3_C   = 0x12
+-  LSM6DS3_ACCEL_I2C_REG_CTRL5_C   = 0x14
+-  LSM6DS3_ACCEL_I2C_REG_STAT_REG  = 0x1E
+-  LSM6DS3_ACCEL_I2C_REG_OUTX_L_XL = 0x28
+-
+-  LSM6DS3_ACCEL_ODR_104HZ       = (0b0100 << 4)
+-  LSM6DS3_ACCEL_INT1_DRDY_XL    = 0b1
+-  LSM6DS3_ACCEL_DRDY_XLDA       = 0b1
+-  LSM6DS3_ACCEL_DRDY_PULSE_MODE = (1 << 7)
+-  LSM6DS3_ACCEL_IF_INC          = 0b00000100
+-
+-  LSM6DS3_ACCEL_ODR_52HZ        = (0b0011 << 4)
+-  LSM6DS3_ACCEL_FS_4G           = (0b10 << 2)
+-  LSM6DS3_ACCEL_IF_INC_BDU      = 0b01000100
+-  LSM6DS3_ACCEL_POSITIVE_TEST   = 0b01
+-  LSM6DS3_ACCEL_NEGATIVE_TEST   = 0b10
+-  LSM6DS3_ACCEL_MIN_ST_LIMIT_mg = 90.0
+-  LSM6DS3_ACCEL_MAX_ST_LIMIT_mg = 1700.0
+-
+-  @property
+-  def device_address(self) -> int:
+-    return 0x6A
+-
+-  def reset(self):
+-    self.write(0x12, 0x1)
+-    time.sleep(0.1)
+-
+-  def init(self):
+-    chip_id = self.verify_chip_id(0x0F, [0x69, 0x6A])
+-    if chip_id == 0x6A:
+-      self.source = log.SensorEventData.SensorSource.lsm6ds3trc
+-    else:
+-      self.source = log.SensorEventData.SensorSource.lsm6ds3
+-
+-    # self-test
+-    if os.getenv("LSM_SELF_TEST") == "1":
+-      self.self_test(self.LSM6DS3_ACCEL_POSITIVE_TEST)
+-      self.self_test(self.LSM6DS3_ACCEL_NEGATIVE_TEST)
+-
+-    # actual init
+-    int1 = self.read(self.LSM6DS3_ACCEL_I2C_REG_INT1_CTRL, 1)[0]
+-    int1 |= self.LSM6DS3_ACCEL_INT1_DRDY_XL
+-    self.writes((
+-      # Enable continuous update and automatic address increment
+-      (self.LSM6DS3_ACCEL_I2C_REG_CTRL3_C, self.LSM6DS3_ACCEL_IF_INC),
+-      # Set ODR to 104 Hz, FS to ±2g (default)
+-      (self.LSM6DS3_ACCEL_I2C_REG_CTRL1_XL, self.LSM6DS3_ACCEL_ODR_104HZ),
+-      # Configure data ready signal to pulse mode
+-      (self.LSM6DS3_ACCEL_I2C_REG_DRDY_CFG, self.LSM6DS3_ACCEL_DRDY_PULSE_MODE),
+-      # Enable data ready interrupt on INT1 without resetting existing interrupts
+-      (self.LSM6DS3_ACCEL_I2C_REG_INT1_CTRL, int1),
+-    ))
+-
+-  def get_event(self, ts: int | None = None) -> log.SensorEventData:
+-    assert ts is not None  # must come from the IRQ event
+-
+-    # Check if data is ready since IRQ is shared with gyro
+-    status_reg = self.read(self.LSM6DS3_ACCEL_I2C_REG_STAT_REG, 1)[0]
+-    if (status_reg & self.LSM6DS3_ACCEL_DRDY_XLDA) == 0:
+-      raise self.DataNotReady
+-
+-    scale = 9.81 * 2.0 / (1 << 15)
+-    b = self.read(self.LSM6DS3_ACCEL_I2C_REG_OUTX_L_XL, 6)
+-    x = self.parse_16bit(b[0], b[1]) * scale
+-    y = self.parse_16bit(b[2], b[3]) * scale
+-    z = self.parse_16bit(b[4], b[5]) * scale
+-
+-    event = log.SensorEventData.new_message()
+-    event.timestamp = ts
+-    event.version = 1
+-    event.sensor = 1  # SENSOR_ACCELEROMETER
+-    event.type = 1    # SENSOR_TYPE_ACCELEROMETER
+-    event.source = self.source
+-    a = event.init('acceleration')
+-    a.v = [y, -x, z]
+-    a.status = 1
+-    return event
+-
+-  def shutdown(self) -> None:
+-    # Disable data ready interrupt on INT1
+-    value = self.read(self.LSM6DS3_ACCEL_I2C_REG_INT1_CTRL, 1)[0]
+-    value &= ~self.LSM6DS3_ACCEL_INT1_DRDY_XL
+-    self.write(self.LSM6DS3_ACCEL_I2C_REG_INT1_CTRL, value)
+-
+-    # Power down by clearing ODR bits
+-    value = self.read(self.LSM6DS3_ACCEL_I2C_REG_CTRL1_XL, 1)[0]
+-    value &= 0x0F
+-    self.write(self.LSM6DS3_ACCEL_I2C_REG_CTRL1_XL, value)
+-
+-  # *** self-test stuff ***
+-  def _wait_for_data_ready(self):
+-    while True:
+-      drdy = self.read(self.LSM6DS3_ACCEL_I2C_REG_STAT_REG, 1)[0]
+-      if drdy & self.LSM6DS3_ACCEL_DRDY_XLDA:
+-        break
+-
+-  def _read_and_avg_data(self, scaling: float) -> list[float]:
+-    out_buf = [0.0, 0.0, 0.0]
+-    for _ in range(5):
+-      self._wait_for_data_ready()
+-      b = self.read(self.LSM6DS3_ACCEL_I2C_REG_OUTX_L_XL, 6)
+-      for j in range(3):
+-        val = self.parse_16bit(b[j*2], b[j*2+1]) * scaling
+-        out_buf[j] += val
+-    return [x / 5.0 for x in out_buf]
+-
+-  def self_test(self, test_type: int) -> None:
+-    # Prepare sensor for self-test
+-    self.write(self.LSM6DS3_ACCEL_I2C_REG_CTRL3_C, self.LSM6DS3_ACCEL_IF_INC_BDU)
+-
+-    # Configure ODR and full scale based on sensor type
+-    if self.source == log.SensorEventData.SensorSource.lsm6ds3trc:
+-      odr_fs = self.LSM6DS3_ACCEL_FS_4G | self.LSM6DS3_ACCEL_ODR_52HZ
+-      scaling = 0.122  # mg/LSB for ±4g
+-    else:
+-      odr_fs = self.LSM6DS3_ACCEL_ODR_52HZ
+-      scaling = 0.061  # mg/LSB for ±2g
+-    self.write(self.LSM6DS3_ACCEL_I2C_REG_CTRL1_XL, odr_fs)
+-
+-    # Wait for stable output
+-    time.sleep(0.1)
+-    self._wait_for_data_ready()
+-    val_st_off = self._read_and_avg_data(scaling)
+-
+-    # Enable self-test
+-    self.write(self.LSM6DS3_ACCEL_I2C_REG_CTRL5_C, test_type)
+-
+-    # Wait for stable output
+-    time.sleep(0.1)
+-    self._wait_for_data_ready()
+-    val_st_on = self._read_and_avg_data(scaling)
+-
+-    # Disable sensor and self-test
+-    self.write(self.LSM6DS3_ACCEL_I2C_REG_CTRL1_XL, 0)
+-    self.write(self.LSM6DS3_ACCEL_I2C_REG_CTRL5_C, 0)
+-
+-    # Calculate differences and check limits
+-    test_val = [abs(on - off) for on, off in zip(val_st_on, val_st_off, strict=False)]
+-    for val in test_val:
+-      if val < self.LSM6DS3_ACCEL_MIN_ST_LIMIT_mg or val > self.LSM6DS3_ACCEL_MAX_ST_LIMIT_mg:
+-        raise self.SensorException(f"Accelerometer self-test failed for test type {test_type}")
+-
+-if __name__ == "__main__":
+-  import numpy as np
+-  s = LSM6DS3_Accel(1)
+-  s.init()
+-  time.sleep(0.2)
+-  e = s.get_event(0)
+-  print(e)
+-  print(np.linalg.norm(e.acceleration.v))
+-  s.shutdown()
+diff --git a/system/sensord/sensors/lsm6ds3_gyro.py b/system/sensord/sensors/lsm6ds3_gyro.py
+deleted file mode 100644
+index 60de2bbe0..000000000
+--- a/system/sensord/sensors/lsm6ds3_gyro.py
++++ /dev/null
+@@ -1,145 +0,0 @@
+-import os
+-import math
+-import time
+-
+-from cereal import log
+-from openpilot.system.sensord.sensors.i2c_sensor import Sensor
+-
+-class LSM6DS3_Gyro(Sensor):
+-  LSM6DS3_GYRO_I2C_REG_DRDY_CFG  = 0x0B
+-  LSM6DS3_GYRO_I2C_REG_INT1_CTRL = 0x0D
+-  LSM6DS3_GYRO_I2C_REG_CTRL2_G   = 0x11
+-  LSM6DS3_GYRO_I2C_REG_CTRL5_C   = 0x14
+-  LSM6DS3_GYRO_I2C_REG_STAT_REG  = 0x1E
+-  LSM6DS3_GYRO_I2C_REG_OUTX_L_G  = 0x22
+-
+-  LSM6DS3_GYRO_ODR_104HZ       = (0b0100 << 4)
+-  LSM6DS3_GYRO_INT1_DRDY_G     = 0b10
+-  LSM6DS3_GYRO_DRDY_GDA        = 0b10
+-  LSM6DS3_GYRO_DRDY_PULSE_MODE = (1 << 7)
+-
+-  LSM6DS3_GYRO_ODR_208HZ       = (0b0101 << 4)
+-  LSM6DS3_GYRO_FS_2000dps      = (0b11 << 2)
+-  LSM6DS3_GYRO_POSITIVE_TEST   = (0b01 << 2)
+-  LSM6DS3_GYRO_NEGATIVE_TEST   = (0b11 << 2)
+-  LSM6DS3_GYRO_MIN_ST_LIMIT_mdps = 150000.0
+-  LSM6DS3_GYRO_MAX_ST_LIMIT_mdps = 700000.0
+-
+-  @property
+-  def device_address(self) -> int:
+-    return 0x6A
+-
+-  def reset(self):
+-    self.write(0x12, 0x1)
+-    time.sleep(0.1)
+-
+-  def init(self):
+-    chip_id = self.verify_chip_id(0x0F, [0x69, 0x6A])
+-    if chip_id == 0x6A:
+-      self.source = log.SensorEventData.SensorSource.lsm6ds3trc
+-    else:
+-      self.source = log.SensorEventData.SensorSource.lsm6ds3
+-
+-    # self-test
+-    if "LSM_SELF_TEST" in os.environ:
+-      self.self_test(self.LSM6DS3_GYRO_POSITIVE_TEST)
+-      self.self_test(self.LSM6DS3_GYRO_NEGATIVE_TEST)
+-
+-    # actual init
+-    self.writes((
+-      # TODO: set scale. Default is +- 250 deg/s
+-      (self.LSM6DS3_GYRO_I2C_REG_CTRL2_G, self.LSM6DS3_GYRO_ODR_104HZ),
+-      # Configure data ready signal to pulse mode
+-      (self.LSM6DS3_GYRO_I2C_REG_DRDY_CFG, self.LSM6DS3_GYRO_DRDY_PULSE_MODE),
+-    ))
+-    value = self.read(self.LSM6DS3_GYRO_I2C_REG_INT1_CTRL, 1)[0]
+-    value |= self.LSM6DS3_GYRO_INT1_DRDY_G
+-    self.write(self.LSM6DS3_GYRO_I2C_REG_INT1_CTRL, value)
+-
+-  def get_event(self, ts: int | None = None) -> log.SensorEventData:
+-    assert ts is not None  # must come from the IRQ event
+-
+-    # Check if gyroscope data is ready, since it's shared with accelerometer
+-    status_reg = self.read(self.LSM6DS3_GYRO_I2C_REG_STAT_REG, 1)[0]
+-    if not (status_reg & self.LSM6DS3_GYRO_DRDY_GDA):
+-      raise self.DataNotReady
+-
+-    b = self.read(self.LSM6DS3_GYRO_I2C_REG_OUTX_L_G, 6)
+-    x = self.parse_16bit(b[0], b[1])
+-    y = self.parse_16bit(b[2], b[3])
+-    z = self.parse_16bit(b[4], b[5])
+-    scale = (8.75 / 1000.0) * (math.pi / 180.0)
+-    xyz = [y * scale, -x * scale, z * scale]
+-
+-    event = log.SensorEventData.new_message()
+-    event.timestamp = ts
+-    event.version = 2
+-    event.sensor = 5  # SENSOR_GYRO_UNCALIBRATED
+-    event.type = 16   # SENSOR_TYPE_GYROSCOPE_UNCALIBRATED
+-    event.source = self.source
+-    g = event.init('gyroUncalibrated')
+-    g.v = xyz
+-    g.status = 1
+-    return event
+-
+-  def shutdown(self) -> None:
+-    # Disable data ready interrupt on INT1
+-    value = self.read(self.LSM6DS3_GYRO_I2C_REG_INT1_CTRL, 1)[0]
+-    value &= ~self.LSM6DS3_GYRO_INT1_DRDY_G
+-    self.write(self.LSM6DS3_GYRO_I2C_REG_INT1_CTRL, value)
+-
+-    # Power down by clearing ODR bits
+-    value = self.read(self.LSM6DS3_GYRO_I2C_REG_CTRL2_G, 1)[0]
+-    value &= 0x0F
+-    self.write(self.LSM6DS3_GYRO_I2C_REG_CTRL2_G, value)
+-
+-  # *** self-test stuff ***
+-  def _wait_for_data_ready(self):
+-    while True:
+-      drdy = self.read(self.LSM6DS3_GYRO_I2C_REG_STAT_REG, 1)[0]
+-      if drdy & self.LSM6DS3_GYRO_DRDY_GDA:
+-        break
+-
+-  def _read_and_avg_data(self) -> list[float]:
+-    out_buf = [0.0, 0.0, 0.0]
+-    for _ in range(5):
+-      self._wait_for_data_ready()
+-      b = self.read(self.LSM6DS3_GYRO_I2C_REG_OUTX_L_G, 6)
+-      for j in range(3):
+-        val = self.parse_16bit(b[j*2], b[j*2+1]) * 70.0  # mdps/LSB for 2000 dps
+-        out_buf[j] += val
+-    return [x / 5.0 for x in out_buf]
+-
+-  def self_test(self, test_type: int):
+-    # Set ODR to 208Hz, FS to 2000dps
+-    self.write(self.LSM6DS3_GYRO_I2C_REG_CTRL2_G, self.LSM6DS3_GYRO_ODR_208HZ | self.LSM6DS3_GYRO_FS_2000dps)
+-
+-    # Wait for stable output
+-    time.sleep(0.15)
+-    self._wait_for_data_ready()
+-    val_st_off = self._read_and_avg_data()
+-
+-    # Enable self-test
+-    self.write(self.LSM6DS3_GYRO_I2C_REG_CTRL5_C, test_type)
+-
+-    # Wait for stable output
+-    time.sleep(0.05)
+-    self._wait_for_data_ready()
+-    val_st_on = self._read_and_avg_data()
+-
+-    # Disable sensor and self-test
+-    self.write(self.LSM6DS3_GYRO_I2C_REG_CTRL2_G, 0)
+-    self.write(self.LSM6DS3_GYRO_I2C_REG_CTRL5_C, 0)
+-
+-    # Calculate differences and check limits
+-    test_val = [abs(on - off) for on, off in zip(val_st_on, val_st_off, strict=False)]
+-    for val in test_val:
+-      if val < self.LSM6DS3_GYRO_MIN_ST_LIMIT_mdps or val > self.LSM6DS3_GYRO_MAX_ST_LIMIT_mdps:
+-        raise Exception(f"Gyroscope self-test failed for test type {test_type}")
+-
+-if __name__ == "__main__":
+-  s = LSM6DS3_Gyro(1)
+-  s.init()
+-  time.sleep(0.1)
+-  print(s.get_event(0))
+-  s.shutdown()
+diff --git a/system/sensord/sensors/lsm6ds3_temp.py b/system/sensord/sensors/lsm6ds3_temp.py
+deleted file mode 100644
+index b9bb9fe3d..000000000
+--- a/system/sensord/sensors/lsm6ds3_temp.py
++++ /dev/null
+@@ -1,33 +0,0 @@
+-import time
+-
+-from cereal import log
+-from openpilot.system.sensord.sensors.i2c_sensor import Sensor
+-
+-# https://content.arduino.cc/assets/st_imu_lsm6ds3_datasheet.pdf
+-class LSM6DS3_Temp(Sensor):
+-  @property
+-  def device_address(self) -> int:
+-    return 0x6A
+-
+-  def _read_temperature(self) -> float:
+-    scale = 16.0 if self.source == log.SensorEventData.SensorSource.lsm6ds3 else 256.0
+-    data = self.read(0x20, 2)
+-    return 25 + (self.parse_16bit(data[0], data[1]) / scale)
+-
+-  def init(self):
+-    chip_id = self.verify_chip_id(0x0F, [0x69, 0x6A])
+-    if chip_id == 0x6A:
+-      self.source = log.SensorEventData.SensorSource.lsm6ds3trc
+-    else:
+-      self.source = log.SensorEventData.SensorSource.lsm6ds3
+-
+-  def get_event(self, ts: int | None = None) -> log.SensorEventData:
+-    event = log.SensorEventData.new_message()
+-    event.version = 1
+-    event.timestamp = int(time.monotonic() * 1e9)
+-    event.source = self.source
+-    event.temperature = self._read_temperature()
+-    return event
+-
+-  def shutdown(self) -> None:
+-    pass
+diff --git a/system/sensord/sensors/mmc5603nj_magn.py b/system/sensord/sensors/mmc5603nj_magn.py
+deleted file mode 100644
+index 255e99eb3..000000000
+--- a/system/sensord/sensors/mmc5603nj_magn.py
++++ /dev/null
+@@ -1,76 +0,0 @@
+-import time
+-
+-from cereal import log
+-from openpilot.system.sensord.sensors.i2c_sensor import Sensor
+-
+-# https://www.mouser.com/datasheet/2/821/Memsic_09102019_Datasheet_Rev.B-1635324.pdf
+-
+-# Register addresses
+-REG_ODR = 0x1A
+-REG_INTERNAL_0 = 0x1B
+-REG_INTERNAL_1 = 0x1C
+-
+-# Control register settings
+-CMM_FREQ_EN = (1 << 7)
+-AUTO_SR_EN  = (1 << 5)
+-SET         = (1 << 3)
+-RESET       = (1 << 4)
+-
+-class MMC5603NJ_Magn(Sensor):
+-  @property
+-  def device_address(self) -> int:
+-    return 0x30
+-
+-  def init(self):
+-    self.verify_chip_id(0x39, [0x10, ])
+-    self.writes((
+-      (REG_ODR, 0),
+-
+-      # Set BW to 0b01 for 1-150 Hz operation
+-      (REG_INTERNAL_1, 0b01),
+-    ))
+-
+-  def _read_data(self, cycle) -> list[float]:
+-    # start measurement
+-    self.write(REG_INTERNAL_0, cycle)
+-    self.wait()
+-
+-    # read out XYZ
+-    scale = 1.0 / 16384.0
+-    b = self.read(0x00, 9)
+-    return [
+-      (self.parse_20bit(b[6], b[1], b[0]) * scale) - 32.0,
+-      (self.parse_20bit(b[7], b[3], b[2]) * scale) - 32.0,
+-      (self.parse_20bit(b[8], b[5], b[4]) * scale) - 32.0,
+-    ]
+-
+-  def get_event(self, ts: int | None = None) -> log.SensorEventData:
+-    ts = time.monotonic_ns()
+-
+-    # SET - RESET cycle
+-    xyz = self._read_data(SET)
+-    reset_xyz = self._read_data(RESET)
+-    vals = [*xyz, *reset_xyz]
+-
+-    event = log.SensorEventData.new_message()
+-    event.timestamp = ts
+-    event.version = 1
+-    event.sensor = 3 # SENSOR_MAGNETOMETER_UNCALIBRATED
+-    event.type = 14  # SENSOR_TYPE_MAGNETIC_FIELD_UNCALIBRATED
+-    event.source = log.SensorEventData.SensorSource.mmc5603nj
+-
+-    m = event.init('magneticUncalibrated')
+-    m.v = vals
+-    m.status = int(all(int(v) != -32 for v in vals))
+-
+-    return event
+-
+-  def shutdown(self) -> None:
+-    v = self.read(REG_INTERNAL_0, 1)[0]
+-    self.writes((
+-      # disable auto-reset of measurements
+-      (REG_INTERNAL_0, (v & (~(CMM_FREQ_EN | AUTO_SR_EN)))),
+-
+-      # disable continuous mode
+-      (REG_ODR, 0),
+-    ))
+diff --git a/system/sensord/tests/test_event_construction.py b/system/sensord/tests/test_event_construction.py
+index f87c7d94c..4b593987a 100644
+--- a/system/sensord/tests/test_event_construction.py
++++ b/system/sensord/tests/test_event_construction.py
+@@ -4,7 +4,6 @@ from cereal import log
+ from openpilot.system.sensord.sensors.i2c_sensor import Sensor
+ from openpilot.system.sensord.sensors.icm42670_temp import ICM42670_Temp
+ from openpilot.system.sensord.sensors.lis2mdl_magn import LIS2MDL_Magn
+-from openpilot.system.sensord.sensors.lsm6ds3_temp import LSM6DS3_Temp
+ 
+ 
+ def expected_event(timestamp, version, source, union_name, payload, *, sensor=None, sensor_type=None, status=None):
+@@ -43,28 +42,6 @@ def test_icm42670_temperature_event_keeps_unset_sensor_and_explicit_type():
+   assert event.to_bytes() == expected.to_bytes()
+ 
+ 
+-def test_lsm6ds3_temperature_event_keeps_ignored_timestamp_and_unset_ids(monkeypatch):
+-  source = log.SensorEventData.SensorSource.lsm6ds3trc
+-  sensor = object.__new__(LSM6DS3_Temp)
+-  sensor.bus = SimpleNamespace(close=lambda: None)
+-  sensor.source = source
+-  sensor.read = lambda _address, _length: bytes((0x00, 0x01))
+-  monotonic_value = 123.456789123
+-  monkeypatch.setattr("openpilot.system.sensord.sensors.lsm6ds3_temp.time.monotonic", lambda: monotonic_value)
+-
+-  event = sensor.get_event(987654321)
+-
+-  timestamp = int(monotonic_value * 1e9)
+-  expected = expected_event(timestamp, 1, source, "temperature", 26.0)
+-  assert event.which() == "temperature"
+-  assert event.timestamp == timestamp
+-  assert event.timestamp != 987654321
+-  assert event.sensor == expected.sensor == 0
+-  assert event.type == expected.type == 0
+-  assert event.to_dict() == expected.to_dict()
+-  assert event.to_bytes() == expected.to_bytes()
+-
+-
+ def test_lis2mdl_event_keeps_timestamp_metadata_axis_order_and_status():
+   sensor = object.__new__(LIS2MDL_Magn)
+   sensor.bus = SimpleNamespace(close=lambda: None)
+diff --git a/system/sensord/tests/test_fixed_calculations.py b/system/sensord/tests/test_fixed_calculations.py
+index bc467d579..bca8fdd48 100644
+--- a/system/sensord/tests/test_fixed_calculations.py
++++ b/system/sensord/tests/test_fixed_calculations.py
+@@ -5,9 +5,6 @@ from cereal import log
+ from openpilot.system.sensord.sensors.i2c_sensor import Sensor
+ from openpilot.system.sensord.sensors.icm42670_accel import ICM42670_Accel
+ from openpilot.system.sensord.sensors.icm42670_gyro import ICM42670_Gyro
+-from openpilot.system.sensord.sensors.lsm6ds3_accel import LSM6DS3_Accel
+-from openpilot.system.sensord.sensors.lsm6ds3_gyro import LSM6DS3_Gyro
+-from openpilot.system.sensord.sensors.mmc5603nj_magn import MMC5603NJ_Magn, RESET, SET
+ 
+ 
+ def pack_s16(value: int) -> bytes:
+@@ -15,17 +12,6 @@ def pack_s16(value: int) -> bytes:
+   return bytes((encoded & 0xFF, encoded >> 8))
+ 
+ 
+-def pack_mmc_axes(values: tuple[int, int, int]) -> bytes:
+-  data = bytearray(9)
+-  indices = ((0, 1, 6), (2, 3, 7), (4, 5, 8))
+-  for value, (high, middle, low) in zip(values, indices, strict=True):
+-    encoded = (value << 4) & 0xFFFFFF
+-    data[high] = (encoded >> 16) & 0xFF
+-    data[middle] = (encoded >> 8) & 0xFF
+-    data[low] = encoded & 0xFF
+-  return bytes(data)
+-
+-
+ def expected_event(timestamp, version, sensor, sensor_type, source, union_name, values, status):
+   event = log.SensorEventData.new_message()
+   event.timestamp = timestamp
+@@ -61,44 +47,6 @@ def test_icm42670_accel_fixed_scale_and_rotation_match_previous_formula():
+   assert event.to_bytes() == expected.to_bytes()
+ 
+ 
+-def test_lsm6ds3_accel_fixed_scale_matches_previous_formula():
+-  raw_x, raw_y, raw_z = 1234, -2345, 32767
+-  data = pack_s16(raw_x) + pack_s16(raw_y) + pack_s16(raw_z)
+-  sensor = object.__new__(LSM6DS3_Accel)
+-  sensor.bus = SimpleNamespace(close=lambda: None)
+-  sensor.source = log.SensorEventData.SensorSource.lsm6ds3trc
+-  sensor.read = lambda address, _length: bytes((1,)) if address == sensor.LSM6DS3_ACCEL_I2C_REG_STAT_REG else data
+-  timestamp = 456789
+-
+-  event = sensor.get_event(timestamp)
+-
+-  scale = 9.81 * 2.0 / (1 << 15)
+-  x = Sensor.parse_16bit(data[0], data[1]) * scale
+-  y = Sensor.parse_16bit(data[2], data[3]) * scale
+-  z = Sensor.parse_16bit(data[4], data[5]) * scale
+-  expected = expected_event(timestamp, 1, 1, 1, sensor.source, "acceleration", [y, -x, z], 1)
+-  assert event.to_bytes() == expected.to_bytes()
+-
+-
+-def test_lsm6ds3_gyro_fixed_scale_matches_previous_formula():
+-  raw_x, raw_y, raw_z = 1234, -2345, -32768
+-  data = pack_s16(raw_x) + pack_s16(raw_y) + pack_s16(raw_z)
+-  sensor = object.__new__(LSM6DS3_Gyro)
+-  sensor.bus = SimpleNamespace(close=lambda: None)
+-  sensor.source = log.SensorEventData.SensorSource.lsm6ds3
+-  sensor.read = lambda address, _length: bytes((2,)) if address == sensor.LSM6DS3_GYRO_I2C_REG_STAT_REG else data
+-  timestamp = 987654
+-
+-  event = sensor.get_event(timestamp)
+-
+-  scale = (8.75 / 1000.0) * (math.pi / 180.0)
+-  x = Sensor.parse_16bit(data[0], data[1])
+-  y = Sensor.parse_16bit(data[2], data[3])
+-  z = Sensor.parse_16bit(data[4], data[5])
+-  expected = expected_event(timestamp, 2, 5, 16, sensor.source, "gyroUncalibrated", [y * scale, -x * scale, z * scale], 1)
+-  assert event.to_bytes() == expected.to_bytes()
+-
+-
+ def test_icm42670_gyro_fixed_conversion_and_rotation_match_previous_formula():
+   raw_x, raw_y, raw_z = 1234, -2345, 32767
+   timestamp = 7654321
+@@ -120,30 +68,3 @@ def test_icm42670_gyro_fixed_conversion_and_rotation_match_previous_formula():
+   expected_values = [cosine * gx_raw - sine * gz_raw, gy_raw, sine * gx_raw + cosine * gz_raw]
+   expected = expected_event(timestamp, 1, 5, 16, sensor.source, "gyroUncalibrated", expected_values, 1)
+   assert event.to_bytes() == expected.to_bytes()
+-
+-
+-def test_mmc5603_fixed_scale_and_set_reset_order_match_previous_formula(monkeypatch):
+-  set_data = (16384, 12000, 7777)
+-  reset_data = (0, 20000, 32768)
+-  packets = {SET: pack_mmc_axes(set_data), RESET: pack_mmc_axes(reset_data)}
+-  cycles = []
+-  sensor = object.__new__(MMC5603NJ_Magn)
+-  sensor.bus = SimpleNamespace(close=lambda: None)
+-  sensor.write = lambda _address, cycle: cycles.append(cycle)
+-  sensor.wait = lambda: None
+-  sensor.read = lambda _address, _length: packets[cycles[-1]]
+-  timestamp = 112233
+-  monkeypatch.setattr("openpilot.system.sensord.sensors.mmc5603nj_magn.time.monotonic_ns", lambda: timestamp)
+-
+-  event = sensor.get_event(999)
+-
+-  scale = 1.0 / 16384.0
+-  # Preserve the old call-site byte order and SET/RESET concatenation explicitly.
+-  expected_values = []
+-  for source_values in (set_data, reset_data):
+-    expected_values.extend((value * scale) - 32.0 for value in source_values)
+-  expected_status = int(all(int(value) != -32 for value in expected_values))
+-  expected = expected_event(timestamp, 1, 3, 14, log.SensorEventData.SensorSource.mmc5603nj,
+-                            "magneticUncalibrated", expected_values, expected_status)
+-  assert cycles == [SET, RESET]
+-  assert event.to_bytes() == expected.to_bytes()
+diff --git a/system/sensord/tests/test_sensord.py b/system/sensord/tests/test_sensord.py
+index 20214e12f..3d9f0d040 100644
+--- a/system/sensord/tests/test_sensord.py
++++ b/system/sensord/tests/test_sensord.py
+@@ -1,225 +1,52 @@
+-import os
+-import pytest
+-import time
+-import numpy as np
+-from collections import namedtuple, defaultdict
++from types import SimpleNamespace
++from unittest.mock import Mock
+ 
+-import cereal.messaging as messaging
+-from cereal import log
+-from cereal.services import SERVICE_LIST
+-from openpilot.common.gpio import get_irqs_for_action
+-from openpilot.common.timeout import Timeout
+-from openpilot.system.hardware import HARDWARE
+-from openpilot.system.manager.process_config import managed_processes
++from openpilot.system.sensord import sensord
+ 
+-LSM = {
+-  ('lsm6ds3', 'acceleration'),
+-  ('lsm6ds3', 'gyroUncalibrated'),
+-  ('lsm6ds3', 'temperature'),
+-}
+-LSM_C = {(x[0]+'trc', x[1]) for x in LSM}
+ 
+-MMC = {
+-  ('mmc5603nj', 'magneticUncalibrated'),
+-}
++def test_non_ka2_fails_before_setup_sensor_access_threads_or_publication(monkeypatch):
++  calls = []
+ 
+-SENSOR_CONFIGURATIONS: list[set] = {
+-  "mici": [LSM, LSM_C],
+-  "tizi": [MMC | LSM, MMC | LSM_C],
+-  "tici": [LSM, LSM_C, MMC | LSM, MMC | LSM_C],
+-}.get(HARDWARE.get_device_type(), [])
++  monkeypatch.setattr(sensord, "KA2", False)
++  monkeypatch.setattr(sensord, "config_realtime_process", lambda *args, **kwargs: calls.append("realtime"))
+ 
+-Sensor = log.SensorEventData.SensorSource
+-SensorConfig = namedtuple('SensorConfig', ['type', 'sanity_min', 'sanity_max'])
+-ALL_SENSORS = {
+-  Sensor.lsm6ds3trc: {
+-    SensorConfig("acceleration", 5, 15),
+-    SensorConfig("gyroUncalibrated", 0, .2),
+-    SensorConfig("temperature", 10, 40),  # set for max range of our office
+-  },
++  sensor_constructors = (
++    "ICM42670_Accel",
++    "ICM42670_Gyro",
++    "ICM42670_Temp",
++    "LIS2MDL_Magn",
++  )
++  for constructor in sensor_constructors:
++    monkeypatch.setattr(
++      sensord,
++      constructor,
++      lambda *args, _name=constructor, **kwargs: (calls.append(f"sensor:{_name}"), Mock())[1],
++    )
+ 
+-  Sensor.mmc5603nj: {
+-    SensorConfig("magneticUncalibrated", 0, 300),
+-  }
+-}
+-ALL_SENSORS[Sensor.lsm6ds3] = ALL_SENSORS[Sensor.lsm6ds3trc]
++  class StubThread:
++    def __init__(self, *args, **kwargs):
++      calls.append("thread")
+ 
+-def get_irq_count(irq: int):
+-  with open(f"/sys/kernel/irq/{irq}/per_cpu_count") as f:
+-    per_cpu = map(int, f.read().split(","))
+-    return sum(per_cpu)
++    def start(self):
++      calls.append("thread-start")
+ 
+-def read_sensor_events(duration_sec):
+-  sensor_types = ['accelerometer', 'gyroscope', 'magnetometer', 'temperatureSensor',]
+-  socks = {}
+-  poller = messaging.Poller()
+-  events = defaultdict(list)
+-  for stype in sensor_types:
+-    socks[stype] = messaging.sub_sock(stype, poller=poller, timeout=100)
++    def is_alive(self):
++      return False
+ 
+-  # wait for sensors to come up
+-  with Timeout(int(os.environ.get("SENSOR_WAIT", "5")), "sensors didn't come up"):
+-    while len(poller.poll(250)) == 0:
++    def join(self):
+       pass
+-  time.sleep(1)
+-  for s in socks.values():
+-    messaging.drain_sock_raw(s)
+ 
+-  st = time.monotonic()
+-  while time.monotonic() - st < duration_sec:
+-    for s in socks:
+-      events[s] += messaging.drain_sock(socks[s])
+-    time.sleep(0.1)
++  monkeypatch.setattr(sensord, "threading", SimpleNamespace(Event=sensord.threading.Event, Thread=StubThread))
++  monkeypatch.setattr(sensord, "messaging", SimpleNamespace(
++    PubMaster=lambda *args, **kwargs: calls.append("publisher"),
++    new_message=lambda *args, **kwargs: calls.append("message"),
++  ))
+ 
+-  assert sum(map(len, events.values())) != 0, "No sensor events collected!"
+-
+-  return {k: v for k, v in events.items() if len(v) > 0}
+-
+-@pytest.mark.tici
+-class TestSensord:
+-  @classmethod
+-  def setup_class(cls):
+-    # enable LSM self test
+-    os.environ["LSM_SELF_TEST"] = "1"
+-
+-    # read initial sensor values every test case can use
+-    os.system("pkill -f \\\\./sensord")
+-    try:
+-      managed_processes["sensord"].start()
+-      cls.sample_secs = int(os.getenv("SAMPLE_SECS", "10"))
+-      cls.events = read_sensor_events(cls.sample_secs)
+-
+-      # determine sensord's irq
+-      cls.sensord_irq = get_irqs_for_action("sensord")[0]
+-    finally:
+-      # teardown won't run if this doesn't succeed
+-      managed_processes["sensord"].stop()
+-
+-  @classmethod
+-  def teardown_class(cls):
+-    managed_processes["sensord"].stop()
+-
+-  def teardown_method(self):
+-    managed_processes["sensord"].stop()
+-
+-  def test_sensors_present(self):
+-    # verify correct sensors configuration
+-    seen = set()
+-    for etype in self.events:
+-      for measurement in self.events[etype]:
+-        m = getattr(measurement, measurement.which())
+-        seen.add((str(m.source), m.which()))
+-
+-    assert seen in SENSOR_CONFIGURATIONS
+-
+-  def test_lsm6ds3_timing(self, subtests):
+-    # verify measurements are sampled and published at 104Hz
+-
+-    sensor_t = {
+-      1: [], # accel
+-      5: [], # gyro
+-    }
+-
+-    for measurement in self.events['accelerometer']:
+-      m = getattr(measurement, measurement.which())
+-      sensor_t[m.sensor].append(m.timestamp)
+-
+-    for measurement in self.events['gyroscope']:
+-      m = getattr(measurement, measurement.which())
+-      sensor_t[m.sensor].append(m.timestamp)
+-
+-    for s, vals in sensor_t.items():
+-      with subtests.test(sensor=s):
+-        assert len(vals) > 0
+-        tdiffs = np.diff(vals) / 1e6 # millis
+-
+-        high_delay_diffs = list(filter(lambda d: d >= 20., tdiffs))
+-        assert len(high_delay_diffs) < 15, f"Too many large diffs: {high_delay_diffs}"
+-
+-        avg_diff = sum(tdiffs)/len(tdiffs)
+-        avg_freq = 1. / (avg_diff * 1e-3)
+-        assert 92. < avg_freq < 114., f"avg freq {avg_freq}Hz wrong, expected 104Hz"
+-
+-        stddev = np.std(tdiffs)
+-        assert stddev < 2.0, f"Standard-dev to big {stddev}"
+-
+-  def test_sensor_frequency(self, subtests):
+-    for s, msgs in self.events.items():
+-      with subtests.test(sensor=s):
+-        freq = len(msgs) / self.sample_secs
+-        ef = SERVICE_LIST[s].frequency
+-        assert ef*0.85 <= freq <= ef*1.15
+-
+-  def test_logmonottime_timestamp_diff(self):
+-    # ensure diff between the message logMonotime and sample timestamp is small
+-
+-    tdiffs = list()
+-    for etype in self.events:
+-      for measurement in self.events[etype]:
+-        m = getattr(measurement, measurement.which())
+-
+-        # check if gyro and accel timestamps are before logMonoTime
+-        if str(m.source).startswith("lsm6ds3") and m.which() != 'temperature':
+-          err_msg = f"Timestamp after logMonoTime: {m.timestamp} > {measurement.logMonoTime}"
+-          assert m.timestamp < measurement.logMonoTime, err_msg
+-
+-        # negative values might occur, as non interrupt packages created
+-        # before the sensor is read
+-        tdiffs.append(abs(measurement.logMonoTime - m.timestamp) / 1e6)
+-
+-    # some sensors have a read procedure that will introduce an expected diff on the order of 20ms
+-    high_delay_diffs = set(filter(lambda d: d >= 25., tdiffs))
+-    assert len(high_delay_diffs) < 20, f"Too many measurements published: {high_delay_diffs}"
+-
+-    avg_diff = round(sum(tdiffs)/len(tdiffs), 4)
+-    assert avg_diff < 4, f"Avg packet diff: {avg_diff:.1f}ms"
+-
+-  def test_sensor_values(self):
+-    sensor_values = dict()
+-    for etype in self.events:
+-      for measurement in self.events[etype]:
+-        m = getattr(measurement, measurement.which())
+-        key = (m.source.raw, m.which())
+-        values = getattr(m, m.which())
+-
+-        if hasattr(values, 'v'):
+-          values = values.v
+-        values = np.atleast_1d(values)
+-
+-        if key in sensor_values:
+-          sensor_values[key].append(values)
+-        else:
+-          sensor_values[key] = [values]
+-
+-    # Sanity check sensor values
+-    for sensor, stype in sensor_values:
+-      for s in ALL_SENSORS[sensor]:
+-        if s.type != stype:
+-          continue
+-
+-        key = (sensor, s.type)
+-        mean_norm = np.mean(np.linalg.norm(sensor_values[key], axis=1))
+-        err_msg = f"Sensor '{sensor} {s.type}' failed sanity checks {mean_norm} is not between {s.sanity_min} and {s.sanity_max}"
+-        assert s.sanity_min <= mean_norm <= s.sanity_max, err_msg
+-
+-  def test_sensor_verify_no_interrupts_after_stop(self):
+-    managed_processes["sensord"].start()
+-    time.sleep(3)
+-
+-    # read /proc/interrupts to verify interrupts are received
+-    state_one = get_irq_count(self.sensord_irq)
+-    time.sleep(1)
+-    state_two = get_irq_count(self.sensord_irq)
+-
+-    error_msg = f"no interrupts received after sensord start!\n{state_one} {state_two}"
+-    assert state_one != state_two, error_msg
+-
+-    managed_processes["sensord"].stop()
+-    time.sleep(1)
+-
+-    # read /proc/interrupts to verify no more interrupts are received
+-    state_one = get_irq_count(self.sensord_irq)
+-    time.sleep(1)
+-    state_two = get_irq_count(self.sensord_irq)
+-    assert state_one == state_two, "Interrupts received after sensord stop!"
++  error = None
++  try:
++    sensord.main()
++  except RuntimeError as exc:
++    error = exc
+ 
++  assert isinstance(error, RuntimeError), f"unsupported platform must fail fast, got {error!r}"
++  assert calls == [], f"non-KA2 startup reached side effects before failing: {calls}"

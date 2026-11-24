@@ -1,0 +1,34 @@
+{
+  "boundary": "investigation-review",
+  "submission_id": "sidecamerad-mvp-20261113_investigation-ac4-r8_2026-11-15T14:52:54Z",
+  "revision": "8",
+  "gate": "gatekeeper-admiral",
+  "verdict": "APPROVED",
+  "findings": [
+    {
+      "id": "INFO-DELIVERY-SUMMARY-CONDITIONAL-RESOLVED-INVESTIGATION-R8",
+      "severity": "Info",
+      "statement": "The conditional delivery-summary slot is out of scope because this is an intermediate investigation-review handoff returning to BUILD; the r8 handoff and package identify the BUILD consumer, bounded same-frame measurement proposal, and residual uncertainty.",
+      "owner": "investigate",
+      "key": null,
+      "basis": {
+        "kind": "contract",
+        "source": "gatekeeper-admiral/SKILL.md",
+        "ref": "Deterministic Pre-Check (two validators)"
+      },
+      "evidence": [
+        "manifest:evidence.scope",
+        "manifest:evidence.fix_path",
+        "manifest:evidence.residual_uncertainty"
+      ],
+      "expected": "An investigation handoff identifies its scoped issue, bounded path, residual uncertainty, and BUILD consumer. A separate delivery summary is needed only when the boundary packages final delivery content.",
+      "observed": "The r8/PENDING handoff and r8 package identify BUILD as the next consumer and keep the same-frame measurement proposal behind separate Admiral authorization. The delivery-shape validator reports zero failures, coherent revision 8 lineage and a fresh submission; only the conditional summary slot is unchecked.",
+      "remediation": "No separate delivery summary is required for this intermediate investigation-to-BUILD handoff. The proposed capture, instrumentation, and tracer remain unauthorized pending a separate Admiral decision.",
+      "verification": "The canonical investigation-review boundary validator reports no failures, missing keys, or warnings. The delivery-shape validator reports zero failures, coherent revision 8, a new submission relative to the archived r7 handoff, and only the conditional summary slot unchecked."
+    }
+  ],
+  "intake": {
+    "artifact": "../intake/report_grilling.md"
+  },
+  "escalation": null
+}

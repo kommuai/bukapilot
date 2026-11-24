@@ -1,0 +1,1207 @@
+{
+  "boundary": "design-to-build",
+  "events": [
+    {
+      "boundary": "design-to-build",
+      "changed_evidence": null,
+      "checked_at": "2026-10-29T16:50:58.805803+00:00",
+      "judgment": {
+        "by_owner": {},
+        "escalation": null,
+        "findings": [],
+        "gate": "gatekeeper-design",
+        "intake": {
+          "artifact": "../intake/report_grilling.md"
+        },
+        "valid": true,
+        "verdict": "APPROVED"
+      },
+      "package_fingerprint": "de424c878ea3dcf7e56c6caddf7cd665e528abb9068d3fbab6ed59efb773eb0a",
+      "revise_packet": {
+        "actions_by_owner": {},
+        "by_key": {},
+        "by_owner": {},
+        "judgment_by_owner": {},
+        "unassigned": []
+      },
+      "revision": "r1",
+      "signature": [
+        "gatekeeper-design",
+        "r1",
+        "de424c878ea3dcf7e56c6caddf7cd665e528abb9068d3fbab6ed59efb773eb0a",
+        "APPROVED"
+      ],
+      "submission_id": "loggerd-ka2-efficiency-20261029-design-r1",
+      "unchanged_evidence": null
+    },
+    {
+      "boundary": "design-to-build",
+      "changed_evidence": [],
+      "checked_at": "2026-10-29T16:55:00.325750+00:00",
+      "judgment": {
+        "by_owner": {},
+        "escalation": null,
+        "findings": [],
+        "gate": "gatekeeper-design",
+        "intake": {
+          "artifact": "../intake/report_grilling.md"
+        },
+        "valid": true,
+        "verdict": "APPROVED"
+      },
+      "package_fingerprint": "52772a6c10c00835f9bf1caf1ce05f557b9f4e50676f5ee604a6f71b66604e3b",
+      "revise_packet": {
+        "actions_by_owner": {},
+        "by_key": {},
+        "by_owner": {},
+        "judgment_by_owner": {},
+        "unassigned": []
+      },
+      "revision": "r2",
+      "signature": [
+        "gatekeeper-design",
+        "r2",
+        "52772a6c10c00835f9bf1caf1ce05f557b9f4e50676f5ee604a6f71b66604e3b",
+        "APPROVED"
+      ],
+      "submission_id": "loggerd-ka2-efficiency-20261029-design-r2",
+      "unchanged_evidence": [
+        "acceptance",
+        "architecture",
+        "decisions",
+        "interfaces",
+        "plan",
+        "security_seed",
+        "stack_lock",
+        "taste_snapshot",
+        "ui_evidence"
+      ]
+    },
+    {
+      "boundary": "design-to-build",
+      "changed_evidence": [],
+      "checked_at": "2026-10-29T16:58:16.738479+00:00",
+      "judgment": {
+        "by_owner": {},
+        "escalation": null,
+        "findings": [],
+        "gate": "gatekeeper-admiral",
+        "intake": {
+          "artifact": "../intake/report_grilling.md"
+        },
+        "valid": true,
+        "verdict": "APPROVED"
+      },
+      "package_fingerprint": "52772a6c10c00835f9bf1caf1ce05f557b9f4e50676f5ee604a6f71b66604e3b",
+      "revise_packet": {
+        "actions_by_owner": {},
+        "by_key": {},
+        "by_owner": {},
+        "judgment_by_owner": {},
+        "unassigned": []
+      },
+      "revision": "r2",
+      "signature": [
+        "gatekeeper-admiral",
+        "r2",
+        "52772a6c10c00835f9bf1caf1ce05f557b9f4e50676f5ee604a6f71b66604e3b",
+        "APPROVED"
+      ],
+      "submission_id": "loggerd-ka2-efficiency-20261029-design-r2",
+      "unchanged_evidence": [
+        "acceptance",
+        "architecture",
+        "decisions",
+        "interfaces",
+        "plan",
+        "security_seed",
+        "stack_lock",
+        "taste_snapshot",
+        "ui_evidence"
+      ]
+    },
+    {
+      "boundary": "design-to-build",
+      "changed_evidence": [
+        "acceptance",
+        "architecture",
+        "decisions",
+        "interfaces",
+        "plan",
+        "security_seed"
+      ],
+      "checked_at": "2026-10-29T18:26:10.795950+00:00",
+      "judgment": {
+        "by_owner": {},
+        "escalation": null,
+        "findings": [],
+        "gate": "gatekeeper-design",
+        "intake": {
+          "artifact": "../intake/report_grilling.md"
+        },
+        "valid": true,
+        "verdict": "APPROVED"
+      },
+      "package_fingerprint": "a6abc7d02991f2de84c592daa92a6dfcf7ace4311914edb38237c6e1165725d6",
+      "revise_packet": {
+        "actions_by_owner": {},
+        "by_key": {},
+        "by_owner": {},
+        "judgment_by_owner": {},
+        "unassigned": []
+      },
+      "revision": "r3",
+      "signature": [
+        "gatekeeper-design",
+        "r3",
+        "a6abc7d02991f2de84c592daa92a6dfcf7ace4311914edb38237c6e1165725d6",
+        "APPROVED"
+      ],
+      "submission_id": "loggerd-ka2-efficiency-20261029-design-r3",
+      "unchanged_evidence": [
+        "stack_lock",
+        "taste_snapshot",
+        "ui_evidence"
+      ]
+    },
+    {
+      "boundary": "design-to-build",
+      "changed_evidence": [],
+      "checked_at": "2026-10-29T18:30:44.963277+00:00",
+      "judgment": {
+        "by_owner": {
+          "commander": [
+            "XST-DESIGN-R3-HANDOFF"
+          ]
+        },
+        "escalation": {
+          "reason": "The package-shape validator exited 2 under supported Python 3.13 after resolving the delivery path to /data/media/supremeteam/42c6eb550c629191187c/skillset-saves/runs/loggerd-ka2-efficiency-20261029/delivery and rejecting it as outside project /data/openpilot. Gatekeeper-admiral requires ESCALATE when a validator exits 2 and directs the reviewer not to retry a rejected path. The unverified shape plus the separate r2-versus-r3 handoff mismatch prevents approval of this crossing.",
+          "to": "admiral"
+        },
+        "findings": [
+          {
+            "basis": {
+              "kind": "contract",
+              "ref": "steps 4\u20135 and Acceptance Checklist",
+              "source": "gatekeeper-admiral/references/workflow.md"
+            },
+            "evidence": [
+              "manifest:evidence.plan",
+              "manifest:evidence.architecture"
+            ],
+            "expected": "The handoff record and delivery summary identify submission loggerd-ka2-efficiency-20261029-design-r3 at revision r3 and describe the same approved scope as the r3 design package, allowing build-management to consume one unambiguous revision.",
+            "id": "XST-DESIGN-R3-HANDOFF",
+            "key": null,
+            "observed": "The design manifest and phase verdict identify r3. Direct inspection shows delivery/reports/handoff_design-to-build.md frontmatter still identifies loggerd-ka2-efficiency-20261029-design-r2 / r2 (SHA-256 236eae7c721147e10fbe6347efab69586266ec760739da5ca5a49511723c0a71), and delivery/reports/delivery-package.md still describes and links approval for r2 (SHA-256 aa10c0cdd52df53d1269e1cb1ec00c32458fefa242fbf67c28519a75d551c72c).",
+            "owner": "commander",
+            "remediation": "Commander must refresh the delivery handoff and package summary for r3, bind them to the r3 manifest and phase verdict, and describe the approved r3 scope while preserving the open D-6 runtime restriction.",
+            "severity": "Major",
+            "statement": "The r3 design manifest and phase approval are paired with an r2 Admiral delivery handoff and package summary, so the attached next-stage handoff does not match the submitted revision.",
+            "verification": "After Admiral resolves the package path eligibility, run the gatekeeper-admiral package-shape validator from the authorized project root against this run\u2019s delivery directory with --json; confirm PASS, a single submission id, and r3 handoff frontmatter. Re-run the boundary validator with the r3 phase verdict and confirm prior_reusable=true and package fingerprint a6abc7d02991f2de84c592daa92a6dfcf7ace4311914edb38237c6e1165725d6."
+          }
+        ],
+        "gate": "gatekeeper-admiral",
+        "intake": {
+          "artifact": "../intake/report_grilling.md"
+        },
+        "valid": true,
+        "verdict": "ESCALATE"
+      },
+      "package_fingerprint": "a6abc7d02991f2de84c592daa92a6dfcf7ace4311914edb38237c6e1165725d6",
+      "revise_packet": {
+        "actions_by_owner": {
+          "commander": [
+            {
+              "basis": {
+                "kind": "contract",
+                "ref": "steps 4\u20135 and Acceptance Checklist",
+                "source": "gatekeeper-admiral/references/workflow.md"
+              },
+              "evidence": [
+                "manifest:evidence.plan",
+                "manifest:evidence.architecture"
+              ],
+              "expected": "The handoff record and delivery summary identify submission loggerd-ka2-efficiency-20261029-design-r3 at revision r3 and describe the same approved scope as the r3 design package, allowing build-management to consume one unambiguous revision.",
+              "id": "XST-DESIGN-R3-HANDOFF",
+              "key": null,
+              "observed": "The design manifest and phase verdict identify r3. Direct inspection shows delivery/reports/handoff_design-to-build.md frontmatter still identifies loggerd-ka2-efficiency-20261029-design-r2 / r2 (SHA-256 236eae7c721147e10fbe6347efab69586266ec760739da5ca5a49511723c0a71), and delivery/reports/delivery-package.md still describes and links approval for r2 (SHA-256 aa10c0cdd52df53d1269e1cb1ec00c32458fefa242fbf67c28519a75d551c72c).",
+              "owner": "commander",
+              "remediation": "Commander must refresh the delivery handoff and package summary for r3, bind them to the r3 manifest and phase verdict, and describe the approved r3 scope while preserving the open D-6 runtime restriction.",
+              "severity": "Major",
+              "statement": "The r3 design manifest and phase approval are paired with an r2 Admiral delivery handoff and package summary, so the attached next-stage handoff does not match the submitted revision.",
+              "verification": "After Admiral resolves the package path eligibility, run the gatekeeper-admiral package-shape validator from the authorized project root against this run\u2019s delivery directory with --json; confirm PASS, a single submission id, and r3 handoff frontmatter. Re-run the boundary validator with the r3 phase verdict and confirm prior_reusable=true and package fingerprint a6abc7d02991f2de84c592daa92a6dfcf7ace4311914edb38237c6e1165725d6."
+            }
+          ]
+        },
+        "by_key": {},
+        "by_owner": {},
+        "judgment_by_owner": {
+          "commander": [
+            "XST-DESIGN-R3-HANDOFF"
+          ]
+        },
+        "unassigned": []
+      },
+      "revision": "r3",
+      "signature": [
+        "gatekeeper-admiral",
+        "r3",
+        "a6abc7d02991f2de84c592daa92a6dfcf7ace4311914edb38237c6e1165725d6",
+        "ESCALATE"
+      ],
+      "submission_id": "loggerd-ka2-efficiency-20261029-design-r3",
+      "unchanged_evidence": [
+        "acceptance",
+        "architecture",
+        "decisions",
+        "interfaces",
+        "plan",
+        "security_seed",
+        "stack_lock",
+        "taste_snapshot",
+        "ui_evidence"
+      ]
+    },
+    {
+      "boundary": "design-to-build",
+      "changed_evidence": [
+        "acceptance",
+        "architecture",
+        "decisions",
+        "interfaces",
+        "plan",
+        "security_seed",
+        "ui_evidence"
+      ],
+      "checked_at": "2026-10-30T02:16:00.992671+00:00",
+      "judgment": {
+        "by_owner": {
+          "architect": [
+            "D16-MANAGER-SIGINT-DRAIN"
+          ],
+          "planner": [
+            "AC13-S0-STOP-DRAIN-SEQUENCE",
+            "AC15-CORRECTED-COPY-ORACLE"
+          ]
+        },
+        "escalation": null,
+        "findings": [
+          {
+            "basis": {
+              "artifact": "reports/delivery-plan.md",
+              "kind": "acceptance",
+              "ref": "AC-16"
+            },
+            "evidence": [
+              "reports/report_interfaces.md",
+              "reports/delivery-plan.md",
+              "manifest:evidence.decisions"
+            ],
+            "expected": "Define how loggerd handles the manager's shutdown signal so it remains available to consume each encoder's final watermark, finalize writers and sentinels, and then exits within the existing five-second window. If this cannot work under the existing manager order, state that manager-driven D-16 teardown is infeasible and request a separately reviewed manager-scope decision before claiming it.",
+            "id": "D16-MANAGER-SIGINT-DRAIN",
+            "key": "interfaces",
+            "observed": "IF-10 starts STOP_DRAIN from an isolated test harness while loggerd and encoderd are alive, then stops encoderd before loggerd. AC-16 requires a manager-order proof, but the interface never specifies how loggerd responds when the real manager signals it before waiting for encoderd. The current source order sends nonblocking stop signals to all stopping processes (loggerd before encoderd), then performs encoder-first blocking waits; loggerd's current event loop exits on do_exit and has no drain-on-SIGINT path. A sequential harness drain does not establish manager-driven teardown.",
+            "owner": "architect",
+            "remediation": "Architect: revise IF-10 (and its process-lifecycle context) with an explicit manager-SIGINT drain transition, including encoder completion, loggerd's continued consumption, writer/sentinel completion, timeout behavior, and the no-manager-change boundary. If no such path is feasible, mark manager-driven teardown as a hard stop and route any required manager-order change for separate review.",
+            "severity": "Major",
+            "statement": "The manager-driven STOP_DRAIN transition is not specified for the actual stop-signal order, leaving whole-process teardown dependent on behavior the build owner would have to invent.",
+            "verification": "Review the revised IF-10 against the current Manager.ensure_running stop sequence. Confirm AC-16 exercises the actual concurrent signal order, verifies loggerd remains alive through final acknowledgements and output finalization, and applies the five-second limit; otherwise confirm the package explicitly stops and requires separate manager-scope approval. Rerun the design shape and boundary validators."
+          },
+          {
+            "basis": {
+              "artifact": "reports/delivery-plan.md",
+              "kind": "acceptance",
+              "ref": "AC-13"
+            },
+            "evidence": [
+              "reports/delivery-plan.md",
+              "reports/implementation-spec.md",
+              "reports/report_interfaces.md"
+            ],
+            "expected": "Separate prerequisites that can be proven before source changes from integration behavior that exists only after S1. Either provide a concrete pre-implementation probe that exercises the same manager-signal drain behavior without implementing the product change, or place the manager-driven end-to-end drain proof in S1/AC-16 and make it a hard stop before S2 or any performance work.",
+            "id": "AC13-S0-STOP-DRAIN-SEQUENCE",
+            "key": "acceptance",
+            "observed": "AC-13 makes proof of managed STOP_DRAIN within five seconds a condition before implementation. S1 and the implementation spec then introduce the drain protocol and require the first manager shutdown proof. The package does not identify a pre-implementation probe for that new loggerd/encoderd behavior; the described isolated capability probe is not defined to exercise the manager's signal sequence.",
+            "owner": "planner",
+            "remediation": "Planner: revise the S0/S1 dependency and AC-13/AC-16 checks so pre-code MPP, VisionIPC, queue, and static manager-order feasibility work is distinguished from testing the newly implemented signal-driven drain. Preserve a hard no-go if S1 cannot pass under the existing manager order; do not proceed to the corrected-copy reference or performance stages after a failure.",
+            "severity": "Major",
+            "statement": "AC-13 requires proving manager-driven STOP_DRAIN before implementation, while the only specified STOP_DRAIN path is introduced by the later S1 implementation, so S0 has no defined target for this proof.",
+            "verification": "Confirm the acceptance table names the exact pre-implementation evidence and the exact S1 concurrent-shutdown test, with manager predicates/order unchanged and a five-second pass condition. Confirm S2 depends on that S1 pass. Rerun the design shape and boundary validators."
+          },
+          {
+            "basis": {
+              "artifact": "reports/delivery-plan.md",
+              "kind": "acceptance",
+              "ref": "AC-15"
+            },
+            "evidence": [
+              "reports/delivery-plan.md",
+              "reports/implementation-spec.md",
+              "reports/report_interfaces.md",
+              "manifest:evidence.decisions"
+            ],
+            "expected": "Specify an independent first-pass oracle for the S1 correctness repair, including expected per-ID segment assignment and the D-13 event, audio, and decoded-media checks, or otherwise make the stage ordering establish a valid reference before any criterion depends on it. The first S1 run must not validate itself or rely on the known-lossy run as a qualifying baseline.",
+            "id": "AC15-CORRECTED-COPY-ORACLE",
+            "key": "acceptance",
+            "observed": "AC-15 requires comparing segment assignment and D-13 outputs during S1. The plan disqualifies the saved 144-submitted/138-emitted run under D-16 and says not to compare against the lossy baseline; AC-17 only establishes repeatable corrected-copy output ledgers in S2 after S1 passes. Neither AC-15 nor the implementation spec defines the independent expected output/segment oracle for the initial S1 pass.",
+            "owner": "planner",
+            "remediation": "Planner: define how the initial corrected-copy repair proves every required D-13 output field and per-ID segment mapping without a prior qualifying run; align AC-15, IF-7, and the implementation spec to that oracle. Keep AC-17 as the later repeatability/reference stage and retain the hard D-16 gate before candidate comparison.",
+            "severity": "Major",
+            "statement": "AC-15's S1 D-13 output and segment checks lack a usable reference: the lossy 144/138 run is disqualified, and the corrected-copy reference is established only in later S2.",
+            "verification": "Check that the revised S1 test can derive its expected ID, segment, log, audio, and decoded-media results before launching the first corrected-copy run, and that S2 alone establishes the repeatable reference used by candidate comparisons. Rerun the design shape and boundary validators."
+          }
+        ],
+        "gate": "gatekeeper-design",
+        "intake": {
+          "artifact": "../intake/report_grilling.md"
+        },
+        "valid": true,
+        "verdict": "REVISE"
+      },
+      "package_fingerprint": "c23c02cd2435df4a877f5493aec54c09615ad6ecd8fd504b8130d94fd8770c29",
+      "revise_packet": {
+        "actions_by_owner": {
+          "architect": [
+            {
+              "basis": {
+                "artifact": "reports/delivery-plan.md",
+                "kind": "acceptance",
+                "ref": "AC-16"
+              },
+              "evidence": [
+                "reports/report_interfaces.md",
+                "reports/delivery-plan.md",
+                "manifest:evidence.decisions"
+              ],
+              "expected": "Define how loggerd handles the manager's shutdown signal so it remains available to consume each encoder's final watermark, finalize writers and sentinels, and then exits within the existing five-second window. If this cannot work under the existing manager order, state that manager-driven D-16 teardown is infeasible and request a separately reviewed manager-scope decision before claiming it.",
+              "id": "D16-MANAGER-SIGINT-DRAIN",
+              "key": "interfaces",
+              "observed": "IF-10 starts STOP_DRAIN from an isolated test harness while loggerd and encoderd are alive, then stops encoderd before loggerd. AC-16 requires a manager-order proof, but the interface never specifies how loggerd responds when the real manager signals it before waiting for encoderd. The current source order sends nonblocking stop signals to all stopping processes (loggerd before encoderd), then performs encoder-first blocking waits; loggerd's current event loop exits on do_exit and has no drain-on-SIGINT path. A sequential harness drain does not establish manager-driven teardown.",
+              "owner": "architect",
+              "remediation": "Architect: revise IF-10 (and its process-lifecycle context) with an explicit manager-SIGINT drain transition, including encoder completion, loggerd's continued consumption, writer/sentinel completion, timeout behavior, and the no-manager-change boundary. If no such path is feasible, mark manager-driven teardown as a hard stop and route any required manager-order change for separate review.",
+              "severity": "Major",
+              "statement": "The manager-driven STOP_DRAIN transition is not specified for the actual stop-signal order, leaving whole-process teardown dependent on behavior the build owner would have to invent.",
+              "verification": "Review the revised IF-10 against the current Manager.ensure_running stop sequence. Confirm AC-16 exercises the actual concurrent signal order, verifies loggerd remains alive through final acknowledgements and output finalization, and applies the five-second limit; otherwise confirm the package explicitly stops and requires separate manager-scope approval. Rerun the design shape and boundary validators."
+            }
+          ],
+          "planner": [
+            {
+              "basis": {
+                "artifact": "reports/delivery-plan.md",
+                "kind": "acceptance",
+                "ref": "AC-13"
+              },
+              "evidence": [
+                "reports/delivery-plan.md",
+                "reports/implementation-spec.md",
+                "reports/report_interfaces.md"
+              ],
+              "expected": "Separate prerequisites that can be proven before source changes from integration behavior that exists only after S1. Either provide a concrete pre-implementation probe that exercises the same manager-signal drain behavior without implementing the product change, or place the manager-driven end-to-end drain proof in S1/AC-16 and make it a hard stop before S2 or any performance work.",
+              "id": "AC13-S0-STOP-DRAIN-SEQUENCE",
+              "key": "acceptance",
+              "observed": "AC-13 makes proof of managed STOP_DRAIN within five seconds a condition before implementation. S1 and the implementation spec then introduce the drain protocol and require the first manager shutdown proof. The package does not identify a pre-implementation probe for that new loggerd/encoderd behavior; the described isolated capability probe is not defined to exercise the manager's signal sequence.",
+              "owner": "planner",
+              "remediation": "Planner: revise the S0/S1 dependency and AC-13/AC-16 checks so pre-code MPP, VisionIPC, queue, and static manager-order feasibility work is distinguished from testing the newly implemented signal-driven drain. Preserve a hard no-go if S1 cannot pass under the existing manager order; do not proceed to the corrected-copy reference or performance stages after a failure.",
+              "severity": "Major",
+              "statement": "AC-13 requires proving manager-driven STOP_DRAIN before implementation, while the only specified STOP_DRAIN path is introduced by the later S1 implementation, so S0 has no defined target for this proof.",
+              "verification": "Confirm the acceptance table names the exact pre-implementation evidence and the exact S1 concurrent-shutdown test, with manager predicates/order unchanged and a five-second pass condition. Confirm S2 depends on that S1 pass. Rerun the design shape and boundary validators."
+            },
+            {
+              "basis": {
+                "artifact": "reports/delivery-plan.md",
+                "kind": "acceptance",
+                "ref": "AC-15"
+              },
+              "evidence": [
+                "reports/delivery-plan.md",
+                "reports/implementation-spec.md",
+                "reports/report_interfaces.md",
+                "manifest:evidence.decisions"
+              ],
+              "expected": "Specify an independent first-pass oracle for the S1 correctness repair, including expected per-ID segment assignment and the D-13 event, audio, and decoded-media checks, or otherwise make the stage ordering establish a valid reference before any criterion depends on it. The first S1 run must not validate itself or rely on the known-lossy run as a qualifying baseline.",
+              "id": "AC15-CORRECTED-COPY-ORACLE",
+              "key": "acceptance",
+              "observed": "AC-15 requires comparing segment assignment and D-13 outputs during S1. The plan disqualifies the saved 144-submitted/138-emitted run under D-16 and says not to compare against the lossy baseline; AC-17 only establishes repeatable corrected-copy output ledgers in S2 after S1 passes. Neither AC-15 nor the implementation spec defines the independent expected output/segment oracle for the initial S1 pass.",
+              "owner": "planner",
+              "remediation": "Planner: define how the initial corrected-copy repair proves every required D-13 output field and per-ID segment mapping without a prior qualifying run; align AC-15, IF-7, and the implementation spec to that oracle. Keep AC-17 as the later repeatability/reference stage and retain the hard D-16 gate before candidate comparison.",
+              "severity": "Major",
+              "statement": "AC-15's S1 D-13 output and segment checks lack a usable reference: the lossy 144/138 run is disqualified, and the corrected-copy reference is established only in later S2.",
+              "verification": "Check that the revised S1 test can derive its expected ID, segment, log, audio, and decoded-media results before launching the first corrected-copy run, and that S2 alone establishes the repeatable reference used by candidate comparisons. Rerun the design shape and boundary validators."
+            }
+          ]
+        },
+        "by_key": {},
+        "by_owner": {},
+        "judgment_by_owner": {
+          "architect": [
+            "D16-MANAGER-SIGINT-DRAIN"
+          ],
+          "planner": [
+            "AC13-S0-STOP-DRAIN-SEQUENCE",
+            "AC15-CORRECTED-COPY-ORACLE"
+          ]
+        },
+        "unassigned": []
+      },
+      "revision": "r4",
+      "signature": [
+        "gatekeeper-design",
+        "r4",
+        "c23c02cd2435df4a877f5493aec54c09615ad6ecd8fd504b8130d94fd8770c29",
+        "REVISE"
+      ],
+      "submission_id": "loggerd-ka2-efficiency-20261029-design-r4",
+      "unchanged_evidence": [
+        "stack_lock",
+        "taste_snapshot"
+      ]
+    },
+    {
+      "boundary": "design-to-build",
+      "changed_evidence": [
+        "acceptance",
+        "architecture",
+        "interfaces",
+        "plan",
+        "security_seed"
+      ],
+      "checked_at": "2026-10-30T07:36:14.778248+00:00",
+      "judgment": {
+        "by_owner": {},
+        "escalation": null,
+        "findings": [],
+        "gate": "gatekeeper-design",
+        "intake": {
+          "artifact": "../intake/report_grilling.md"
+        },
+        "valid": true,
+        "verdict": "APPROVED"
+      },
+      "package_fingerprint": "1142647054439e80ba7411da93983f41fb1cd5d5784ad41b3549a9a67edcdb9d",
+      "revise_packet": {
+        "actions_by_owner": {},
+        "by_key": {},
+        "by_owner": {},
+        "judgment_by_owner": {},
+        "unassigned": []
+      },
+      "revision": "r5",
+      "signature": [
+        "gatekeeper-design",
+        "r5",
+        "1142647054439e80ba7411da93983f41fb1cd5d5784ad41b3549a9a67edcdb9d",
+        "APPROVED"
+      ],
+      "submission_id": "loggerd-ka2-efficiency-20261029-design-r5",
+      "unchanged_evidence": [
+        "decisions",
+        "stack_lock",
+        "taste_snapshot",
+        "ui_evidence"
+      ]
+    },
+    {
+      "boundary": "design-to-build",
+      "changed_evidence": [],
+      "checked_at": "2026-10-30T07:43:13.791557+00:00",
+      "judgment": {
+        "by_owner": {},
+        "escalation": null,
+        "findings": [],
+        "gate": "gatekeeper-admiral",
+        "intake": {
+          "artifact": "../intake/report_grilling.md"
+        },
+        "valid": true,
+        "verdict": "APPROVED"
+      },
+      "package_fingerprint": "1142647054439e80ba7411da93983f41fb1cd5d5784ad41b3549a9a67edcdb9d",
+      "revise_packet": {
+        "actions_by_owner": {},
+        "by_key": {},
+        "by_owner": {},
+        "judgment_by_owner": {},
+        "unassigned": []
+      },
+      "revision": "r5",
+      "signature": [
+        "gatekeeper-admiral",
+        "r5",
+        "1142647054439e80ba7411da93983f41fb1cd5d5784ad41b3549a9a67edcdb9d",
+        "APPROVED"
+      ],
+      "submission_id": "loggerd-ka2-efficiency-20261029-design-r5",
+      "unchanged_evidence": [
+        "acceptance",
+        "architecture",
+        "decisions",
+        "interfaces",
+        "plan",
+        "security_seed",
+        "stack_lock",
+        "taste_snapshot",
+        "ui_evidence"
+      ]
+    },
+    {
+      "boundary": "design-to-build",
+      "changed_evidence": [
+        "acceptance",
+        "architecture",
+        "decisions",
+        "interfaces",
+        "plan",
+        "security_seed"
+      ],
+      "checked_at": "2026-10-30T08:51:09.669997+00:00",
+      "judgment": {
+        "by_owner": {},
+        "escalation": {
+          "reason": "D-17 is satisfied by a complete explicit no-go: the exact-target evidence cannot be obtained and no runtime scope satisfies retained D-13/D-16 correctness and D-15 paired KA2 proof. The canonical design-to-build workflow permits APPROVED only when a build can consume the design, while r6 explicitly has no implementation slices; there is no repairable package defect to send back as REVISE. Keep the build boundary closed and route this package for no-go phase/run closure. Reopen design only after the stated exact-target evidence becomes available or the user explicitly changes the objective or proof requirements.",
+          "to": "Admiral"
+        },
+        "findings": [],
+        "gate": "gatekeeper-design",
+        "intake": {
+          "artifact": "../intake/report_grilling.md"
+        },
+        "valid": true,
+        "verdict": "ESCALATE"
+      },
+      "package_fingerprint": "704554dd3ce69669c69e68293df66df579dc37dfcb163a6eeed9f3f0c3cd723b",
+      "revise_packet": {
+        "actions_by_owner": {},
+        "by_key": {},
+        "by_owner": {},
+        "judgment_by_owner": {},
+        "unassigned": []
+      },
+      "revision": "r6",
+      "signature": [
+        "gatekeeper-design",
+        "r6",
+        "704554dd3ce69669c69e68293df66df579dc37dfcb163a6eeed9f3f0c3cd723b",
+        "ESCALATE"
+      ],
+      "submission_id": "loggerd-ka2-efficiency-20261029-design-r6",
+      "unchanged_evidence": [
+        "stack_lock",
+        "taste_snapshot",
+        "ui_evidence"
+      ]
+    },
+    {
+      "boundary": "design-to-build",
+      "changed_evidence": [],
+      "checked_at": "2026-10-30T08:59:39.450194+00:00",
+      "judgment": {
+        "by_owner": {},
+        "escalation": {
+          "reason": "R6 is a coherent explicit no-go but cannot cross DESIGN-to-BUILD: it has no build slices, and the phase verdict is ESCALATE. Keep build closed and route the no-go for closure; any future implementation requires new exact-target evidence or a new explicit user decision changing the objective or proof requirements, followed by a new approved design revision.",
+          "to": "Admiral"
+        },
+        "findings": [],
+        "gate": "gatekeeper-admiral",
+        "intake": {
+          "artifact": "../intake/report_grilling.md"
+        },
+        "valid": true,
+        "verdict": "ESCALATE"
+      },
+      "package_fingerprint": "704554dd3ce69669c69e68293df66df579dc37dfcb163a6eeed9f3f0c3cd723b",
+      "revise_packet": {
+        "actions_by_owner": {},
+        "by_key": {},
+        "by_owner": {},
+        "judgment_by_owner": {},
+        "unassigned": []
+      },
+      "revision": "r6",
+      "signature": [
+        "gatekeeper-admiral",
+        "r6",
+        "704554dd3ce69669c69e68293df66df579dc37dfcb163a6eeed9f3f0c3cd723b",
+        "ESCALATE"
+      ],
+      "submission_id": "loggerd-ka2-efficiency-20261029-design-r6",
+      "unchanged_evidence": [
+        "acceptance",
+        "architecture",
+        "decisions",
+        "interfaces",
+        "plan",
+        "security_seed",
+        "stack_lock",
+        "taste_snapshot",
+        "ui_evidence"
+      ]
+    },
+    {
+      "boundary": "design-to-build",
+      "changed_evidence": [
+        "acceptance",
+        "architecture",
+        "decisions",
+        "interfaces",
+        "plan",
+        "security_seed",
+        "taste_snapshot",
+        "ui_evidence"
+      ],
+      "checked_at": "2026-10-31T05:27:34.394806+00:00",
+      "judgment": {
+        "by_owner": {},
+        "escalation": null,
+        "findings": [
+          {
+            "basis": {
+              "kind": "contract",
+              "ref": "conditional API endpoint artifact is required only when endpoints are in scope",
+              "source": "design/gatekeeper-design/SKILL.md"
+            },
+            "evidence": [
+              "manifest:evidence.interfaces",
+              "reports/report_interfaces_r8.md"
+            ],
+            "id": "J-1",
+            "key": "interfaces",
+            "owner": "architect",
+            "severity": "Info",
+            "statement": "The shape check reports the API endpoint contract as UNCHECKED. It is out of scope: the hashed interface inventory contains only internal Params, C++ encoder, media lifecycle, and test-fixture contracts; it declares no public endpoints or cereal schema changes."
+          },
+          {
+            "basis": {
+              "kind": "contract",
+              "ref": "conditional frontend/UI handoff applies only when a user-facing surface exists",
+              "source": "design/gatekeeper-design/SKILL.md"
+            },
+            "evidence": [
+              "manifest:evidence.ui_evidence",
+              "artifacts/ui_evidence_r8.json"
+            ],
+            "id": "J-2",
+            "key": "ui_evidence",
+            "owner": "architect",
+            "severity": "Info",
+            "statement": "The shape check reports the frontend/UI handoff as UNCHECKED. This is a backend recording-path change with no user-facing surface, and the manifest carries the architect's sanctioned typed no-surface applicability record."
+          },
+          {
+            "basis": {
+              "kind": "contract",
+              "ref": "design gate package-path containment check",
+              "source": "design/gatekeeper-design/references/workflow.md"
+            },
+            "evidence": [],
+            "id": "J-3",
+            "key": null,
+            "owner": "commander",
+            "severity": "Info",
+            "statement": "The canonical shape-check path resolves through skillset-saves to /data/media, outside /data/openpilot, so the validator refuses that path before reading it. A fresh in-project mirror of the current r8 package artifacts passed the shape check with zero failures and the two expected conditional findings; the boundary validator independently checked the canonical manifest and all artifact hashes. The mirror only worked around the path containment rule and did not replace the submitted artifacts."
+          },
+          {
+            "basis": {
+              "kind": "contract",
+              "ref": "Calibration",
+              "source": "contracts/evidence-standards.md"
+            },
+            "evidence": [
+              "reports/report_architecture_r8.md",
+              "reports/delivery-plan_r8.md"
+            ],
+            "id": "J-4",
+            "key": "architecture",
+            "owner": "architect",
+            "severity": "Info",
+            "statement": "The real KA2 V4L2 exporter, DMA-BUF fence behavior, and live camera buffer reuse remain unqualified. The package correctly limits its proof to isolated synthetic DMA-BUF tests and records live-camera qualification as deferred under D-29; build evidence must not claim those live-source guarantees."
+          }
+        ],
+        "gate": "gatekeeper-design",
+        "intake": {
+          "artifact": "../intake/report_grilling.md"
+        },
+        "valid": true,
+        "verdict": "APPROVED"
+      },
+      "package_fingerprint": "b649d2bd59d8132deaa717b1004f584e0784c02ec4d1f89cae02ac9e4c20b732",
+      "revise_packet": {
+        "actions_by_owner": {},
+        "by_key": {},
+        "by_owner": {},
+        "judgment_by_owner": {},
+        "unassigned": []
+      },
+      "revision": "r8",
+      "signature": [
+        "gatekeeper-design",
+        "r8",
+        "b649d2bd59d8132deaa717b1004f584e0784c02ec4d1f89cae02ac9e4c20b732",
+        "APPROVED"
+      ],
+      "submission_id": "loggerd-ka2-efficiency-20261029-design-r8",
+      "unchanged_evidence": [
+        "stack_lock"
+      ]
+    },
+    {
+      "boundary": "design-to-build",
+      "changed_evidence": [],
+      "checked_at": "2026-10-31T05:28:53.732857+00:00",
+      "judgment": {
+        "by_owner": {
+          "commander": [
+            "X-1"
+          ]
+        },
+        "escalation": null,
+        "findings": [
+          {
+            "basis": {
+              "kind": "contract",
+              "ref": "States and transitions",
+              "source": "contracts/workflow-protocol.md"
+            },
+            "evidence": [
+              "manifest:evidence.plan",
+              "reports/delivery-plan_r8.md"
+            ],
+            "expected": "The delivery handoff and delivery summary identify the r8 design manifest and its matching phase and cross-stage approval records.",
+            "id": "X-1",
+            "key": null,
+            "observed": "The delivery package-shape check passes structurally but reports its handoff and delivery summary at revision r7; the handoff cites the r7 manifest and verdicts.",
+            "owner": "commander",
+            "remediation": "Admiral updates the delivery handoff and summary to the approved r8 package and carries the r8 open qualification limit for live V4L2 DMA-BUF behavior.",
+            "severity": "Major",
+            "statement": "The approved r8 design package is ready for DESIGN -> BUILD, but the active delivery handoff still submits revision r7 and names the r7 manifest and approvals. The next consumer would therefore receive a different design contract than the one approved in this submission.",
+            "verification": "Re-run the delivery package-shape check and the design-to-build boundary validator against r8, confirming one revision, matching approval lineage, and no blocked phrases."
+          }
+        ],
+        "gate": "gatekeeper-admiral",
+        "intake": {
+          "artifact": "../intake/report_grilling.md"
+        },
+        "valid": true,
+        "verdict": "REVISE"
+      },
+      "package_fingerprint": "b649d2bd59d8132deaa717b1004f584e0784c02ec4d1f89cae02ac9e4c20b732",
+      "revise_packet": {
+        "actions_by_owner": {
+          "commander": [
+            {
+              "basis": {
+                "kind": "contract",
+                "ref": "States and transitions",
+                "source": "contracts/workflow-protocol.md"
+              },
+              "evidence": [
+                "manifest:evidence.plan",
+                "reports/delivery-plan_r8.md"
+              ],
+              "expected": "The delivery handoff and delivery summary identify the r8 design manifest and its matching phase and cross-stage approval records.",
+              "id": "X-1",
+              "key": null,
+              "observed": "The delivery package-shape check passes structurally but reports its handoff and delivery summary at revision r7; the handoff cites the r7 manifest and verdicts.",
+              "owner": "commander",
+              "remediation": "Admiral updates the delivery handoff and summary to the approved r8 package and carries the r8 open qualification limit for live V4L2 DMA-BUF behavior.",
+              "severity": "Major",
+              "statement": "The approved r8 design package is ready for DESIGN -> BUILD, but the active delivery handoff still submits revision r7 and names the r7 manifest and approvals. The next consumer would therefore receive a different design contract than the one approved in this submission.",
+              "verification": "Re-run the delivery package-shape check and the design-to-build boundary validator against r8, confirming one revision, matching approval lineage, and no blocked phrases."
+            }
+          ]
+        },
+        "by_key": {},
+        "by_owner": {},
+        "judgment_by_owner": {
+          "commander": [
+            "X-1"
+          ]
+        },
+        "unassigned": []
+      },
+      "revision": "r8",
+      "signature": [
+        "gatekeeper-admiral",
+        "r8",
+        "b649d2bd59d8132deaa717b1004f584e0784c02ec4d1f89cae02ac9e4c20b732",
+        "REVISE"
+      ],
+      "submission_id": "loggerd-ka2-efficiency-20261029-design-r8",
+      "unchanged_evidence": [
+        "acceptance",
+        "architecture",
+        "decisions",
+        "interfaces",
+        "plan",
+        "security_seed",
+        "stack_lock",
+        "taste_snapshot",
+        "ui_evidence"
+      ]
+    },
+    {
+      "boundary": "design-to-build",
+      "changed_evidence": [],
+      "checked_at": "2026-10-31T05:34:18.723718+00:00",
+      "judgment": {
+        "by_owner": {},
+        "escalation": null,
+        "findings": [],
+        "gate": "gatekeeper-admiral",
+        "intake": {
+          "artifact": "../intake/report_grilling.md"
+        },
+        "valid": true,
+        "verdict": "APPROVED"
+      },
+      "package_fingerprint": "b649d2bd59d8132deaa717b1004f584e0784c02ec4d1f89cae02ac9e4c20b732",
+      "revise_packet": {
+        "actions_by_owner": {},
+        "by_key": {},
+        "by_owner": {},
+        "judgment_by_owner": {},
+        "unassigned": []
+      },
+      "revision": "r8",
+      "signature": [
+        "gatekeeper-admiral",
+        "r8",
+        "b649d2bd59d8132deaa717b1004f584e0784c02ec4d1f89cae02ac9e4c20b732",
+        "APPROVED"
+      ],
+      "submission_id": "loggerd-ka2-efficiency-20261029-design-r8",
+      "unchanged_evidence": [
+        "acceptance",
+        "architecture",
+        "decisions",
+        "interfaces",
+        "plan",
+        "security_seed",
+        "stack_lock",
+        "taste_snapshot",
+        "ui_evidence"
+      ]
+    },
+    {
+      "boundary": "design-to-build",
+      "changed_evidence": [
+        "acceptance",
+        "architecture",
+        "interfaces",
+        "plan",
+        "security_seed",
+        "taste_snapshot"
+      ],
+      "checked_at": "2026-10-31T06:20:13.033833+00:00",
+      "judgment": {
+        "by_owner": {},
+        "escalation": null,
+        "findings": [
+          {
+            "basis": {
+              "kind": "contract",
+              "ref": "conditional API endpoint artifact is required only when endpoints are in scope",
+              "source": "design/gatekeeper-design/SKILL.md"
+            },
+            "evidence": [
+              "manifest:evidence.interfaces",
+              "reports/report_interfaces_r9.md"
+            ],
+            "id": "J-1",
+            "key": "interfaces",
+            "owner": "architect",
+            "severity": "Info",
+            "statement": "The shape check reports API endpoint contracts as UNCHECKED. They are out of scope: the hashed interface inventory defines internal Params/process coordination, C++ encoder status, media lifecycle, and a test fixture, and declares no public endpoint or cereal schema change."
+          },
+          {
+            "basis": {
+              "kind": "contract",
+              "ref": "conditional frontend/UI handoff applies only when a user-facing surface exists",
+              "source": "design/gatekeeper-design/SKILL.md"
+            },
+            "evidence": [
+              "manifest:evidence.ui_evidence",
+              "artifacts/ui_evidence_r8.json"
+            ],
+            "id": "J-2",
+            "key": "ui_evidence",
+            "owner": "architect",
+            "severity": "Info",
+            "statement": "The shape check reports the frontend/UI handoff as UNCHECKED. This is a backend loggerd/encoderd change with no user-facing surface, and the manifest contains the architect's typed no-surface applicability record."
+          },
+          {
+            "basis": {
+              "kind": "contract",
+              "ref": "package-shape validator requires an in-project package directory",
+              "source": "design/gatekeeper-design/references/workflow.md"
+            },
+            "evidence": [],
+            "id": "J-3",
+            "key": null,
+            "owner": "commander",
+            "severity": "Info",
+            "statement": "The canonical package path resolves through skillset-saves to /data/media, outside /data/openpilot, so the shape validator refuses that path. A byte-identical in-project mirror of the manifest-selected r9 package files passed the shape check with zero failures and the two expected conditional findings; the boundary validator independently checked the canonical manifest and artifact hashes."
+          },
+          {
+            "basis": {
+              "kind": "contract",
+              "ref": "Calibration",
+              "source": "contracts/evidence-standards.md"
+            },
+            "evidence": [
+              "reports/report_architecture_r9.md",
+              "reports/delivery-plan_r9.md",
+              "evidence/r9/prior_report_dmabuf_fixture_r8.md"
+            ],
+            "id": "J-4",
+            "key": "architecture",
+            "owner": "architect",
+            "severity": "Info",
+            "statement": "Live RK3588 V4L2 DMA-BUF exporter behavior, fences/synchronization, MPP import against live camera buffers, and buffer reuse remain unqualified. The design correctly limits its proof target to isolated synthetic DMA-heap inputs; the prior M0 fixture evidence covers VisionIPC transport and fixture-owned lifetime only, not MPP or the full loggerd/encoderd lifecycle."
+          }
+        ],
+        "gate": "gatekeeper-design",
+        "intake": {
+          "artifact": "../intake/report_grilling.md"
+        },
+        "valid": true,
+        "verdict": "APPROVED"
+      },
+      "package_fingerprint": "3e476e7562e5cadc35f855d5fc06f66df697eb1917adcb9c4480acc5b4fd5643",
+      "revise_packet": {
+        "actions_by_owner": {},
+        "by_key": {},
+        "by_owner": {},
+        "judgment_by_owner": {},
+        "unassigned": []
+      },
+      "revision": "r9",
+      "signature": [
+        "gatekeeper-design",
+        "r9",
+        "3e476e7562e5cadc35f855d5fc06f66df697eb1917adcb9c4480acc5b4fd5643",
+        "APPROVED"
+      ],
+      "submission_id": "loggerd-ka2-efficiency-20261029-design-r9-report-contract",
+      "unchanged_evidence": [
+        "decisions",
+        "stack_lock",
+        "ui_evidence"
+      ]
+    },
+    {
+      "boundary": "design-to-build",
+      "changed_evidence": [],
+      "checked_at": "2026-10-31T06:24:27.057006+00:00",
+      "judgment": {
+        "by_owner": {},
+        "escalation": null,
+        "findings": [],
+        "gate": "gatekeeper-admiral",
+        "intake": {
+          "artifact": "../intake/report_grilling.md"
+        },
+        "valid": true,
+        "verdict": "APPROVED"
+      },
+      "package_fingerprint": "3e476e7562e5cadc35f855d5fc06f66df697eb1917adcb9c4480acc5b4fd5643",
+      "revise_packet": {
+        "actions_by_owner": {},
+        "by_key": {},
+        "by_owner": {},
+        "judgment_by_owner": {},
+        "unassigned": []
+      },
+      "revision": "r9",
+      "signature": [
+        "gatekeeper-admiral",
+        "r9",
+        "3e476e7562e5cadc35f855d5fc06f66df697eb1917adcb9c4480acc5b4fd5643",
+        "APPROVED"
+      ],
+      "submission_id": "loggerd-ka2-efficiency-20261029-design-r9-report-contract",
+      "unchanged_evidence": [
+        "acceptance",
+        "architecture",
+        "decisions",
+        "interfaces",
+        "plan",
+        "security_seed",
+        "stack_lock",
+        "taste_snapshot",
+        "ui_evidence"
+      ]
+    },
+    {
+      "boundary": "design-to-build",
+      "changed_evidence": [
+        "acceptance",
+        "architecture",
+        "interfaces",
+        "plan",
+        "security_seed"
+      ],
+      "checked_at": "2026-10-31T06:55:39.746141+00:00",
+      "judgment": {
+        "by_owner": {},
+        "escalation": null,
+        "findings": [
+          {
+            "basis": {
+              "kind": "contract",
+              "ref": "conditional API endpoint artifact is required only when endpoints are in scope",
+              "source": "design/gatekeeper-design/SKILL.md"
+            },
+            "evidence": [
+              "manifest:evidence.interfaces",
+              "reports/report_interfaces_r10.md"
+            ],
+            "id": "J-1",
+            "key": "interfaces",
+            "owner": "architect",
+            "severity": "Info",
+            "statement": "The package-shape check reports API endpoint contracts as UNCHECKED. They are out of scope: the r10 interface inventory defines internal process coordination, C++ encoder status, media lifecycle, and a test fixture, and declares no public endpoints or cereal schema changes."
+          },
+          {
+            "basis": {
+              "kind": "contract",
+              "ref": "conditional frontend/UI handoff applies only when a user-facing surface exists",
+              "source": "design/gatekeeper-design/SKILL.md"
+            },
+            "evidence": [
+              "manifest:evidence.ui_evidence",
+              "artifacts/ui_evidence_r8.json"
+            ],
+            "id": "J-2",
+            "key": "ui_evidence",
+            "owner": "architect",
+            "severity": "Info",
+            "statement": "The package-shape check reports the frontend/UI handoff as UNCHECKED. This is a backend-only loggerd/encoderd change with no user-facing surface, and the manifest carries the typed no-surface applicability record."
+          },
+          {
+            "basis": {
+              "kind": "contract",
+              "ref": "package-shape validator requires an in-project package directory",
+              "source": "design/gatekeeper-design/references/workflow.md"
+            },
+            "evidence": [],
+            "id": "J-3",
+            "key": null,
+            "owner": "commander",
+            "severity": "Info",
+            "statement": "The canonical package path resolves through skillset-saves to /data/media, outside /data/openpilot, so the shape validator refuses that path. The saved byte-identical in-project mirror passed with zero failures and the two expected conditional findings; the boundary validator independently checked the canonical r10 manifest and artifact hashes."
+          },
+          {
+            "basis": {
+              "kind": "contract",
+              "ref": "Calibration",
+              "source": "contracts/evidence-standards.md"
+            },
+            "evidence": [
+              "reports/report_architecture_r10.md",
+              "reports/report_interfaces_r10.md",
+              "reports/implementation-spec_r10.md"
+            ],
+            "id": "J-4",
+            "key": "architecture",
+            "owner": "architect",
+            "severity": "Info",
+            "statement": "The deployed MPP version/build is not pinned, so safe post-EOS context continuation is unqualified. The r10 design correctly avoids treating the IDR command as proof of EOS-context reuse and retains the established planned close/open for healthy outputs; no in-place continuation guarantee should be inferred from this package."
+          },
+          {
+            "basis": {
+              "kind": "contract",
+              "ref": "Calibration",
+              "source": "contracts/evidence-standards.md"
+            },
+            "evidence": [
+              "reports/report_architecture_r10.md",
+              "reports/delivery-plan_r10.md",
+              "evidence/r9/prior_report_dmabuf_fixture_r8.md"
+            ],
+            "id": "J-5",
+            "key": "architecture",
+            "owner": "architect",
+            "severity": "Info",
+            "statement": "Live RK3588 V4L2 DMA-BUF exporter behavior, fences/synchronization, live-camera MPP import, and buffer reuse remain unqualified. The carried M0 DMA-heap fixture evidence proves VisionIPC transport and fixture-owned lifetime only, not MPP import or full loggerd/encoderd rotation. The package keeps that limit explicit and makes no live-camera qualification claim."
+          }
+        ],
+        "gate": "gatekeeper-design",
+        "intake": {
+          "artifact": "../intake/report_grilling.md"
+        },
+        "valid": true,
+        "verdict": "APPROVED"
+      },
+      "package_fingerprint": "7821bc18beae4a2c6b58824b31ea6b24775b1042fe6384a4ceeee45a0aaba73f",
+      "revise_packet": {
+        "actions_by_owner": {},
+        "by_key": {},
+        "by_owner": {},
+        "judgment_by_owner": {},
+        "unassigned": []
+      },
+      "revision": "r10",
+      "signature": [
+        "gatekeeper-design",
+        "r10",
+        "7821bc18beae4a2c6b58824b31ea6b24775b1042fe6384a4ceeee45a0aaba73f",
+        "APPROVED"
+      ],
+      "submission_id": "loggerd-ka2-efficiency-20261029-design-r10-mpp-segment-recovery-contract",
+      "unchanged_evidence": [
+        "decisions",
+        "stack_lock",
+        "taste_snapshot",
+        "ui_evidence"
+      ]
+    },
+    {
+      "boundary": "design-to-build",
+      "changed_evidence": [],
+      "checked_at": "2026-10-31T06:59:16.967229+00:00",
+      "judgment": {
+        "by_owner": {},
+        "escalation": null,
+        "findings": [],
+        "gate": "gatekeeper-admiral",
+        "intake": {
+          "artifact": "../intake/report_grilling.md"
+        },
+        "valid": true,
+        "verdict": "APPROVED"
+      },
+      "package_fingerprint": "7821bc18beae4a2c6b58824b31ea6b24775b1042fe6384a4ceeee45a0aaba73f",
+      "revise_packet": {
+        "actions_by_owner": {},
+        "by_key": {},
+        "by_owner": {},
+        "judgment_by_owner": {},
+        "unassigned": []
+      },
+      "revision": "r10",
+      "signature": [
+        "gatekeeper-admiral",
+        "r10",
+        "7821bc18beae4a2c6b58824b31ea6b24775b1042fe6384a4ceeee45a0aaba73f",
+        "APPROVED"
+      ],
+      "submission_id": "loggerd-ka2-efficiency-20261029-design-r10-mpp-segment-recovery-contract",
+      "unchanged_evidence": [
+        "acceptance",
+        "architecture",
+        "decisions",
+        "interfaces",
+        "plan",
+        "security_seed",
+        "stack_lock",
+        "taste_snapshot",
+        "ui_evidence"
+      ]
+    }
+  ],
+  "gates": {},
+  "held": false,
+  "reopen_refs": [],
+  "rounds": [],
+  "run_id": "loggerd-ka2-efficiency-20261029",
+  "schema_version": 1
+}

@@ -1,0 +1,8 @@
+{
+  "applicable": false,
+  "scope": "Remove the TICI UBLOX manager path and TICI qcomgpsd enablement while preserving the existing KA2 qcomgpsd path and leaving PC simulation and historical replay behavior unchanged.",
+  "decided_by": "security-builder",
+  "architecture_revision": "architecture.md@sha256:9b51e014d4626fdefc9ccc48c9f0b0b3ce8d99e0089320399bcf21d3f5e006e3",
+  "reason": "No trust boundary is introduced or moved by this architecture revision. On KA2, the existing qcomgpsd modem diagnostic path, XTRA assistance download and injection, and GNSS publication are already active and remain unchanged; the manager predicate change preserves current KA2 behavior. On TICI, the qcomgpsd and UBLOX manager paths are removed, so no provider or XTRA path is newly activated. PC simulation and historical process replay retain their existing parameter-driven and route-derived service selection. The earlier XTRA transport probe is historical evidence only and does not add a control or behavior change to this scope.",
+  "boundaries": []
+}

@@ -1,0 +1,10 @@
+Implementation checks — KA2 sensord cleanup
+
+1. `python3` AST parse for `system/sensord/sensord.py`, `system/manager/process_config.py`, `selfdrive/test/test_onroad.py`, and `system/loggerd/tests/test_encoder.py`: exit 0. Detailed log: `implementation-syntax-ka2-cleanup.log`.
+2. `git diff --check --` the assigned implementation paths: exit 0. Detailed log: `implementation-diff-check-ka2-cleanup.log`.
+3. Python assertions on Jenkinsfile selection: exit 0; the dedicated `tizi-lsmc` job is absent and the offline `system/sensord/tests` command is in `HW + Unit Tests` with `diffPaths: ["system/sensord/"]`. Detailed log: `implementation-ci-audit-ka2-cleanup.log`.
+4. `rg` scan of `system/sensord/sensord.py` and deleted-file absence check: exit 0; no LSM6DS3/MMC or GPIO/IRQ loop references remain in sensord runtime and all four obsolete driver modules are absent. Detailed log: `implementation-reference-audit-ka2-cleanup.log`.
+
+Bob did not run the final test suite; `build/test-builder` owns that stage and the expected-red precondition is recorded separately at `test-first-contracts.log`. The implementation diff was generated only from the approved allowlist paths and does not contain unrelated dirty worktree changes.
+
+No device, manager process, or I2C access occurred. No generic build logic, dependency manifest, or cereal schema was changed.

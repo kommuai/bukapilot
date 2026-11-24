@@ -1,0 +1,8 @@
+{
+  "applicable": false,
+  "scope": "KA2/RK3588 loggerd/encoderd rotation liveness and per-output failure containment, including isolated synthetic DMA-BUF and rejected-input lifecycle coverage (r8)",
+  "decided_by": "build/security-builder",
+  "architecture_revision": "r8; report_architecture_r8.md sha256 5b8ccd34e8015af00c9c81d785b424a015177551baa79d93af132531b5a3e177",
+  "reason": "Assessed against the corrected r8 architecture and internal interface contracts. The liveness, writer, audio, diagnostic, and recovery changes apply only while the deterministic KA2 protocol is active; non-KA2 and explicitly disabled deterministic runs retain their legacy behavior. Within that scope, the design keeps the existing local camera/VisionIPC-to-encoderd-to-MPP input boundary and encoderd-to-loggerd encoded-message boundary; it adds no external actor, credential, public endpoint, privilege transition, user-data flow, or cereal schema. LoggerdRotationReport is written only after a deterministic-KA2 runtime commit, is diagnostic only, and does not control segment authority. The DMA-heap VisionIPC publisher and rejection/fault seams are test-only and run with isolated roots. Therefore this design introduces or moves no adversarial trust boundary. This is not a claim that the existing DMA-BUF, camera exporter, MPP driver, or buffer-lifetime implementation is secure or qualified. Build must preserve single-import/no-copy behavior, bounded queues and retries, safe pending-frame identity retirement, segment-checked writes, static stream-name handling, and test-root isolation; live V4L2 exporter/fence/lifetime qualification remains open.",
+  "boundaries": []
+}

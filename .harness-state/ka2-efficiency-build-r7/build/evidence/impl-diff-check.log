@@ -1,0 +1,2 @@
+git diff --check HEAD -- system/loggerd/encoder/mpp_encoder.cc system/loggerd/encoder/mpp_encoder.h: pass
+Whitespace scan for new files (mpp_encoder_input.h, test_mpp_encoder.cc, test_mpp_encoder.py): pass; 0 trailing-space lines.

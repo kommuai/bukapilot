@@ -1,0 +1,10 @@
+postflight_utc=2026-10-31T12:44:09.413178+00:00
+process_camerad=none
+process_loggerd=none
+process_encoderd=none
+process_gdb=none
+device_count=85 busy_count=0
+Filesystem       Size  Used Avail Use% Mounted on
+tmpfs            800M  790M   11M  99% /tmp
+/dev/mmcblk0p12  8.2G  6.6G  1.2G  86% /data
+postflight_result=PASS

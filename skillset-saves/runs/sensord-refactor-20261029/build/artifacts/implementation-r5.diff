@@ -1,0 +1,548 @@
+diff --git a/system/sensord/sensord.py b/system/sensord/sensord.py
+index fad315838..712b5ae1a 100755
+--- a/system/sensord/sensord.py
++++ b/system/sensord/sensord.py
+@@ -84,11 +84,10 @@ def polling_loop(sensor: Sensor, service: str, event: threading.Event) -> None:
+   while not event.is_set():
+     try:
+       evt = sensor.get_event()
+-      if not sensor.is_data_valid():
+-        continue
+-      msg = messaging.new_message(service, valid=True)
+-      setattr(msg, service, evt)
+-      pm.send(service, msg)
++      if sensor.is_data_valid():
++        msg = messaging.new_message(service, valid=True)
++        setattr(msg, service, evt)
++        pm.send(service, msg)
+     except Exception:
+       cloudlog.exception(f"Error in {service} polling loop")
+     rk.keep_time()
+diff --git a/system/sensord/sensors/icm42670_accel.py b/system/sensord/sensors/icm42670_accel.py
+index bf53f03b6..41c3f5546 100644
+--- a/system/sensord/sensors/icm42670_accel.py
++++ b/system/sensord/sensors/icm42670_accel.py
+@@ -28,6 +28,7 @@ ICM42670_CONFIG_RATE_200_Hz = 0b00001000
+ ICM42670_ACCEL_UI_FILT_BW_16HZ = 0x07
+ 
+ ROT_ANGLE_RAD = 0.4082
++ACCEL_SCALE, ROT_COS, ROT_SIN = 9.80665 / 16384.0, math.cos(-ROT_ANGLE_RAD), math.sin(-ROT_ANGLE_RAD)
+ 
+ 
+ class ICM42670_Accel(Sensor):
+@@ -46,13 +47,11 @@ class ICM42670_Accel(Sensor):
+     ts = ts if ts is not None else time.monotonic_ns()
+     buf = self.read(ICM42670_REG_ACCEL_DATA_X1, 6)
+     # 16-bit raw, ±2g → m/s² (scale 9.80665/16384)
+-    accel_scale = 9.80665 / 16384.0
+-    x_raw = self.parse_16bit(buf[5], buf[4]) * accel_scale
+-    y_raw = -self.parse_16bit(buf[1], buf[0]) * accel_scale
+-    z_raw = -self.parse_16bit(buf[3], buf[2]) * accel_scale
+-    c, s = math.cos(-ROT_ANGLE_RAD), math.sin(-ROT_ANGLE_RAD)
+-    xr = c * x_raw - s * z_raw
+-    zr = s * x_raw + c * z_raw
++    x_raw = self.parse_16bit(buf[5], buf[4]) * ACCEL_SCALE
++    y_raw = -self.parse_16bit(buf[1], buf[0]) * ACCEL_SCALE
++    z_raw = -self.parse_16bit(buf[3], buf[2]) * ACCEL_SCALE
++    xr = ROT_COS * x_raw - ROT_SIN * z_raw
++    zr = ROT_SIN * x_raw + ROT_COS * z_raw
+     event = log.SensorEventData.new_message()
+     event.timestamp = ts
+     event.version = 1
+diff --git a/system/sensord/sensors/icm42670_gyro.py b/system/sensord/sensors/icm42670_gyro.py
+index db770cf89..8e8568e5d 100644
+--- a/system/sensord/sensors/icm42670_gyro.py
++++ b/system/sensord/sensors/icm42670_gyro.py
+@@ -28,6 +28,7 @@ ICM42670_GYRO_UI_FILT_BW_16HZ = 0x07
+ 
+ ROT_ANGLE_RAD = 0.4082
+ GYRO_SCALE_LSB_DPS = 131.0
++DEGREES_TO_RADIANS, ROT_COS, ROT_SIN = math.pi / 180.0, math.cos(-ROT_ANGLE_RAD), math.sin(-ROT_ANGLE_RAD)
+ 
+ GYRO_CAL_SAMPLE_COUNT = 300
+ GYRO_CAL_SAMPLE_DT = 0.005
+@@ -65,7 +66,7 @@ class ICM42670_Gyro(Sensor):
+     return gx, gy, gz
+ 
+   def _counts_to_rad(self, counts: float) -> float:
+-    return counts * (math.pi / 180.0) / GYRO_SCALE_LSB_DPS
++    return counts * DEGREES_TO_RADIANS / GYRO_SCALE_LSB_DPS
+ 
+   def _calibrate_zero_rate_bias(self) -> None:
+     samples: list[tuple[int, int, int]] = []
+@@ -97,9 +98,8 @@ class ICM42670_Gyro(Sensor):
+     gy_raw = self._counts_to_rad(gy_counts - self.bias_counts[1])
+     gz_raw = self._counts_to_rad(gz_counts - self.bias_counts[2])
+ 
+-    c, s = math.cos(-ROT_ANGLE_RAD), math.sin(-ROT_ANGLE_RAD)
+-    gx = c * gx_raw - s * gz_raw
+-    gz = s * gx_raw + c * gz_raw
++    gx = ROT_COS * gx_raw - ROT_SIN * gz_raw
++    gz = ROT_SIN * gx_raw + ROT_COS * gz_raw
+ 
+     event = log.SensorEventData.new_message()
+     event.timestamp = ts
+diff --git a/system/sensord/tests/test_event_construction.py b/system/sensord/tests/test_event_construction.py
+new file mode 100644
+index 000000000..f87c7d94c
+--- /dev/null
++++ b/system/sensord/tests/test_event_construction.py
+@@ -0,0 +1,101 @@
++from types import SimpleNamespace
++
++from cereal import log
++from openpilot.system.sensord.sensors.i2c_sensor import Sensor
++from openpilot.system.sensord.sensors.icm42670_temp import ICM42670_Temp
++from openpilot.system.sensord.sensors.lis2mdl_magn import LIS2MDL_Magn
++from openpilot.system.sensord.sensors.lsm6ds3_temp import LSM6DS3_Temp
++
++
++def expected_event(timestamp, version, source, union_name, payload, *, sensor=None, sensor_type=None, status=None):
++  event = log.SensorEventData.new_message()
++  event.timestamp = timestamp
++  event.version = version
++  if sensor is not None:
++    event.sensor = sensor
++  if sensor_type is not None:
++    event.type = sensor_type
++  event.source = source
++  if union_name == "temperature":
++    event.temperature = payload
++  else:
++    measurement = event.init(union_name)
++    measurement.v = payload
++    if status is not None:
++      measurement.status = status
++  return event
++
++
++def test_icm42670_temperature_event_keeps_unset_sensor_and_explicit_type():
++  sensor = object.__new__(ICM42670_Temp)
++  sensor.bus = SimpleNamespace(close=lambda: None)
++  sensor.source = log.SensorEventData.SensorSource.icm42670
++  sensor.read = lambda _address, _length: bytes((0x00, 0x80))
++  timestamp = 123456789
++
++  event = sensor.get_event(timestamp)
++
++  expected = expected_event(timestamp, 1, sensor.source, "temperature", 26.0, sensor_type=4)
++  assert event.which() == "temperature"
++  assert event.sensor == 0  # scalar field default: the baseline left it unset
++  assert event.type == 4
++  assert event.to_dict() == expected.to_dict()
++  assert event.to_bytes() == expected.to_bytes()
++
++
++def test_lsm6ds3_temperature_event_keeps_ignored_timestamp_and_unset_ids(monkeypatch):
++  source = log.SensorEventData.SensorSource.lsm6ds3trc
++  sensor = object.__new__(LSM6DS3_Temp)
++  sensor.bus = SimpleNamespace(close=lambda: None)
++  sensor.source = source
++  sensor.read = lambda _address, _length: bytes((0x00, 0x01))
++  monotonic_value = 123.456789123
++  monkeypatch.setattr("openpilot.system.sensord.sensors.lsm6ds3_temp.time.monotonic", lambda: monotonic_value)
++
++  event = sensor.get_event(987654321)
++
++  timestamp = int(monotonic_value * 1e9)
++  expected = expected_event(timestamp, 1, source, "temperature", 26.0)
++  assert event.which() == "temperature"
++  assert event.timestamp == timestamp
++  assert event.timestamp != 987654321
++  assert event.sensor == expected.sensor == 0
++  assert event.type == expected.type == 0
++  assert event.to_dict() == expected.to_dict()
++  assert event.to_bytes() == expected.to_bytes()
++
++
++def test_lis2mdl_event_keeps_timestamp_metadata_axis_order_and_status():
++  sensor = object.__new__(LIS2MDL_Magn)
++  sensor.bus = SimpleNamespace(close=lambda: None)
++  sensor.source = log.SensorEventData.SensorSource.lis2mdl
++  # Existing wire mapping: y comes from word 0, x from -word 1, z from -word 2.
++  data = pack_s16(-200) + pack_s16(100) + pack_s16(300)
++  sensor.read = lambda _address, _length: data
++  timestamp = 24681012
++
++  event = sensor.get_event(timestamp)
++
++  scale = 0.15
++  values = [
++    -Sensor.parse_16bit(data[3], data[2]) * scale,
++    Sensor.parse_16bit(data[1], data[0]) * scale,
++    -Sensor.parse_16bit(data[5], data[4]) * scale,
++  ]
++  expected = expected_event(timestamp, 1, sensor.source, "magneticUncalibrated", values,
++                            sensor=3, sensor_type=14, status=1)
++  assert event.which() == "magneticUncalibrated"
++  assert list(event.magneticUncalibrated.v) == list(expected.magneticUncalibrated.v)
++  assert event.magneticUncalibrated.status == 1
++  assert event.timestamp == timestamp
++  assert event.version == 1
++  assert event.sensor == 3
++  assert event.type == 14
++  assert event.source == sensor.source
++  assert event.to_dict() == expected.to_dict()
++  assert event.to_bytes() == expected.to_bytes()
++
++
++def pack_s16(value: int) -> bytes:
++  encoded = value & 0xFFFF
++  return bytes((encoded & 0xFF, encoded >> 8))
+diff --git a/system/sensord/tests/test_fixed_calculations.py b/system/sensord/tests/test_fixed_calculations.py
+new file mode 100644
+index 000000000..bc467d579
+--- /dev/null
++++ b/system/sensord/tests/test_fixed_calculations.py
+@@ -0,0 +1,149 @@
++import math
++from types import SimpleNamespace
++
++from cereal import log
++from openpilot.system.sensord.sensors.i2c_sensor import Sensor
++from openpilot.system.sensord.sensors.icm42670_accel import ICM42670_Accel
++from openpilot.system.sensord.sensors.icm42670_gyro import ICM42670_Gyro
++from openpilot.system.sensord.sensors.lsm6ds3_accel import LSM6DS3_Accel
++from openpilot.system.sensord.sensors.lsm6ds3_gyro import LSM6DS3_Gyro
++from openpilot.system.sensord.sensors.mmc5603nj_magn import MMC5603NJ_Magn, RESET, SET
++
++
++def pack_s16(value: int) -> bytes:
++  encoded = value & 0xFFFF
++  return bytes((encoded & 0xFF, encoded >> 8))
++
++
++def pack_mmc_axes(values: tuple[int, int, int]) -> bytes:
++  data = bytearray(9)
++  indices = ((0, 1, 6), (2, 3, 7), (4, 5, 8))
++  for value, (high, middle, low) in zip(values, indices, strict=True):
++    encoded = (value << 4) & 0xFFFFFF
++    data[high] = (encoded >> 16) & 0xFF
++    data[middle] = (encoded >> 8) & 0xFF
++    data[low] = encoded & 0xFF
++  return bytes(data)
++
++
++def expected_event(timestamp, version, sensor, sensor_type, source, union_name, values, status):
++  event = log.SensorEventData.new_message()
++  event.timestamp = timestamp
++  event.version = version
++  event.sensor = sensor
++  event.type = sensor_type
++  event.source = source
++  measurement = event.init(union_name)
++  measurement.v = values
++  measurement.status = status
++  return event
++
++
++def test_icm42670_accel_fixed_scale_and_rotation_match_previous_formula():
++  raw_x, raw_y, raw_z = 1234, -2345, 32767
++  data = pack_s16(raw_y) + pack_s16(raw_z) + pack_s16(raw_x)
++  sensor = object.__new__(ICM42670_Accel)
++  sensor.bus = SimpleNamespace(close=lambda: None)
++  sensor.source = log.SensorEventData.SensorSource.icm42670
++  sensor.read = lambda _address, _length: data
++  timestamp = 123456
++
++  event = sensor.get_event(timestamp)
++
++  # This is the pre-refactor order of operations and axis mapping.
++  scale = 9.80665 / 16384.0
++  x_raw = Sensor.parse_16bit(data[5], data[4]) * scale
++  y_raw = -Sensor.parse_16bit(data[1], data[0]) * scale
++  z_raw = -Sensor.parse_16bit(data[3], data[2]) * scale
++  cosine, sine = math.cos(-0.4082), math.sin(-0.4082)
++  expected = expected_event(timestamp, 1, 1, 1, sensor.source, "acceleration",
++                            [cosine * x_raw - sine * z_raw, y_raw, sine * x_raw + cosine * z_raw], 1)
++  assert event.to_bytes() == expected.to_bytes()
++
++
++def test_lsm6ds3_accel_fixed_scale_matches_previous_formula():
++  raw_x, raw_y, raw_z = 1234, -2345, 32767
++  data = pack_s16(raw_x) + pack_s16(raw_y) + pack_s16(raw_z)
++  sensor = object.__new__(LSM6DS3_Accel)
++  sensor.bus = SimpleNamespace(close=lambda: None)
++  sensor.source = log.SensorEventData.SensorSource.lsm6ds3trc
++  sensor.read = lambda address, _length: bytes((1,)) if address == sensor.LSM6DS3_ACCEL_I2C_REG_STAT_REG else data
++  timestamp = 456789
++
++  event = sensor.get_event(timestamp)
++
++  scale = 9.81 * 2.0 / (1 << 15)
++  x = Sensor.parse_16bit(data[0], data[1]) * scale
++  y = Sensor.parse_16bit(data[2], data[3]) * scale
++  z = Sensor.parse_16bit(data[4], data[5]) * scale
++  expected = expected_event(timestamp, 1, 1, 1, sensor.source, "acceleration", [y, -x, z], 1)
++  assert event.to_bytes() == expected.to_bytes()
++
++
++def test_lsm6ds3_gyro_fixed_scale_matches_previous_formula():
++  raw_x, raw_y, raw_z = 1234, -2345, -32768
++  data = pack_s16(raw_x) + pack_s16(raw_y) + pack_s16(raw_z)
++  sensor = object.__new__(LSM6DS3_Gyro)
++  sensor.bus = SimpleNamespace(close=lambda: None)
++  sensor.source = log.SensorEventData.SensorSource.lsm6ds3
++  sensor.read = lambda address, _length: bytes((2,)) if address == sensor.LSM6DS3_GYRO_I2C_REG_STAT_REG else data
++  timestamp = 987654
++
++  event = sensor.get_event(timestamp)
++
++  scale = (8.75 / 1000.0) * (math.pi / 180.0)
++  x = Sensor.parse_16bit(data[0], data[1])
++  y = Sensor.parse_16bit(data[2], data[3])
++  z = Sensor.parse_16bit(data[4], data[5])
++  expected = expected_event(timestamp, 2, 5, 16, sensor.source, "gyroUncalibrated", [y * scale, -x * scale, z * scale], 1)
++  assert event.to_bytes() == expected.to_bytes()
++
++
++def test_icm42670_gyro_fixed_conversion_and_rotation_match_previous_formula():
++  raw_x, raw_y, raw_z = 1234, -2345, 32767
++  timestamp = 7654321
++  sensor = object.__new__(ICM42670_Gyro)
++  sensor.bus = SimpleNamespace(close=lambda: None)
++  sensor.source = log.SensorEventData.SensorSource.icm42670
++  sensor.bias_counts = (1.5, -2.25, 3.0)
++  sensor._read_raw_counts = lambda: (raw_x, raw_y, raw_z)
++
++  event = sensor.get_event(timestamp)
++
++  def baseline_counts_to_rad(counts):
++    return counts * (math.pi / 180.0) / 131.0
++
++  gx_raw = baseline_counts_to_rad(raw_x - sensor.bias_counts[0])
++  gy_raw = baseline_counts_to_rad(raw_y - sensor.bias_counts[1])
++  gz_raw = baseline_counts_to_rad(raw_z - sensor.bias_counts[2])
++  cosine, sine = math.cos(-0.4082), math.sin(-0.4082)
++  expected_values = [cosine * gx_raw - sine * gz_raw, gy_raw, sine * gx_raw + cosine * gz_raw]
++  expected = expected_event(timestamp, 1, 5, 16, sensor.source, "gyroUncalibrated", expected_values, 1)
++  assert event.to_bytes() == expected.to_bytes()
++
++
++def test_mmc5603_fixed_scale_and_set_reset_order_match_previous_formula(monkeypatch):
++  set_data = (16384, 12000, 7777)
++  reset_data = (0, 20000, 32768)
++  packets = {SET: pack_mmc_axes(set_data), RESET: pack_mmc_axes(reset_data)}
++  cycles = []
++  sensor = object.__new__(MMC5603NJ_Magn)
++  sensor.bus = SimpleNamespace(close=lambda: None)
++  sensor.write = lambda _address, cycle: cycles.append(cycle)
++  sensor.wait = lambda: None
++  sensor.read = lambda _address, _length: packets[cycles[-1]]
++  timestamp = 112233
++  monkeypatch.setattr("openpilot.system.sensord.sensors.mmc5603nj_magn.time.monotonic_ns", lambda: timestamp)
++
++  event = sensor.get_event(999)
++
++  scale = 1.0 / 16384.0
++  # Preserve the old call-site byte order and SET/RESET concatenation explicitly.
++  expected_values = []
++  for source_values in (set_data, reset_data):
++    expected_values.extend((value * scale) - 32.0 for value in source_values)
++  expected_status = int(all(int(value) != -32 for value in expected_values))
++  expected = expected_event(timestamp, 1, 3, 14, log.SensorEventData.SensorSource.mmc5603nj,
++                            "magneticUncalibrated", expected_values, expected_status)
++  assert cycles == [SET, RESET]
++  assert event.to_bytes() == expected.to_bytes()
+diff --git a/system/sensord/tests/test_gyro_buffer.py b/system/sensord/tests/test_gyro_buffer.py
+new file mode 100644
+index 000000000..7ce4fea54
+--- /dev/null
++++ b/system/sensord/tests/test_gyro_buffer.py
+@@ -0,0 +1,84 @@
++from types import SimpleNamespace
++from statistics import fmean, pstdev
++
++from openpilot.system.sensord.sensors import icm42670_gyro
++from openpilot.system.sensord.sensors.icm42670_gyro import GYRO_CAL_MAX_MEAN_RAD_S, GYRO_CAL_MAX_STD_RAD_S, ICM42670_Gyro
++
++
++def run_calibration(monkeypatch, samples):
++  sensor = object.__new__(ICM42670_Gyro)
++  sensor.bus = SimpleNamespace(close=lambda: None)
++  sensor.bias_counts = (0.0, 0.0, 0.0)
++  sample_iter = iter(samples)
++  sensor._read_raw_counts = lambda: next(sample_iter)
++  monkeypatch.setattr(icm42670_gyro.time, "sleep", lambda _duration: None)
++  seen_fmean = []
++  seen_pstdev = []
++  original_fmean = fmean
++  original_pstdev = pstdev
++
++  def record_fmean(values):
++    observed = tuple(values)
++    seen_fmean.append(observed)
++    return original_fmean(observed)
++
++  def record_pstdev(values):
++    observed = tuple(values)
++    seen_pstdev.append(observed)
++    return original_pstdev(observed)
++
++  monkeypatch.setattr(icm42670_gyro, "fmean", record_fmean)
++  monkeypatch.setattr(icm42670_gyro, "pstdev", record_pstdev)
++  sensor._calibrate_zero_rate_bias()
++  return sensor, seen_fmean, seen_pstdev
++
++
++def expected_calibration(samples):
++  axes = tuple(tuple(sample[axis] for sample in samples) for axis in range(3))
++  means = tuple(fmean(axis) for axis in axes)
++  stds = tuple(pstdev(axis) for axis in axes)
++  counts_to_rad = lambda value: value * (3.141592653589793 / 180.0) / 131.0
++  mean_rad = tuple(counts_to_rad(value) for value in means)
++  std_rad = tuple(counts_to_rad(value) for value in stds)
++  stationary = sum(value * value for value in mean_rad) ** 0.5 <= GYRO_CAL_MAX_MEAN_RAD_S and max(std_rad) <= GYRO_CAL_MAX_STD_RAD_S
++  bias = means if stationary else (0.0, 0.0, 0.0)
++  return axes, means, stds, stationary, bias
++
++
++def test_calibration_preserves_ordered_signed_16_bit_samples_and_statistics(monkeypatch):
++  samples = []
++  for index in range(300):
++    if index == 0:
++      sample = (-32768, 32767, 0)
++    elif index == 1:
++      sample = (32767, -32768, -32768)
++    elif index == 2:
++      sample = (index - 150, 150 - index, 32767)
++    else:
++      sample = (index - 150, 150 - index, (index % 21) - 10)
++    samples.append(sample)
++
++  sensor, means_inputs, std_inputs = run_calibration(monkeypatch, samples)
++  axes, means, stds, stationary, bias = expected_calibration(samples)
++
++  assert len(means_inputs) == len(std_inputs) == 3
++  assert tuple(means_inputs) == axes
++  assert tuple(std_inputs) == axes
++  assert tuple(fmean(axis) for axis in means_inputs) == means
++  assert tuple(pstdev(axis) for axis in std_inputs) == stds
++  assert not stationary
++  assert sensor.bias_counts == bias
++
++
++def test_stationary_samples_select_the_same_mean_bias(monkeypatch):
++  samples = [(10 + index % 2, -20 + index % 3 - 1, 30 - index % 2) for index in range(300)]
++
++  sensor, means_inputs, std_inputs = run_calibration(monkeypatch, samples)
++  axes, means, stds, stationary, bias = expected_calibration(samples)
++
++  assert tuple(means_inputs) == axes
++  assert tuple(std_inputs) == axes
++  assert tuple(fmean(axis) for axis in axes) == means
++  assert tuple(pstdev(axis) for axis in axes) == stds
++  assert stationary
++  assert sensor.bias_counts == bias == means
+diff --git a/system/sensord/tests/test_polling_pacing.py b/system/sensord/tests/test_polling_pacing.py
+new file mode 100644
+index 000000000..6edf877fa
+--- /dev/null
++++ b/system/sensord/tests/test_polling_pacing.py
+@@ -0,0 +1,106 @@
++from types import SimpleNamespace
++
++from openpilot.system.sensord import sensord
++
++
++class StopAfterChecks:
++  def __init__(self, iterations: int):
++    self.iterations = iterations
++    self.checks = 0
++
++  def is_set(self) -> bool:
++    self.checks += 1
++    return self.checks > self.iterations
++
++
++class RecordingRatekeeper:
++  instances = []
++
++  def __init__(self, *_args, **_kwargs):
++    self.keep_time_calls = 0
++    self.instances.append(self)
++
++  def keep_time(self):
++    self.keep_time_calls += 1
++
++
++class RecordingPublisher:
++  instances = []
++
++  def __init__(self, _services):
++    self.sent = []
++    self.instances.append(self)
++
++  def send(self, service, message):
++    self.sent.append((service, message))
++
++
++class SequenceSensor:
++  def __init__(self, validity):
++    self.validity = iter(validity)
++    self.events = 0
++
++  def get_event(self):
++    self.events += 1
++    return f"event-{self.events}"
++
++  def is_data_valid(self):
++    return next(self.validity)
++
++
++def setup_polling_fakes(monkeypatch):
++  RecordingRatekeeper.instances.clear()
++  RecordingPublisher.instances.clear()
++  monkeypatch.setattr(sensord, "Ratekeeper", RecordingRatekeeper)
++  monkeypatch.setattr(sensord.messaging, "PubMaster", RecordingPublisher)
++  monkeypatch.setattr(sensord.messaging, "new_message", lambda _service, valid: SimpleNamespace(valid=valid))
++  monkeypatch.setattr(sensord.cloudlog, "exception", lambda *_args, **_kwargs: None)
++
++
++def test_invalid_iterations_are_paced_without_publishing(monkeypatch):
++  setup_polling_fakes(monkeypatch)
++  sensor = SequenceSensor([False, True])
++  stop = StopAfterChecks(iterations=2)
++
++  sensord.polling_loop(sensor, "accelerometer", stop)
++
++  ratekeeper, = RecordingRatekeeper.instances
++  publisher, = RecordingPublisher.instances
++  assert sensor.events == 2
++  assert ratekeeper.keep_time_calls == 2
++  assert len(publisher.sent) == 1
++  service, message = publisher.sent[0]
++  assert service == "accelerometer"
++  assert message.valid
++  assert message.accelerometer == "event-2"
++
++
++def test_sensor_read_errors_are_logged_and_still_paced(monkeypatch):
++  setup_polling_fakes(monkeypatch)
++  stop = StopAfterChecks(iterations=2)
++  logged = []
++
++  class ErrorThenValidSensor:
++    def __init__(self):
++      self.events = 0
++
++    def get_event(self):
++      self.events += 1
++      if self.events == 1:
++        raise OSError("offline fixture")
++      return "event-2"
++
++    def is_data_valid(self):
++      return True
++
++  monkeypatch.setattr(sensord.cloudlog, "exception", lambda message: logged.append(message))
++  sensor = ErrorThenValidSensor()
++
++  sensord.polling_loop(sensor, "accelerometer", stop)
++
++  ratekeeper, = RecordingRatekeeper.instances
++  publisher, = RecordingPublisher.instances
++  assert ratekeeper.keep_time_calls == 2
++  assert logged == ["Error in accelerometer polling loop"]
++  assert len(publisher.sent) == 1
++  assert publisher.sent[0][1].accelerometer == "event-2"

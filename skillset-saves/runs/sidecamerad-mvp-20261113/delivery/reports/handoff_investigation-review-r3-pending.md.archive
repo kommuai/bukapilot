@@ -1,0 +1,49 @@
+---
+submission_id: sidecamerad-mvp-20261113_handoff-2_attempt-1_2026-11-15T08:56:55Z
+revision: "3"
+package_path: skillset-saves/runs/sidecamerad-mvp-20261113/investigation/manifest.json
+submission_status: PENDING
+verdict: PENDING
+---
+
+# Cross-stage handoff: investigation review
+
+## Package
+
+- Boundary: `investigation-review` (INVESTIGATE returning to BUILD)
+- Investigation revision: `3`
+- Investigation submission: `sidecamerad-mvp-20261113_investigation-ac4-timing-r3`
+- Manifest: `skillset-saves/runs/sidecamerad-mvp-20261113/investigation/manifest.json`
+- Manifest SHA-256: `3fd6d86266ea12dc338d68c441bfaa3491d5a41c7f69c7aaf99e534f0d5abe5e`
+- Report: `skillset-saves/runs/sidecamerad-mvp-20261113/investigation/reports/investigation-package.md`
+- Report SHA-256: `e83647146bf85fb14b60b44c2aa8c6d209882ded91a2e7f3e5991a9106a1d573`
+- Evidence chain: `skillset-saves/runs/sidecamerad-mvp-20261113/investigation/evidence/evidence-chain-r3.log`
+- Evidence-chain SHA-256: `0210a1d7b7f1643e93408616bc240692c1fa216eae31ea2ecc79d9d7dbc04376`
+- Canonical investigation self-check: passed with zero failures and warnings.
+
+The approved revision-1 package is preserved at `investigation/reports/investigation-package-r1.md` (SHA-256 `b4afe53167fb5ff722d3b8174f7e339f98d3cc66578d84d420e12acb8e6bc796`); the approved revision-2 package is preserved at `investigation/reports/investigation-package-r2.md` (SHA-256 `b35b75239d451b80d9cf7015028d4598a821f0e110debd3927213fab67e44cfd`). The prior revision-2 APPROVED judgment remains in the cross-stage cycle ledger, but it does not approve this revision-3 evidence or fix path. The r2 handoff is archived at `delivery/reports/handoff_investigation-review-r2.md.archive` (SHA-256 `e86be0ed23ae33d3fef49cea2c707d7bf8edbaef20adf4001b4c2c7f50d21276`).
+
+## Finding and bounded BUILD path
+
+The accepted five-minute current-source capture still fails AC-4's maximum-gap condition: 6,050 matched frames over 302.506666 seconds, 20.000523 fps mean cadence, 89.163715 ms maximum EOF gap, and 753 of 6,049 gaps above 60 ms. The latest sequential traced 600-frame A/B found a modest difference with output-side `-flush_packets 1`: read gaps above 60 ms fell from 122/599 to 107/599 and the maximum fell from 88.425 ms to 86.679 ms; write-boundary counts fell from 120/599 to 106/599 with the maximum down from 88.367 ms to 86.696 ms. Both arms still have many >60 ms gaps. Since the arms were sequential and straced, this does not prove a causal or repeatable effect and does not authorize a production argv change.
+
+The revision-3 package proposes a read-only 600-frame ABBA repeat on `/dev/video60`: default (A), `-flush_packets 1` (B), B, A. Keep all other FFmpeg arguments, queue/thread settings, mode, and reader fixed; apply identical tracing; save no payload; make no source edit. The result is diagnostic only and cannot pass AC-4. Preserve `timestampEof` as host-monotonic time after complete raw-frame read; FFmpeg PTS remain V4L2 SOE, not EOF.
+
+## Open evidence limits
+
+- The initial output-flush A/B was sequential, traced, and unpaired; observer overhead and order/run variation may explain some or all of the small delta.
+- The proposed ABBA diagnostic has not been run and will not isolate FFmpeg internal decode/filter/synchronization waits or identify the output writer thread.
+- DQBUF trace counted 602 successful dequeues for 600 outputs and omitted sequence fields, so exact dequeue-to-output identity is unproven.
+- AC-4 remains failed on the accepted five-minute reproduction. AC-6 reconnect/sibling continuity and AC-8 four-camera soak/CPU headroom remain hardware deferrals. The existing minor FFmpeg child resource-limit finding remains open.
+
+## Next consumer
+
+Submit this revision-3 package to `gatekeeper-admiral` for `investigation-review`. If approved, route the bounded read-only ABBA diagnostic to `build/build-management`; no production source/argv change is requested by this package.
+
+## Cross-stage verdict
+
+- Gate: `gatekeeper-admiral`
+- Verdict: **PENDING** for `investigation-review` revision `3`.
+- The gatekeeper will persist its judgment and verdict for revision 3 before this handoff advances.
+
+This is an intermediate investigation-to-BUILD handoff; a final delivery package is not in scope.

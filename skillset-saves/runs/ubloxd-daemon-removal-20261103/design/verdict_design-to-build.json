@@ -1,0 +1,133 @@
+{
+  "boundary": "design-to-build",
+  "changed_evidence": null,
+  "checked_at": "2026-11-03T17:35:01.335211+00:00",
+  "declared_schema_version": 2,
+  "evidence_digests": {
+    "acceptance": "8949dddfe026d7e3a8ceb34518b51319d399faa77aea771047189bb7c4c7878e",
+    "architecture": "ff225d30ce38a32f6785c7787d3a71bd3c44a9eb4ff1105dfc0416b99ec1e7bd",
+    "decisions": "64d27742c3f39c2d3ac1973baed5585701802291d223de835587719261068de2",
+    "interfaces": "d9ad1234b91fe835d01068a293491e45c5965b4174c3688cca458ccbeb8c1f67",
+    "plan": "8949dddfe026d7e3a8ceb34518b51319d399faa77aea771047189bb7c4c7878e",
+    "security_seed": "824f5f9a9bb2dd53e5e0dec3e5513f94eb523f66492a1b821e89d7935eae5e04",
+    "stack_lock": "ab8736fc57a75037800bbd30b0c1340fd29015133bc7d7dcb342ab598693f4d4",
+    "taste_snapshot": "7d06366b8bfd626cad447c4e60639ed4a5d485ad434e7bd45db6f5aa1ae4466b",
+    "ui_evidence": "cd28c453a2cee400f7dddcdbced7224a617d4cceacc98a7940eebad3bc2e943c"
+  },
+  "evidence_root": "/data/media/supremeteam/42c6eb550c629191187c/skillset-saves/runs/ubloxd-daemon-removal-20261103",
+  "evidence_root_kind": "run",
+  "failures": [],
+  "gate_spec_digest": "b2995ffa29a827c2bf101391788bf1228eb38869ad7c0a601a4126734ee6c7c1",
+  "gate_spec_is_shipped": true,
+  "idempotency_drift": false,
+  "judgment": {
+    "by_owner": {},
+    "escalation": null,
+    "findings": [
+      {
+        "basis": {
+          "kind": "contract",
+          "ref": "Design Packet Validation Sequence",
+          "source": "design/gatekeeper-design/references/workflow.md"
+        },
+        "evidence": [
+          "reports/architecture.md",
+          "reports/design-package.md"
+        ],
+        "id": "INFO-API-CONTRACTS-OUT-OF-SCOPE",
+        "key": "interfaces",
+        "owner": "architect",
+        "severity": "Info",
+        "statement": "The package-shape validator's conditional API endpoint-contract finding is resolved as out of scope. The architecture defines internal manager, parameter, and cereal-service contracts; it introduces no HTTP, webhook, or public request/response endpoint, and retained cereal service schemas are unchanged."
+      },
+      {
+        "basis": {
+          "kind": "contract",
+          "ref": "Design Packet Validation Sequence",
+          "source": "design/gatekeeper-design/references/workflow.md"
+        },
+        "evidence": [
+          "reports/architecture.md",
+          "reports/design-package.md",
+          "manifest:evidence.ui_evidence"
+        ],
+        "id": "INFO-UI-HANDOFF-OUT-OF-SCOPE",
+        "key": "ui_evidence",
+        "owner": "architect",
+        "severity": "Info",
+        "statement": "The package-shape validator's conditional UI handoff finding is resolved as out of scope. This is a manager and daemon-support cleanup with no user-facing surface or design-system change; the manifest carries the architect's sanctioned no-surface applicability record, and existing hardwared/UI GPS subscriptions stay unchanged."
+      },
+      {
+        "basis": {
+          "kind": "contract",
+          "ref": "Fallbacks That Exist, And The Ones That Do Not",
+          "source": "design/commander/references/gate-evidence.md"
+        },
+        "evidence": [
+          "reports/report_stack-lock.md",
+          "reports/implementation-spec.md",
+          "manifest:evidence.stack_lock"
+        ],
+        "id": "INFO-STACK-DETECTOR-INCOMPLETE",
+        "key": "stack_lock",
+        "owner": "commander",
+        "severity": "Info",
+        "statement": "The host runtime scan is incomplete because Python 3.12.3 is below the harness's 3.13 floor and the repository walk exceeded its byte limit. The package does not claim a detected runtime; the sanctioned no-new-runtime/framework applicability is used because the design adds no runtime or framework."
+      },
+      {
+        "basis": {
+          "kind": "contract",
+          "ref": "Acceptance Checklist",
+          "source": "design/gatekeeper-design/references/workflow.md"
+        },
+        "evidence": [
+          "reports/plan.md",
+          "reports/implementation-spec.md"
+        ],
+        "id": "INFO-KA2-RUNTIME-NOT-EXERCISED",
+        "key": "acceptance",
+        "owner": "planner",
+        "severity": "Info",
+        "statement": "The plan's acceptance checks are static reviews; no KA2 hardware run, product tests, or historical route replay is claimed. The implementation spec preserves these limitations and names future behavior checks only if the user separately authorizes them."
+      }
+    ],
+    "gate": "gatekeeper-design",
+    "intake": {
+      "artifact": "../intake/report_grilling.md"
+    },
+    "valid": true,
+    "verdict": "APPROVED"
+  },
+  "judgment_failures": [],
+  "manifest": "manifest.json",
+  "manifest_schema_version": 2,
+  "mechanical_only": false,
+  "missing": [],
+  "mixed_revisions": false,
+  "owner": "commander",
+  "package_fingerprint": "9560c415454533b1f0eff480c1468a9b321915e3b9b0aacdf74b5e43dbdf68f1",
+  "pass": true,
+  "prior_record": null,
+  "prior_reusable": null,
+  "registry_is_shipped": true,
+  "revise_packet": {
+    "actions_by_owner": {},
+    "by_key": {},
+    "by_owner": {},
+    "judgment_by_owner": {},
+    "unassigned": []
+  },
+  "revision": "r8",
+  "revision_cycle": {
+    "boundary_revise_rounds": 0,
+    "consecutive_revise": 0,
+    "gate": "gatekeeper-design",
+    "held_for_user": false,
+    "history": "verdict_design-to-build.cycles.json"
+  },
+  "run_id": "ubloxd-daemon-removal-20261103",
+  "submission_id": "ubloxd-removal-design-20261103-v2",
+  "unchanged_evidence": null,
+  "verdict_id": "3efd4f7b35fe77ba656dd8dd5f87373891564c34dc998257778e7e49ad63a106",
+  "warnings": []
+}

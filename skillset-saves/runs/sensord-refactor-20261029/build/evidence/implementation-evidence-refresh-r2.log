@@ -1,0 +1,20 @@
+Implementation evidence refresh r2 — final approved tree
+
+Command: `git diff --binary HEAD -- <13 approved paths>`
+Result: exit 0; the unified diff contains exactly 13 approved changed paths: 9 modified and 4 deleted. SHA-256: `e1aec7107d84768103d5f8402b6384c2e234ec81cd2faa87b34a9eba96a6ca5a`.
+
+Scope assertion: parsed the diff headers and compared their path set to the design allowlist. Result: pass, no unrelated dirty worktree paths included.
+Marker scan: searched added diff lines for TODO, FIXME, XXX, placeholder, and unowned-follow-up markers. Result: no matches.
+
+Authorship split:
+- Bob production/config/CI: `Jenkinsfile`, `selfdrive/test/test_onroad.py`, `system/loggerd/tests/test_encoder.py`, `system/manager/process_config.py`, `system/sensord/sensord.py`, plus four deleted non-KA2 drivers.
+- Test-builder test changes: `system/manager/test/test_manager.py`, `system/sensord/tests/test_sensord.py`, `system/sensord/tests/test_fixed_calculations.py`, `system/sensord/tests/test_event_construction.py`.
+
+Final test report reference: `reports/report_tests-ka2-cleanup.md`, SHA-256 `18619d4dc1fd188885d13b6e0835e721274b30b0452362a5cd280775d67cb4b4`.
+- Focused offline sensord suite + manager selection: 10 passed, log `evidence/sensord-offline-ka2-cleanup.log`, SHA-256 `7f0f58a9db2309e673be4c59abfdc9f49cf925f1353322541be84bf73bccd7a3`.
+- Approved combined offline command: 12 passed, 1 skipped, 2 failed due unrelated NumPy 2.5 DeprecationWarning-as-error during existing manager/modeld imports. Log `evidence/tests-ka2-cleanup.log`, SHA-256 `4bea80272b72ec7d25052f371a17594e4f9b1cdc03a0e83d9f33c017fa1b68ee`. This command is not reported as passed.
+- Loggerd integration test: collection failed before tests because `parameterized` is unavailable; zero tests collected. Log `evidence/loggerd-test-ka2-cleanup.log`, SHA-256 `f91f12552af043e9a946e33c70eca031c00b92c446a325fb4f9425c2ba429bae`. This command is not reported as passed.
+
+Prior implementation checks: AST syntax passed (`evidence/implementation-syntax-ka2-cleanup.log`, SHA-256 `b7a083319a38ffa89939d106efd267eee73fd23a58b2259c368881067e321ce3`); scoped diff check passed (`evidence/implementation-diff-check-ka2-cleanup.log`, SHA-256 `c261225d6a04568cdfe6702fb06fbe3ca425bd831f5edec72740c414d09298d5`); Jenkins selection assertions passed (`evidence/implementation-ci-audit-ka2-cleanup.log`, SHA-256 `b4a5f953b272d93e720ff743bbf6787bb0b6d0dd5195aa8d19236f1583470bf2`); sensord runtime reference audit passed (`evidence/implementation-reference-audit-ka2-cleanup.log`, SHA-256 `7030680478ae62d4583ecadb8a1af96e9c35f78a752d9accd11087aab605a3e5`). Final whole-scope whitespace/reference checks are documented in the test report.
+
+No tests were run during this evidence-only refresh. No source edits, commits, hardware/I2C access, or external boot-log operations were performed.

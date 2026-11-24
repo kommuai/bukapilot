@@ -1,0 +1,4 @@
+PASS: no removed-driver or GPIO/IRQ loop references in sensord runtime
+PASS: all four non-KA2 driver files are absent
+command=rg removed-driver and GPIO/IRQ references; verify deleted-file absence
+exit_code=0

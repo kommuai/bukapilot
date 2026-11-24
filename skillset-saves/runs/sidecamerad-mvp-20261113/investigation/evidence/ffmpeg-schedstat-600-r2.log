@@ -1,0 +1,9 @@
+Read-only FFmpeg per-thread schedstat correlation — 600 frames
+
+Capture: 2026-11-15 10:20:43 UTC; camera /dev/video60; 1280x720 MJPEG to NV12 rawvideo; 600/600 complete frames, 829,440,000 bytes; FFmpeg exit 0; child reaped. No payload was saved. /proc task schedstat was readable for four FFmpeg threads: ffmpeg, dec0:0:mjpeg, dmx0:video4linu, mux0:rawvideo. `system/sidecamerad.py` remained SHA-256 `494fb8b88fda8bcf1d8301225019f4f01f4b77a0bb5cb3e69dde47ed96e1309b` before and after.
+
+Observed over 599 full-read intervals: mean 49.992047 ms, median 50.341057 ms, p95 64.946614 ms, p99 73.227160 ms, maximum 80.383947 ms; 77 intervals exceeded 60 ms. On the 77 long intervals, summed per-thread runqueue delay averaged 1.469359 ms; the maximum single-thread delay averaged 0.988367 ms; 3/77 intervals had any thread wait >=5 ms; maximum summed delay was 10.867576 ms. On the other 522 intervals, corresponding means were 1.273183 ms and 0.848376 ms; 13/522 had any thread wait >=5 ms.
+
+These scheduler deltas do not support CPU runqueue delay as the primary cause of the >60 ms output gaps. The snapshots were taken immediately after each full-frame read; their /proc read cost is included in the following interval and may affect timing. The trace sampled all visible FFmpeg threads but does not identify the exact raw-output writer thread, and post-read snapshots do not resolve per-frame internal decode/filter wait.
+
+Raw JSON capture: `investigation/artifacts/ffmpeg-schedstat-600-r2.json`; SHA-256 `e3bea2a7874fdb5e6b98d6aeb7fbaeca65308845feb684883d8491e11b01aa36`. Stderr was empty (SHA-256 `e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855`).

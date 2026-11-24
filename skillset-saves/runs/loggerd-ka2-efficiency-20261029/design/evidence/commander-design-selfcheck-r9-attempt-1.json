@@ -1,0 +1,12 @@
+{
+  "boundary": "design-to-build",
+  "check_command": "/data/kommu/.codex/python/cpython-3.13-linux-aarch64-gnu/bin/python3 /data/kommu/.codex/skills/harness/gatekeeper/check.py --boundary design-to-build --package skillset-saves/runs/loggerd-ka2-efficiency-20261029/design/manifest.json",
+  "checked_at": "2026-10-31T06:14:39.504246+00:00",
+  "exit_code": 1,
+  "failures": [
+    "The optional copied prior_report_no_copy_fallbacks_r8.md contains seven relative links to evidence that was not included in the r9 design package."
+  ],
+  "manifest_sha256_before_resolution": "e83d1b7c300d6dd235e24d9e693d11096afd03638cf37d5b5d77a77bff815801",
+  "product_code_or_tests_run": false,
+  "resolution": "Removed the optional copied build report from manifest artifact_hashes. The approved r8 research brief remains hashed and its prior approved package is preserved in the r8 archive. No required r9 evidence or product file was changed."
+}

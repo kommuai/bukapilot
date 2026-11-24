@@ -1,0 +1,17 @@
+repeat10_pair=04 mode=copy started_utc=2026-10-31T02:41:22Z mem_before_kb=1895840 shm_used_bytes=27013120 msgq_bytes=20972288
+thermal_cooling_state /sys/class/thermal/cooling_device0/cur_state=0
+thermal_cooling_state /sys/class/thermal/cooling_device1/cur_state=0
+thermal_cooling_state /sys/class/thermal/cooling_device2/cur_state=0
+thermal_cooling_state /sys/class/thermal/cooling_device4/cur_state=0
+cpu_frequency /sys/devices/system/cpu/cpufreq/policy0/scaling_cur_freq=1800000
+cpu_frequency /sys/devices/system/cpu/cpufreq/policy4/scaling_cur_freq=408000
+cpu_frequency /sys/devices/system/cpu/cpufreq/policy6/scaling_cur_freq=408000
+class_harness_mode=copy binary_class=MppEncoder dma_heap=system streams=road+qRoad fps=20 frames=100 buffers=24
+rga_api version 1.10.0_[8]
+road_route_configured_zero_copy=0 road_imported_fds=0 road_import_failures=0 road_fallback_logged=0 qroad_route_configured_zero_copy=0 qroad_imported_fds=0 qroad_import_failures=0 qroad_fallback_logged=0
+road_submit_us_median=6026 p95=7993 p99=9123 n=100
+qroad_submit_us_median=3854 p95=5079 p99=5289 n=100
+road_accepted=100 road_failures=0 road_packets=100 road_payload_bytes=1215073 road_stream_bytes=1215239
+qroad_accepted=100 qroad_failures=0 qroad_packets=100 qroad_payload_bytes=105434
+cpu_sample_ns=354503075 wall_total_ms=5025 peak_rss_kb=13256
+exit_code=0 completed_utc=2026-10-31T02:41:27Z mem_after_kb=1897328

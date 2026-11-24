@@ -1,0 +1,21 @@
+{
+  "checked_at": "2026-10-31 05:22:05 UTC",
+  "decided_by": "design/commander",
+  "effective_command": "taste_prefs.py effective --scope both",
+  "effective_entries": 0,
+  "global": {
+    "exists": false,
+    "revision": 0,
+    "status_digest": "sha256:52719360b0c71f019099a5ab1d2e547a1825919d4cdd984fa460cbb974b3e73a"
+  },
+  "project": {
+    "exists": false,
+    "revision": 0,
+    "status_digest": "sha256:32686ff1966dd5d421a5dddb350d25c1ce236179ef7180de075abc69cf9d56ee"
+  },
+  "resolution_ok": true,
+  "run_id": "loggerd-ka2-efficiency-20261029",
+  "snapshot_artifact": "artifacts/taste_snapshot_r8.json",
+  "snapshot_sha256": "a5de5d229f79066b6fddc255439d4b0d70fb535a039835ff1c41e4073720989f",
+  "status_command": "taste_prefs.py status --scope both"
+}

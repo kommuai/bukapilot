@@ -1,0 +1,73 @@
+{
+  "boundary": "design-to-build",
+  "changed_evidence": null,
+  "checked_at": "2026-10-31T05:21:09.347209+00:00",
+  "declared_schema_version": 2,
+  "evidence_digests": {
+    "acceptance": "8f4f258d36a70f5a7eb57108020318fb8036134197825d29e215c313f934f8d5",
+    "architecture": "0a19ae6b596e46ca0c9b6ea6153f9a4c60afeb4c881df9ffd2410d7d6bf78b6d",
+    "decisions": "14750ae26f52b5695b62b4f2a9329da3687fef3b5db7c4dbdac726fb7e4d4c89",
+    "interfaces": "fbd686efd9df9c9469eaebdb1043aa21c7fb3588d51cc21c8de21257d84aa946",
+    "plan": "8f4f258d36a70f5a7eb57108020318fb8036134197825d29e215c313f934f8d5",
+    "security_seed": "83058ddea7ffc139d5e9a55a008e4b4a7ea7e12ebfc8f40929d16bc7be4ebea1",
+    "stack_lock": "e80e04e2361f105b4317eb5748f9ea2736b0eb911458fd737c68a87918e200ed",
+    "taste_snapshot": "000817514bc1a9634f634ddca3e1c33dfecbf5aabf0493f95691b5aaab20adc0",
+    "ui_evidence": "c186b1eadb349aec67a254184780183de154c8b6ba0a1256e3ac71cb56356132"
+  },
+  "evidence_root": "/data/media/supremeteam/42c6eb550c629191187c/skillset-saves/runs/loggerd-ka2-efficiency-20261029",
+  "evidence_root_kind": "run",
+  "failures": [
+    "broken link in prior_report_no_copy_fallbacks_r8.md: ../evidence/encoder_no_fallback_scons_build.log",
+    "broken link in prior_report_no_copy_fallbacks_r8.md: ../evidence/loggerd_shm_rotation_not_applicable_pytest.log",
+    "broken link in prior_report_no_copy_fallbacks_r8.md: ../evidence/mpp_encoder_dma_buf_validation_pytest.log",
+    "broken link in prior_report_no_copy_fallbacks_r8.md: ../evidence/mpp_encoder_no_fallback_smoke.cc",
+    "broken link in prior_report_no_copy_fallbacks_r8.md: ../evidence/mpp_encoder_no_fallback_smoke.log",
+    "broken link in prior_report_no_copy_fallbacks_r8.md: ../evidence/run_mpp_encoder_no_fallback_smoke.sh",
+    "broken link in prior_report_no_copy_fallbacks_r8.md: report_qroad_tail_memory_investigation.md"
+  ],
+  "gate_spec_digest": "b2995ffa29a827c2bf101391788bf1228eb38869ad7c0a601a4126734ee6c7c1",
+  "gate_spec_is_shipped": true,
+  "idempotency_drift": false,
+  "judgment": null,
+  "judgment_failures": [],
+  "manifest": "manifest.json",
+  "manifest_schema_version": 2,
+  "mechanical_only": true,
+  "missing": [],
+  "mixed_revisions": false,
+  "owner": "commander",
+  "package_fingerprint": "c6e255bd4191069b555e4460394c572f874e9befd60c884b4f7b9b3bab2357c1",
+  "pass": false,
+  "prior_record": null,
+  "prior_reusable": null,
+  "registry_is_shipped": true,
+  "revise_packet": {
+    "by_key": {},
+    "by_owner": {
+      "commander": [
+        "broken link in prior_report_no_copy_fallbacks_r8.md: ../evidence/encoder_no_fallback_scons_build.log",
+        "broken link in prior_report_no_copy_fallbacks_r8.md: ../evidence/loggerd_shm_rotation_not_applicable_pytest.log",
+        "broken link in prior_report_no_copy_fallbacks_r8.md: ../evidence/mpp_encoder_dma_buf_validation_pytest.log",
+        "broken link in prior_report_no_copy_fallbacks_r8.md: ../evidence/mpp_encoder_no_fallback_smoke.cc",
+        "broken link in prior_report_no_copy_fallbacks_r8.md: ../evidence/mpp_encoder_no_fallback_smoke.log",
+        "broken link in prior_report_no_copy_fallbacks_r8.md: ../evidence/run_mpp_encoder_no_fallback_smoke.sh",
+        "broken link in prior_report_no_copy_fallbacks_r8.md: report_qroad_tail_memory_investigation.md"
+      ]
+    },
+    "unassigned": [
+      "broken link in prior_report_no_copy_fallbacks_r8.md: ../evidence/encoder_no_fallback_scons_build.log",
+      "broken link in prior_report_no_copy_fallbacks_r8.md: ../evidence/loggerd_shm_rotation_not_applicable_pytest.log",
+      "broken link in prior_report_no_copy_fallbacks_r8.md: ../evidence/mpp_encoder_dma_buf_validation_pytest.log",
+      "broken link in prior_report_no_copy_fallbacks_r8.md: ../evidence/mpp_encoder_no_fallback_smoke.cc",
+      "broken link in prior_report_no_copy_fallbacks_r8.md: ../evidence/mpp_encoder_no_fallback_smoke.log",
+      "broken link in prior_report_no_copy_fallbacks_r8.md: ../evidence/run_mpp_encoder_no_fallback_smoke.sh",
+      "broken link in prior_report_no_copy_fallbacks_r8.md: report_qroad_tail_memory_investigation.md"
+    ]
+  },
+  "revision": "r8",
+  "run_id": "loggerd-ka2-efficiency-20261029",
+  "submission_id": "loggerd-ka2-efficiency-20261029-design-r8",
+  "unchanged_evidence": null,
+  "verdict_id": "b85669b3573214171a24e66f7497fc7bdbe1000791c8c9b1076f992bcdc38443",
+  "warnings": []
+}

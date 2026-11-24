@@ -1,0 +1,59 @@
+{
+  "artifacts": [
+    "evidence/tests-r10-ac6-full-r267.log",
+    "evidence/tests-r10-ac6-full-preflight-r267.log",
+    "evidence/tests-r10-ac6-full-postflight-r267.log",
+    "evidence/tests-r10-ac6-focused-r266.log",
+    "evidence/tests-r10-ac6-focused-preflight-r266.log",
+    "evidence/tests-r10-ac6-focused-postflight-r266.log",
+    "evidence/tests-r10-full-suite-r260.log",
+    "evidence/tests-r10-gap-closure.log",
+    "evidence/tests-r10-run-r229.log",
+    "evidence/tests-r10-run-r220.log"
+  ],
+  "result": {
+    "status": "pass"
+  },
+  "tool": "pytest 9.0.2 via /usr/local/venv/bin/python3 -m pytest",
+  "command": "TMPDIR=/data/openpilot/.harness-state/ka2-efficiency-build-r7/tmp-ac6-full-r267 /usr/local/venv/bin/python3 -m pytest -s -v -n0 -x --basetemp=/data/openpilot/.harness-state/ka2-efficiency-build-r7/full-suite-ac6-r267 system/loggerd/tests/test_mpp_encoder.py system/loggerd/tests/test_loggerd_rotation.py system/loggerd/tests/test_encoderd_recovery.py system/loggerd/tests/test_dmabuf_fixture.py system/loggerd/tests/test_loggerd_liveness.py system/loggerd/tests/test_loggerd.py::TestLoggerd::test_rotation system/loggerd/tests/test_loggerd.py::TestLoggerd::test_ka2_deterministic_rotation_alignment",
+  "observed_at": "2026-10-31T13:36:48Z",
+  "inputs": [
+    {"path": "system/loggerd/loggerd.cc", "sha256": "3a2e621adc50f44f727a12b0d8deb7410a4c502948ae2297069aa40b4ea8f5a9"},
+    {"path": "system/loggerd/loggerd.h", "sha256": "be831a312bedac0b997eaea6a932f63f2ca265f35c5881c96c9c0a17097e1034"},
+    {"path": "system/loggerd/encoderd.cc", "sha256": "fde3d8cb1adfd5308279df4c3c37989ebed7a63127a1f51ed1cbdb48e7eab8d9"},
+    {"path": "system/loggerd/encoder/mpp_encoder.cc", "sha256": "24537361363ace4fd11485fca4284938f22e9b73fdb13ff84f100dd8368d5477"},
+    {"path": "system/loggerd/encoder/mpp_encoder.h", "sha256": "253c02a7c10624d0333f3360cb13281d6edb1ede10efe91e705c03ac284e8f43"},
+    {"path": "system/loggerd/encoder/mpp_encoder_input.h", "sha256": "965e011ff0676341996a13974f7c86f87a26bc72441765eefc68f115ee068ce3"},
+    {"path": "system/loggerd/encoder/ffmpeg_encoder.cc", "sha256": "7124dee947f6eb409e5fc0e720182f077554d470871dc5c400b6430abc1ea8de"},
+    {"path": "system/loggerd/encoder/ffmpeg_encoder.h", "sha256": "ca58013144a178daf80b1e483dcfd56a231d3af72129aec5a7052e8df269f8d8"},
+    {"path": "system/loggerd/SConscript", "sha256": "9423e0b617e2b99b50ee97e592c65d89925a6bbad0af6f8944eb78fb056c2373"},
+    {"path": "system/loggerd/tests/test_loggerd.py", "sha256": "0e6404662d1dad2ff6ba1fe8ff13d41e55f3f30494fe833d41d996de44a013bb"},
+    {"path": "system/loggerd/tests/test_mpp_encoder.cc", "sha256": "4ba25c832faa0c5385d8cd1a5c02bac626099bcaf03635067b2501146004460d"},
+    {"path": "system/loggerd/tests/test_mpp_encoder.py", "sha256": "533f179729d841dfe0386d34ebc92a282f0395e867a4f057e4ce623a6b7964b4"},
+    {"path": "system/loggerd/tests/test_loggerd_rotation.cc", "sha256": "bf185f8d3b9335182d347e010af35b1a20913b15bdeb8ad35a23b19edf1e7962"},
+    {"path": "system/loggerd/tests/test_loggerd_rotation.py", "sha256": "677f4542e47d224f593b14e25951fab2236ac5ddc030afb87399427eb2a8a867"},
+    {"path": "system/loggerd/tests/test_encoderd_recovery.cc", "sha256": "38872a2c9d5ffd9a8a4d5fa4cf09941c3e768b8001cd8414bc50416feaaf88fe"},
+    {"path": "system/loggerd/tests/test_encoderd_recovery.py", "sha256": "685789745fdab9b6c4ebabad8f380dceba0efcb3dc1e8f25872faf068c816292"},
+    {"path": "system/loggerd/tests/test_dmabuf_fixture.py", "sha256": "cfc0baf39d00be3871f7e8359083adc86266e29333e3b2dc09cd349e175a7b9c"},
+    {"path": "system/loggerd/tests/visionipc_dmabuf_publisher.cc", "sha256": "0994305f86b1c7c1481d3276ee2dd5b5fd81d033847db822a198568941fefad9"},
+    {"path": "system/loggerd/tests/test_loggerd_liveness.py", "sha256": "f4911703b8d9a6e500336106b855a1182aabd135078c1c8ca58aadb3875efea9"}
+  ],
+  "environment": "KA2/RK3588 aarch64 hardware; focused drain-timeout test and full grouped suite ran serially; pytest basetemp and TMPDIR under /data; isolated temp/log/Params roots; synthetic DMA-heap and memfd fixtures; HardwarePC legacy software target compiled with -URK3588 and no __TICI__ but executed on actual KA2 hardware; test-only all-output counter gated by LOGGERD_TEST_BUILD and LOGGERD_TEST=1; no live camera/V4L2 capture or production log roots",
+  "coverage_gaps": [
+    {
+      "requirement": "live V4L2 DMA-BUF export, camera fences/buffer reuse, and deployed production MPP post-EOS behavior",
+      "status": "unproven",
+      "reason": "Lifecycle sources are synthetic DMA-heap or memfd fixtures; no live camera capture or deployed production MPP post-EOS qualification was run."
+    },
+    {
+      "requirement": "non-RK3588 physical hardware qualification",
+      "status": "unproven",
+      "reason": "The non-RK3588/HardwarePC software configuration passed its lifecycle on KA2/RK3588 hardware; no independent non-KA2 silicon target was available or claimed."
+    },
+    {
+      "requirement": "long-running live persistent V4L2 descriptor failure",
+      "status": "unproven",
+      "reason": "Error isolation, backoff, due-time gating, and progress reset are asserted with deterministic policy tests and isolated MPP fault seams rather than a live camera exporter."
+    }
+  ]
+}

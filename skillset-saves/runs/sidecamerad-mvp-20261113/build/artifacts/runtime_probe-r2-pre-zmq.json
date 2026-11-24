@@ -1,0 +1,60 @@
+{
+  "artifacts": [
+    "evidence/runtime-smoke.log"
+  ],
+  "result": {
+    "status": "pass",
+    "runtime_functional_status": "pass",
+    "ac4_one_camera_cadence": "fail",
+    "summary": "The no-path module lifecycle and five-minute dual-channel frame publication worked; the 20.00036 fps mean and 6,001 frames met their thresholds, but max EOF gap 95.741769 ms exceeded 60 ms (709 intervals over the limit). This probe pass is limited to runtime functionality and does not claim AC-4 cadence acceptance."
+  },
+  "tool": "Python 3.12.3 module entry point with local V4L2, FFmpeg, cereal, and VisionIPC clients",
+  "command": "python3 -m system.sidecamerad; all SIDECAM_* unset for the 62-second no-path probe, then SIDECAM_FRONT_LEFT=/dev/v4l/by-path/platform-xhci-hcd.11.auto-usb-0:1:1.0-video-index0 for the five-minute IPC probe; PARAMS_ROOT isolated in both runs",
+  "observed_at": "2026-11-13T08:06:53.968590Z",
+  "environment": "Local /data/openpilot Linux host; one UVC decoder; /dev/video60 via platform-xhci-hcd.11.auto-usb-0:1:1.0-video-index0; isolated temporary Params roots; /data/params untouched",
+  "target_revision": "build checkpoint 54; approved design r2",
+  "input_revision": 54,
+  "inputs": [
+    {
+      "path": "system/sidecamerad.py",
+      "sha256": "810da757dffb017d861504f0761a76fc8917e89d2add27bca4dc8b4b8a8edd3c"
+    },
+    {
+      "path": "system/manager/process_config.py",
+      "sha256": "b7fdfda2878cae1fa6b354ed512bc33ad66f1abe1ed25c90ed980b547a8aa02d"
+    },
+    {
+      "path": "common/params_keys.h",
+      "sha256": "87d6e7cc658daaac97f0aff94706cec6b6a545b3d2413d22fcec4b9d2577c035"
+    },
+    {
+      "path": "common/params_pyx.so",
+      "sha256": "1ba74ad9f9831623e373dd3077102899e9efc49b3fee452b649795304d3c6722"
+    },
+    {
+      "path": "cereal/services.py",
+      "sha256": "cacd4b749d9a0a3e19e3c466784dcf34925f263fdca3c26af72578c47d740a6b"
+    },
+    {
+      "path": "cereal/log.capnp",
+      "sha256": "d5c0372d714e65461942874c91c522b205ce208261b382283839ed03b9731f64"
+    },
+    {
+      "path": "msgq_repo/msgq/visionipc/visionbuf.h",
+      "sha256": "c971a1afa601f5bb8f560de6fb1dd78c2121cee61ea41c169f00a4154566e870"
+    },
+    {
+      "path": "msgq_repo/msgq/visionipc/visionipc_pyx.pyx",
+      "sha256": "36247e353901eb80e52735c91f466151b3026e77152dde9ad9e3bcd682c66f32"
+    },
+    {
+      "path": "msgq_repo/msgq/visionipc/visionipc_server.cc",
+      "sha256": "36b383bfcaf10eaa69f6844a579c86204b4a07464a889208fe059a6c1202d198"
+    }
+  ],
+  "warnings": [
+    "The full per-frame EOF interval series was not retained; only mean cadence, max gap, and over-60-ms count are available.",
+    "Only one UVC decoder was available. Four-camera cadence, CPU/RSS headroom, and the 30-minute AC-8 soak remain unverified.",
+    "No controlled disconnect/reconnect or sibling-camera behavior was exercised in this runtime probe."
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "boundary": "design-to-build",
+  "findings": [
+    {
+      "basis": {
+        "kind": "contract",
+        "ref": "Deterministic Pre-Check (two validators)",
+        "source": "gatekeeper-admiral/SKILL.md"
+      },
+      "evidence": [
+        "manifest:evidence.architecture",
+        "manifest:evidence.plan"
+      ],
+      "expected": "Build receives one coherent, approved design package and can consume its hashed specification without inferring the implementation contract.",
+      "id": "INFO-DELIVERY-SUMMARY-CONDITIONAL-RESOLVED-R2",
+      "key": null,
+      "observed": "The r2 handoff points to the r2 manifest and approved phase verdict. The package-shape validator reports zero failures and one conditional summary slot; the manifest hashes the architecture and plan, and the implementation specification is part of the approved package.",
+      "owner": "commander",
+      "remediation": "No separate summary artifact is needed for this intermediate boundary. Build management should reconcile the existing r1 implementation attempt against the r2 specification before treating any source as r2-complete.",
+      "severity": "Info",
+      "statement": "A separate delivery summary is not required for this intermediate design-to-build handoff; the r2 handoff identifies the approved design manifest and build consumer, while the design package carries the architecture, plan, acceptance criteria, and implementation specification.",
+      "verification": "The boundary validator reports prior_reusable=true, changed_evidence=[], no failures, and no warnings. The delivery-shape validator reports zero failures, coherent r2 lineage, no skip record, and a clean blocked-phrase scan; only the optional summary slot is unchecked and is resolved out of scope for this handoff."
+    }
+  ],
+  "gate": "gatekeeper-admiral",
+  "intake": {
+    "artifact": "../intake/report_grilling.md"
+  },
+  "revision": "r2",
+  "submission_id": "sidecamerad-mvp-20261113_design-revision-2",
+  "verdict": "APPROVED"
+}

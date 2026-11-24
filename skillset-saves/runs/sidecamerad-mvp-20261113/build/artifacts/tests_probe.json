@@ -1,0 +1,50 @@
+{
+  "artifacts": [
+    "evidence/tests-pytest.log"
+  ],
+  "result": {
+    "status": "pass"
+  },
+  "tool": "python3 -m pytest",
+  "command": "python3 -m pytest -vv system/manager/test/test_sidecamerad.py",
+  "exit_code": 0,
+  "observed_at": "2026-11-13T08:32:24Z",
+  "inputs": [
+    {
+      "path": "system/manager/test/test_sidecamerad.py",
+      "sha256": "cf9fb49f514ac90458d47d825716a30b296b8cb25880167695c6a86a6660a059"
+    },
+    {
+      "path": "system/sidecamerad.py",
+      "sha256": "494fb8b88fda8bcf1d8301225019f4f01f4b77a0bb5cb3e69dde47ed96e1309b"
+    },
+    {
+      "path": "system/manager/process_config.py",
+      "sha256": "b7fdfda2878cae1fa6b354ed512bc33ad66f1abe1ed25c90ed980b547a8aa02d"
+    },
+    {
+      "path": "common/params_keys.h",
+      "sha256": "87d6e7cc658daaac97f0aff94706cec6b6a545b3d2413d22fcec4b9d2577c035"
+    },
+    {
+      "path": "common/params_pyx.so",
+      "sha256": "1ba74ad9f9831623e373dd3077102899e9efc49b3fee452b649795304d3c6722"
+    },
+    {
+      "path": "cereal/services.py",
+      "sha256": "cacd4b749d9a0a3e19e3c466784dcf34925f263fdca3c26af72578c47d740a6b"
+    },
+    {
+      "path": "cereal/log.capnp",
+      "sha256": "d5c0372d714e65461942874c91c522b205ce208261b382283839ed03b9731f64"
+    },
+    {
+      "path": "msgq_repo/msgq/visionipc/visionbuf.h",
+      "sha256": "c971a1afa601f5bb8f560de6fb1dd78c2121cee61ea41c169f00a4154566e870"
+    },
+    {
+      "path": "pyproject.toml",
+      "sha256": "bb83839cec34e231fa997920a3db4f00ecdac6fe408c415cedd92b72020ed7ac"
+    }
+  ]
+}

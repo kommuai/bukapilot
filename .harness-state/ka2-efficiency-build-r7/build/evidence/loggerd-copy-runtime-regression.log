@@ -1,0 +1,10 @@
+bringing up nodes...
+bringing up nodes...
+
+.                                                                        [100%]
+============================= slowest 10 durations =============================
+9.33s call     system/loggerd/tests/test_loggerd.py::TestLoggerd::test_ka2_deterministic_rotation_alignment@loggerd_tests
+0.07s setup    system/loggerd/tests/test_loggerd.py::TestLoggerd::test_ka2_deterministic_rotation_alignment@loggerd_tests
+
+(1 durations < 0.005s hidden.  Use -vv to show these durations.)
+1 passed in 14.31s

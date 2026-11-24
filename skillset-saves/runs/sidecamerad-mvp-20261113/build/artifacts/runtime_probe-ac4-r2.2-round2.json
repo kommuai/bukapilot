@@ -1,0 +1,105 @@
+{
+  "artifacts": [
+    "evidence/runtime-smoke-ac4-r2.2-round2.log"
+  ],
+  "command": "Python controller ran python3 system/sidecamerad.py with isolated PARAMS_ROOT and child ZMQ=1 on assigned front-left UVC device; local cereal/msgq and VisionIPC readers captured >=6,050 matched frame IDs with raw EOF timestamps/intervals; checked Params and ports 9007-9010; SIGTERM-stopped process and verified cleanup.",
+  "dependencies": [
+    {
+      "name": "V4L2 UVC decoder",
+      "signal": "Assigned by-path target resolved to /dev/video60; 1280x720 MJPEG source produced frames.",
+      "status": "reachable"
+    },
+    {
+      "name": "FFmpeg",
+      "signal": "sidecar delivered 6051 unique VisionIPC frames; no child remained after shutdown.",
+      "status": "reachable"
+    },
+    {
+      "name": "cereal/msgq",
+      "signal": "6051 unique camera-state records; all 6050 selected frame IDs matched VisionIPC and timestamp fields were identical.",
+      "status": "reachable"
+    },
+    {
+      "name": "VisionIPC",
+      "signal": "6051 unique frames on 1280x720 stream, stride 1280, payload 1,382,400 bytes.",
+      "status": "reachable"
+    },
+    {
+      "name": "Params",
+      "signal": "Startup all-false; front-left true before shutdown; all-false after SIGTERM.",
+      "status": "reachable"
+    },
+    {
+      "name": "local IPC transport",
+      "signal": "No TCP listeners on ports 9007-9010 at startup, before shutdown, or after shutdown; VisionIPC stream unavailable after exit.",
+      "status": "reachable"
+    }
+  ],
+  "environment": "Local /data/openpilot host; current source HEAD 6d92d63a2; assigned physical UVC /dev/video60; Python 3.12.3; child ZMQ=1 (removed by sidecamerad before IPC construction); isolated temporary PARAMS_ROOT removed after shutdown; no video recording; /data/params untouched; no packages installed.",
+  "exit_code": 0,
+  "input_revision": 68,
+  "inputs": [
+    {
+      "path": "system/sidecamerad.py",
+      "sha256": "494fb8b88fda8bcf1d8301225019f4f01f4b77a0bb5cb3e69dde47ed96e1309b"
+    },
+    {
+      "path": "system/manager/process_config.py",
+      "sha256": "b7fdfda2878cae1fa6b354ed512bc33ad66f1abe1ed25c90ed980b547a8aa02d"
+    },
+    {
+      "path": "common/params_keys.h",
+      "sha256": "c2925ebd8f9f26cc04951afb0e3c67ac7cb20a1c370b79aa93a25a4aaef2a031"
+    },
+    {
+      "path": "common/params_pyx.so",
+      "sha256": "3108e29407f31b9bd86a86ccafc82a4f98a225884412987a24be5c357dbfb586"
+    },
+    {
+      "path": "cereal/log.capnp",
+      "sha256": "d5c0372d714e65461942874c91c522b205ce208261b382283839ed03b9731f64"
+    },
+    {
+      "path": "cereal/services.py",
+      "sha256": "cacd4b749d9a0a3e19e3c466784dcf34925f263fdca3c26af72578c47d740a6b"
+    },
+    {
+      "path": "msgq_repo/msgq/visionipc/visionbuf.h",
+      "sha256": "c971a1afa601f5bb8f560de6fb1dd78c2121cee61ea41c169f00a4154566e870"
+    },
+    {
+      "path": "msgq_repo/msgq/visionipc/visionipc_pyx.pyx",
+      "sha256": "36247e353901eb80e52735c91f466151b3026e77152dde9ad9e3bcd682c66f32"
+    },
+    {
+      "path": "msgq_repo/msgq/visionipc/visionipc_server.cc",
+      "sha256": "36b383bfcaf10eaa69f6844a579c86204b4a07464a889208fe059a6c1202d198"
+    }
+  ],
+  "observed_at": "2026-11-15T08:20:31.265960+00:00",
+  "result": {
+    "ac4_one_camera_cadence": "fail",
+    "capture_error": null,
+    "controller_param_sampling_correction": "The controller queried Params immediately after the first matched frame pair, before Availability.set(True) completed; this point-in-time false sample was not a failed transition. The captured pre-shutdown state was front-left=true with other feeds=false, and the final post-shutdown state was all-false. The functional status is therefore pass; raw frame timestamps and intervals are unchanged.",
+    "functional_summary": "Sidecamerad started, published contiguous matching IDs to both local readers for over five minutes, cleared availability on clean shutdown, left no child process or TCP listener, and source inputs stayed hash-identical.",
+    "invalid_round1_harness_attempt": "evidence/runtime-smoke-ac4-r2.2-round1.log",
+    "param_transition_observations": {
+      "all_false_after_shutdown": true,
+      "front_left_true_before_shutdown": true,
+      "startup_all_false": true
+    },
+    "raw_per_frame_intervals_artifact": "artifacts/runtime_cadence_intervals-r2.2-round2.json",
+    "runtime_functional_status": "pass",
+    "status": "pass",
+    "summary": "6050 matching frames over 302.442086351s; interval mean 20.000523316652 fps; maximum EOF gap 89.163715 ms; 753 of 6049 intervals exceeded 60 ms; 0 frame-ID gaps and 0 timestamp mismatches. Functional publication and cleanup passed; strict AC-4 cadence failed."
+  },
+  "target_revision": "SideCamera implementation r2.2 recovery refresh; build package revision 68; approved design r2; source HEAD 6d92d63a2",
+  "tool": "Python 3.12.3 inline controller using local cereal/msgq and VisionIPC, Params, V4L2, FFmpeg",
+  "warnings": [
+    "AC-4 fails the maximum-gap threshold despite meeting the mean-rate threshold.",
+    "AC-6 physical reconnect/sibling continuity and AC-8 four-camera 30-minute soak remain unverified.",
+    "Start-command discovery stopped at its declared project-walk byte limit; the handoff-authorized local command python3 system/sidecamerad.py was used.",
+    "The first controller attempt is retained as harness-only diagnostic evidence and is invalid for cadence acceptance.",
+    "The corrected controller sampled Params before the initial true transition; this is explicitly corrected from the logged pre-shutdown and post-shutdown snapshots."
+  ]
+}

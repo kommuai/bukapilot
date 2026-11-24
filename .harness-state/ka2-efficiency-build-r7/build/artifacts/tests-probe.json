@@ -1,0 +1,33 @@
+{
+  "artifacts": [
+    "evidence/tests-pytest.log"
+  ],
+  "result": {
+    "status": "pass"
+  },
+  "tool": "pytest 9.0.2; clang++ 18.1.3",
+  "command": "pytest -q --confcutdir=system/loggerd/tests system/loggerd/tests/test_mpp_encoder.py",
+  "observed_at": "2026-10-30T17:40:39Z",
+  "inputs": [
+    {
+      "path": "system/loggerd/encoder/mpp_encoder.cc",
+      "sha256": "c98b128bd2d7a14177ac3ed34194001e7277c117d98ed5f8c743ef1ab3340b48"
+    },
+    {
+      "path": "system/loggerd/encoder/mpp_encoder.h",
+      "sha256": "c6893a6df9ae79c55e90897d96a1ad72bc3fc648759a123114f2ec21140265a7"
+    },
+    {
+      "path": "system/loggerd/encoder/mpp_encoder_input.h",
+      "sha256": "7c05efe9159fdd0dcb9e30a5540941b2c22fc7d83413b4f58011a3d2d511953f"
+    },
+    {
+      "path": "system/loggerd/tests/test_mpp_encoder.cc",
+      "sha256": "68d6ad08fa4a8b44df103fca82b701c97837a2560861f13b00fb97a227544a12"
+    },
+    {
+      "path": "system/loggerd/tests/test_mpp_encoder.py",
+      "sha256": "155ce3a252319a4baec661549f4a55472b820c744ff182a4819952d1c8280b15"
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "acquired_at": "2026-10-29T16:21:31.533792+00:00",
+  "heartbeat": "2026-10-29T16:21:31.533792+00:00",
+  "heartbeat_source": "cli",
+  "owner": "admiral",
+  "revision": 111,
+  "run_id": "sensord-refactor-20261029",
+  "schema_version": 1,
+  "session_pin": true,
+  "status": "held"
+}

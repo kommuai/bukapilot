@@ -1,0 +1,46 @@
+{
+  "boundary": "review-to-delivery",
+  "events": [
+    {
+      "boundary": "review-to-delivery",
+      "changed_evidence": null,
+      "checked_at": "2026-10-31T14:24:09.046319+00:00",
+      "judgment": {
+        "by_owner": {},
+        "escalation": null,
+        "findings": [],
+        "gate": "gatekeeper-code",
+        "intake": {
+          "artifact": "../intake/report_grilling.md"
+        },
+        "valid": true,
+        "verdict": "APPROVED"
+      },
+      "package_fingerprint": "7616b5fe8f83c355dcf92f1dad8cb0a33e628ad2ca7b7bf825def5380bedb8f1",
+      "revise_packet": {
+        "actions_by_owner": {},
+        "by_key": {},
+        "by_owner": {},
+        "judgment_by_owner": {},
+        "unassigned": []
+      },
+      "revision": 282,
+      "signature": [
+        "gatekeeper-code",
+        "282",
+        "7616b5fe8f83c355dcf92f1dad8cb0a33e628ad2ca7b7bf825def5380bedb8f1",
+        "APPROVED"
+      ],
+      "submission_id": "loggerd-ka2-efficiency-20261029-review-r10",
+      "unchanged_evidence": null
+    }
+  ],
+  "gates": {
+    "gatekeeper-code": []
+  },
+  "held": false,
+  "reopen_refs": [],
+  "rounds": [],
+  "run_id": "loggerd-ka2-efficiency-20261029",
+  "schema_version": 1
+}

@@ -1,0 +1,16 @@
+observed_at=2026-11-15T08:37:22.087139+00:00
+device=/dev/v4l/by-path/platform-xhci-hcd.11.auto-usb-0:1:1.0-video-index0 resolved=/dev/video60
+ffmpeg=Python 3.12.3 readv/poll controller plus FFmpeg ffmpeg version 6.1.1-3ubuntu5+git20240717.8164ff7d~noble Copyright (c) 2000-2023 the FFmpeg developers
+frames_complete=1090 target=1090 frame_bytes=1382400 raw_payload_saved=false
+elapsed_s=55.890414 first_frame_complete_s=0.4148796110002877
+timestamp_source=time.monotonic_ns() after complete rawvideo pipe frame read
+mean_interval_ms=49.991474 mean_fps=20.003411084 min_interval_ms=10.275059 max_interval_ms=88.842105
+intervals_over_60ms=133 intervals_under_40ms=147 read_calls=28918
+source_hashes_match=True source_input_count=9
+cpu_pressure_before=some avg10=2.98 avg60=2.93 avg300=2.87 total=157108242
+cpu_pressure_after=some avg10=3.38 avg60=3.26 avg300=2.99 total=159403710
+loadavg_before=(1.36865234375, 1.5341796875, 1.6240234375)
+loadavg_after=(2.2451171875, 1.7685546875, 1.70068359375)
+cleanup=SIGTERM sent; no exit within 1.0s; SIGKILL sent; reaped child; no child remained (returncode=-9)
+capture_error=None
+raw_timing_json=skillset-saves/runs/sidecamerad-mvp-20261113/investigation/artifacts/ffmpeg-pipe-timing-60s.json sha256=50a969cb540f1c6abd365f69d0af97934621cdc37849ce48de0c62277738d155

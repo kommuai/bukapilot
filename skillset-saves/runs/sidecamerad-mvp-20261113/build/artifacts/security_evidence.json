@@ -1,0 +1,18 @@
+{
+  "items": [
+    {
+      "id": "SEC-SIDEIPC-001",
+      "severity": "Major",
+      "status": "verified",
+      "reason": "The r2.1 sidecamerad entry point removes inherited ZMQ before Params, VisionIPC, or PubMaster construction. The focused regression test passed with ZMQ=1 and verified all three constructors saw it absent. The final live probe ran five minutes with child_ZMQ=1, connected the local VisionIPC socket, received 6000 matching cereal/VisionIPC frame IDs, observed no TCP listener on 9007-9010 after startup/during capture/before shutdown/after exit, reset Params, removed the local socket, and exited 0. See build/evidence/runtime-smoke-zmq-r2-final.log SHA-256 899ff2ff4758ce4647b03d90436866a6ea5eebc95cbca65b8de57872b32930dd. This closes the sidecar-to-local-ipc control for sidecamerad. A supplemental no-path run with child ZMQ=1 stayed alive 62.041 seconds, kept all-false availability, created no local socket or TCP listener, and exited 0 on SIGTERM; see build/evidence/runtime-no-path-zmq-r2-final.log SHA-256 e32c356b9440dcb86d0fa1cc09f1b9984c8c2c15cc16004265ee0384b6801971."
+    },
+    {
+      "id": "SEC-FFMPEG-RESOURCE-001",
+      "severity": "Minor",
+      "status": "open",
+      "owner": "build/security owner",
+      "reopen_trigger": "Before AC-8/four-camera performance sign-off or production use, establish a target-supported child CPU/memory limit or record explicit residual-risk acceptance with the security owner.",
+      "reason": "Current service cgroup exposes only memory and pids, memory.max is unlimited, no CPU controller is available, cgroup.subtree_control is empty and the cgroup is not writable by this process. No safe per-child cgroup limit is available here. The code caps sidecar workers/threads and application buffers, but FFmpeg internal CPU/memory consumption remains unbounded for malformed MJPEG."
+    }
+  ]
+}

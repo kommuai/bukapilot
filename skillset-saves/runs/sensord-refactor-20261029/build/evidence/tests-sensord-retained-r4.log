@@ -1,0 +1,9 @@
+Command: python3 -m pytest -n 0 -q system/sensord/tests/test_polling_pacing.py system/sensord/tests/test_fixed_calculations.py system/sensord/tests/test_gyro_buffer.py system/sensord/tests/test_event_construction.py
+........                                                                 [100%]
+============================= slowest 10 durations =============================
+0.01s setup    system/sensord/tests/test_polling_pacing.py::test_invalid_iterations_are_paced_without_publishing
+
+(9 durations < 0.005s hidden.  Use -vv to show these durations.)
+8 passed in 0.12s
+
+Runner exit status: 0

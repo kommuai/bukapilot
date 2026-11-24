@@ -1,0 +1,33 @@
+{
+  "active_owner": "admiral",
+  "agent_platform": "codex",
+  "artifact_hashes": {
+    "skillset-saves/runs/sidecamerad-mvp-20261113/intake/reports/report_grilling.md": "84a7e874f86ba50a6e4c5b3e3938e4a534099e518c4dea8c9ba8a8f4f2d97a0b"
+  },
+  "evidence_paths": [
+    "skillset-saves/runs/sidecamerad-mvp-20261113/intake/reports/report_grilling.md"
+  ],
+  "execution_mode": "agent",
+  "hook_registration_status": "missing",
+  "mcp_registry_check": "not-needed",
+  "next_action": "select earliest incomplete boundary",
+  "parent_revision": null,
+  "persistence_activation_checked_at": "2026-11-13T00:00:00Z",
+  "persistence_activation_result": "activated",
+  "persistence_active": "true",
+  "persistence_probe": "ok",
+  "persistence_probe_result": "ok",
+  "protocol_state": "INTAKE",
+  "revision": 1,
+  "run_id": "sidecamerad-mvp-20261113",
+  "runtime_readiness_check": "not-ready",
+  "save_directory_status": "inactive",
+  "schema_version": 1,
+  "session_pin": true,
+  "skills_engaged": [
+    "admiral"
+  ],
+  "status": "active",
+  "timestamp": "2026-11-13T04:00:37.361316+00:00",
+  "tools_verified": "[\"file-system\",\"terminal\",\"search\",\"sub-agent\"]"
+}

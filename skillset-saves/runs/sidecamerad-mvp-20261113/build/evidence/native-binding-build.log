@@ -1,0 +1,10 @@
+Command: scons msgq_repo/msgq/visionipc/visionipc_pyx.so
+Surface: Cython/native VisionIPC binding and its build dependencies
+
+scons: Reading SConscript files ...
+scons: done reading SConscript files.
+scons: Building targets ...
+scons: `msgq_repo/msgq/visionipc/visionipc_pyx.so' is up to date.
+scons: done building targets.
+
+Exit code: 0

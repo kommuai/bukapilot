@@ -1,0 +1,42 @@
+KA2 loggerd rotation follow-up evidence hashes
+This file inventories the relevant current source, saved output, and report hashes. It is evidence bookkeeping, not a build-to-review manifest.
+
+Product/source files
+fc55ae0129598d5a0dff0e62160522bffa86502410392dbd37202d4ca01cf6ac  system/loggerd/tests/test_loggerd.py (corrected; failed exact-ID run at 2026-10-30 02:30 UTC)
+4a9191f40d1cdbfa1300a9b3a0e24991901ebb63f0bcd1a8647c89aa60b17324  system/loggerd/loggerd.cc
+a5d2e64d71a38df0aa8d1ab06f51a229d90d5a533782aadd7c17b7096c7dd598  system/loggerd/encoderd.cc
+d56c00dca20b871e5c4decab6403b420408e1ec3d5e09803eb072c8d160a259e  system/loggerd/encoder/mpp_encoder.cc
+49d96b5c4b71d4b10407af5f30db02bc4a6d8b3367d5967bb85b11e1711e44b0  pre-correction test source (reconstructed from the current file; not captured at execution time)
+
+Current executable files (not launch-time process fingerprints)
+6c6c13656f4f5abd1de1f31b9c3acb4debc6cc58c4d1aab9a790c46b5b367ed8  system/loggerd/loggerd
+a46f1c853094b8cf85cfd6533f874cb65047d6c99fd87e215aa0c762ba860b6d  system/loggerd/encoderd
+
+Raw test output logs, copied byte-for-byte from the pytest temp root
+9ce0a8969cf96c62f98766381022b1f629af5bc31f914259511a9ac64aa84ae6  build/evidence/raw_rotation_failure/segment-0-qlog.zst
+3c790fbbd294e0b0ad39e4fa59d6931013db3777ea369a54217cdadfb6db78b8  build/evidence/raw_rotation_failure/segment-0-rlog.zst
+973191e75d9e566657c9d3891b56e98a73aae15aeeaef6f0c4d3228e61c57f41  build/evidence/raw_rotation_failure/segment-1-qlog.zst
+04ce519cc227361cf52b8abdbb9fcf6f13e4204f6dcd61a776cef9da2fa397c1  build/evidence/raw_rotation_failure/segment-1-rlog.zst
+
+Corrected exact-ID rerun: `build/evidence/rerun_20261030_023059/`
+27625d6c70829ffd8fb8b46cfceaa5843d712cc3bc5ed6946598a70a6d0557c5  build/evidence/rerun_20261030_023059/frame_ledger.csv
+3963ce90ab1b7b0467bad4b33f751575ddb79ed22e7d8a529b15229dba4811eb  build/evidence/rerun_20261030_023059/qlog_segment_0.zst
+5cb35dc234dd97e0d1c878e5b70f29fb917f1f024efcfb0c8bef0ddbc276ef93  build/evidence/rerun_20261030_023059/qlog_segment_1.zst
+d230da0e3db0a3a3a1601226c9039235e984d5dcffb3744a5eef2e7928ebdd49  build/evidence/rerun_20261030_023059/rlog_segment_0.zst
+568429bbe5ed79ffaba50081bfb2ebe10798e88a608a97297097ee8794656dfa  build/evidence/rerun_20261030_023059/rlog_segment_1.zst
+3c4cd258f8b8a5f9e0f7d4c1f8d7087c0967491338d71af2b2198a97f6a75179  build/evidence/rerun_20261030_023059/test_run_summary.json
+
+Parsed results and process/run evidence
+1e7de0a1c7f781a2e58bc9ec4ab95de7f246095700d88329c9db8f7e13d71596  build/evidence/loggerd-rotation-frame-id-summary.txt
+7b07ddd4252a7ef8ea15212d1e7ff9ae038495579580cd42a5a52de929e6f015  build/evidence/loggerd-expected-emitted-frame-ledger.csv
+04ff6f97b12a711a6cb59461532bba1f3e70e7267bf86562e6767297d7aaeeb1  build/evidence/loggerd-rotation-boundary-timeline.txt
+a4a54bd57a030437dadaeb059c0d4fe5be2c1bbb9827e60fc3d2cae50a7ef078  build/evidence/loggerd-test-static-check.log
+
+Reports
+3bd406aa9f3abaf02fa4113d55f66659db0c3209f850930ac2209805f9364099  build/reports/report_implementation.md
+8dccb1252004e2c6dcbf93f44ae3217bda65539995fef1c73197061a25b451ce  build/reports/report_rotation-gap.md
+
+Current updated report hashes
+09aab13bdf40308c31aafe2b9be99736dca02a2493f0ebd2524aee079e5447f9  build/reports/report_tests.md
+52aa9de921ac809d8f06ee4f93dbc54e0d2254652a0300b0ae85e8acb1ba3be1  build/reports/report_build-blocker.md
+503e0ceb750ae2a8ca61d304d832732f62594acfe96a6a73f2ee6ce3761ae37b  build/evidence/loggerd-focused-rotation-failure.log

@@ -1,0 +1,110 @@
+{
+  "boundary": "design-to-build",
+  "changed_evidence": null,
+  "checked_at": "2026-10-30T14:08:10.330914+00:00",
+  "declared_schema_version": 2,
+  "evidence_digests": {
+    "acceptance": "1ff46302a537a625a57ebc813aca32d002f1cb7af295d9cc938974e3b70d9ce7",
+    "architecture": "ca0db8a0154a928977454bd884f006fcfdab05b2b9722e9ce57d3c4399db01e7",
+    "decisions": "c7d2839e68f711f54e695c9c77d09fbeb5466dcba174d2a99de2e38185ddee53",
+    "interfaces": "8cd9f49077ab3e3f0aa211e8fad9be411a847bb606a4f472afbad1ce2faaba83",
+    "plan": "1ff46302a537a625a57ebc813aca32d002f1cb7af295d9cc938974e3b70d9ce7",
+    "security_seed": "6fad1655c7cbd1ab59eec5f7e9b67b11036cf8ab4f26fbd3dcf1c8cfbd255add",
+    "stack_lock": "e80e04e2361f105b4317eb5748f9ea2736b0eb911458fd737c68a87918e200ed",
+    "taste_snapshot": "581818c2730509da175e413591b1f4bf5605c20aa6cd987e4031e65e84d4dcb3",
+    "ui_evidence": "d92289e713035b1aa5b28943ea6f29c0be04d7aa41d943504b83c4302aecfcee"
+  },
+  "evidence_root": "/data/media/supremeteam/42c6eb550c629191187c/skillset-saves/runs/loggerd-ka2-efficiency-20261029",
+  "evidence_root_kind": "run",
+  "failures": [],
+  "gate_spec_digest": "b2995ffa29a827c2bf101391788bf1228eb38869ad7c0a601a4126734ee6c7c1",
+  "gate_spec_is_shipped": true,
+  "idempotency_drift": false,
+  "judgment": {
+    "by_owner": {},
+    "escalation": null,
+    "findings": [
+      {
+        "basis": {
+          "kind": "contract",
+          "ref": "conditional API endpoint artifacts are required only when in scope",
+          "source": "design/gatekeeper-design/SKILL.md"
+        },
+        "evidence": [
+          "manifest:evidence.interfaces"
+        ],
+        "id": "J-1",
+        "key": "interfaces",
+        "owner": "architect",
+        "severity": "Info",
+        "statement": "The shape validator reported the conditional API endpoint contract as UNCHECKED. It is out of scope here: the hashed interface inventory says change none and contains no interface items, and the architecture retains the existing internal encoder-to-MPP path without adding an endpoint or message contract."
+      },
+      {
+        "basis": {
+          "kind": "contract",
+          "ref": "conditional frontend/UI handoff applies when a user-facing surface exists",
+          "source": "design/gatekeeper-design/SKILL.md"
+        },
+        "evidence": [
+          "manifest:evidence.ui_evidence"
+        ],
+        "id": "J-2",
+        "key": "ui_evidence",
+        "owner": "architect",
+        "severity": "Info",
+        "statement": "The shape validator reported the conditional frontend/UI handoff as UNCHECKED. The design is a backend encoder-path change with no user-facing surface; the architect records the sanctioned no-surface applicability value in ui_evidence."
+      },
+      {
+        "basis": {
+          "kind": "contract",
+          "ref": "deterministic pre-check package containment",
+          "source": "design/gatekeeper-design/SKILL.md"
+        },
+        "evidence": [],
+        "id": "J-3",
+        "key": null,
+        "owner": "commander",
+        "severity": "Info",
+        "statement": "The canonical shape-check invocation was refused before reading because the authorized skillset-saves link resolves the package to /data/media outside /data/openpilot. The in-project mirror contained the same 10 files byte-for-byte, with matching tree SHA-256 f08ca184492e9c0f7bdf6808bcedfc48597e2968ae9aa3fe87a22ca147b79c00, and its shape check exited 0 with zero failures. This path limitation is preserved; the mirror result is used only for package-content validation."
+      }
+    ],
+    "gate": "gatekeeper-design",
+    "intake": {
+      "artifact": "../../../intake/report_grilling.md"
+    },
+    "valid": true,
+    "verdict": "APPROVED"
+  },
+  "judgment_failures": [],
+  "manifest": "manifest.json",
+  "manifest_schema_version": 2,
+  "mechanical_only": false,
+  "missing": [],
+  "mixed_revisions": false,
+  "owner": "commander",
+  "package_fingerprint": "d9734548b19fa4d8a8c6cec296e7706ddc4343fa44577e390b024276be2961d1",
+  "pass": true,
+  "prior_record": null,
+  "prior_reusable": null,
+  "registry_is_shipped": true,
+  "revise_packet": {
+    "actions_by_owner": {},
+    "by_key": {},
+    "by_owner": {},
+    "judgment_by_owner": {},
+    "unassigned": []
+  },
+  "revision": "r7",
+  "revision_cycle": {
+    "boundary_revise_rounds": 0,
+    "consecutive_revise": 0,
+    "gate": "gatekeeper-design",
+    "held_for_user": false,
+    "history": "verdict_design-to-build.cycles.json"
+  },
+  "run_id": "loggerd-ka2-efficiency-20261029",
+  "submission_id": "loggerd-ka2-efficiency-20261029-design-r7",
+  "unchanged_evidence": null,
+  "verdict_id": "e62e1310cdca4c16e9ef1d30596d12059ea3a8e0d219cf965d269584ced38bb5",
+  "warnings": []
+}

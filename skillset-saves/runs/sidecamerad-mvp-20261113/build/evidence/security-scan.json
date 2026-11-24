@@ -1,0 +1,39 @@
+{
+  "argv": [
+    "osv-scanner",
+    "scan",
+    "source",
+    "--recursive"
+  ],
+  "artifacts": [
+    "evidence/security-scan.stdout.txt",
+    "evidence/security-scan.stderr.txt"
+  ],
+  "command": "osv-scanner scan source --recursive",
+  "duration_seconds": 0.0,
+  "exit_code": null,
+  "inputs": [
+    {
+      "path": "uv.lock",
+      "sha256": "b11b5728c320607f081ce81fd2e0f4dd5c3c97e0e7c13863124ac7d287e01069"
+    },
+    {
+      "path": "msgq_repo/pyproject.toml",
+      "sha256": "00b7d2849b442c84b4070a22d753b61f44658c9e3beea4808eeccccc89e29573"
+    }
+  ],
+  "limitations": [
+    "No advisory or SCA scanner executable was available in this environment (osv-scanner, trivy, grype, pip-audit, safety, and semgrep were absent); no package was installed.",
+    "The running /usr/bin/ffmpeg is version 6.1.1-3ubuntu5+git20240717.8164ff7d~noble but dpkg-query does not map the binary to an installed package; the binary and runtime libraries received no advisory scan."
+  ],
+  "note": "status pass means the scanner exited 0 and matched no --fail-on-output pattern, which is not proof it found nothing; unavailable, error, and not-run are data gaps and never a clean scan",
+  "observed_at": "2026-11-13T08:08:29.411528+00:00",
+  "result": {
+    "status": "not-run"
+  },
+  "target_revision": "9a8d8579620ae219f9222a043765ca4fa4422e2e",
+  "tool": "osv-scanner",
+  "tool_version": null,
+  "type": "scan",
+  "version_command": null
+}

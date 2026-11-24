@@ -1,0 +1,7 @@
+AST parse: PASS (9 production files)
+git diff --check: exit=0
+patch path allowlist: PASS (7 paths)
+git apply --reverse --check: exit=0
+patch SHA-256: c4c6ddb89e41fc89ef4eefbc6d3be2fe3ef5446220dcdee985b733bb7c0ab843
+main Git index tree: caac7a2308bf6a5e77ff3a59d810e25d52cdea11 (unchanged; alternate-index artifact generation)
+hardware/I2C access: none

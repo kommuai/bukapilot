@@ -1,0 +1,80 @@
+Probe: no-path real module entry point; isolated PARAMS_ROOT
+Command: python3 -m system.sidecamerad (all SIDECAM_* unset)
+after-start Param type=dict value={"backLeftCameraState": false, "backRightCameraState": false, "frontLeftCameraState": false, "frontRightCameraState": false}
+after-start sidecar_socket_exists=False; process_threads=7; alive=True
+ERROR: AssertionError: no-path sidecar created VisionIPC resources or worker threads
+cleanup stdout/stderr:
+sidecamerad frontLeftCameraState: no device configured (SIDECAM_FRONT_LEFT); unavailable
+sidecamerad frontRightCameraState: no device configured (SIDECAM_FRONT_RIGHT); unavailable
+sidecamerad backLeftCameraState: no device configured (SIDECAM_BACK_LEFT); unavailable
+sidecamerad backRightCameraState: no device configured (SIDECAM_BACK_RIGHT); unavailable
+sidecamerad: no valid camera paths configured; waiting for shutdown
+Traceback (most recent call last):
+  File "<stdin>", line 40, in <module>
+AssertionError: no-path sidecar created VisionIPC resources or worker threads
+
+NO_PATH_PROBE=FAIL
+
+Probe attempt 2: no-path real module entry point; corrected thread check; isolated PARAMS_ROOT
+Command: python3 -m system.sidecamerad (all SIDECAM_* unset)
+after-start Param type=dict value={"backLeftCameraState": false, "backRightCameraState": false, "frontLeftCameraState": false, "frontRightCameraState": false}
+ERROR: FileNotFoundError: [Errno 2] No such file or directory: '/proc/941705/task/941705/children'
+cleanup stdout/stderr:
+sidecamerad frontLeftCameraState: no device configured (SIDECAM_FRONT_LEFT); unavailable
+sidecamerad frontRightCameraState: no device configured (SIDECAM_FRONT_RIGHT); unavailable
+sidecamerad backLeftCameraState: no device configured (SIDECAM_BACK_LEFT); unavailable
+sidecamerad backRightCameraState: no device configured (SIDECAM_BACK_RIGHT); unavailable
+sidecamerad: no valid camera paths configured; waiting for shutdown
+Traceback (most recent call last):
+  File "<stdin>", line 33, in <module>
+  File "/usr/local/uv/python/cpython-3.12.3-linux-aarch64-gnu/lib/python3.12/pathlib.py", line 1027, in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/uv/python/cpython-3.12.3-linux-aarch64-gnu/lib/python3.12/pathlib.py", line 1013, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/proc/941705/task/941705/children'
+
+NO_PATH_PROBE_ATTEMPT_2=FAIL
+
+Probe attempt 3: no-path real module entry point; no capture-thread/endpoint check; isolated PARAMS_ROOT
+Command: python3 -m system.sidecamerad (all SIDECAM_* unset)
+after-start Param type=dict value={"backLeftCameraState": false, "backRightCameraState": false, "frontLeftCameraState": false, "frontRightCameraState": false}
+after-start sidecar_socket_exists=False; task_count=7; task_names=['python3', 'python3', 'python3', 'python3', 'python3', 'ZMQbg/Reaper', 'ZMQbg/IO/0']; alive=True
+idle_liveness_elapsed_s=62.000; alive=True
+before-signal Param={"backLeftCameraState": false, "backRightCameraState": false, "frontLeftCameraState": false, "frontRightCameraState": false}
+process stdout/stderr:
+sidecamerad frontLeftCameraState: no device configured (SIDECAM_FRONT_LEFT); unavailable
+sidecamerad frontRightCameraState: no device configured (SIDECAM_FRONT_RIGHT); unavailable
+sidecamerad backLeftCameraState: no device configured (SIDECAM_BACK_LEFT); unavailable
+sidecamerad backRightCameraState: no device configured (SIDECAM_BACK_RIGHT); unavailable
+sidecamerad: no valid camera paths configured; waiting for shutdown
+missing_feed_warning_counts={"backLeftCameraState": 1, "backRightCameraState": 1, "frontLeftCameraState": 1, "frontRightCameraState": 1}
+sigterm_exit_code=0; socket_after_exit=False
+NO_PATH_PROBE_ATTEMPT_3=PASS
+
+Probe: five-minute live UVC capture; real module entry point; isolated PARAMS_ROOT
+Command: python3 -m system.sidecamerad
+Environment: SIDECAM_FRONT_LEFT=/dev/v4l/by-path/platform-xhci-hcd.11.auto-usb-0:1:1.0-video-index0; all other SIDECAM_* unset; PARAMS_ROOT=<temporary isolated path>
+Subscribers: cereal.messaging.SubMaster(frontLeftCameraState) + VisionIpcClient(sidecamerad, VISION_STREAM_SIDE_FRONT_LEFT, conflate=True)
+Acceptance window starts at first matching frame ID; duration=300s; target >=6000 frames, >=20.0fps mean, max EOF gap <=60ms
+visionipc_connected=True; width=1280; height=720; stride=1280; buffer_len=1382400; buffers=3
+first_matching_frame_id=1; observed_vipc_first=1; observed_cereal_first=1; Param_after_first_pair={"backLeftCameraState": false, "backRightCameraState": false, "frontLeftCameraState": true, "frontRightCameraState": false}
+progress_elapsed_s=60.0; vipc_unique_frames=1201; cereal_unique_frames=1201; matching_ids=1201
+progress_elapsed_s=120.0; vipc_unique_frames=2401; cereal_unique_frames=2401; matching_ids=2401
+progress_elapsed_s=180.0; vipc_unique_frames=3601; cereal_unique_frames=3601; matching_ids=3601
+progress_elapsed_s=240.0; vipc_unique_frames=4801; cereal_unique_frames=4801; matching_ids=4801
+progress_elapsed_s=300.0; vipc_unique_frames=6001; cereal_unique_frames=6001; matching_ids=6001
+capture_elapsed_s=300.037
+vipc_stats={"first_eof_ns": 18492310105578, "frames": 6001, "gaps_over_60ms": 709, "last_eof_ns": 18792304649514, "max_gap_ms": 95.741769, "mean_fps": 20.00036374421537, "span_s": 299.994543936}
+cereal_stats={"first_eof_ns": 18492310105578, "frames": 6001, "gaps_over_60ms": 709, "last_eof_ns": 18792304649514, "max_gap_ms": 95.741769, "mean_fps": 20.00036374421537, "span_s": 299.994543936}
+frame_id_matching_count=6001; matching_sample=[1, 2, 3, 4, 5]
+payload_sample={"bytes": 1382400, "frame_id": 1, "sample_bytes": 4096, "sample_nonzero_bytes": 4096, "valid": true}
+Param_before_shutdown={"backLeftCameraState": false, "backRightCameraState": false, "frontLeftCameraState": true, "frontRightCameraState": false}
+CADENCE_ACCEPTANCE=FAIL (mean fps or EOF gap below target)
+sidecamerad stdout/stderr:
+sidecamerad frontRightCameraState: no device configured (SIDECAM_FRONT_RIGHT); unavailable
+sidecamerad backLeftCameraState: no device configured (SIDECAM_BACK_LEFT); unavailable
+sidecamerad backRightCameraState: no device configured (SIDECAM_BACK_RIGHT); unavailable
+sigterm_exit_code=0; Param_after_shutdown={"backLeftCameraState": false, "backRightCameraState": false, "frontLeftCameraState": false, "frontRightCameraState": false}; socket_after_shutdown=False
+LIVE_CAPTURE_RESULT=FUNCTIONAL_PASS_CADENCE_LIMITED

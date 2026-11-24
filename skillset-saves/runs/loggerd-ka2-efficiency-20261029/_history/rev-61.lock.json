@@ -1,0 +1,10 @@
+{
+  "acquired_at": "2026-10-30T01:08:35.811443+00:00",
+  "heartbeat": "2026-10-30T01:47:09.644304+00:00",
+  "owner": "admiral",
+  "revision": 61,
+  "run_id": "loggerd-ka2-efficiency-20261029",
+  "schema_version": 1,
+  "session_pin": true,
+  "status": "held"
+}

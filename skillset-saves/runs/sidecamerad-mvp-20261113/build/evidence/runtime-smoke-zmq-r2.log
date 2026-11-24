@@ -1,0 +1,20 @@
+
+Probe: final five-minute live UVC capture; child inherits ZMQ=1; isolated PARAMS_ROOT
+Source: r2.1 with process-local ZMQ scrub; no camera recording is persisted
+Device=/dev/v4l/by-path/platform-xhci-hcd.11.auto-usb-0:1:1.0-video-index0; child_ZMQ=1; parent_ZMQ_before_probe=None
+Subscribers: cereal SubMaster(frontLeftCameraState) + VisionIpcClient(sidecamerad, SIDE_FRONT_LEFT)
+Acceptance window: 300s after first matching frame ID; target >=6000 frames and >=20fps mean
+sidecamerad_pid=1040291
+visionipc_connected=True; width=1280; height=720; stride=1280; buffer_len=1382400; buffers=3
+tcp_camera_port_listeners_after_start=[]
+first_matching_frame_id=1; Param_after_first_pair={"backLeftCameraState": false, "backRightCameraState": false, "frontLeftCameraState": true, "frontRightCameraState": false}
+ERROR: NameError: name 'buf' is not defined
+cleanup stdout/stderr:
+sidecamerad frontRightCameraState: no device configured (SIDECAM_FRONT_RIGHT); unavailable
+sidecamerad backLeftCameraState: no device configured (SIDECAM_BACK_LEFT); unavailable
+sidecamerad backRightCameraState: no device configured (SIDECAM_BACK_RIGHT); unavailable
+Traceback (most recent call last):
+  File "<stdin>", line 184, in <module>
+NameError: name 'buf' is not defined
+
+LIVE_CAPTURE_RESULT=FAIL

@@ -1,0 +1,51 @@
+---
+submission_id: sidecamerad-mvp-20261113_handoff-2_attempt-1_2026-11-15T08:56:55Z
+revision: "4"
+package_path: skillset-saves/runs/sidecamerad-mvp-20261113/investigation/manifest.json
+submission_status: VERDICT_RECORDED
+verdict: APPROVED
+---
+
+# Cross-stage handoff: investigation review
+
+## Package
+
+- Boundary: `investigation-review` (INVESTIGATE returning to BUILD)
+- Investigation revision: `4`
+- Investigation submission: `sidecamerad-mvp-20261113_investigation-ac4-timing-r4`
+- Manifest: `skillset-saves/runs/sidecamerad-mvp-20261113/investigation/manifest.json`
+- Manifest SHA-256: `72a75339145e4d031dec69c9c278409db619dbe54ac33bdad5c0a634a364722e`
+- Report: `skillset-saves/runs/sidecamerad-mvp-20261113/investigation/reports/investigation-package.md`
+- Report SHA-256: `39f762cc1f8002a5ea694cf59fe638e359a856ac8e206a8b1c52209900da08bc`
+- Evidence chain: `skillset-saves/runs/sidecamerad-mvp-20261113/investigation/evidence/evidence-chain-r4.log`
+- Evidence-chain SHA-256: `efd09d6751444a40bdc5d370d0816c2de2061f259cb188201cd5c2df6884ca40`
+- Canonical investigation self-check: passed with zero failures and warnings.
+- The r4 pending handoff is archived at `delivery/reports/handoff_investigation-review-r4-pending.md.archive` (SHA-256 `f3530eaa7baf9bc6a21c8fa112b8a89afa920d711b05b4bfc23d542b68f95210`). Previous package revisions remain preserved byte-for-byte.
+
+## Finding and bounded BUILD path
+
+The accepted five-minute current-source reproduction still fails AC-4's maximum-gap condition: 6,050 matched frames over 302.506666 seconds, mean 20.000523 fps, maximum EOF gap 89.163715 ms, and 753 of 6,049 gaps above 60 ms. The A/B/ABBA output-flush diagnostics found no repeatable benefit from `-flush_packets 1`; keep the production argv unchanged. The surviving medium-confidence localization is after V4L2 dequeue and before raw-pipe delivery inside FFmpeg processing/output. Python reader backlog, CPU runqueue delay as the primary cause, and sustained pipe backpressure remain unsupported; the internal wait/compute phase remains unknown. PTS are V4L2 SOE, not EOF; preserve `timestampEof` as host-monotonic time sampled after complete raw-frame read.
+
+The approved next diagnostic is one read-only 600-frame capture using the default production argv on `/dev/video60`: correlate per-thread FFmpeg syscall timestamps/durations for `ioctl`, `futex`, `poll`/`ppoll`, `select`/`pselect6`, `epoll_wait`, and `read`/`readv`/`write`/`writev` with monotonic full-read completions and per-thread schedstat runtime/runqueue deltas. Keep the existing mode, one FFmpeg thread, one filter thread, queue size 1, reader, and all argv fixed. Use `strace -f -ttt -T`; keep payload arguments raw-only and save no frame bytes. For every >60 ms interval, report overlap with blocking syscall waits and per-thread runtime/runqueue deltas. A long syscall wait supports blocking; runtime without a blocking call is suggestive but does not prove CPU work; a scheduler delta supports runnable delay. Strace and post-read `/proc` snapshots add observer overhead. This is diagnostic only, not an AC-4 pass or product fix.
+
+## Cross-stage verdict
+
+- Gate: `gatekeeper-admiral`
+- Verdict: **APPROVED** for `investigation-review` revision `4`.
+- Verdict ID: `c07bb7ef408fcf61d7dabb708691c37e6b3579f67197ed6c368e3df5b1598390`.
+- Durable verdict: `skillset-saves/runs/sidecamerad-mvp-20261113/investigation/verdict_investigation-review.cross-stage.json`, SHA-256 `c70b9007baa846a9dde0a0ae795a8fc4756d9cff3e3ecf916cc2552cbbe89ae1`.
+- Judgment: `skillset-saves/runs/sidecamerad-mvp-20261113/investigation/verdict_investigation-review.cross-stage.judgment.json`, SHA-256 `85e099f86280794fce0f294cdd31c3197c063654897bff2f601fed4f4354d9aa`.
+- Boundary validator: zero failures/warnings; changed evidence was evidence_chain, fix_path, mechanism, residual_uncertainty. Prior revision 3 was not reused.
+- Delivery shape: zero failures; coherent revision 4, with the conditional final-summary slot out of scope for this intermediate handoff.
+
+## Open evidence limits
+
+- The proposed syscall/schedstat trace has not been run, and both strace and post-read `/proc` sampling perturb timing.
+- The DQBUF ioctl omitted sequence fields, so exact dequeue-to-output frame identity remains unproven.
+- AC-4 remains failed on the accepted five-minute reproduction. AC-6 reconnect/sibling continuity and AC-8 four-camera soak remain hardware deferrals; the minor FFmpeg child resource-limit finding remains open.
+
+## Next consumer
+
+Route the approved read-only syscall/schedstat diagnostic to `build/build-management`. Keep source and production argv unchanged; AC-4 remains open until the five-minute acceptance is satisfied after any separately approved change.
+
+This is an intermediate investigation-to-BUILD handoff; a final delivery package is not in scope.

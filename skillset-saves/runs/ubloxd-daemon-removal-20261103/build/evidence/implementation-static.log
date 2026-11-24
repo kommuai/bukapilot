@@ -1,0 +1,170 @@
+# Implementation static evidence
+
+Run: ubloxd-daemon-removal-20261103
+Phase: build; slice: slice.gnss.ublox-removal
+Repository: /data/openpilot
+
+## Lock generation
+
+Command: `uv lock --offline` through `/usr/kommu/shims/uv`.
+Reported exit code 0 from the shim, but its output said the metadrive-simulator wheel could not be downloaded because the shim sets `UV_NO_CACHE=1` and offline mode was active; not treated as success.
+
+Command: `/usr/bin/uv lock --offline`.
+Exit code 1: the metadrive-simulator wheel was not cached and network access was disabled.
+
+Command: `/usr/bin/uv lock`.
+Exit code 2: writing to `/home/kommu/.cache/uv` failed with `No space left on device`.
+
+Command: `env UV_CACHE_DIR=/tmp/uv-cache-ublox-removal /usr/bin/uv lock`.
+Exit code 0: resolved 315 packages and removed kaitaistruct v0.11. It emitted the unrelated ewmhlib/python-xlib marker normalization.
+
+Command: `python -m pip install --no-cache-dir --target /tmp/uv-0.9.26 uv==0.9.26`.
+Exit code 0: installed uv 0.9.26 in `/tmp` as a lock-generation tool.
+
+Command: `env UV_CACHE_DIR=/tmp/uv-cache-0.9.26 /tmp/uv-0.9.26/bin/uv lock`.
+Exit code 0: resolved 315 packages; generated the same marker normalization. No unrelated package versions changed and no lock content was hand-edited.
+
+## Static checks
+
+### Repository case-insensitive residual audit
+
+Command: rg -n -i "kaitai|system/ubloxd|ubloxd|pigeond" --glob '!skillset-saves/**' --glob '!**/.harness-state/**' .
+Exit: 0
+Output:
+  ./RELEASES.md:613: * Reduce cpu consumption of ubloxd by rewriting it in C++
+
+### Scoped removal audit
+
+Command: rg -n -i "kaitai|system/ubloxd|ubloxd|pigeond" system/manager SConstruct pyproject.toml uv.lock selfdrive/test/process_replay selfdrive/debug/cpu_usage_stat.py system/hardware/tici/pins.py tools/scripts tools/plotjuggler/layouts
+Exit: 1
+Output: empty
+
+### Diff whitespace
+
+Command: git diff --check
+Exit: 0
+Output: empty
+
+### Lock consistency with regeneration uv
+
+Command: env UV_CACHE_DIR=/tmp/uv-cache-0.9.26 /tmp/uv-0.9.26/bin/uv lock --check
+Exit: 0
+Output:
+  Using CPython 3.12.3
+  Resolved 315 packages in 21ms
+
+### qcomgpsd source diff
+
+Command: git diff --quiet -- system/qcomgpsd
+Exit: 0
+Output: empty
+
+### Python static syntax
+
+Command: python -c 'import ast; from pathlib import Path; fs=("system/manager/manager.py", "system/manager/process_config.py", "system/manager/test/test_manager.py", "selfdrive/test/process_replay/process_replay.py", "selfdrive/test/process_replay/test_processes.py", "selfdrive/debug/cpu_usage_stat.py"); [ast.parse(Path(p).read_text(), filename=p) for p in fs]; print("AST parse passed for 6 changed Python files")'
+Exit: 0
+Output:
+  AST parse passed for 6 changed Python files
+
+### pyserial and GNSS power retention
+
+Command: rg -n "pyserial|GNSS_PWR_EN" pyproject.toml uv.lock system/hardware/tici/pins.py system/qcomgpsd
+Exit: 0
+Output:
+  pyproject.toml:14:  "pyserial",     # qcomgpsd
+  system/hardware/tici/pins.py:5:  GNSS_PWR_EN = 34 # SCHEMATIC LABEL: GPIO_UBLOX_PWR_EN
+  uv.lock:1309:    { name = "pyserial" },
+  uv.lock:1415:    { name = "pyserial" },
+  uv.lock:4330:name = "pyserial"
+  uv.lock:4333:sdist = { url = "https://files.pythonhosted.org/packages/1e/7d/ae3f0a63f41e4d2f6cb66a5b57197850f919f59e558159a4dd3a818f5082/pyserial-3.5.tar.gz", hash = "sha256:3c77e014170dfffbd816e6ffc205e9842efb10be9f58ec16d3e8675b4925cddb", size = 159125, upload-time = "2020-11-23T03:59:15.045Z" }
+  uv.lock:4335:    { url = "https://files.pythonhosted.org/packages/07/bc/587a445451b253b285629263eb51c2d8e9bcea4fc97826266d186f96f558/pyserial-3.5-py2.py3-none-any.whl", hash = "sha256:c4451db6ba391ca6ca299fb3ec7bae67a5c55dde170964c7a14ceefec02f2cf0", size = 90585, upload-time = "2020-11-23T03:59:13.41Z" },
+  system/qcomgpsd/nmeaport.py:134:  gpio_init(GPIO.GNSS_PWR_EN, True)
+  system/qcomgpsd/nmeaport.py:135:  gpio_set(GPIO.GNSS_PWR_EN, True)
+  system/qcomgpsd/qcomgpsd.py:242:    gpio_set(GPIO.GNSS_PWR_EN, False)
+  system/qcomgpsd/qcomgpsd.py:262:  gpio_init(GPIO.GNSS_PWR_EN, True)
+  system/qcomgpsd/qcomgpsd.py:263:  gpio_set(GPIO.GNSS_PWR_EN, True)
+
+### Historic replay selector
+
+Command: rg -n -C 3 "UbloxAvailable" selfdrive/test/process_replay/process_replay.py
+Exit: 0
+Output:
+  407-
+  408-
+  409-def selfdrived_config_callback(params, cfg, lr):
+  410:  ublox = params.get_bool("UbloxAvailable")
+  411-  sub_keys = ({"gpsLocation", } if ublox else {"gpsLocationExternal", })
+  412-
+  413-  cfg.pubs = set(cfg.pubs) - sub_keys
+  --
+  717-    params_dict.update(custom_params)
+  718-  if lr is not None:
+  719-    has_ublox = any(msg.which() == "ubloxGnss" for msg in lr)
+  720:    params_dict["UbloxAvailable"] = has_ublox
+  721-    is_rhd = next((msg.driverMonitoringState.isRHD for msg in lr if msg.which() == "driverMonitoringState"), False)
+  722-    params_dict["IsRhdDetected"] = is_rhd
+  723-
+
+### Manager/process policy
+
+Command: rg -n "KA2|UbloxAvailable|qcomgpsd|ubloxd|pigeond|ublox_available|def ublox\(|def qcomgps\(" system/manager/manager.py system/manager/process_config.py
+Exit: 0
+Output:
+  system/manager/process_config.py:7:from openpilot.system.hardware import PC, TICI, KA2
+  system/manager/process_config.py:80:  PythonProcess("indicatord", "system.hardware.ka2.status_led.indicatord", always_run, enabled=KA2),
+  system/manager/process_config.py:98:  PythonProcess("qcomgpsd", "system.qcomgpsd.qcomgpsd", only_onroad, enabled=KA2),
+  system/manager/manager.py:15:from openpilot.system.hardware import HARDWARE, KA2
+  system/manager/manager.py:39:  if KA2:
+  system/manager/manager.py:40:    params.put_bool("UbloxAvailable", False)
+
+### Tree absent
+
+Command: python -c 'from pathlib import Path; p=Path("system/ubloxd"); print("system/ubloxd absent:", not p.exists()); assert not p.exists()'
+Exit: 0
+Output:
+  system/ubloxd absent: True
+
+### Final change list
+
+Command: git diff --name-status -- SConstruct pyproject.toml uv.lock selfdrive/debug/cpu_usage_stat.py selfdrive/test/process_replay/README.md selfdrive/test/process_replay/process_replay.py selfdrive/test/process_replay/test_processes.py system/hardware/tici/pins.py system/manager/manager.py system/manager/process_config.py system/manager/test/test_manager.py system/ubloxd tools/scripts/save_ubloxraw_stream.py tools/plotjuggler/layouts/ublox-debug.xml
+Exit: 0
+Output:
+  M	SConstruct
+  M	pyproject.toml
+  M	selfdrive/debug/cpu_usage_stat.py
+  M	selfdrive/test/process_replay/README.md
+  M	selfdrive/test/process_replay/process_replay.py
+  M	selfdrive/test/process_replay/test_processes.py
+  M	system/hardware/tici/pins.py
+  M	system/manager/manager.py
+  M	system/manager/process_config.py
+  M	system/manager/test/test_manager.py
+  D	system/ubloxd/SConscript
+  D	system/ubloxd/generated/glonass.py
+  D	system/ubloxd/generated/gps.py
+  D	system/ubloxd/generated/ubx.py
+  D	system/ubloxd/glonass.ksy
+  D	system/ubloxd/gps.ksy
+  D	system/ubloxd/pigeond.py
+  D	system/ubloxd/tests/test_pigeond.py
+  D	system/ubloxd/ubloxd.py
+  D	system/ubloxd/ubx.ksy
+  D	tools/plotjuggler/layouts/ublox-debug.xml
+  D	tools/scripts/save_ubloxraw_stream.py
+  M	uv.lock
+
+### Protected pre-existing paths
+
+Command: git status --short -- common/params_keys.h common/params_pyx.so selfdrive/appbridged/appbridged.py system/loggerd/SConscript .harness-state skillset-saves
+Exit: 0
+Output:
+   M common/params_keys.h
+   M common/params_pyx.so
+   M selfdrive/appbridged/appbridged.py
+   M system/loggerd/SConscript
+  ?? .harness-state/
+  ?? skillset-saves
+
+Interpretation: the case-insensitive scoped audit found no daemon, Kaitai, or dedicated tooling references. The repository-wide audit found only `RELEASES.md:613`, a historic release-note entry. The `ewmhlib` parent references remain Linux-marked, so the generated child-marker normalization does not introduce a non-Linux dependency path.
+
+No product tests, unit/integration tests, route replay, or KA2 hardware checks were run.

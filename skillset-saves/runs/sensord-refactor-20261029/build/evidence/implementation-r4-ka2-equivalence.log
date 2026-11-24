@@ -1,0 +1,7 @@
+command: inline python3 AST assertions against the current source and PythonProcess signature
+surface: KA2 sensor order, bus, realtime-before-construction, onroad/default-enabled manager configuration
+exit_code: 0
+PASS: config_realtime_process runs before sensor construction
+PASS: bus 3 and ordered KA2 sensors remain ICM42670_Accel, ICM42670_Gyro, ICM42670_Temp, LIS2MDL_Magn
+PASS: manager retains only_onroad and PythonProcess default enabled=True
+Scope: source-level equivalence only; no hardware or I2C access

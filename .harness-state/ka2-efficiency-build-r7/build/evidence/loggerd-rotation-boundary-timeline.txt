@@ -1,0 +1,23 @@
+Times below are raw Event.logMonoTime values from the saved synthetic rlog/qlog files (nanoseconds, CLOCK_BOOTTIME domain).
+Offsets are relative to the startOfRoute sentinel; timestamps are not wall-clock values.
+Route directory timestamp observed on the saved files: 2026-10-30--01-25-30.
+Producer frame timestampSof/timestampEof is frame_id * 50,000,000 ns (20 FPS), as set by the test.
+
+route start sentinel: logMonoTime=61364661451044, offset_from_route_start_ns=0
+frame 1 roadCameraState: logMonoTime=61364760370971, offset_from_route_start_ns=98919927
+frame 98 roadCameraState: logMonoTime=61369610339296, offset_from_route_start_ns=4948888252
+frame 98 roadEncodeIdx: logMonoTime=61369611327451, offset_from_route_start_ns=4949876407
+frame 99 roadCameraState: logMonoTime=61369660319588, offset_from_route_start_ns=4998868544
+segment 0 endOfSegment sentinel: logMonoTime=61369662304065, offset_from_route_start_ns=5000853021
+segment 1 startOfSegment sentinel: logMonoTime=61369706688505, offset_from_route_start_ns=5045237461
+frame 100 roadCameraState: logMonoTime=61369710333713, offset_from_route_start_ns=5048882669
+frame 100 roadEncodeIdx: logMonoTime=61369713684340, offset_from_route_start_ns=5052233296
+frame 100 qRoadEncodeIdx: logMonoTime=61369714756786, offset_from_route_start_ns=5053305742
+frame 101 wideRoadEncodeIdx: logMonoTime=61369762039776, offset_from_route_start_ns=5100588732
+frame 104 roadCameraState: logMonoTime=61369910311171, offset_from_route_start_ns=5248860127
+frame 104 roadEncodeIdx: logMonoTime=61369911453616, offset_from_route_start_ns=5250002572
+frame 144 roadCameraState: logMonoTime=61371910314722, offset_from_route_start_ns=7248863678
+route endOfRoute sentinel: logMonoTime=61372913364821, offset_from_route_start_ns=8251913777
+
+Rotation boundary bracket: last old-segment camera input frame 99 at 61369660319588 ns; endOfSegment sentinel at 61369662304065 ns; startOfSegment sentinel at 61369706688505 ns; first new-segment input frame 100 at 61369710333713 ns.
+Frame 99 synthetic timestamp=4950000000 ns; frame 100 synthetic timestamp=5000000000 ns.

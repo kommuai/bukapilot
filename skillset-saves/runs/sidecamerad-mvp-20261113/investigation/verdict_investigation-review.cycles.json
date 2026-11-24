@@ -1,0 +1,506 @@
+{
+  "boundary": "investigation-review",
+  "events": [
+    {
+      "boundary": "investigation-review",
+      "changed_evidence": null,
+      "checked_at": "2026-11-15T09:03:26.172076+00:00",
+      "judgment": {
+        "by_owner": {},
+        "escalation": null,
+        "findings": [
+          {
+            "basis": {
+              "kind": "contract",
+              "ref": "Deterministic Pre-Check (two validators)",
+              "source": "gatekeeper-admiral/SKILL.md"
+            },
+            "evidence": [
+              "manifest:evidence.scope",
+              "manifest:evidence.fix_path",
+              "manifest:evidence.residual_uncertainty"
+            ],
+            "expected": "An investigation handoff identifies its scoped issue, bounded fix path, residual uncertainty, and BUILD consumer. A separate delivery summary is needed only when the boundary packages final delivery content.",
+            "id": "INFO-DELIVERY-SUMMARY-CONDITIONAL-RESOLVED-INVESTIGATION-R1",
+            "key": null,
+            "observed": "The investigation-review handoff returns the package to BUILD and names the consumer and next action. The phase boundary validator passes with no failures or warnings. Delivery-shape validation has no failures, one coherent revision and submission, and one conditional summary slot; the handoff states that final delivery packaging is out of scope here.",
+            "owner": "investigate",
+            "remediation": "No separate delivery summary is required for this intermediate investigation-to-BUILD handoff. No additional artifact is requested.",
+            "severity": "Info",
+            "statement": "The conditional delivery-summary slot is resolved as out of scope because this submission returns an investigation package to BUILD, and the handoff plus investigation package identify the consumer, fix path, and remaining uncertainty.",
+            "verification": "Re-run the canonical investigation-review boundary validator and the delivery package-shape validator. Confirm the boundary validator has no failures or warnings; the shape validator has no failures, coherent revision 1 lineage, a single current submission id, and only the conditional summary slot unresolved."
+          }
+        ],
+        "gate": "gatekeeper-admiral",
+        "intake": {
+          "artifact": "../intake/report_grilling.md"
+        },
+        "valid": true,
+        "verdict": "APPROVED"
+      },
+      "package_fingerprint": "bf1e18dae9685195c9a22107658e82612795eea99fd86d9029690b74c8f9521c",
+      "revise_packet": {
+        "actions_by_owner": {},
+        "by_key": {},
+        "by_owner": {},
+        "judgment_by_owner": {},
+        "unassigned": []
+      },
+      "revision": "1",
+      "signature": [
+        "gatekeeper-admiral",
+        "1",
+        "bf1e18dae9685195c9a22107658e82612795eea99fd86d9029690b74c8f9521c",
+        "APPROVED"
+      ],
+      "submission_id": "sidecamerad-mvp-20261113_investigation-ac4-timing-r1",
+      "unchanged_evidence": null
+    },
+    {
+      "boundary": "investigation-review",
+      "changed_evidence": [
+        "evidence_chain",
+        "fix_path",
+        "mechanism",
+        "residual_uncertainty"
+      ],
+      "checked_at": "2026-11-15T10:53:03.863538+00:00",
+      "judgment": {
+        "by_owner": {},
+        "escalation": null,
+        "findings": [
+          {
+            "basis": {
+              "kind": "contract",
+              "ref": "Deterministic Pre-Check (two validators)",
+              "source": "gatekeeper-admiral/SKILL.md"
+            },
+            "evidence": [
+              "manifest:evidence.scope",
+              "manifest:evidence.fix_path",
+              "manifest:evidence.residual_uncertainty"
+            ],
+            "expected": "An investigation handoff identifies its scoped issue, bounded path, residual uncertainty, and BUILD consumer. A separate delivery summary is needed only when the boundary packages final delivery content.",
+            "id": "INFO-DELIVERY-SUMMARY-CONDITIONAL-RESOLVED-INVESTIGATION-R2",
+            "key": null,
+            "observed": "The current revision-2 handoff returns the investigation to BUILD, names the diagnostic next step, and states final delivery is out of scope. The delivery-shape validator reports zero failures, coherent revision 2, and only the conditional summary slot unchecked.",
+            "owner": "investigate",
+            "remediation": "No separate delivery summary is required for this intermediate investigation-to-BUILD handoff.",
+            "severity": "Info",
+            "statement": "The conditional delivery-summary slot is out of scope because this boundary returns an investigation package to BUILD; the revision-2 handoff and package identify the BUILD consumer, bounded diagnostic, and residual uncertainty.",
+            "verification": "The canonical investigation-review boundary validator has no failures or warnings; the delivery-shape validator has zero failures and the r2 handoff, package, and manifest lineage agree."
+          }
+        ],
+        "gate": "gatekeeper-admiral",
+        "intake": {
+          "artifact": "../intake/report_grilling.md"
+        },
+        "valid": true,
+        "verdict": "APPROVED"
+      },
+      "package_fingerprint": "db918f4eccdf7604b75ba0c01c0c865946b81b899d40eaa68ec332df2daddb19",
+      "revise_packet": {
+        "actions_by_owner": {},
+        "by_key": {},
+        "by_owner": {},
+        "judgment_by_owner": {},
+        "unassigned": []
+      },
+      "revision": "2",
+      "signature": [
+        "gatekeeper-admiral",
+        "2",
+        "db918f4eccdf7604b75ba0c01c0c865946b81b899d40eaa68ec332df2daddb19",
+        "APPROVED"
+      ],
+      "submission_id": "sidecamerad-mvp-20261113_investigation-ac4-timing-r2",
+      "unchanged_evidence": [
+        "reproduction",
+        "scope"
+      ]
+    },
+    {
+      "boundary": "investigation-review",
+      "changed_evidence": [
+        "evidence_chain",
+        "fix_path",
+        "mechanism",
+        "residual_uncertainty"
+      ],
+      "checked_at": "2026-11-15T11:19:19.679917+00:00",
+      "judgment": {
+        "by_owner": {},
+        "escalation": null,
+        "findings": [
+          {
+            "basis": {
+              "kind": "contract",
+              "ref": "Deterministic Pre-Check (two validators)",
+              "source": "gatekeeper-admiral/SKILL.md"
+            },
+            "evidence": [
+              "manifest:evidence.scope",
+              "manifest:evidence.fix_path",
+              "manifest:evidence.residual_uncertainty"
+            ],
+            "expected": "An investigation handoff identifies its scoped issue, bounded path, residual uncertainty, and BUILD consumer. A separate delivery summary is needed only when the boundary packages final delivery content.",
+            "id": "INFO-DELIVERY-SUMMARY-CONDITIONAL-RESOLVED-INVESTIGATION-R3",
+            "key": null,
+            "observed": "The current revision-3 handoff returns the investigation to BUILD, identifies the four-arm ABBA diagnostic as the next step, and states final delivery is out of scope. The delivery-shape validator reports zero failures, coherent revision 3, and only the conditional summary slot unchecked.",
+            "owner": "investigate",
+            "remediation": "No separate delivery summary is required for this intermediate investigation-to-BUILD handoff.",
+            "severity": "Info",
+            "statement": "The conditional delivery-summary slot is out of scope because this boundary returns an investigation package to BUILD; the revision-3 handoff and package identify the BUILD consumer, bounded ABBA diagnostic, and residual uncertainty.",
+            "verification": "The canonical investigation-review boundary validator has no failures or warnings; the delivery-shape validator has zero failures and the r3 handoff, package, and manifest lineage agree."
+          }
+        ],
+        "gate": "gatekeeper-admiral",
+        "intake": {
+          "artifact": "../intake/report_grilling.md"
+        },
+        "valid": true,
+        "verdict": "APPROVED"
+      },
+      "package_fingerprint": "801f22d92139482ba21b4f13918b5ea254a6ea2c8817ff457c98a998655c0176",
+      "revise_packet": {
+        "actions_by_owner": {},
+        "by_key": {},
+        "by_owner": {},
+        "judgment_by_owner": {},
+        "unassigned": []
+      },
+      "revision": "3",
+      "signature": [
+        "gatekeeper-admiral",
+        "3",
+        "801f22d92139482ba21b4f13918b5ea254a6ea2c8817ff457c98a998655c0176",
+        "APPROVED"
+      ],
+      "submission_id": "sidecamerad-mvp-20261113_investigation-ac4-timing-r3",
+      "unchanged_evidence": [
+        "reproduction",
+        "scope"
+      ]
+    },
+    {
+      "boundary": "investigation-review",
+      "changed_evidence": [
+        "evidence_chain",
+        "fix_path",
+        "mechanism",
+        "residual_uncertainty"
+      ],
+      "checked_at": "2026-11-15T11:38:52.099541+00:00",
+      "judgment": {
+        "by_owner": {},
+        "escalation": null,
+        "findings": [
+          {
+            "basis": {
+              "kind": "contract",
+              "ref": "Deterministic Pre-Check (two validators)",
+              "source": "gatekeeper-admiral/SKILL.md"
+            },
+            "evidence": [
+              "manifest:evidence.scope",
+              "manifest:evidence.fix_path",
+              "manifest:evidence.residual_uncertainty"
+            ],
+            "expected": "An investigation handoff identifies its scoped issue, bounded path, residual uncertainty, and BUILD consumer. A separate delivery summary is needed only when the boundary packages final delivery content.",
+            "id": "INFO-DELIVERY-SUMMARY-CONDITIONAL-RESOLVED-INVESTIGATION-R4",
+            "key": null,
+            "observed": "The current revision-4 handoff returns the investigation to BUILD, identifies the fixed-default-argv syscall/schedstat diagnostic as the next step, and states final delivery is out of scope. The delivery-shape validator reports zero failures, coherent revision 4, and only the conditional summary slot unchecked.",
+            "owner": "investigate",
+            "remediation": "No separate delivery summary is required for this intermediate investigation-to-BUILD handoff.",
+            "severity": "Info",
+            "statement": "The conditional delivery-summary slot is out of scope because this boundary returns an investigation package to BUILD; the revision-4 handoff and package identify the BUILD consumer, bounded syscall/schedstat diagnostic, and residual uncertainty.",
+            "verification": "The canonical investigation-review boundary validator has no failures or warnings; the delivery-shape validator has zero failures and the r4 handoff, package, and manifest lineage agree."
+          }
+        ],
+        "gate": "gatekeeper-admiral",
+        "intake": {
+          "artifact": "../intake/report_grilling.md"
+        },
+        "valid": true,
+        "verdict": "APPROVED"
+      },
+      "package_fingerprint": "44831ea89f5bdd52c32b88d7da5be748da831d85f050d9c9684b5b3da7b4d987",
+      "revise_packet": {
+        "actions_by_owner": {},
+        "by_key": {},
+        "by_owner": {},
+        "judgment_by_owner": {},
+        "unassigned": []
+      },
+      "revision": "4",
+      "signature": [
+        "gatekeeper-admiral",
+        "4",
+        "44831ea89f5bdd52c32b88d7da5be748da831d85f050d9c9684b5b3da7b4d987",
+        "APPROVED"
+      ],
+      "submission_id": "sidecamerad-mvp-20261113_investigation-ac4-timing-r4",
+      "unchanged_evidence": [
+        "reproduction",
+        "scope"
+      ]
+    },
+    {
+      "boundary": "investigation-review",
+      "changed_evidence": [
+        "evidence_chain",
+        "fix_path",
+        "mechanism",
+        "residual_uncertainty"
+      ],
+      "checked_at": "2026-11-15T12:36:50.993311+00:00",
+      "judgment": {
+        "by_owner": {},
+        "escalation": null,
+        "findings": [
+          {
+            "basis": {
+              "kind": "contract",
+              "ref": "Deterministic Pre-Check (two validators)",
+              "source": "gatekeeper-admiral/SKILL.md"
+            },
+            "evidence": [
+              "manifest:evidence.scope",
+              "manifest:evidence.fix_path",
+              "manifest:evidence.residual_uncertainty"
+            ],
+            "expected": "An investigation handoff identifies its scoped issue, bounded path, residual uncertainty, and BUILD consumer. A separate delivery summary is needed only when the boundary packages final delivery content.",
+            "id": "INFO-DELIVERY-SUMMARY-CONDITIONAL-RESOLVED-INVESTIGATION-R5",
+            "key": null,
+            "observed": "The revision-5 handoff returns the investigation to BUILD, specifies only a bounded GDB/ptrace feasibility check, and states final delivery is out of scope. The delivery-shape validator reports zero failures, coherent revision 5, and only the conditional summary slot unchecked.",
+            "owner": "investigate",
+            "remediation": "No separate delivery summary is required for this intermediate investigation-to-BUILD handoff.",
+            "severity": "Info",
+            "statement": "The conditional delivery-summary slot is out of scope because this boundary returns an investigation package to BUILD; the revision-5 handoff and package identify the BUILD consumer, bounded GDB/ptrace feasibility check, and residual uncertainty.",
+            "verification": "The canonical investigation-review boundary validator has no failures or warnings; the delivery-shape validator has zero failures and the r5 handoff, package, and manifest lineage agree."
+          }
+        ],
+        "gate": "gatekeeper-admiral",
+        "intake": {
+          "artifact": "../intake/report_grilling.md"
+        },
+        "valid": true,
+        "verdict": "APPROVED"
+      },
+      "package_fingerprint": "2670003a75eb534f984fc0c35d837589e32341b82235f1e4fa82e5ca97d1df1b",
+      "revise_packet": {
+        "actions_by_owner": {},
+        "by_key": {},
+        "by_owner": {},
+        "judgment_by_owner": {},
+        "unassigned": []
+      },
+      "revision": "5",
+      "signature": [
+        "gatekeeper-admiral",
+        "5",
+        "2670003a75eb534f984fc0c35d837589e32341b82235f1e4fa82e5ca97d1df1b",
+        "APPROVED"
+      ],
+      "submission_id": "sidecamerad-mvp-20261113_investigation-ac4-timing-r5",
+      "unchanged_evidence": [
+        "reproduction",
+        "scope"
+      ]
+    },
+    {
+      "boundary": "investigation-review",
+      "changed_evidence": [
+        "evidence_chain",
+        "fix_path",
+        "mechanism",
+        "residual_uncertainty"
+      ],
+      "checked_at": "2026-11-15T12:58:29.064818+00:00",
+      "judgment": {
+        "by_owner": {},
+        "escalation": null,
+        "findings": [
+          {
+            "basis": {
+              "kind": "contract",
+              "ref": "Deterministic Pre-Check (two validators)",
+              "source": "gatekeeper-admiral/SKILL.md"
+            },
+            "evidence": [
+              "manifest:evidence.scope",
+              "manifest:evidence.fix_path",
+              "manifest:evidence.residual_uncertainty"
+            ],
+            "expected": "An investigation handoff identifies its scoped issue, bounded path, residual uncertainty, and BUILD consumer. A separate delivery summary is needed only when the boundary packages final delivery content.",
+            "id": "INFO-DELIVERY-SUMMARY-CONDITIONAL-RESOLVED-INVESTIGATION-R6",
+            "key": null,
+            "observed": "The revision-6 handoff returns the investigation to BUILD, specifies a capped GDB sampling diagnostic, and states final delivery is out of scope. The delivery-shape validator reports zero failures, coherent revision 6, and only the conditional summary slot unchecked.",
+            "owner": "investigate",
+            "remediation": "No separate delivery summary is required for this intermediate investigation-to-BUILD handoff.",
+            "severity": "Info",
+            "statement": "The conditional delivery-summary slot is out of scope because this boundary returns an investigation package to BUILD; the revision-6 handoff and package identify the BUILD consumer, bounded GDB sampling diagnostic, and residual uncertainty.",
+            "verification": "The canonical investigation-review boundary validator has no failures or warnings; the delivery-shape validator has zero failures and the r6 handoff, package, and manifest lineage agree."
+          }
+        ],
+        "gate": "gatekeeper-admiral",
+        "intake": {
+          "artifact": "../intake/report_grilling.md"
+        },
+        "valid": true,
+        "verdict": "APPROVED"
+      },
+      "package_fingerprint": "3f1871298717830742c34fb044c30df361b0467536554b4d1d03a8fa3082d29a",
+      "revise_packet": {
+        "actions_by_owner": {},
+        "by_key": {},
+        "by_owner": {},
+        "judgment_by_owner": {},
+        "unassigned": []
+      },
+      "revision": "6",
+      "signature": [
+        "gatekeeper-admiral",
+        "6",
+        "3f1871298717830742c34fb044c30df361b0467536554b4d1d03a8fa3082d29a",
+        "APPROVED"
+      ],
+      "submission_id": "sidecamerad-mvp-20261113_investigation-ac4-timing-r6",
+      "unchanged_evidence": [
+        "reproduction",
+        "scope"
+      ]
+    },
+    {
+      "boundary": "investigation-review",
+      "changed_evidence": [
+        "evidence_chain",
+        "fix_path",
+        "residual_uncertainty"
+      ],
+      "checked_at": "2026-11-15T13:22:36.232343+00:00",
+      "judgment": {
+        "by_owner": {},
+        "escalation": null,
+        "findings": [
+          {
+            "basis": {
+              "kind": "contract",
+              "ref": "Deterministic Pre-Check (two validators)",
+              "source": "gatekeeper-admiral/SKILL.md"
+            },
+            "evidence": [
+              "manifest:evidence.scope",
+              "manifest:evidence.fix_path",
+              "manifest:evidence.residual_uncertainty"
+            ],
+            "expected": "An investigation handoff identifies its scoped issue, bounded path, residual uncertainty, and BUILD consumer. A separate delivery summary is needed only when the boundary packages final delivery content.",
+            "id": "INFO-DELIVERY-SUMMARY-CONDITIONAL-RESOLVED-INVESTIGATION-R7",
+            "key": null,
+            "observed": "The revision-7 handoff returns the integrity-repaired investigation to BUILD, specifies the bounded GDB sampling diagnostic, and states final delivery is out of scope. The delivery-shape validator reports zero failures, coherent revision 7, and only the conditional summary slot unchecked.",
+            "owner": "investigate",
+            "remediation": "No separate delivery summary is required for this intermediate investigation-to-BUILD handoff.",
+            "severity": "Info",
+            "statement": "The conditional delivery-summary slot is out of scope because this boundary returns an integrity-repaired investigation package to BUILD; the revision-7 handoff and package identify the consumer, bounded diagnostic, and remaining uncertainty.",
+            "verification": "The canonical investigation-review boundary validator has no failures or warnings; the delivery-shape validator has zero failures and the r7 handoff, package, and manifest lineage agree."
+          }
+        ],
+        "gate": "gatekeeper-admiral",
+        "intake": {
+          "artifact": "../intake/report_grilling.md"
+        },
+        "valid": true,
+        "verdict": "APPROVED"
+      },
+      "package_fingerprint": "298bd2ad9abc88e877143bc7bd2c8b518dedb7502d68b58e69410470d8baa51b",
+      "revise_packet": {
+        "actions_by_owner": {},
+        "by_key": {},
+        "by_owner": {},
+        "judgment_by_owner": {},
+        "unassigned": []
+      },
+      "revision": "7",
+      "signature": [
+        "gatekeeper-admiral",
+        "7",
+        "298bd2ad9abc88e877143bc7bd2c8b518dedb7502d68b58e69410470d8baa51b",
+        "APPROVED"
+      ],
+      "submission_id": "sidecamerad-mvp-20261113_investigation-ac4-timing-r7",
+      "unchanged_evidence": [
+        "mechanism",
+        "reproduction",
+        "scope"
+      ]
+    },
+    {
+      "boundary": "investigation-review",
+      "changed_evidence": [
+        "evidence_chain",
+        "fix_path",
+        "mechanism",
+        "reproduction",
+        "residual_uncertainty",
+        "scope"
+      ],
+      "checked_at": "2026-11-15T15:33:42.202031+00:00",
+      "judgment": {
+        "by_owner": {},
+        "escalation": null,
+        "findings": [
+          {
+            "basis": {
+              "kind": "contract",
+              "ref": "Deterministic Pre-Check (two validators)",
+              "source": "gatekeeper-admiral/SKILL.md"
+            },
+            "evidence": [
+              "manifest:evidence.scope",
+              "manifest:evidence.fix_path",
+              "manifest:evidence.residual_uncertainty"
+            ],
+            "expected": "An investigation handoff identifies its scoped issue, bounded path, residual uncertainty, and BUILD consumer. A separate delivery summary is needed only when the boundary packages final delivery content.",
+            "id": "INFO-DELIVERY-SUMMARY-CONDITIONAL-RESOLVED-INVESTIGATION-R8",
+            "key": null,
+            "observed": "The r8/PENDING handoff and r8 package identify BUILD as the next consumer and keep the same-frame measurement proposal behind separate Admiral authorization. The delivery-shape validator reports zero failures, coherent revision 8 lineage and a fresh submission; only the conditional summary slot is unchecked.",
+            "owner": "investigate",
+            "remediation": "No separate delivery summary is required for this intermediate investigation-to-BUILD handoff. The proposed capture, instrumentation, and tracer remain unauthorized pending a separate Admiral decision.",
+            "severity": "Info",
+            "statement": "The conditional delivery-summary slot is out of scope because this is an intermediate investigation-review handoff returning to BUILD; the r8 handoff and package identify the BUILD consumer, bounded same-frame measurement proposal, and residual uncertainty.",
+            "verification": "The canonical investigation-review boundary validator reports no failures, missing keys, or warnings. The delivery-shape validator reports zero failures, coherent revision 8, a new submission relative to the archived r7 handoff, and only the conditional summary slot unchecked."
+          }
+        ],
+        "gate": "gatekeeper-admiral",
+        "intake": {
+          "artifact": "../intake/report_grilling.md"
+        },
+        "valid": true,
+        "verdict": "APPROVED"
+      },
+      "package_fingerprint": "ff1f4155b9e0b0243b5e80d272048ffcb0e5f6585fe0ede08a5995e7243765fd",
+      "revise_packet": {
+        "actions_by_owner": {},
+        "by_key": {},
+        "by_owner": {},
+        "judgment_by_owner": {},
+        "unassigned": []
+      },
+      "revision": "8",
+      "signature": [
+        "gatekeeper-admiral",
+        "8",
+        "ff1f4155b9e0b0243b5e80d272048ffcb0e5f6585fe0ede08a5995e7243765fd",
+        "APPROVED"
+      ],
+      "submission_id": "sidecamerad-mvp-20261113_investigation-ac4-r8_2026-11-15T14:52:54Z",
+      "unchanged_evidence": []
+    }
+  ],
+  "gates": {},
+  "held": false,
+  "reopen_refs": [],
+  "rounds": [],
+  "run_id": "sidecamerad-mvp-20261113",
+  "schema_version": 1
+}

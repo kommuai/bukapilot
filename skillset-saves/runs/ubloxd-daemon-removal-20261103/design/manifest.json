@@ -1,0 +1,88 @@
+{
+  "schema_version": 2,
+  "boundary": "design-to-build",
+  "owner": "commander",
+  "run_id": "ubloxd-daemon-removal-20261103",
+  "submission_id": "ubloxd-removal-design-20261103-v2",
+  "revision": "r8",
+  "revisions": [
+    "r8"
+  ],
+  "artifact_hashes": {
+    "../intake/report_grilling.md": "b9a771f641732d80f5f247648e207b92a8feb529bbc3c67f4a02ee773e8de8f5",
+    "../intake/reports/intake-brief.md": "a20b350b2b2ed74ba3a61e08183cd7b707c856c566eeb547015e30e67bd4fc92",
+    "reports/report_research.md": "5a176afdae8d658d9ada87432c8fae40997b3a2729f2ccd76470320052fab1f3",
+    "reports/architecture.md": "9b51e014d4626fdefc9ccc48c9f0b0b3ce8d99e0089320399bcf21d3f5e006e3",
+    "reports/plan.md": "862ec7a07df5564560772ab66a690dd631387791a145238a6efb5d429aa2d85a",
+    "reports/security-seed.json": "0b9cc411b07301f923eccc7ef7a0279d20fe1a68639d7acb989794b7a948a3e3",
+    "reports/implementation-spec.md": "93ce5f5495225df742682d0df1bedac3be466d9b9742524ec6b692f753f28650",
+    "reports/report_stack-lock.md": "56d47755b00e644302225a872bc01d3ba8187d068c72a2c356a49d4df0bbbc00",
+    "artifacts/taste-snapshot.json": "f8f03c10342a4dd3544cce957c71ded99583ae0691c9c8434afd62a971f18845",
+    "reports/design-package.md": "f2197f7b5c7aa68d579cdc8058bd4dff6cc22852a3c45cb6465db61efc273c77"
+  },
+  "evidence": {
+    "decisions": "../intake/report_grilling.md",
+    "architecture": "reports/architecture.md",
+    "interfaces": {
+      "artifacts": [
+        "reports/architecture.md"
+      ],
+      "change": "changed",
+      "items": [
+        {
+          "id": "IF-1",
+          "kind": "process-lifecycle",
+          "name": "GNSS manager platform policy"
+        },
+        {
+          "id": "IF-2",
+          "kind": "parameter-and-message-service",
+          "name": "KA2 live GPS service selection"
+        },
+        {
+          "id": "IF-3",
+          "kind": "message-and-assistance-service",
+          "name": "KA2 qcomgpsd behavior"
+        },
+        {
+          "id": "IF-4",
+          "kind": "historical-log-format",
+          "name": "UBLOX replay compatibility"
+        },
+        {
+          "id": "IF-5",
+          "kind": "status-and-UI-service",
+          "name": "Existing external GPS subscriptions"
+        },
+        {
+          "id": "IF-6",
+          "kind": "platform-availability",
+          "name": "TICI GNSS manager path removal"
+        }
+      ]
+    },
+    "plan": "reports/plan.md",
+    "acceptance": "reports/plan.md",
+    "security_seed": {
+      "applicable": false,
+      "scope": "Remove the TICI UBLOX manager path and TICI qcomgpsd enablement while preserving the existing KA2 qcomgpsd path and leaving PC simulation and historical replay behavior unchanged.",
+      "decided_by": "security-builder",
+      "architecture_revision": "architecture.md@sha256:9b51e014d4626fdefc9ccc48c9f0b0b3ce8d99e0089320399bcf21d3f5e006e3",
+      "reason": "No trust boundary is introduced or moved by this architecture revision. On KA2, the existing qcomgpsd modem diagnostic path, XTRA assistance download and injection, and GNSS publication are already active and remain unchanged; the manager predicate change preserves current KA2 behavior. On TICI, the qcomgpsd and UBLOX manager paths are removed, so no provider or XTRA path is newly activated. PC simulation and historical process replay retain their existing parameter-driven and route-derived service selection. The earlier XTRA transport probe is historical evidence only and does not add a control or behavior change to this scope.",
+      "boundaries": []
+    },
+    "stack_lock": {
+      "applicable": false,
+      "reason": "no new runtime or framework - existing stack unchanged",
+      "scope": "design-to-build removes a dependency and adds no runtime or framework; runtime detector scan is incomplete and is recorded as a limitation",
+      "decided_by": "commander"
+    },
+    "taste_snapshot": "artifacts/taste-snapshot.json",
+    "ui_evidence": {
+      "applicable": false,
+      "reason": "no user-facing surface - design system not engaged",
+      "scope": "manager and daemon/build support changes only; no screen or design system changes",
+      "decided_by": "architect"
+    }
+  }
+}

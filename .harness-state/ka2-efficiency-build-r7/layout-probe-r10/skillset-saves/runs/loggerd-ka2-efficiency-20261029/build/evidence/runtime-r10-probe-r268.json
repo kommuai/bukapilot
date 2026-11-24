@@ -1,0 +1,80 @@
+{
+  "artifacts": [
+    "evidence/runtime-r10-smoke-r268.log",
+    "evidence/runtime-r10-startup-r268.log",
+    "evidence/runtime-r10-readiness-r268.log",
+    "evidence/runtime-r10-dependencies-r268.log",
+    "evidence/runtime-r10-preflight-r268.log",
+    "evidence/runtime-r10-postflight-r268.log",
+    "evidence/runtime-r10-build-r267.log",
+    "evidence/runtime-r10-binary-audit-r267.log",
+    "evidence/runtime-r10-start-discovery-r267.log",
+    "evidence/runtime-r10-smoke-runner-r268.py",
+    "evidence/runtime-r10-smoke-r267.log",
+    "evidence/runtime-r10-startup-r267.log",
+    "evidence/runtime-r10-readiness-r267.log",
+    "evidence/runtime-r10-dependencies-r267.log",
+    "evidence/runtime-r10-preflight-r267.log",
+    "evidence/runtime-r10-postflight-r267.log",
+    "evidence/runtime-r10-smoke-runner-r267.py"
+  ],
+  "result": {
+    "status": "pass"
+  },
+  "tool": "SCons production build and Python process smoke with the synthetic DMA-heap VisionIPC fixture",
+  "command": "/usr/local/venv/bin/scons -Q -j2 system/loggerd/loggerd system/loggerd/encoderd build/system/loggerd/tests/visionipc_dmabuf_publisher (TMPDIR=/data/.tmp-logr10-runtime-267; build evidence in evidence/runtime-r10-build-r267.log); /usr/local/venv/bin/python3 skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/runtime-r10-smoke-runner-r268.py",
+  "observed_at": "2026-10-31T13:14:31Z",
+  "environment": "Local non-production KA2/RK3588 board; production loggerd/encoderd with LOGGERD_TEST_BUILD hooks and fault injection compiled out; isolated four-buffer 1920x1200 DMA-heap VisionIPC fixture; LOGGERD_TEST=1 and LOGGERD_SEGMENT_LENGTH=2 timing override; LOGGERD_TEST_DETERMINISTIC=1 selects the production-default RK3588 rotation algorithm; ENCODERD_DETERMINISTIC_DISABLE and fault selectors unset; temp media under /data; no live camera/V4L2 or network/authenticated traffic",
+  "target_revision": "Workspace based on git HEAD 438acf545a776a63a05a70e42268f1ea32da036c; current runtime source snapshot bound by input hashes",
+  "input_revision": 261,
+  "inputs": [
+    {
+      "path": "system/loggerd/loggerd.cc",
+      "sha256": "3a2e621adc50f44f727a12b0d8deb7410a4c502948ae2297069aa40b4ea8f5a9"
+    },
+    {
+      "path": "system/loggerd/loggerd.h",
+      "sha256": "be831a312bedac0b997eaea6a932f63f2ca265f35c5881c96c9c0a17097e1034"
+    },
+    {
+      "path": "system/loggerd/encoderd.cc",
+      "sha256": "a30d52209fbfb79dc8cf3efe1a1bc8c7eb9e76a2dde3db422f0c22684537396e"
+    },
+    {
+      "path": "system/loggerd/encoder/ffmpeg_encoder.cc",
+      "sha256": "7124dee947f6eb409e5fc0e720182f077554d470871dc5c400b6430abc1ea8de"
+    },
+    {
+      "path": "system/loggerd/encoder/ffmpeg_encoder.h",
+      "sha256": "ca58013144a178daf80b1e483dcfd56a231d3af72129aec5a7052e8df269f8d8"
+    },
+    {
+      "path": "system/loggerd/encoder/mpp_encoder.cc",
+      "sha256": "24537361363ace4fd11485fca4284938f22e9b73fdb13ff84f100dd8368d5477"
+    },
+    {
+      "path": "system/loggerd/encoder/mpp_encoder.h",
+      "sha256": "253c02a7c10624d0333f3360cb13281d6edb1ede10efe91e705c03ac284e8f43"
+    },
+    {
+      "path": "system/loggerd/encoder/mpp_encoder_input.h",
+      "sha256": "965e011ff0676341996a13974f7c86f87a26bc72441765eefc68f115ee068ce3"
+    },
+    {
+      "path": "system/loggerd/SConscript",
+      "sha256": "9423e0b617e2b99b50ee97e592c65d89925a6bbad0af6f8944eb78fb056c2373"
+    },
+    {
+      "path": "system/loggerd/tests/visionipc_dmabuf_publisher.cc",
+      "sha256": "0994305f86b1c7c1481d3276ee2dd5b5fd81d033847db822a198568941fefad9"
+    },
+    {
+      "path": "system/loggerd/tests/test_dmabuf_fixture.py",
+      "sha256": "cfc0baf39d00be3871f7e8359083adc86266e29333e3b2dc09cd349e175a7b9c"
+    },
+    {
+      "path": "skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/runtime-r10-smoke-runner-r268.py",
+      "sha256": "18301bbfa56ff000b9dc18cb7b8f4fc17cfbdaf83543fb96331fb369b2c75e86"
+    }
+  ]
+}

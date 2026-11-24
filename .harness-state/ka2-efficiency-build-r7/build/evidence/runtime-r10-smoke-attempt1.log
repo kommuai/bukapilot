@@ -1,0 +1,13 @@
+target=local KA2/RK3588 board, isolated synthetic DMA-heap VisionIPC
+production_binaries=/data/openpilot/system/loggerd/loggerd,/data/openpilot/system/loggerd/encoderd
+LOGGERD_TEST=1 LOGGERD_SEGMENT_LENGTH=2 (runtime test override only)
+test-only hooks/counters/fault injection compiled out; no fault selectors set
+readiness_window=10s for subscriptions and segment 0; lifecycle_window=24s for segments 1 and 2
+predicate=both processes alive; camera/audio subscriptions present; reports 1/2 healthy; three segments have all six files; qRoad H264+audio decode
+probe_result=fail
+error=RuntimeError: unique test IPC paths unexpectedly existed before launch; postflight=pass
+   5.009s fresh board preflight passed: no active camera/logger/encoder processes and no device users
+   5.009s dependencies present: /dev/dma_heap/system, /dev/mpp_service, /dev/rga
+   5.010s FAIL: RuntimeError: unique test IPC paths unexpectedly existed before launch
+   5.012s Traceback (most recent call last): |   File "/tmp/runtime_smoke_r10.py", line 139, in <module> |     raise RuntimeError('unique test IPC paths unexpectedly existed before launch') | RuntimeError: unique test IPC paths unexpectedly existed before launch | 
+   9.324s postflight passed: isolated socket/MSGQ removed and board device nodes idle

@@ -1,0 +1,53 @@
+---
+submission_id: sidecamerad-mvp-20261113_handoff-2_attempt-1_2026-11-15T08:56:55Z
+revision: "2"
+package_path: skillset-saves/runs/sidecamerad-mvp-20261113/investigation/manifest.json
+submission_status: VERDICT_RECORDED
+verdict: APPROVED
+---
+
+# Cross-stage handoff: investigation review
+
+## Package
+
+- Boundary: `investigation-review` (INVESTIGATE returning to BUILD)
+- Investigation revision: `2`
+- Investigation submission: `sidecamerad-mvp-20261113_investigation-ac4-timing-r2`
+- Manifest: `skillset-saves/runs/sidecamerad-mvp-20261113/investigation/manifest.json`
+- Manifest SHA-256: `25d544f06dbfdf0787770bf208da6d69d3307b675b8da8ffeec46105a1fce882`
+- Report: `skillset-saves/runs/sidecamerad-mvp-20261113/investigation/reports/investigation-package.md`
+- Report SHA-256: `b35b75239d451b80d9cf7015028d4598a821f0e110debd3927213fab67e44cfd`
+- Evidence chain: `skillset-saves/runs/sidecamerad-mvp-20261113/investigation/evidence/evidence-chain-r2.log`
+- Evidence-chain SHA-256: `4f48970cac9f2f18217cbdce31323ae435e59b77294b7c04f91e46ff2459d8ec`
+- Canonical investigation self-check: passed with zero failures and warnings.
+
+The revision-1 investigation package remains preserved byte-for-byte at `investigation/reports/investigation-package-r1.md` (SHA-256 `b4afe53167fb5ff722d3b8174f7e339f98d3cc66578d84d420e12acb8e6bc796`). The revision-1 approved cross-stage judgment remains in the cycle ledger; it does not approve revision-2 evidence or fix path. The prior r1 handoff is archived at `delivery/reports/handoff_investigation-review-r1.md.archive`.
+
+## Finding and bounded BUILD path
+
+The accepted five-minute current-source capture still fails AC-4's maximum-gap condition: 6,050 matched frames over 302.506666 seconds, 20.000523 fps mean cadence, 89.163715 ms maximum EOF gap, and 753 of 6,049 gaps above 60 ms. New same-run evidence narrows cadence divergence to after regular V4L2 dequeue/SOE cadence and before raw-pipe delivery. It does not support a separate Python reader backlog, CPU runqueue delay as the primary cause, or sustained pipe backpressure. The exact FFmpeg internal pacing/synchronization wait and output-writer thread remain unresolved. PTS is V4L2 SOE, not EOF; retain `timestampEof` as host-monotonic time sampled after complete raw-frame read.
+
+Before any source change, BUILD should run the approved read-only, one-variable 600-frame FFmpeg output-pacing A/B: current output-flush default versus a diagnostic fixed argv adding only output-side `-flush_packets 1`. Hold the one-thread mode, queue sizes, filter, camera mode, frame count, and reader constant; save no frame payload and make no source edit. This is diagnostic only and cannot pass AC-4 or authorize a production argv change. The existing five-minute acceptance remains required after any later approved source change.
+
+## Open evidence limits
+
+- DQBUF trace recorded 602 successful dequeues for 600 outputs and lacked sequence fields, so exact dequeue-to-output frame identity remains unproven.
+- Scheduler snapshots followed each read and add observer cost to the next interval; the exact FFmpeg internal wait and writer-thread attribution remain unresolved.
+- The proposed output-flush A/B has not been run. It may narrow output-buffer pacing only; AC-4 remains failed on the accepted reproduction.
+- AC-6 reconnect/sibling continuity and AC-8 four-camera soak/CPU headroom remain unverified hardware deferrals. The existing minor FFmpeg child resource-limit finding remains open.
+
+## Cross-stage verdict
+
+- Gate: `gatekeeper-admiral`
+- Verdict: **APPROVED** for `investigation-review` revision `2`.
+- Verdict ID: `c04799b5b17085bfaec9a1c80f60777d7cf9ad12d021c3dc2b0eef5a0c593908`.
+- Durable verdict: `skillset-saves/runs/sidecamerad-mvp-20261113/investigation/verdict_investigation-review.cross-stage.json`, SHA-256 `290416777d9bfbfcd0cc4d4cb93fd8db7857b7bea1e085947cff716247e9db55`.
+- Judgment: `skillset-saves/runs/sidecamerad-mvp-20261113/investigation/verdict_investigation-review.cross-stage.judgment.json`, SHA-256 `3812109b0271b61d70954ddc733fceb4b3413fc04996e84ba9edbb89d84a5632`.
+- Boundary validator: zero failures and warnings; changed evidence was `evidence_chain`, `fix_path`, `mechanism`, and `residual_uncertainty`.
+- Delivery shape: zero failures; the conditional final-summary slot was resolved as out of scope for this intermediate BUILD handoff.
+
+## Next consumer
+
+Route the approved diagnostic step to `build/build-management`. AC-4 remains failed until the existing five-minute acceptance is met after any approved source change. AC-6 and AC-8 remain hardware deferrals.
+
+This is an intermediate investigation-to-BUILD handoff; a final delivery package is not in scope.

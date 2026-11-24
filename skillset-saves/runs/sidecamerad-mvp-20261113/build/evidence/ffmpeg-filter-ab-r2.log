@@ -1,0 +1,9 @@
+command: python3 inline FFmpeg sequential A/B, device=/dev/v4l/by-path/platform-xhci-hcd.11.auto-usb-0:1:1.0-video-index0, each_duration_s=20.0
+frame_bytes=1382400; input=V4L2 MJPEG 1280x720@20; output=NV12 rawvideo; output is drained and sampled for nonzero bytes
+variants are baseline existing scale+format filter, then same capture without identity scale (explicit output pix_fmt retained).
+[identity_scale_filter] ffmpeg_exit=-9; frames=392; complete_nonzero_frames=392; elapsed_s=20.023; mean_eof_fps=20.015859; max_gap_ms=86.119; p95_gap_ms=66.903; gaps_gt_60ms=42; ffmpeg_cpu_pct_one_core=71.52; partial_bytes_at_stop=65536; error=None
+[identity_scale_filter] stderr=''
+[identity_scale_filter] PROBE_STATUS=valid
+[output_pix_fmt_only] ffmpeg_exit=-9; frames=395; complete_nonzero_frames=395; elapsed_s=20.033; mean_eof_fps=19.980056; max_gap_ms=82.256; p95_gap_ms=70.307; gaps_gt_60ms=80; ffmpeg_cpu_pct_one_core=73.63; partial_bytes_at_stop=65536; error=None
+[output_pix_fmt_only] stderr=''
+[output_pix_fmt_only] PROBE_STATUS=valid

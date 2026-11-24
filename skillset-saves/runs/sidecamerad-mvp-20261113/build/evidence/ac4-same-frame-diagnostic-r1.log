@@ -1,0 +1,139 @@
+{
+  "argv": [
+    "/usr/bin/ffmpeg",
+    "-nostdin",
+    "-hide_banner",
+    "-loglevel",
+    "error",
+    "-thread_queue_size",
+    "1",
+    "-threads",
+    "1",
+    "-filter_threads",
+    "1",
+    "-f",
+    "v4l2",
+    "-input_format",
+    "mjpeg",
+    "-framerate",
+    "20",
+    "-video_size",
+    "1280x720",
+    "-i",
+    "/dev/v4l/by-path/platform-xhci-hcd.11.auto-usb-0:1:1.0-video-index0",
+    "-an",
+    "-sn",
+    "-dn",
+    "-vf",
+    "scale=1280:720:flags=neighbor,format=nv12",
+    "-pix_fmt",
+    "nv12",
+    "-threads",
+    "1",
+    "-fps_mode",
+    "passthrough",
+    "-f",
+    "rawvideo",
+    "pipe:1"
+  ],
+  "argv_unchanged_from_production": true,
+  "capture_error": null,
+  "child_exit": -9,
+  "decoder": {
+    "completion_gap_count": 26,
+    "completion_gaps_over_60ms": 2,
+    "events": 27,
+    "first_pts": [
+      0,
+      695988,
+      744010,
+      796052,
+      844140
+    ],
+    "max_completion_gap_ms": 63.790536,
+    "pts_first_last": [
+      0,
+      1944002
+    ],
+    "unique_nonnegative_pts": 27
+  },
+  "dqbuf_completion_gap_count_over_60ms": 2,
+  "dqbuf_completion_max_gap_ms": 60.724742,
+  "dqbuf_events": 29,
+  "dqbuf_sequence_first_last": [
+    0,
+    28
+  ],
+  "dqbuf_source_max_gap_ms": 695.988,
+  "dqbuf_source_timestamp_gap_count_over_60ms": 1,
+  "duration_s": 7.297506021,
+  "ffmpeg": "/usr/bin/ffmpeg",
+  "ffmpeg_hash_drift": false,
+  "ffmpeg_sha256_before": "9af5a141b45d32f64fe7bb5cd2c939d56fb9972234705513c45575ef7a1da38e",
+  "filter_sink": {
+    "completion_gap_count": 26,
+    "completion_gaps_over_60ms": 4,
+    "events": 27,
+    "first_pts": [
+      0,
+      695988,
+      744010,
+      796052,
+      844140
+    ],
+    "max_completion_gap_ms": 66.641621,
+    "pts_first_last": [
+      0,
+      1944002
+    ],
+    "unique_nonnegative_pts": 27
+  },
+  "frame_bytes": 1382400,
+  "frames_completed": 26,
+  "logs": {
+    "metadata_jsonl": "skillset-saves/runs/sidecamerad-mvp-20261113/build/evidence/ac4-same-frame-diagnostic-r1.jsonl",
+    "observer_ring": "skillset-saves/runs/sidecamerad-mvp-20261113/build/evidence/ac4-same-frame-observer-r1.bin"
+  },
+  "max_frames": 600,
+  "mux": {
+    "completion_gap_count": 25,
+    "completion_gaps_over_60ms": 5,
+    "events": 26,
+    "first_pts": [
+      0,
+      14,
+      15,
+      16,
+      17
+    ],
+    "max_completion_gap_ms": 67.825497,
+    "pts_first_last": [
+      0,
+      38
+    ],
+    "unique_nonnegative_pts": 26
+  },
+  "observer": "LD_PRELOAD metadata ring; no production source/argv change",
+  "observer_ring": {
+    "capacity": 65536,
+    "event_types": {
+      "1": 29,
+      "4": 27,
+      "5": 27,
+      "6": 26
+    },
+    "events": 109,
+    "magic": "0x4143345452414345",
+    "overflow": 0,
+    "stdout_bytes_recorded": 0
+  },
+  "reader_gaps_over_60ms_after_warmup": 1,
+  "reader_max_gap_ms_after_warmup": 63.049452,
+  "resolved_device": "/dev/video60",
+  "sidecamerad_source_sha256_before": "494fb8b88fda8bcf1d8301225019f4f01f4b77a0bb5cb3e69dde47ed96e1309b",
+  "source_hash_drift": false,
+  "stop_reason": "first_post_warmup_gap_over_60ms",
+  "submission_id": "sidecamerad-mvp-20261113_build-ac4-same-frame-diagnostic-r1_2026-11-15T16:06:56Z",
+  "target": "/dev/v4l/by-path/platform-xhci-hcd.11.auto-usb-0:1:1.0-video-index0",
+  "warmup_frames": 20
+}

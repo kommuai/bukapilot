@@ -1,0 +1,80 @@
+{
+  "boundary": "design-to-build",
+  "submission_id": "sensord-refactor-20261029-design-r4",
+  "revision": "r4",
+  "gate": "gatekeeper-design",
+  "verdict": "APPROVED",
+  "intake": {
+    "artifact": "../intake/report_grilling.md"
+  },
+  "findings": [
+    {
+      "id": "INFO-API-CONTRACTS-OUT-OF-SCOPE",
+      "key": "interfaces",
+      "owner": "architect",
+      "severity": "Info",
+      "statement": "The shape validator's conditional API-contract finding is resolved as out of scope: IF-1 is an internal process-lifecycle contract, with no HTTP, webhook, or request/response endpoint. Existing KA2 cereal services and payloads remain unchanged.",
+      "basis": {
+        "kind": "contract",
+        "source": "design/gatekeeper-design/references/workflow.md",
+        "ref": "Design Packet Validation Sequence"
+      },
+      "evidence": [
+        "reports/report_interfaces.md",
+        "reports/report_architecture.md",
+        "reports/design-package.md"
+      ]
+    },
+    {
+      "id": "INFO-UI-HANDOFF-OUT-OF-SCOPE",
+      "key": "ui_evidence",
+      "owner": "architect",
+      "severity": "Info",
+      "statement": "The conditional frontend/UI finding is resolved as out of scope: this daemon and its machine consumers introduce no user-facing surface, and the manifest carries the architect's sanctioned no-surface applicability record.",
+      "basis": {
+        "kind": "contract",
+        "source": "design/gatekeeper-design/references/workflow.md",
+        "ref": "Design Packet Validation Sequence"
+      },
+      "evidence": [
+        "reports/report_interfaces.md",
+        "reports/report_architecture.md",
+        "reports/design-package.md",
+        "manifest:evidence.ui_evidence"
+      ]
+    },
+    {
+      "id": "INFO-NON-KA2-OFF-TARGET-UNGUARDED",
+      "key": "architecture",
+      "owner": "architect",
+      "severity": "Info",
+      "statement": "Residual risk accepted under D-20: managed or direct non-KA2 invocation is not rejected and may reach the fixed bus-3 path. Non-KA2 behavior is explicitly outside the confirmed KA2 contract; this is not a claim of off-target safety and does not require reinstating a platform guard.",
+      "basis": {
+        "kind": "decision",
+        "ref": "D-20",
+        "artifact": "../intake/report_grilling.md"
+      },
+      "evidence": [
+        "reports/report_architecture.md",
+        "reports/report_interfaces.md",
+        "reports/implementation-spec.md"
+      ]
+    },
+    {
+      "id": "INFO-TARGET-VALIDATION-DEFERRED",
+      "key": "plan",
+      "owner": "planner",
+      "severity": "Info",
+      "statement": "Physical board and sensor identity, startup, live cadence, shutdown, and target CPU/RSS remain unverified and are explicitly deferred under D-3. The plan correctly stops at build/review and makes no hardware-readiness or target-performance claim.",
+      "basis": {
+        "kind": "decision",
+        "ref": "D-3",
+        "artifact": "../intake/report_grilling.md"
+      },
+      "evidence": [
+        "reports/delivery-plan.md",
+        "reports/implementation-spec.md"
+      ]
+    }
+  ]
+}

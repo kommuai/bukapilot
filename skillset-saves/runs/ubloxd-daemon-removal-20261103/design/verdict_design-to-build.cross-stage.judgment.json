@@ -1,0 +1,27 @@
+{
+  "boundary": "design-to-build",
+  "submission_id": "ubloxd-removal-design-20261103-v2",
+  "revision": "r8",
+  "gate": "gatekeeper-admiral",
+  "verdict": "APPROVED",
+  "intake": {
+    "artifact": "../intake/report_grilling.md"
+  },
+  "findings": [
+    {
+      "id": "INFO-DELIVERY-SUMMARY-CONDITIONAL-RESOLVED",
+      "severity": "Info",
+      "key": null,
+      "statement": "The delivery package summary check is conditional and is not needed for this intermediate design-to-build handoff. The delivery handoff record identifies the r8 design manifest, phase approval, next consumer, scope, and build contract; the hashed design manifest and approved design package remain the source of truth.",
+      "basis": {
+        "kind": "contract",
+        "source": "gatekeeper-admiral/SKILL.md",
+        "ref": "Deterministic Pre-Check (two validators)"
+      },
+      "evidence": [
+        "manifest:evidence.architecture",
+        "manifest:evidence.plan"
+      ]
+    }
+  ]
+}

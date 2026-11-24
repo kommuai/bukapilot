@@ -1,0 +1,63 @@
+{
+  "boundary": "review-to-delivery",
+  "changed_evidence": null,
+  "checked_at": "2026-10-31T14:24:09.046319+00:00",
+  "declared_schema_version": 2,
+  "evidence_digests": {
+    "executed_probes": "18a97261fd3da5ad331efc7191dcc2fe74cfab3bf21df6be3b6b101741a80d5b",
+    "findings": "5f77506a984766b7866b0ed4b503429fc7dae5d91562c4307a9bbb379be87462",
+    "rendered_verification": "1e0f46bedbd5fdd62d54345d4afb85bd1d18799d98523365e5197a45ce2ad0bd",
+    "residual_risk": "a3ad4a5d06364e8d31387fa964f6dd237ccb37ada1b69f0bdd4401a93b328893",
+    "review_verdict": "43fe70d3d992e67855c90a64a983c86aebc253df2c9152fb62106808ac16ca83",
+    "revision_lineage": "04bbe80e64aaa1db1687d78dbb21a0374a8b7c875ca4e19f3e86deed66bf3a07"
+  },
+  "evidence_root": "/data/media/supremeteam/42c6eb550c629191187c/skillset-saves/runs/loggerd-ka2-efficiency-20261029",
+  "evidence_root_kind": "run",
+  "failures": [],
+  "gate_spec_digest": "b2995ffa29a827c2bf101391788bf1228eb38869ad7c0a601a4126734ee6c7c1",
+  "gate_spec_is_shipped": true,
+  "idempotency_drift": false,
+  "judgment": {
+    "by_owner": {},
+    "escalation": null,
+    "findings": [],
+    "gate": "gatekeeper-code",
+    "intake": {
+      "artifact": "../intake/report_grilling.md"
+    },
+    "valid": true,
+    "verdict": "APPROVED"
+  },
+  "judgment_failures": [],
+  "manifest": "manifest.json",
+  "manifest_schema_version": 2,
+  "mechanical_only": false,
+  "missing": [],
+  "mixed_revisions": false,
+  "owner": "code-chief",
+  "package_fingerprint": "7616b5fe8f83c355dcf92f1dad8cb0a33e628ad2ca7b7bf825def5380bedb8f1",
+  "pass": true,
+  "prior_record": null,
+  "prior_reusable": null,
+  "registry_is_shipped": true,
+  "revise_packet": {
+    "actions_by_owner": {},
+    "by_key": {},
+    "by_owner": {},
+    "judgment_by_owner": {},
+    "unassigned": []
+  },
+  "revision": 282,
+  "revision_cycle": {
+    "boundary_revise_rounds": 0,
+    "consecutive_revise": 0,
+    "gate": "gatekeeper-code",
+    "held_for_user": false,
+    "history": "verdict_review-to-delivery.cycles.json"
+  },
+  "run_id": "loggerd-ka2-efficiency-20261029",
+  "submission_id": "loggerd-ka2-efficiency-20261029-review-r10",
+  "unchanged_evidence": null,
+  "verdict_id": "41656bbcc5f428d81b074c6474b58d2f4af2d34fbb0b961dba2947ed5c067464",
+  "warnings": []
+}

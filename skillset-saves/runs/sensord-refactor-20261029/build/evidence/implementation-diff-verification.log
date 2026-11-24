@@ -1,0 +1,3 @@
+PASS: exact 14-path allowlist matched; no unrelated paths
+PASS: complete diff artifact SHA-256 e012f6491f9e32c698f9694dbdfe3cdbad3a0a0a66306f807a27f89a129c70e0
+PASS: main index unchanged, tree caac7a2308bf6a5e77ff3a59d810e25d52cdea11; no staged paths

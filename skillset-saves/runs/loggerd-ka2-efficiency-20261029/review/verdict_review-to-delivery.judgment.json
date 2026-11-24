@@ -1,0 +1,11 @@
+{
+  "boundary": "review-to-delivery",
+  "submission_id": "loggerd-ka2-efficiency-20261029-review-r10",
+  "revision": 282,
+  "gate": "gatekeeper-code",
+  "verdict": "APPROVED",
+  "intake": {
+    "artifact": "../intake/report_grilling.md"
+  },
+  "findings": []
+}

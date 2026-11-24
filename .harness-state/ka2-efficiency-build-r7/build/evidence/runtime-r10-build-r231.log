@@ -1,0 +1,46 @@
+command=scons -Q -j2 system/loggerd/loggerd system/loggerd/encoderd build/system/loggerd/tests/visionipc_dmabuf_publisher
+flags=production build; no -DLOGGERD_TEST_BUILD
+exit=0
+stdout:
+Retrieved `system/loggerd/loggerd.o' from cache
+Retrieved `system/loggerd/logger.o' from cache
+Retrieved `system/loggerd/zstd_writer.o' from cache
+Retrieved `system/loggerd/memory_pressure.o' from cache
+Retrieved `system/loggerd/video_writer.o' from cache
+Retrieved `system/loggerd/encoder/encoder.o' from cache
+Retrieved `system/loggerd/encoder/v4l_encoder.o' from cache
+Retrieved `system/loggerd/encoder/jpeg_encoder.o' from cache
+Retrieved `system/loggerd/encoder/mpp_encoder.o' from cache
+Retrieved `system/loggerd/liblogger.a' from cache
+Retrieved `common/params.o' from cache
+Retrieved `common/swaglog.o' from cache
+Retrieved `common/util.o' from cache
+Retrieved `common/ratekeeper.o' from cache
+Retrieved `common/clutil.o' from cache
+Retrieved `common/rkutil.o' from cache
+Retrieved `third_party/json11/json11.o' from cache
+Retrieved `cereal/messaging/socketmaster.o' from cache
+Retrieved `msgq_repo/msgq/ipc.os' from cache
+Retrieved `msgq_repo/msgq/event.os' from cache
+Retrieved `msgq_repo/msgq/impl_zmq.os' from cache
+Retrieved `msgq_repo/msgq/impl_msgq.os' from cache
+Retrieved `msgq_repo/msgq/impl_fake.os' from cache
+Retrieved `msgq_repo/msgq/msgq.os' from cache
+Retrieved `msgq_repo/msgq/visionipc/visionipc.os' from cache
+Retrieved `msgq_repo/msgq/visionipc/visionipc_server.os' from cache
+Retrieved `msgq_repo/msgq/visionipc/visionbuf.os' from cache
+Retrieved `msgq_repo/msgq/visionipc/visionipc_client.os' from cache
+Retrieved `msgq_repo/msgq/visionipc/visionbuf_cl.os' from cache
+Retrieved `system/loggerd/encoderd.o' from cache
+Retrieved `system/loggerd/loggerd' from cache
+Retrieved `system/loggerd/encoderd' from cache
+Retrieved `system/loggerd/tests/visionipc_dmabuf_publisher.o' from cache
+scons: `build/system/loggerd/tests/visionipc_dmabuf_publisher' is up to date.
+
+stderr:
+
+system/loggerd/loggerd sha256=9fceb8f103a11687c766eb5b6e48a8086faecd433e76b4fc765a187bb979ee7c build_id=855b9a6081d361ce79ab671cd4af62ed10e61157 test_marker_scan=absent
+
+system/loggerd/encoderd sha256=e7dd7e418fc41d384d0896b0e1d76705e229f48eb6c5d601448f00bece19362e build_id=e0502f8b9154d4042a5b3b26b3823893a2da2533 test_marker_scan=absent
+
+build/system/loggerd/tests/visionipc_dmabuf_publisher sha256=f3a50f36501e4057c34a909bd73e70ad2fd57fe3732a18c1cd99ef8f0595c1ef build_id=f802116f8914511923c7754da42863559ba5cdec test_marker_scan=absent

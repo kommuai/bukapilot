@@ -1,0 +1,13 @@
+{
+  "boundary": "design-to-build",
+  "submission_id": "loggerd-ka2-efficiency-20261029-design-r9-report-contract",
+  "revision": "r9",
+  "gate": "gatekeeper-admiral",
+  "verdict": "APPROVED",
+  "intake": {
+    "artifact": "../intake/report_grilling.md"
+  },
+  "findings": [],
+  "by_owner": {},
+  "escalation": null
+}

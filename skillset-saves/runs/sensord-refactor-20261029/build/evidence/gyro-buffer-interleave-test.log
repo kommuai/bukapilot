@@ -1,0 +1,12 @@
+bringing up nodes...
+bringing up nodes...
+
+..                                                                       [100%]
+============================= slowest 10 durations =============================
+0.09s setup    system/sensord/tests/test_gyro_buffer.py::test_stationary_samples_select_the_same_mean_bias
+0.06s setup    system/sensord/tests/test_gyro_buffer.py::test_calibration_preserves_ordered_signed_16_bit_samples_and_statistics
+0.02s teardown system/sensord/tests/test_gyro_buffer.py::test_stationary_samples_select_the_same_mean_bias
+0.02s call     system/sensord/tests/test_gyro_buffer.py::test_calibration_preserves_ordered_signed_16_bit_samples_and_statistics
+0.01s call     system/sensord/tests/test_gyro_buffer.py::test_stationary_samples_select_the_same_mean_bias
+0.01s teardown system/sensord/tests/test_gyro_buffer.py::test_calibration_preserves_ordered_signed_16_bit_samples_and_statistics
+2 passed in 4.90s

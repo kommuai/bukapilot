@@ -1,0 +1,38 @@
+{
+  "schema": "effective-taste-profile-snapshot",
+  "schema_version": 1,
+  "run_id": "ubloxd-daemon-removal-20261103",
+  "captured_on": "2026-11-03",
+  "sources": {
+    "project": {
+      "exists": false,
+      "revision": 0,
+      "canonical_record_digest": "sha256:f5c8a79bdff38097c22a4a7411929a90b947d6a8bdf8989363deb22fed7e9ed4"
+    },
+    "global": {
+      "exists": false,
+      "revision": 0,
+      "canonical_record_digest": "sha256:ec4f75e631e13a560d20ebae2891d1c79024024ca08db9465c51ebca633e6b03"
+    }
+  },
+  "effective_profile": {
+    "canonical_digest": "sha256:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+    "resolved_entries": [],
+    "shadowed_entries": [],
+    "unresolved_conflicts": []
+  },
+  "applicability": {
+    "applicable": false,
+    "reason": "no saved Taste profile available",
+    "scope": "project and global",
+    "decided_by": "taste",
+    "consumer": "design/commander"
+  },
+  "resolution_evidence": {
+    "status_project": "exists=false, revision=0",
+    "list_project": "entries empty",
+    "status_global": "exists=false, revision=0",
+    "list_global": "entries empty",
+    "effective": "entries empty"
+  }
+}

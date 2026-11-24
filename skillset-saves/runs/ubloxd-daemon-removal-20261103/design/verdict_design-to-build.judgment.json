@@ -1,0 +1,78 @@
+{
+  "boundary": "design-to-build",
+  "submission_id": "ubloxd-removal-design-20261103-v2",
+  "revision": "r8",
+  "gate": "gatekeeper-design",
+  "verdict": "APPROVED",
+  "intake": {
+    "artifact": "../intake/report_grilling.md"
+  },
+  "findings": [
+    {
+      "id": "INFO-API-CONTRACTS-OUT-OF-SCOPE",
+      "severity": "Info",
+      "key": "interfaces",
+      "owner": "architect",
+      "statement": "The package-shape validator's conditional API endpoint-contract finding is resolved as out of scope. The architecture defines internal manager, parameter, and cereal-service contracts; it introduces no HTTP, webhook, or public request/response endpoint, and retained cereal service schemas are unchanged.",
+      "basis": {
+        "kind": "contract",
+        "source": "design/gatekeeper-design/references/workflow.md",
+        "ref": "Design Packet Validation Sequence"
+      },
+      "evidence": [
+        "reports/architecture.md",
+        "reports/design-package.md"
+      ]
+    },
+    {
+      "id": "INFO-UI-HANDOFF-OUT-OF-SCOPE",
+      "severity": "Info",
+      "key": "ui_evidence",
+      "owner": "architect",
+      "statement": "The package-shape validator's conditional UI handoff finding is resolved as out of scope. This is a manager and daemon-support cleanup with no user-facing surface or design-system change; the manifest carries the architect's sanctioned no-surface applicability record, and existing hardwared/UI GPS subscriptions stay unchanged.",
+      "basis": {
+        "kind": "contract",
+        "source": "design/gatekeeper-design/references/workflow.md",
+        "ref": "Design Packet Validation Sequence"
+      },
+      "evidence": [
+        "reports/architecture.md",
+        "reports/design-package.md",
+        "manifest:evidence.ui_evidence"
+      ]
+    },
+    {
+      "id": "INFO-STACK-DETECTOR-INCOMPLETE",
+      "severity": "Info",
+      "key": "stack_lock",
+      "owner": "commander",
+      "statement": "The host runtime scan is incomplete because Python 3.12.3 is below the harness's 3.13 floor and the repository walk exceeded its byte limit. The package does not claim a detected runtime; the sanctioned no-new-runtime/framework applicability is used because the design adds no runtime or framework.",
+      "basis": {
+        "kind": "contract",
+        "source": "design/commander/references/gate-evidence.md",
+        "ref": "Fallbacks That Exist, And The Ones That Do Not"
+      },
+      "evidence": [
+        "reports/report_stack-lock.md",
+        "reports/implementation-spec.md",
+        "manifest:evidence.stack_lock"
+      ]
+    },
+    {
+      "id": "INFO-KA2-RUNTIME-NOT-EXERCISED",
+      "severity": "Info",
+      "key": "acceptance",
+      "owner": "planner",
+      "statement": "The plan's acceptance checks are static reviews; no KA2 hardware run, product tests, or historical route replay is claimed. The implementation spec preserves these limitations and names future behavior checks only if the user separately authorizes them.",
+      "basis": {
+        "kind": "contract",
+        "source": "design/gatekeeper-design/references/workflow.md",
+        "ref": "Acceptance Checklist"
+      },
+      "evidence": [
+        "reports/plan.md",
+        "reports/implementation-spec.md"
+      ]
+    }
+  ]
+}

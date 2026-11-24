@@ -1,0 +1,149 @@
+{
+  "boundary": "design-to-build",
+  "changed_evidence": [
+    "acceptance",
+    "architecture",
+    "interfaces",
+    "plan",
+    "security_seed",
+    "taste_snapshot"
+  ],
+  "checked_at": "2026-10-31T06:20:13.033833+00:00",
+  "declared_schema_version": 2,
+  "evidence_digests": {
+    "acceptance": "f4609a8383a0f06aca7b1ee55591d063b32a0af39cc82c0835c195863e32b6ea",
+    "architecture": "fab22be9d9859351b83357963be8fe66ebc70ce7a3935eeb92f695efc028cf95",
+    "decisions": "14750ae26f52b5695b62b4f2a9329da3687fef3b5db7c4dbdac726fb7e4d4c89",
+    "interfaces": "2f8f96e7f7e228dc1d3d46e1cebda48114aa153b5ad2fa2897cad54e4a4c9fac",
+    "plan": "f4609a8383a0f06aca7b1ee55591d063b32a0af39cc82c0835c195863e32b6ea",
+    "security_seed": "0c9705e382e10583a7156277423165d1c35bed4b9ab1a93774dbe5e09ec1f642",
+    "stack_lock": "e80e04e2361f105b4317eb5748f9ea2736b0eb911458fd737c68a87918e200ed",
+    "taste_snapshot": "79472a01cc9bcf53493658037f2105109a93ea8c51dfab1ef05134b0ad7cc8f5",
+    "ui_evidence": "c186b1eadb349aec67a254184780183de154c8b6ba0a1256e3ac71cb56356132"
+  },
+  "evidence_root": "/data/media/supremeteam/42c6eb550c629191187c/skillset-saves/runs/loggerd-ka2-efficiency-20261029",
+  "evidence_root_kind": "run",
+  "failures": [],
+  "gate_spec_digest": "b2995ffa29a827c2bf101391788bf1228eb38869ad7c0a601a4126734ee6c7c1",
+  "gate_spec_is_shipped": true,
+  "idempotency_drift": false,
+  "judgment": {
+    "by_owner": {},
+    "escalation": null,
+    "findings": [
+      {
+        "basis": {
+          "kind": "contract",
+          "ref": "conditional API endpoint artifact is required only when endpoints are in scope",
+          "source": "design/gatekeeper-design/SKILL.md"
+        },
+        "evidence": [
+          "manifest:evidence.interfaces",
+          "reports/report_interfaces_r9.md"
+        ],
+        "id": "J-1",
+        "key": "interfaces",
+        "owner": "architect",
+        "severity": "Info",
+        "statement": "The shape check reports API endpoint contracts as UNCHECKED. They are out of scope: the hashed interface inventory defines internal Params/process coordination, C++ encoder status, media lifecycle, and a test fixture, and declares no public endpoint or cereal schema change."
+      },
+      {
+        "basis": {
+          "kind": "contract",
+          "ref": "conditional frontend/UI handoff applies only when a user-facing surface exists",
+          "source": "design/gatekeeper-design/SKILL.md"
+        },
+        "evidence": [
+          "manifest:evidence.ui_evidence",
+          "artifacts/ui_evidence_r8.json"
+        ],
+        "id": "J-2",
+        "key": "ui_evidence",
+        "owner": "architect",
+        "severity": "Info",
+        "statement": "The shape check reports the frontend/UI handoff as UNCHECKED. This is a backend loggerd/encoderd change with no user-facing surface, and the manifest contains the architect's typed no-surface applicability record."
+      },
+      {
+        "basis": {
+          "kind": "contract",
+          "ref": "package-shape validator requires an in-project package directory",
+          "source": "design/gatekeeper-design/references/workflow.md"
+        },
+        "evidence": [],
+        "id": "J-3",
+        "key": null,
+        "owner": "commander",
+        "severity": "Info",
+        "statement": "The canonical package path resolves through skillset-saves to /data/media, outside /data/openpilot, so the shape validator refuses that path. A byte-identical in-project mirror of the manifest-selected r9 package files passed the shape check with zero failures and the two expected conditional findings; the boundary validator independently checked the canonical manifest and artifact hashes."
+      },
+      {
+        "basis": {
+          "kind": "contract",
+          "ref": "Calibration",
+          "source": "contracts/evidence-standards.md"
+        },
+        "evidence": [
+          "reports/report_architecture_r9.md",
+          "reports/delivery-plan_r9.md",
+          "evidence/r9/prior_report_dmabuf_fixture_r8.md"
+        ],
+        "id": "J-4",
+        "key": "architecture",
+        "owner": "architect",
+        "severity": "Info",
+        "statement": "Live RK3588 V4L2 DMA-BUF exporter behavior, fences/synchronization, MPP import against live camera buffers, and buffer reuse remain unqualified. The design correctly limits its proof target to isolated synthetic DMA-heap inputs; the prior M0 fixture evidence covers VisionIPC transport and fixture-owned lifetime only, not MPP or the full loggerd/encoderd lifecycle."
+      }
+    ],
+    "gate": "gatekeeper-design",
+    "intake": {
+      "artifact": "../intake/report_grilling.md"
+    },
+    "valid": true,
+    "verdict": "APPROVED"
+  },
+  "judgment_failures": [],
+  "manifest": "manifest.json",
+  "manifest_schema_version": 2,
+  "mechanical_only": false,
+  "missing": [],
+  "mixed_revisions": false,
+  "owner": "commander",
+  "package_fingerprint": "3e476e7562e5cadc35f855d5fc06f66df697eb1917adcb9c4480acc5b4fd5643",
+  "pass": true,
+  "prior_record": {
+    "gate_spec_digest": "b2995ffa29a827c2bf101391788bf1228eb38869ad7c0a601a4126734ee6c7c1",
+    "gate_spec_is_shipped": true,
+    "judgment": {
+      "gate": "gatekeeper-design",
+      "valid": true,
+      "verdict": "APPROVED"
+    },
+    "path": "/data/media/supremeteam/42c6eb550c629191187c/skillset-saves/runs/loggerd-ka2-efficiency-20261029/design/verdict_design-to-build-r8.json"
+  },
+  "prior_reusable": null,
+  "registry_is_shipped": true,
+  "revise_packet": {
+    "actions_by_owner": {},
+    "by_key": {},
+    "by_owner": {},
+    "judgment_by_owner": {},
+    "unassigned": []
+  },
+  "revision": "r9",
+  "revision_cycle": {
+    "boundary_revise_rounds": 0,
+    "consecutive_revise": 0,
+    "gate": "gatekeeper-design",
+    "held_for_user": false,
+    "history": "verdict_design-to-build.cycles.json"
+  },
+  "run_id": "loggerd-ka2-efficiency-20261029",
+  "submission_id": "loggerd-ka2-efficiency-20261029-design-r9-report-contract",
+  "unchanged_evidence": [
+    "decisions",
+    "stack_lock",
+    "ui_evidence"
+  ],
+  "verdict_id": "ffb8a3c4beadb40f90d0a087eaa9982b066448b2196d085279c2a5aa3f8d8011",
+  "warnings": []
+}

@@ -1,0 +1,62 @@
+{
+  "analysis": "offline futex wait/wake pairing; no capture was run",
+  "counts": {
+    "completed_successful_wait_calls": 2481,
+    "long_gaps_with_any_futex_wait_ge_10ms": 133,
+    "long_gaps_with_futex_wait_ge_1ms_by_tid_863769": 133,
+    "long_gaps_with_futex_wait_ge_1ms_by_tid_863808": 133,
+    "long_gaps_with_futex_wait_ge_1ms_by_tid_863811": 133,
+    "long_gaps_with_ge_10ms_ioctl": 1,
+    "long_gaps_with_ge_10ms_write": 2,
+    "long_read_gaps_gt_60ms": 133,
+    "output_writer_waits_by_address": {
+      "0x55a0026bb0": 299,
+      "0x55a0026bb4": 299
+    },
+    "positive_wake_calls": 2478,
+    "wake_to_wait_completion_median_ms": 0.200986862,
+    "writer_successful_wait_calls_ge_10ms": 592,
+    "writer_successful_wait_calls_ge_1ms": 598,
+    "writer_tid": 863811,
+    "writer_waits_temporally_associated_with_positive_same_address_wake_by_tid_863769": 598,
+    "writer_waits_without_temporal_same_address_wake_by_tid_863769": 0
+  },
+  "identity_observations": {
+    "dqbuf_tids": [
+      863769,
+      863809
+    ],
+    "leader_tid_863769": "each of the 598 counted writer waits has a positive same-address wake call temporally within the wait interval; this does not establish which waiter the kernel woke. Leader also issues DQBUF.",
+    "writer_tid_863811": "all 25,800 writes to fd 12 and futex calls"
+  },
+  "inputs": [
+    {
+      "path": "../build/evidence/ffmpeg-thread-syscall-schedstat-r4-final2.strace",
+      "sha256": "0de7b3e50ff49d676085ff34e36e6fad8b9fb36bcbd7200d9df251cb0b9e7037"
+    },
+    {
+      "path": "../build/artifacts/ffmpeg-thread-schedstat-correlation-r4.json",
+      "sha256": "48d0a6517c05a9b40a377de87a358ee93ac12b70a44a47d04bfdafc44bedfb5a"
+    },
+    {
+      "path": "../build/artifacts/ffmpeg-thread-syscall-schedstat-r4-final2.json",
+      "sha256": "b64db8453b48b731dafbec8b33db5d40a0c577ab698ff29d204c2127e176cba8"
+    }
+  ],
+  "interpretation": "Strong internal synchronization correlation: the output-writer TID has successful waits on two alternating futex addresses, and each wait >=1 ms has a positive same-address FUTEX_WAKE syscall from TID 863769 temporally inside the wait interval. The positive FUTEX_WAKE result does not identify the waiter it woke; a concurrent same-address waiter could have been selected. This does not establish that the wake represents input readiness, decode completion, or the causal source of a read gap. The writer may be idle awaiting upstream work.",
+  "limitations": [
+    "This is offline correlation of one straced run, not causal proof.",
+    "strace overhead and per-frame /proc schedstat observer overhead were not independently calibrated.",
+    "No stack, syscall instruction pointer, or wchan was captured; syscall callsite and semantic ownership remain unknown.",
+    "Frame identity between successful DQBUF calls and raw output remains unproven because the trace omitted DQBUF sequence fields and counted 602 successful dequeues for 600 output frames.",
+    "A same-address positive wake observed during the writer wait is not a kernel-confirmed writer wake: FUTEX_WAKE does not report the identity of the awakened waiter, and concurrent waiters may exist."
+  ],
+  "parser": {
+    "method": "Pair unfinished/resumed futex calls by TID, then associate a writer wait with any positive same-address FUTEX_WAKE from TID 863769 whose syscall entry time falls inside the writer wait interval. This is temporal association only: FUTEX_WAKE return values do not identify which waiter was awakened, and another concurrent same-address waiter may be the waiter selected by the kernel.",
+    "parse_counts": {
+      "futex_calls": 8544,
+      "pending_at_eof": 0,
+      "unparsed": 0
+    }
+  }
+}

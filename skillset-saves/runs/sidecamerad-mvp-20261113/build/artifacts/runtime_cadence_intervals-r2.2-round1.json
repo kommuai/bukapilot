@@ -1,0 +1,53 @@
+{
+  "analysis": {
+    "ac4_cadence_pass": false,
+    "cereal_count": 0,
+    "frame_count_over_eof_span_fps": 0.0,
+    "frame_id_gaps_in_selected": 0,
+    "functional_pass": false,
+    "gaps_over_60ms": 0,
+    "matched_count": 0,
+    "max_eof_gap_ms": 0.0,
+    "mean_interval_fps": 0.0,
+    "selected_matched_count": 0,
+    "sequence_contiguous": false,
+    "timestamp_mismatches": [],
+    "visionipc_count": 0
+  },
+  "captured_at": "2026-11-15T08:12:17.523840+00:00",
+  "cereal_records": [],
+  "intervals": [],
+  "package_input_revision": 68,
+  "run_id": "sidecamerad-mvp-20261113",
+  "schema_version": 1,
+  "selected_matched_frame_ids": [],
+  "source_hashes": {
+    "cereal/log.capnp": "d5c0372d714e65461942874c91c522b205ce208261b382283839ed03b9731f64",
+    "cereal/services.py": "cacd4b749d9a0a3e19e3c466784dcf34925f263fdca3c26af72578c47d740a6b",
+    "common/params_keys.h": "c2925ebd8f9f26cc04951afb0e3c67ac7cb20a1c370b79aa93a25a4aaef2a031",
+    "common/params_pyx.so": "3108e29407f31b9bd86a86ccafc82a4f98a225884412987a24be5c357dbfb586",
+    "msgq_repo/msgq/visionipc/visionbuf.h": "c971a1afa601f5bb8f560de6fb1dd78c2121cee61ea41c169f00a4154566e870",
+    "msgq_repo/msgq/visionipc/visionipc_pyx.pyx": "36247e353901eb80e52735c91f466151b3026e77152dde9ad9e3bcd682c66f32",
+    "msgq_repo/msgq/visionipc/visionipc_server.cc": "36b383bfcaf10eaa69f6844a579c86204b4a07464a889208fe059a6c1202d198",
+    "system/manager/process_config.py": "b7fdfda2878cae1fa6b354ed512bc33ad66f1abe1ed25c90ed980b547a8aa02d",
+    "system/sidecamerad.py": "494fb8b88fda8bcf1d8301225019f4f01f4b77a0bb5cb3e69dde47ed96e1309b"
+  },
+  "submission_id": "sidecamerad-mvp-20261113_build-r2.2-c68",
+  "target": {
+    "device": "/dev/v4l/by-path/platform-xhci-hcd.11.auto-usb-0:1:1.0-video-index0",
+    "resolved_device": "/dev/video60",
+    "service": "frontLeftCameraState",
+    "stream": "VISION_STREAM_SIDE_FRONT_LEFT"
+  },
+  "target_revision": "SideCamera implementation r2.2 recovery refresh; source HEAD 6d92d63a2; approved design r2",
+  "visionipc_records": [],
+  "window": {
+    "eof_span_s": 0.0,
+    "first_eof_ns": null,
+    "last_eof_ns": null,
+    "start_frame_id": null,
+    "steady_state_minimum_s": 300.0,
+    "target_matched_frames": 6050,
+    "wall_elapsed_s": null
+  }
+}

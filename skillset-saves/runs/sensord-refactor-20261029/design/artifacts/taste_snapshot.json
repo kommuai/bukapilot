@@ -1,0 +1,18 @@
+{
+  "applicable": false,
+  "canonical_digest": "sha256:1beb862ffc2faa7ade5f7b2308f2803bc9cea1981dbf2144ce044fa8ebd9132b",
+  "decided_by": "taste",
+  "reason": "no saved Taste profile available",
+  "resolved_entries": {},
+  "scope": "both",
+  "shadowed_entries": {},
+  "source_digests": {
+    "global": "sha256:6a0b726a0b77a18aaa6abb8d2d74f8f85edf9bd7c6ec8986793a8f46b60bbaa3",
+    "project": "sha256:cb917ebdfa8544d43d15abe2217617702869c66a254a25a76c909f80fc1e5b0a"
+  },
+  "source_revisions": {
+    "global": 0,
+    "project": 0
+  },
+  "unresolved_conflicts": []
+}

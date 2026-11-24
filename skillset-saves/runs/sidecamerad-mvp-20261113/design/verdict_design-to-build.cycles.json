@@ -1,0 +1,294 @@
+{
+  "boundary": "design-to-build",
+  "events": [
+    {
+      "boundary": "design-to-build",
+      "changed_evidence": null,
+      "checked_at": "2026-11-13T05:11:08.927568+00:00",
+      "judgment": {
+        "by_owner": {},
+        "escalation": null,
+        "findings": [
+          {
+            "basis": {
+              "artifact": "reports/delivery-plan.md",
+              "kind": "acceptance",
+              "ref": "AC-4"
+            },
+            "evidence": [
+              "reports/delivery-plan.md"
+            ],
+            "id": "DG-I-1",
+            "key": "plan",
+            "owner": "planner",
+            "severity": "Info",
+            "statement": "Four-camera cadence and CPU headroom remain unmeasured; AC-4 target-hardware soak is required before four-camera performance sign-off."
+          }
+        ],
+        "gate": "gatekeeper-design",
+        "intake": {
+          "artifact": "../intake/report_grilling.md"
+        },
+        "valid": true,
+        "verdict": "APPROVED"
+      },
+      "package_fingerprint": "6f0e63cbe65d374dff167cb3a8ecc6949f3ffa33a570e185273127ec21c457e4",
+      "revise_packet": {
+        "actions_by_owner": {},
+        "by_key": {},
+        "by_owner": {},
+        "judgment_by_owner": {},
+        "unassigned": []
+      },
+      "revision": "r1",
+      "signature": [
+        "gatekeeper-design",
+        "r1",
+        "6f0e63cbe65d374dff167cb3a8ecc6949f3ffa33a570e185273127ec21c457e4",
+        "APPROVED"
+      ],
+      "submission_id": "sidecamerad-mvp-20261113_design-attempt1_2026-11-13T04:49:04Z",
+      "unchanged_evidence": null
+    },
+    {
+      "boundary": "design-to-build",
+      "changed_evidence": [],
+      "checked_at": "2026-11-13T05:16:57.158705+00:00",
+      "judgment": {
+        "by_owner": {},
+        "escalation": {
+          "reason": "The required cross-stage package-shape validator rejected the delivery directory because its resolved path is outside the project (/data/media/supremeteam/42c6eb550c629191187c/skillset-saves/runs/sidecamerad-mvp-20261113/delivery). Its input-validation contract requires ESCALATE and prohibits retrying against an alternate path. The handoff package shape therefore remains unchecked.",
+          "to": "user"
+        },
+        "findings": [],
+        "gate": "gatekeeper-admiral",
+        "intake": {
+          "artifact": "../intake/report_grilling.md"
+        },
+        "valid": true,
+        "verdict": "ESCALATE"
+      },
+      "package_fingerprint": "6f0e63cbe65d374dff167cb3a8ecc6949f3ffa33a570e185273127ec21c457e4",
+      "revise_packet": {
+        "actions_by_owner": {},
+        "by_key": {},
+        "by_owner": {},
+        "judgment_by_owner": {},
+        "unassigned": []
+      },
+      "revision": "r1",
+      "signature": [
+        "gatekeeper-admiral",
+        "r1",
+        "6f0e63cbe65d374dff167cb3a8ecc6949f3ffa33a570e185273127ec21c457e4",
+        "ESCALATE"
+      ],
+      "submission_id": "sidecamerad-mvp-20261113_design-attempt1_2026-11-13T04:49:04Z",
+      "unchanged_evidence": [
+        "acceptance",
+        "architecture",
+        "decisions",
+        "interfaces",
+        "plan",
+        "security_seed",
+        "stack_lock",
+        "taste_snapshot",
+        "ui_evidence"
+      ]
+    },
+    {
+      "boundary": "design-to-build",
+      "changed_evidence": [],
+      "checked_at": "2026-11-13T05:47:19.394993+00:00",
+      "judgment": {
+        "by_owner": {},
+        "escalation": null,
+        "findings": [
+          {
+            "basis": {
+              "kind": "contract",
+              "ref": "Deterministic Pre-Check (two validators)",
+              "source": "gatekeeper-admiral/SKILL.md"
+            },
+            "evidence": [
+              "manifest:evidence.architecture",
+              "manifest:evidence.plan"
+            ],
+            "expected": "Build receives the approved design package, as required by Admiral's stage contract.",
+            "id": "INFO-DELIVERY-SUMMARY-CONDITIONAL-RESOLVED",
+            "key": null,
+            "observed": "The handoff names design/manifest.json and design/reports/implementation-spec.md; the design package contains the architecture, plan, acceptance criteria, and slice-level build contract. The shape validator reports zero failures and one conditional UNCHECKED summary slot.",
+            "owner": "commander",
+            "remediation": "No additional delivery summary is required for this boundary. Build should consume the approved design manifest and its hashed implementation specification through the handoff.",
+            "severity": "Info",
+            "statement": "The delivery package summary check is conditional and is not needed for this intermediate design-to-build handoff. The handoff identifies the approved r1 design manifest and next consumer; the hashed design package and implementation specification are the source of truth for build.",
+            "verification": "Boundary validation passes with prior_reusable=true, changed_evidence=[], and a valid APPROVED phase judgment. Package-shape validation confirms the handoff artifact, coherent r1 lineage, no skip records, clean blocked-phrase scan, and no runtime intervention; only the optional summary slot is unchecked."
+          }
+        ],
+        "gate": "gatekeeper-admiral",
+        "intake": {
+          "artifact": "../intake/report_grilling.md"
+        },
+        "valid": true,
+        "verdict": "APPROVED"
+      },
+      "package_fingerprint": "6f0e63cbe65d374dff167cb3a8ecc6949f3ffa33a570e185273127ec21c457e4",
+      "revise_packet": {
+        "actions_by_owner": {},
+        "by_key": {},
+        "by_owner": {},
+        "judgment_by_owner": {},
+        "unassigned": []
+      },
+      "revision": "r1",
+      "signature": [
+        "gatekeeper-admiral",
+        "r1",
+        "6f0e63cbe65d374dff167cb3a8ecc6949f3ffa33a570e185273127ec21c457e4",
+        "APPROVED"
+      ],
+      "submission_id": "sidecamerad-mvp-20261113_design-attempt1_2026-11-13T04:49:04Z",
+      "unchanged_evidence": [
+        "acceptance",
+        "architecture",
+        "decisions",
+        "interfaces",
+        "plan",
+        "security_seed",
+        "stack_lock",
+        "taste_snapshot",
+        "ui_evidence"
+      ]
+    },
+    {
+      "boundary": "design-to-build",
+      "changed_evidence": [
+        "acceptance",
+        "architecture",
+        "interfaces",
+        "plan",
+        "security_seed",
+        "stack_lock",
+        "taste_snapshot",
+        "ui_evidence"
+      ],
+      "checked_at": "2026-11-13T07:25:48.942820+00:00",
+      "judgment": {
+        "by_owner": {},
+        "escalation": null,
+        "findings": [
+          {
+            "basis": {
+              "artifact": "reports/delivery-plan-r2.md",
+              "kind": "acceptance",
+              "ref": "AC-8"
+            },
+            "evidence": [
+              "reports/delivery-plan-r2.md"
+            ],
+            "id": "DG-I-2",
+            "key": "plan",
+            "owner": "planner",
+            "severity": "Info",
+            "statement": "Four-camera throughput, CPU headroom, and reconnect behavior remain unverified; AC-8 requires a 30-minute four-camera soak before any four-camera performance claim."
+          }
+        ],
+        "gate": "gatekeeper-design",
+        "intake": {
+          "artifact": "../intake/report_grilling.md"
+        },
+        "valid": true,
+        "verdict": "APPROVED"
+      },
+      "package_fingerprint": "b0251564736c6ebe59fc540ee6a4734eca3835ee6d8559ec22bb2b0f44fbd2e4",
+      "revise_packet": {
+        "actions_by_owner": {},
+        "by_key": {},
+        "by_owner": {},
+        "judgment_by_owner": {},
+        "unassigned": []
+      },
+      "revision": "r2",
+      "signature": [
+        "gatekeeper-design",
+        "r2",
+        "b0251564736c6ebe59fc540ee6a4734eca3835ee6d8559ec22bb2b0f44fbd2e4",
+        "APPROVED"
+      ],
+      "submission_id": "sidecamerad-mvp-20261113_design-revision-2",
+      "unchanged_evidence": [
+        "decisions"
+      ]
+    },
+    {
+      "boundary": "design-to-build",
+      "changed_evidence": [],
+      "checked_at": "2026-11-13T07:30:21.310312+00:00",
+      "judgment": {
+        "by_owner": {},
+        "escalation": null,
+        "findings": [
+          {
+            "basis": {
+              "kind": "contract",
+              "ref": "Deterministic Pre-Check (two validators)",
+              "source": "gatekeeper-admiral/SKILL.md"
+            },
+            "evidence": [
+              "manifest:evidence.architecture",
+              "manifest:evidence.plan"
+            ],
+            "expected": "Build receives one coherent, approved design package and can consume its hashed specification without inferring the implementation contract.",
+            "id": "INFO-DELIVERY-SUMMARY-CONDITIONAL-RESOLVED-R2",
+            "key": null,
+            "observed": "The r2 handoff points to the r2 manifest and approved phase verdict. The package-shape validator reports zero failures and one conditional summary slot; the manifest hashes the architecture and plan, and the implementation specification is part of the approved package.",
+            "owner": "commander",
+            "remediation": "No separate summary artifact is needed for this intermediate boundary. Build management should reconcile the existing r1 implementation attempt against the r2 specification before treating any source as r2-complete.",
+            "severity": "Info",
+            "statement": "A separate delivery summary is not required for this intermediate design-to-build handoff; the r2 handoff identifies the approved design manifest and build consumer, while the design package carries the architecture, plan, acceptance criteria, and implementation specification.",
+            "verification": "The boundary validator reports prior_reusable=true, changed_evidence=[], no failures, and no warnings. The delivery-shape validator reports zero failures, coherent r2 lineage, no skip record, and a clean blocked-phrase scan; only the optional summary slot is unchecked and is resolved out of scope for this handoff."
+          }
+        ],
+        "gate": "gatekeeper-admiral",
+        "intake": {
+          "artifact": "../intake/report_grilling.md"
+        },
+        "valid": true,
+        "verdict": "APPROVED"
+      },
+      "package_fingerprint": "b0251564736c6ebe59fc540ee6a4734eca3835ee6d8559ec22bb2b0f44fbd2e4",
+      "revise_packet": {
+        "actions_by_owner": {},
+        "by_key": {},
+        "by_owner": {},
+        "judgment_by_owner": {},
+        "unassigned": []
+      },
+      "revision": "r2",
+      "signature": [
+        "gatekeeper-admiral",
+        "r2",
+        "b0251564736c6ebe59fc540ee6a4734eca3835ee6d8559ec22bb2b0f44fbd2e4",
+        "APPROVED"
+      ],
+      "submission_id": "sidecamerad-mvp-20261113_design-revision-2",
+      "unchanged_evidence": [
+        "acceptance",
+        "architecture",
+        "decisions",
+        "interfaces",
+        "plan",
+        "security_seed",
+        "stack_lock",
+        "taste_snapshot",
+        "ui_evidence"
+      ]
+    }
+  ],
+  "gates": {},
+  "held": false,
+  "reopen_refs": [],
+  "rounds": [],
+  "run_id": "sidecamerad-mvp-20261113",
+  "schema_version": 1
+}

@@ -1,0 +1,57 @@
+SideCamera raw-pipe reader A/B diagnostic
+Created UTC: 2026-11-15T09:26:22Z
+Run revision at start: 80
+Host Python: 3.13.15 (main, Sep  1 2026, 14:15:43) [Clang 22.1.3 ]
+FFmpeg: ffmpeg version 6.1.1-3ubuntu5+git20240717.8164ff7d~noble Copyright (c) 2000-2023 the FFmpeg developers
+Source SHA-256 before/after: 494fb8b88fda8bcf1d8301225019f4f01f4b77a0bb5cb3e69dde47ed96e1309b / 494fb8b88fda8bcf1d8301225019f4f01f4b77a0bb5cb3e69dde47ed96e1309b
+Source hash drift: False
+timestamps are time.monotonic_ns() immediately after the full 1,382,400-byte raw NV12 frame is read; this preserves the approved timestampEof definition and does not use V4L2 source PTS
+
+[current_poll_readv]
+completed_frames: 1200
+elapsed_from_before_spawn_s: 60.354921747
+first_frame_after_spawn_ms: 411.803856
+interval_count: 1199
+interval_mean_ms: 49.99426012593828
+interval_median_ms: 49.97177
+interval_p95_ms: 65.181188
+interval_p99_ms: 72.424563
+interval_min_ms: 13.639548
+interval_max_ms: 80.671911
+intervals_over_60ms: 155
+intervals_under_40ms: 142
+poll_calls: 31387
+readv_calls: 31386
+readv_chunk_min_bytes: 6144
+readv_chunk_max_bytes: 65536
+readv_chunk_mean_bytes: 52854.13878799465
+
+[blocking_readv]
+completed_frames: 1200
+elapsed_from_before_spawn_s: 60.221883822
+first_frame_after_spawn_ms: 256.899311
+interval_count: 1199
+interval_mean_ms: 50.01249750708924
+interval_median_ms: 49.913416
+interval_p95_ms: 66.342798
+interval_p99_ms: 73.215193
+interval_min_ms: 12.482807
+interval_max_ms: 81.590917
+intervals_over_60ms: 161
+intervals_under_40ms: 161
+poll_calls: 0
+readv_calls: 32965
+readv_chunk_min_bytes: 6144
+readv_chunk_max_bytes: 65536
+readv_chunk_mean_bytes: 50322.46321856514
+
+[comparison]
+poll_over_60ms_rate: 0.1292743953294412
+blocking_over_60ms_rate: 0.13427856547122602
+poll_over_60ms_rate_minus_blocking: -0.005004170141784808
+poll_over_60ms_count_minus_blocking: -6
+poll_over_60ms_fraction_of_all_intervals: 0.0646371976647206
+blocking_over_60ms_fraction_of_all_intervals: 0.06713928273561301
+
+JSON artifact: /data/openpilot/skillset-saves/runs/sidecamerad-mvp-20261113/build/artifacts/reader-poll-blocking-ab-r2.3-r1.json
+JSON SHA-256: 107045fbfed7c078205711a7631cd5a1c573e1d2a85305a80cf09a43afa0f6b0

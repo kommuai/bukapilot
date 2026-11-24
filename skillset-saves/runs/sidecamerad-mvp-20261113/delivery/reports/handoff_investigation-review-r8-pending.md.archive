@@ -1,0 +1,46 @@
+---
+submission_id: sidecamerad-mvp-20261113_investigation-review-r8_2026-11-15T15:23:40Z
+revision: "8"
+package_path: skillset-saves/runs/sidecamerad-mvp-20261113/investigation/manifest.json
+submission_status: PENDING
+verdict: PENDING
+---
+
+# Cross-stage handoff: investigation review
+
+## Package
+
+- Boundary: `investigation-review` (INVESTIGATE returning to BUILD)
+- Investigation revision: `8`
+- Investigation submission: `sidecamerad-mvp-20261113_investigation-ac4-r8_2026-11-15T14:52:54Z`
+- Admiral gate submission: `sidecamerad-mvp-20261113_investigation-review-r8_2026-11-15T15:23:40Z`
+- Manifest: `skillset-saves/runs/sidecamerad-mvp-20261113/investigation/manifest.json`
+- Manifest SHA-256: `e37ae87160cd26cadc70b430a01783c112a2283a9fb44fa8f2ad0e4aedea496a`
+- Report: `skillset-saves/runs/sidecamerad-mvp-20261113/investigation/reports/investigation-package.md`
+- Report SHA-256: `24ce991fb29bf826b6dcfebf6b89ec63907b145028983624e50acfc3b9f07f4b`
+- Evidence chain: `skillset-saves/runs/sidecamerad-mvp-20261113/investigation/evidence/evidence-chain-r8.log`
+- Evidence-chain SHA-256: `8a6456d11053abf666f3517f9122232bf3213d21e2fe7f04a182c4ed88b11ab8`
+- Mechanical self-check: passed; zero failures, missing keys, or warnings.
+- Self-check checkpoint: `skillset-saves/runs/sidecamerad-mvp-20261113/investigation/reports/report_checkpoint-self-check-r8.md` (SHA-256 `e4c9f4fa6928acc8c3fda2e36a83cccfa86561633929c1f02774711418036ad1`).
+- Revision 7 approved package, manifest, chain and verdict remain preserved. The prior canonical r7 approved handoff is archived byte-for-byte at `delivery/reports/handoff_investigation-review-r7-approved.md.archive` (SHA-256 `811410d68525422fc65317079f035fe85167d9aa5cc0acad6d53ec7ca005c27f`). The prior r7 verdict archive is `investigation/artifacts/investigation-review-r7-cross-stage.archive.json` (SHA-256 `a9dc61fa45dbb540e5adb2d3e2692f64c1a9f9091b3f952c85b3961728a4dd6c`).
+
+## Finding and bounded BUILD path
+
+The reused accepted r2.3 health-check remains the reproduction: 6,050 matched frame IDs over 302.471744064 seconds, mean EOF cadence 19.998562241636 fps, maximum EOF gap 90.981562 ms, and 716/6,049 intervals above 60 ms. AC-4 fails both cadence thresholds. IDs were contiguous, timestamp and validity comparisons had zero mismatches, and cleanup passed. No new r8 capture, trace, GDB session, product test, or source edit was run.
+
+**No causal mechanism is established.** The evidence bounds the remaining suspects to FFmpeg decode/filter/output pacing or internal synchronization, and host scheduling around FFmpeg/raw-pipe delivery. Same-frame V4L2 dequeue sequence/completion, FFmpeg decoder/filter completion, pipe write/full-read EOF, and per-thread scheduling are not yet correlated. Sustained pipe backpressure, primary runqueue delay, subscriber backlog, repeatable flush improvement, and SOE PTS as EOF are unsupported. No source fix is proposed.
+
+The r8 package describes a future maximum-600-frame, no-payload same-frame diagnostic and asks BUILD to submit a measurement/instrumentation plan to Admiral before any new capture, source instrumentation, or tracer. That diagnostic is **not authorized and has not been run**. The existing AC-4 failure remains open; AC-6 and AC-8 are hardware deferrals and the minor FFmpeg child resource-cap residual remains open.
+
+## Cross-stage verdict
+
+- Gate: `gatekeeper-admiral`
+- Verdict: **PENDING** for `investigation-review` revision `8`; no r8 verdict has been recorded yet.
+- Boundary self-check: passed; evidence chain, bounded path, and residual uncertainty are submitted for cross-stage review.
+- The approved r7 verdict is retained only as prior lineage and is not the r8 verdict.
+
+## Next consumer
+
+`gatekeeper-admiral` reviews the r8 package and this canonical pending handoff. Route to BUILD only after the r8 cross-stage verdict is recorded. If approved, BUILD may prepare a measurement/instrumentation plan for separate Admiral authorization; do not execute the proposed diagnostic or change source/argv before that authorization.
+
+This is an intermediate investigation-to-BUILD handoff; a final delivery package is not in scope.

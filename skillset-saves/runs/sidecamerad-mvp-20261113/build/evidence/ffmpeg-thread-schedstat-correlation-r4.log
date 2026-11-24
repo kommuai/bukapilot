@@ -1,0 +1,25 @@
+AC-4 r4 bounded strace + per-thread schedstat diagnostic
+Capture: 600/600 frames; 829,440,000/829,440,000 bytes; FFmpeg exit 0; child reaped=True; source drift=False
+Read gaps: n=599 mean=49.944ms p95=71.231ms p99=81.756ms max=95.742ms >60ms=133
+Trace parse: 41809 syscalls/50115 trace lines; unfinished=8306; resumed=8306; unmatched resume=0; unmatched pending=0; unparsed=0.
+Among 133 >60ms gaps: >=1ms overlap in 133 gaps by syscall {'futex': 133, 'ioctl': 8, 'write': 41}; >=10ms overlap in 133 gaps by syscall {'futex': 133, 'ioctl': 1, 'write': 2}.
+Per-call counts: {'futex': 8544, 'ioctl': 7235, 'read': 230, 'write': 25800}
+Longest read gaps; up to four longest selected syscall overlaps and schedstat totals:
+  frame 51: 95.742ms, TID 863811 futex 70.854ms; TID 863808 futex 45.568ms; TID 863769 futex 34.625ms; TID 863808 futex 26.383ms; runtimeΣ 60.721ms / runqueueΣ 3.49ms; runtime leader TID 863808 +29.966ms; runqueue leader TID 863769 +1.896ms
+  frame 119: 90.332ms, TID 863811 futex 72.44ms; TID 863808 futex 46.849ms; TID 863808 futex 37.423ms; TID 863769 futex 24.744ms; runtimeΣ 53.834ms / runqueueΣ 17.463ms; runtime leader TID 863769 +25.663ms; runqueue leader TID 863769 +16.011ms
+  frame 216: 87.691ms, TID 863811 futex 76.942ms; TID 863808 futex 50.643ms; TID 863769 futex 41.402ms; TID 863808 futex 26.114ms; runtimeΣ 57.79ms / runqueueΣ 1.052ms; runtime leader TID 863808 +27.271ms; runqueue leader TID 863769 +0.704ms
+  frame 316: 87.364ms, TID 863811 futex 74.022ms; TID 863808 futex 45.242ms; TID 863769 futex 42.934ms; TID 863808 futex 27.19ms; runtimeΣ 51.58ms / runqueueΣ 1.471ms; runtime leader TID 863769 +24.207ms; runqueue leader TID 863808 +0.634ms
+  frame 276: 84.36ms, TID 863811 futex 67.356ms; TID 863808 futex 44.858ms; TID 863808 futex 39.768ms; TID 863769 futex 33.386ms; runtimeΣ 59.511ms / runqueueΣ 1.977ms; runtime leader TID 863808 +29.192ms; runqueue leader TID 863808 +0.955ms
+  frame 122: 81.827ms, TID 863811 futex 66.969ms; TID 863808 futex 51.857ms; TID 863769 futex 38.821ms; TID 863808 futex 28.054ms; runtimeΣ 52.35ms / runqueueΣ 2.065ms; runtime leader TID 863769 +23.524ms; runqueue leader TID 863769 +0.739ms
+  frame 236: 81.754ms, TID 863811 futex 62.44ms; TID 863808 futex 41.596ms; TID 863808 futex 40.538ms; TID 863769 futex 32.665ms; runtimeΣ 44.373ms / runqueueΣ 1.877ms; runtime leader TID 863769 +25.568ms; runqueue leader TID 863808 +1.128ms
+  frame 197: 80.406ms, TID 863811 futex 69.699ms; TID 863808 futex 45.512ms; TID 863808 futex 42.642ms; TID 863769 futex 41.753ms; runtimeΣ 39.764ms / runqueueΣ 0.673ms; runtime leader TID 863769 +24.160ms; runqueue leader TID 863809 +0.304ms
+  frame 413: 80.095ms, TID 863811 futex 56.005ms; TID 863808 futex 45.646ms; TID 863808 futex 33.237ms; TID 863769 futex 25.242ms; runtimeΣ 63.524ms / runqueueΣ 1.608ms; runtime leader TID 863769 +27.789ms; runqueue leader TID 863808 +1.137ms
+  frame 556: 79.936ms, TID 863811 futex 70.049ms; TID 863808 futex 43.229ms; TID 863769 futex 34.94ms; TID 863811 futex 28.543ms; runtimeΣ 56.156ms / runqueueΣ 1.222ms; runtime leader TID 863808 +27.952ms; runqueue leader TID 863808 +0.782ms
+  frame 410: 78.549ms, TID 863811 futex 54.205ms; TID 863808 futex 42.138ms; TID 863808 futex 35.954ms; TID 863769 futex 19.582ms; runtimeΣ 55.121ms / runqueueΣ 0.838ms; runtime leader TID 863808 +26.529ms; runqueue leader TID 863809 +0.275ms
+  frame 587: 77.936ms, TID 863811 futex 63.619ms; TID 863808 futex 44.15ms; TID 863811 futex 40.251ms; TID 863808 futex 36.546ms; runtimeΣ 49.229ms / runqueueΣ 0.796ms; runtime leader TID 863769 +25.579ms; runqueue leader TID 863808 +0.565ms
+Interpretation: overlap is correlational, not causal. Futex wait calls account for many overlapping intervals, but a waiting worker may be idle while another stage controls delivery. No selected blocking call does not prove CPU work; untraced calls and host scheduling remain possible.
+Observer effect: strace ptrace and per-frame /proc snapshots perturb cadence; overhead was not independently calibrated.
+Clock offset before/after 1794726953573887123ns / 1794726953573888436ns; max half-bracket uncertainty 6563ns.
+Raw trace SHA-256 0de7b3e50ff49d676085ff34e36e6fad8b9fb36bcbd7200d9df251cb0b9e7037; capture JSON SHA-256 b64db8453b48b731dafbec8b33db5d40a0c577ab698ff29d204c2127e176cba8; analysis JSON SHA-256 48d0a6517c05a9b40a377de87a358ee93ac12b70a44a47d04bfdafc44bedfb5a; source SHA-256 494fb8b88fda8bcf1d8301225019f4f01f4b77a0bb5cb3e69dde47ed96e1309b.
+Preserved failed attempt first_pid-lookup-failure: skillset-saves/runs/sidecamerad-mvp-20261113/build/evidence/ffmpeg-thread-syscall-schedstat-r4.strace sha256=5ee842637cbc1837ed809103ad79e6eae381d4955e6298268270bb6b3506b141; record skillset-saves/runs/sidecamerad-mvp-20261113/build/artifacts/ffmpeg-thread-syscall-schedstat-r4.json sha256=e0871faefec5c774b804660ca463b10b64927ce9f82871377b21065dffa753e2
+Preserved failed attempt second_pid-lookup-failure: skillset-saves/runs/sidecamerad-mvp-20261113/build/evidence/ffmpeg-thread-syscall-schedstat-r4-final.strace sha256=92f5fee135445bb7c921659468bacd63ac3b5eb45a7a04e3cd4acaf84ff18158

@@ -1,0 +1,10 @@
+.....s.........                                                          [100%]
+============================= slowest 10 durations =============================
+2.61s call     system/manager/test/test_manager.py::TestManager::test_manager_prepare
+1.50s call     system/manager/test/test_manager.py::TestManager::test_set_params_with_default_value
+0.01s setup    system/manager/test/test_manager.py::test_sensord_enabled_only_for_ka2_and_stays_onroad
+0.01s call     system/manager/test/test_manager.py::test_sensord_enabled_only_for_ka2_and_stays_onroad
+0.01s setup    system/manager/test/test_manager.py::TestManager::test_duplicate_procs
+
+(5 durations < 0.005s hidden.  Use -vv to show these durations.)
+14 passed, 1 skipped in 4.43s

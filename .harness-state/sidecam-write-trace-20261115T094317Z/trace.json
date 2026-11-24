@@ -1,0 +1,4326 @@
+{
+  "bytes_read": 829440000,
+  "camera_node": "/dev/video60",
+  "children_reaped": true,
+  "clock_alignment": {
+    "after": {
+      "bracket_ns": 4666,
+      "monotonic_mid_ns": 8875080327442,
+      "offset_ns": 1794726953573886831,
+      "realtime_ns": 1794735828654214273
+    },
+    "before": {
+      "bracket_ns": 2917,
+      "monotonic_mid_ns": 8843855780516,
+      "offset_ns": 1794726953573887123,
+      "realtime_ns": 1794735797429667639
+    },
+    "estimated_conversion_uncertainty_ns": 3479,
+    "estimated_offset_ns": 1794726953573886977,
+    "offset_definition": "realtime - monotonic",
+    "python_domain": "CLOCK_MONOTONIC ns",
+    "strace_domain": "realtime epoch from -ttt"
+  },
+  "completed_frames": 600,
+  "created_utc": "2026-11-15T09:43:48.660997+00:00",
+  "diagnostic": "600-frame read-only FFmpeg stdout timing trace; raw syscall arguments only, no camera payload capture",
+  "error": null,
+  "expected_bytes": 829440000,
+  "ffmpeg_stderr_path": "/data/openpilot/.harness-state/sidecam-write-trace-20261115T094317Z/ffmpeg-stderr.log",
+  "frame_boundary_count_correlated": 0,
+  "frame_bytes": 1382400,
+  "frame_completions_and_correlated_write_boundaries": [
+    {
+      "frame_no": 1,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8845039728117,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 2,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8845055031961,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 3,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8845115196769,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 4,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8845167069351,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 5,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8845224308197,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 6,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8845262031294,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 7,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8845320416625,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 8,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8845367088815,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 9,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8845417505082,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 10,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8845475038467,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 11,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8845509065030,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 12,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8845563375873,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 13,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8845597832639,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 14,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8845675173144,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 15,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8845710460899,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 16,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8845760150552,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 17,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8845814055609,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 18,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8845866216314,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 19,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8845919720626,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 20,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8845965764659,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 21,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8846012213687,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 22,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8846065881705,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 23,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8846117369460,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 24,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8846176226162,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 25,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8846221645453,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 26,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8846271727768,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 27,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8846321723875,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 28,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8846368289318,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 29,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8846416033079,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 30,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8846478876398,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 31,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8846515199724,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 32,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8846559814735,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 33,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8846613892500,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 34,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8846666023832,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 35,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8846720260511,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 36,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8846763730079,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 37,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8846814367304,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 38,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8846864792866,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 39,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8846921266100,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 40,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8846972116490,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 41,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8847028024856,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 42,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8847067793096,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 43,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8847119028064,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 44,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8847168992340,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 45,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8847203831602,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 46,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8847274779276,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 47,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8847315512337,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 48,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8847367719542,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 49,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8847419483295,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 50,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8847467072853,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 51,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8847517754496,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 52,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8847567783440,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 53,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8847617606177,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 54,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8847664308997,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 55,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8847709603917,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 56,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8847766800519,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 57,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8847806205682,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 58,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8847867385816,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 59,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8847920025434,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 60,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8847973873412,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 61,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8848003266286,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 62,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8848072890020,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 63,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8848115941261,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 64,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8848180478103,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 65,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8848212943104,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 66,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8848258226775,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 67,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8848320853640,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 68,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8848370233134,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 69,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8848417461280,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 70,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8848465892536,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 71,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8848514791287,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 72,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8848566814290,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 73,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8848613300697,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 74,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8848673892549,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 75,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8848722957131,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 76,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8848761922634,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 77,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8848806276068,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 78,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8848876106219,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 79,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8848906103503,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 80,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8848969391278,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 81,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8849013375842,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 82,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8849061050776,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 83,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8849114054391,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 84,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8849170274632,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 85,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8849205397142,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 86,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8849264088602,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 87,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8849316413809,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 88,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8849360144876,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 89,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8849416370617,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 90,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8849470289180,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 91,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8849514229079,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 92,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8849574743601,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 93,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8849613672772,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 94,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8849666076647,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 95,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8849714845984,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 96,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8849770113781,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 97,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8849802402620,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 98,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8849872344855,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 99,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8849917056869,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 100,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8849968123552,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 101,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8850012097492,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 102,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8850068022697,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 103,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8850122389172,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 104,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8850171189926,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 105,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8850215597277,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 106,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8850264334449,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 107,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8850316738698,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 108,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8850369743190,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 109,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8850412300274,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 110,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8850477468862,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 111,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8850505962501,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 112,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8850562141746,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 113,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8850618882192,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 114,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8850661072906,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 115,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8850713691822,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 116,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8850771579378,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 117,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8850822351234,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 118,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8850865385771,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 119,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8850915014265,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 120,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8850973120028,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 121,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8851019798393,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 122,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8851073442671,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 123,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8851123421661,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 124,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8851171255262,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 125,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8851201226257,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 126,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8851276749506,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 127,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8851311722812,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 128,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8851363457864,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 129,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8851401852959,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 130,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8851457132425,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 131,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8851520162002,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 132,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8851574592187,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 133,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8851607144942,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 134,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8851668307209,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 135,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8851724169126,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 136,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8851777625158,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 137,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8851807013827,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 138,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8851872869743,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 139,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8851918936451,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 140,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8851966717638,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 141,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8852021562360,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 142,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8852064833228,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 143,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8852111246141,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 144,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8852174745503,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 145,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8852213587136,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 146,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8852257245625,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 147,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8852314583857,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 148,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8852360672065,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 149,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8852418966785,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 150,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8852448358830,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 151,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8852509552349,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 152,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8852564737610,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 153,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8852607162990,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 154,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8852669270372,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 155,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8852719271574,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 156,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8852772700107,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 157,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8852816560470,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 158,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8852879284928,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 159,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8852907803734,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 160,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8852976862278,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 161,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8853013690480,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 162,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8853061392627,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 163,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8853111416495,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 164,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8853163677585,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 165,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8853214015407,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 166,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8853266746407,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 167,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8853317282436,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 168,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8853365205872,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 169,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8853426849968,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 170,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8853461686612,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 171,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8853507668533,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 172,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8853573807991,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 173,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8853609523874,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 174,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8853672967658,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 175,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8853709936567,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 176,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8853756274525,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 177,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8853814347751,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 178,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8853872605267,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 179,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8853914749111,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 180,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8853964592858,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 181,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8854020715734,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 182,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8854069369704,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 183,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8854113411524,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 184,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8854167287887,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 185,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8854219252690,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 186,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8854262508895,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 187,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8854317959155,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 188,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8854370925904,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 189,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8854404545063,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 190,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8854473147992,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 191,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8854512241042,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 192,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8854567002437,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 193,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8854611834998,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 194,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8854667906419,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 195,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8854694863080,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 196,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8854746470223,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 197,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8854815615603,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 198,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8854864482281,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 199,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8854918605642,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 200,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8854964999017,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 201,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8855013496116,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 202,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8855067097942,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 203,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8855124076809,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 204,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8855175513037,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 205,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8855223127272,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 206,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8855270487094,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 207,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8855306143187,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 208,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8855371907652,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 209,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8855412062647,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 210,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8855466469256,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 211,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8855512517554,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 212,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8855568801556,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 213,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8855619739334,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 214,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8855667470902,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 215,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8855721367726,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 216,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8855781196684,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 217,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8855817111192,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 218,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8855869659908,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 219,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8855928095092,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 220,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8855969775320,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 221,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8856014302928,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 222,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8856070080853,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 223,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8856114415964,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 224,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8856163997217,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 225,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8856213009436,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 226,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8856262285860,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 227,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8856307433835,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 228,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8856370764958,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 229,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8856421853484,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 230,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8856470691248,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 231,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8856509471096,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 232,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8856573524670,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 233,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8856620921244,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 234,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8856668938143,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 235,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8856726818627,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 236,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8856770048795,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 237,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8856810411832,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 238,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8856869827672,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 239,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8856909889629,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 240,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8856966642419,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 241,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8857010811575,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 242,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8857057864945,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 243,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8857108304855,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 244,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8857167341158,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 245,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8857219235593,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 246,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8857263446456,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 247,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8857314694065,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 248,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8857361839726,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 249,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8857418230145,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 250,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8857476062215,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 251,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8857520951488,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 252,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8857559497465,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 253,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8857613658456,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 254,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8857671037699,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 255,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8857706963750,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 256,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8857771410071,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 257,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8857815180817,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 258,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8857864018541,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 259,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8857916191223,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 260,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8857963034055,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 261,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8858015239987,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 262,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8858070951500,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 263,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8858122961101,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 264,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8858165479154,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 265,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8858216729598,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 266,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8858274858081,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 267,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8858326488478,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 268,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8858371482709,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 269,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8858416609687,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 270,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8858470824345,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 271,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8858521582464,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 272,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8858565211546,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 273,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8858626306327,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 274,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8858664233605,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 275,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8858726023419,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 276,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8858758512681,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 277,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8858815239392,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 278,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8858873043797,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 279,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8858925037109,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 280,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8858966625633,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 281,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8859021692406,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 282,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8859068458532,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 283,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8859116091189,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 284,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8859169013947,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 285,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8859220634763,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 286,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8859270124022,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 287,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8859320207482,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 288,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8859362506205,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 289,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8859426054956,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 290,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8859461229811,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 291,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8859521681352,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 292,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8859559750046,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 293,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8859613147133,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 294,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8859666482971,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 295,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8859713757175,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 296,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8859770204391,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 297,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8859824253387,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 298,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8859864573178,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 299,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8859919895283,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 300,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8859977096531,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 301,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8860017904066,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 302,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8860071528317,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 303,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8860117067751,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 304,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8860178888192,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 305,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8860218960361,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 306,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8860276088360,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 307,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8860321167926,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 308,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8860363493192,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 309,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8860420779647,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 310,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8860463448202,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 311,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8860519635298,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 312,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8860568230987,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 313,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8860617115215,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 314,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8860667165512,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 315,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8860711232633,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 316,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8860767022817,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 317,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8860825246513,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 318,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8860865210101,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 319,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8860913793874,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 320,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8860971860197,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 321,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8861023226686,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 322,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8861060197728,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 323,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8861125473086,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 324,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8861161779303,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 325,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8861229015929,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 326,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8861259222305,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 327,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8861323015973,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 328,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8861367828834,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 329,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8861413215397,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 330,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8861472651371,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 331,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8861522206050,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 332,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8861564822107,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 333,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8861618621609,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 334,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8861672922480,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 335,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8861715969907,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 336,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8861770574190,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 337,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8861821404062,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 338,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8861874332492,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 339,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8861923822839,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 340,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8861965860528,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 341,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8862032609620,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 342,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8862066350953,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 343,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8862123835076,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 344,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8862158760353,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 345,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8862216971426,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 346,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8862270767511,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 347,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8862313708189,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 348,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8862364418646,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 349,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8862415573722,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 350,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8862472765933,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 351,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8862513978592,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 352,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8862564048434,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 353,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8862615944044,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 354,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8862667628824,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 355,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8862726421599,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 356,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8862779009076,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 357,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8862819911405,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 358,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8862871053859,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 359,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8862929764135,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 360,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8862965907231,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 361,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8863029888318,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 362,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8863045854829,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 363,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8863114559608,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 364,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8863168754898,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 365,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8863218311663,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 366,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8863266163073,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 367,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8863321840678,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 368,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8863377490576,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 369,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8863410882539,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 370,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8863461102838,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 371,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8863519011376,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 372,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8863570746240,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 373,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8863628195034,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 374,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8863670685387,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 375,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8863718053305,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 376,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8863754914268,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 377,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8863829096106,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 378,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8863866496063,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 379,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8863918463716,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 380,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8863973413457,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 381,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8864018860732,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 382,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8864064464130,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 383,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8864115056591,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 384,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8864167083160,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 385,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8864204765155,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 386,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8864276464440,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 387,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8864322442500,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 388,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8864374710108,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 389,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8864426182183,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 390,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8864468862035,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 391,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8864520900772,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 392,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8864561152320,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 393,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8864621145334,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 394,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8864657966674,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 395,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8864727730819,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 396,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8864766377345,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 397,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8864818016045,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 398,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8864861874966,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 399,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8864905926009,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 400,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8864965542694,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 401,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8865023331402,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 402,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8865070964027,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 403,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8865114897488,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 404,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8865172787862,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 405,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8865219623996,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 406,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8865258515352,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 407,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8865307562459,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 408,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8865368480129,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 409,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8865427661903,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 410,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8865462115690,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 411,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8865511386254,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 412,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8865564245024,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 413,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8865610962453,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 414,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8865662414740,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 415,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8865719051047,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 416,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8865771073369,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 417,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8865826016280,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 418,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8865865574047,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 419,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8865927105627,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 420,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8865971925496,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 421,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8866018608508,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 422,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8866072971302,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 423,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8866125582825,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 424,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8866168731297,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 425,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8866224170494,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 426,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8866262308319,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 427,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8866323332531,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 428,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8866353804783,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 429,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8866417877791,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 430,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8866467423895,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 431,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8866516198925,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 432,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8866558544575,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 433,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8866621001729,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 434,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8866664520198,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 435,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8866718540581,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 436,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8866771354645,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 437,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8866821160579,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 438,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8866874743092,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 439,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8866925262017,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 440,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8866968125869,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 441,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8867029468871,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 442,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8867064373528,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 443,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8867122916730,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 444,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8867155708205,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 445,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8867225395272,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 446,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8867259578396,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 447,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8867315410757,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 448,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8867373812128,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 449,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8867420468558,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 450,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8867467147448,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 451,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8867518557739,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 452,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8867584215649,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 453,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8867620088754,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 454,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8867672362451,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 455,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8867726234087,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 456,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8867769216772,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 457,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8867807259434,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 458,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8867867490034,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 459,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8867930924887,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 460,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8867962168299,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 461,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8868009994383,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 462,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8868070669520,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 463,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8868120226125,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 464,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8868172590988,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 465,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8868213906568,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 466,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8868267033297,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 467,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8868311172634,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 468,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8868371596649,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 469,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8868423039273,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 470,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8868475208931,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 471,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8868525738109,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 472,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8868565545751,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 473,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8868619838092,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 474,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8868670456561,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 475,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8868721487108,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 476,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8868757469296,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 477,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8868814812100,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 478,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8868868424949,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 479,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8868912928659,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 480,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8868964690697,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 481,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8869016510610,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 482,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8869064617317,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 483,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8869119419110,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 484,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8869168192560,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 485,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8869217864540,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 486,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8869277863187,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 487,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8869324454871,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 488,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8869369083663,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 489,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8869418053318,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 490,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8869464839793,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 491,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8869520925447,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 492,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8869565419575,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 493,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8869619539503,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 494,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8869670219764,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 495,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8869726527207,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 496,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8869769385647,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 497,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8869813920399,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 498,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8869872939226,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 499,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8869921973674,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 500,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8869957970446,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 501,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8870020155652,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 502,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8870077544998,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 503,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8870127401020,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 504,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8870169708799,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 505,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8870220396352,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 506,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8870264073781,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 507,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8870326363652,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 508,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8870363925780,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 509,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8870415505239,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 510,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8870467632567,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 511,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8870520599344,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 512,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8870569988331,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 513,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8870616912056,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 514,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8870671985141,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 515,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8870710985086,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 516,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8870771073985,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 517,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8870818151625,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 518,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8870864495815,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 519,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8870920145726,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 520,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8870973726662,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 521,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8871022367033,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 522,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8871058229350,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 523,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8871122505657,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 524,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8871161258939,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 525,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8871212995022,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 526,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8871263935490,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 527,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8871311852536,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 528,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8871369486632,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 529,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8871422771613,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 530,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8871464241197,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 531,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8871512875152,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 532,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8871566515214,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 533,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8871621989379,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 534,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8871677584168,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 535,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8871708165633,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 536,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8871766422722,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 537,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8871824348399,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 538,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8871871644121,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 539,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8871922223637,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 540,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8871971821373,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 541,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8872024607320,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 542,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8872059021030,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 543,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8872122548931,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 544,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8872166212989,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 545,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8872217406288,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 546,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8872270571939,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 547,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8872317543040,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 548,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8872367376440,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 549,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8872412557937,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 550,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8872474767064,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 551,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8872520520014,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 552,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8872573029799,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 553,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8872623172072,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 554,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8872677564668,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 555,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8872727422110,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 556,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8872770744006,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 557,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8872830202667,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 558,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8872861355792,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 559,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8872929422683,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 560,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8872963203485,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 561,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8873014383661,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 562,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8873072570212,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 563,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8873122338822,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 564,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8873162865502,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 565,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8873218736622,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 566,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8873270311169,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 567,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8873315006548,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 568,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8873364923532,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 569,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8873415716963,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 570,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8873469416819,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 571,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8873522935260,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 572,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8873562815699,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 573,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8873621764242,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 574,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8873666288958,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 575,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8873727695514,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 576,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8873756870539,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 577,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8873818652757,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 578,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8873877355345,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 579,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8873900249987,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 580,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8873960732637,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 581,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8874022235233,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 582,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8874077690318,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 583,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8874118093208,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 584,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8874172713845,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 585,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8874227483564,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 586,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8874264179249,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 587,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8874322613756,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 588,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8874360316763,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 589,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8874423147634,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 590,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8874467224024,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 591,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8874509417561,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 592,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8874565519640,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 593,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8874614312890,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 594,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8874657350709,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 595,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8874723304836,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 596,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8874766475862,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 597,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8874817818206,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 598,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8874875628265,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 599,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8874922634036,
+      "write_end_to_read_complete_ms": null
+    },
+    {
+      "frame_no": 600,
+      "last_required_stdout_write_end_mono_ns": null,
+      "read_complete_mono_ns": 8874966076225,
+      "write_end_to_read_complete_ms": null
+    }
+  ],
+  "interval_summary_ms": {
+    "max": 77.340505,
+    "mean": 49.960514370617695,
+    "median": 50.637225,
+    "min": 15.303844,
+    "over_60ms": 71,
+    "p95": 63.793668,
+    "p99": 69.830151,
+    "under_40ms": 82
+  },
+  "read_intervals_ms": [
+    15.303844,
+    60.164808,
+    51.872582,
+    57.238846,
+    37.723097,
+    58.385331,
+    46.67219,
+    50.416267,
+    57.533385,
+    34.026563,
+    54.310843,
+    34.456766,
+    77.340505,
+    35.287755,
+    49.689653,
+    53.905057,
+    52.160705,
+    53.504312,
+    46.044033,
+    46.449028,
+    53.668018,
+    51.487755,
+    58.856702,
+    45.419291,
+    50.082315,
+    49.996107,
+    46.565443,
+    47.743761,
+    62.843319,
+    36.323326,
+    44.615011,
+    54.077765,
+    52.131332,
+    54.236679,
+    43.469568,
+    50.637225,
+    50.425562,
+    56.473234,
+    50.85039,
+    55.908366,
+    39.76824,
+    51.234968,
+    49.964276,
+    34.839262,
+    70.947674,
+    40.733061,
+    52.207205,
+    51.763753,
+    47.589558,
+    50.681643,
+    50.028944,
+    49.822737,
+    46.70282,
+    45.29492,
+    57.196602,
+    39.405163,
+    61.180134,
+    52.639618,
+    53.847978,
+    29.392874,
+    69.623734,
+    43.051241,
+    64.536842,
+    32.465001,
+    45.283671,
+    62.626865,
+    49.379494,
+    47.228146,
+    48.431256,
+    48.898751,
+    52.023003,
+    46.486407,
+    60.591852,
+    49.064582,
+    38.965503,
+    44.353434,
+    69.830151,
+    29.997284,
+    63.287775,
+    43.984564,
+    47.674934,
+    53.003615,
+    56.220241,
+    35.12251,
+    58.69146,
+    52.325207,
+    43.731067,
+    56.225741,
+    53.918563,
+    43.939899,
+    60.514522,
+    38.929171,
+    52.403875,
+    48.769337,
+    55.267797,
+    32.288839,
+    69.942235,
+    44.712014,
+    51.066683,
+    43.97394,
+    55.925205,
+    54.366475,
+    48.800754,
+    44.407351,
+    48.737172,
+    52.404249,
+    53.004492,
+    42.557084,
+    65.168588,
+    28.493639,
+    56.179245,
+    56.740446,
+    42.190714,
+    52.618916,
+    57.887556,
+    50.771856,
+    43.034537,
+    49.628494,
+    58.105763,
+    46.678365,
+    53.644278,
+    49.97899,
+    47.833601,
+    29.970995,
+    75.523249,
+    34.973306,
+    51.735052,
+    38.395095,
+    55.279466,
+    63.029577,
+    54.430185,
+    32.552755,
+    61.162267,
+    55.861917,
+    53.456032,
+    29.388669,
+    65.855916,
+    46.066708,
+    47.781187,
+    54.844722,
+    43.270868,
+    46.412913,
+    63.499362,
+    38.841633,
+    43.658489,
+    57.338232,
+    46.088208,
+    58.29472,
+    29.392045,
+    61.193519,
+    55.185261,
+    42.42538,
+    62.107382,
+    50.001202,
+    53.428533,
+    43.860363,
+    62.724458,
+    28.518806,
+    69.058544,
+    36.828202,
+    47.702147,
+    50.023868,
+    52.26109,
+    50.337822,
+    52.731,
+    50.536029,
+    47.923436,
+    61.644096,
+    34.836644,
+    45.981921,
+    66.139458,
+    35.715883,
+    63.443784,
+    36.968909,
+    46.337958,
+    58.073226,
+    58.257516,
+    42.143844,
+    49.843747,
+    56.122876,
+    48.65397,
+    44.04182,
+    53.876363,
+    51.964803,
+    43.256205,
+    55.45026,
+    52.966749,
+    33.619159,
+    68.602929,
+    39.09305,
+    54.761395,
+    44.832561,
+    56.071421,
+    26.956661,
+    51.607143,
+    69.14538,
+    48.866678,
+    54.123361,
+    46.393375,
+    48.497099,
+    53.601826,
+    56.978867,
+    51.436228,
+    47.614235,
+    47.359822,
+    35.656093,
+    65.764465,
+    40.154995,
+    54.406609,
+    46.048298,
+    56.284002,
+    50.937778,
+    47.731568,
+    53.896824,
+    59.828958,
+    35.914508,
+    52.548716,
+    58.435184,
+    41.680228,
+    44.527608,
+    55.777925,
+    44.335111,
+    49.581253,
+    49.012219,
+    49.276424,
+    45.147975,
+    63.331123,
+    51.088526,
+    48.837764,
+    38.779848,
+    64.053574,
+    47.396574,
+    48.016899,
+    57.880484,
+    43.230168,
+    40.363037,
+    59.41584,
+    40.061957,
+    56.75279,
+    44.169156,
+    47.05337,
+    50.43991,
+    59.036303,
+    51.894435,
+    44.210863,
+    51.247609,
+    47.145661,
+    56.390419,
+    57.83207,
+    44.889273,
+    38.545977,
+    54.160991,
+    57.379243,
+    35.926051,
+    64.446321,
+    43.770746,
+    48.837724,
+    52.172682,
+    46.842832,
+    52.205932,
+    55.711513,
+    52.009601,
+    42.518053,
+    51.250444,
+    58.128483,
+    51.630397,
+    44.994231,
+    45.126978,
+    54.214658,
+    50.758119,
+    43.629082,
+    61.094781,
+    37.927278,
+    61.789814,
+    32.489262,
+    56.726711,
+    57.804405,
+    51.993312,
+    41.588524,
+    55.066773,
+    46.766126,
+    47.632657,
+    52.922758,
+    51.620816,
+    49.489259,
+    50.08346,
+    42.298723,
+    63.548751,
+    35.174855,
+    60.451541,
+    38.068694,
+    53.397087,
+    53.335838,
+    47.274204,
+    56.447216,
+    54.048996,
+    40.319791,
+    55.322105,
+    57.201248,
+    40.807535,
+    53.624251,
+    45.539434,
+    61.820441,
+    40.072169,
+    57.127999,
+    45.079566,
+    42.325266,
+    57.286455,
+    42.668555,
+    56.187096,
+    48.595689,
+    48.884228,
+    50.050297,
+    44.067121,
+    55.790184,
+    58.223696,
+    39.963588,
+    48.583773,
+    58.066323,
+    51.366489,
+    36.971042,
+    65.275358,
+    36.306217,
+    67.236626,
+    30.206376,
+    63.793668,
+    44.812861,
+    45.386563,
+    59.435974,
+    49.554679,
+    42.616057,
+    53.799502,
+    54.300871,
+    43.047427,
+    54.604283,
+    50.829872,
+    52.92843,
+    49.490347,
+    42.037689,
+    66.749092,
+    33.741333,
+    57.484123,
+    34.925277,
+    58.211073,
+    53.796085,
+    42.940678,
+    50.710457,
+    51.155076,
+    57.192211,
+    41.212659,
+    50.069842,
+    51.89561,
+    51.68478,
+    58.792775,
+    52.587477,
+    40.902329,
+    51.142454,
+    58.710276,
+    36.143096,
+    63.981087,
+    15.966511,
+    68.704779,
+    54.19529,
+    49.556765,
+    47.85141,
+    55.677605,
+    55.649898,
+    33.391963,
+    50.220299,
+    57.908538,
+    51.734864,
+    57.448794,
+    42.490353,
+    47.367918,
+    36.860963,
+    74.181838,
+    37.399957,
+    51.967653,
+    54.949741,
+    45.447275,
+    45.603398,
+    50.592461,
+    52.026569,
+    37.681995,
+    71.699285,
+    45.97806,
+    52.267608,
+    51.472075,
+    42.679852,
+    52.038737,
+    40.251548,
+    59.993014,
+    36.82134,
+    69.764145,
+    38.646526,
+    51.6387,
+    43.858921,
+    44.051043,
+    59.616685,
+    57.788708,
+    47.632625,
+    43.933461,
+    57.890374,
+    46.836134,
+    38.891356,
+    49.047107,
+    60.91767,
+    59.181774,
+    34.453787,
+    49.270564,
+    52.85877,
+    46.717429,
+    51.452287,
+    56.636307,
+    52.022322,
+    54.942911,
+    39.557767,
+    61.53158,
+    44.819869,
+    46.683012,
+    54.362794,
+    52.611523,
+    43.148472,
+    55.439197,
+    38.137825,
+    61.024212,
+    30.472252,
+    64.073008,
+    49.546104,
+    48.77503,
+    42.34565,
+    62.457154,
+    43.518469,
+    54.020383,
+    52.814064,
+    49.805934,
+    53.582513,
+    50.518925,
+    42.863852,
+    61.343002,
+    34.904657,
+    58.543202,
+    32.791475,
+    69.687067,
+    34.183124,
+    55.832361,
+    58.401371,
+    46.65643,
+    46.67889,
+    51.410291,
+    65.65791,
+    35.873105,
+    52.273697,
+    53.871636,
+    42.982685,
+    38.042662,
+    60.2306,
+    63.434853,
+    31.243412,
+    47.826084,
+    60.675137,
+    49.556605,
+    52.364863,
+    41.31558,
+    53.126729,
+    44.139337,
+    60.424015,
+    51.442624,
+    52.169658,
+    50.529178,
+    39.807642,
+    54.292341,
+    50.618469,
+    51.030547,
+    35.982188,
+    57.342804,
+    53.612849,
+    44.50371,
+    51.762038,
+    51.819913,
+    48.106707,
+    54.801793,
+    48.77345,
+    49.67198,
+    59.998647,
+    46.591684,
+    44.628792,
+    48.969655,
+    46.786475,
+    56.085654,
+    44.494128,
+    54.119928,
+    50.680261,
+    56.307443,
+    42.85844,
+    44.534752,
+    59.018827,
+    49.034448,
+    35.996772,
+    62.185206,
+    57.389346,
+    49.856022,
+    42.307779,
+    50.687553,
+    43.677429,
+    62.289871,
+    37.562128,
+    51.579459,
+    52.127328,
+    52.966777,
+    49.388987,
+    46.923725,
+    55.073085,
+    38.999945,
+    60.088899,
+    47.07764,
+    46.34419,
+    55.649911,
+    53.580936,
+    48.640371,
+    35.862317,
+    64.276307,
+    38.753282,
+    51.736083,
+    50.940468,
+    47.917046,
+    57.634096,
+    53.284981,
+    41.469584,
+    48.633955,
+    53.640062,
+    55.474165,
+    55.594789,
+    30.581465,
+    58.257089,
+    57.925677,
+    47.295722,
+    50.579516,
+    49.597736,
+    52.785947,
+    34.41371,
+    63.527901,
+    43.664058,
+    51.193299,
+    53.165651,
+    46.971101,
+    49.8334,
+    45.181497,
+    62.209127,
+    45.75295,
+    52.509785,
+    50.142273,
+    54.392596,
+    49.857442,
+    43.321896,
+    59.458661,
+    31.153125,
+    68.066891,
+    33.780802,
+    51.180176,
+    58.186551,
+    49.76861,
+    40.52668,
+    55.87112,
+    51.574547,
+    44.695379,
+    49.916984,
+    50.793431,
+    53.699856,
+    53.518441,
+    39.880439,
+    58.948543,
+    44.524716,
+    61.406556,
+    29.175025,
+    61.782218,
+    58.702588,
+    22.894642,
+    60.48265,
+    61.502596,
+    55.455085,
+    40.40289,
+    54.620637,
+    54.769719,
+    36.695685,
+    58.434507,
+    37.703007,
+    62.830871,
+    44.07639,
+    42.193537,
+    56.102079,
+    48.79325,
+    43.037819,
+    65.954127,
+    43.171026,
+    51.342344,
+    57.810059,
+    47.005771,
+    43.442189
+  ],
+  "requested_frames": 600,
+  "return_code": 0,
+  "run_id": "sidecamerad-mvp-20261113",
+  "source_hash_drift": false,
+  "source_path": "system/sidecamerad.py",
+  "source_sha256_after": "494fb8b88fda8bcf1d8301225019f4f01f4b77a0bb5cb3e69dde47ed96e1309b",
+  "source_sha256_before": "494fb8b88fda8bcf1d8301225019f4f01f4b77a0bb5cb3e69dde47ed96e1309b",
+  "stdout_write_bytes_from_trace": 0,
+  "stdout_write_syscalls": 0,
+  "strace_argv": [
+    "/usr/bin/strace",
+    "-ttt",
+    "-T",
+    "-qq",
+    "-e",
+    "trace=write,writev",
+    "-e",
+    "raw=write,writev",
+    "-e",
+    "trace-fds=1",
+    "-o",
+    "/data/openpilot/.harness-state/sidecam-write-trace-20261115T094317Z/strace-writes.log",
+    "/usr/bin/ffmpeg",
+    "-nostdin",
+    "-hide_banner",
+    "-loglevel",
+    "error",
+    "-thread_queue_size",
+    "1",
+    "-threads",
+    "1",
+    "-filter_threads",
+    "1",
+    "-f",
+    "v4l2",
+    "-input_format",
+    "mjpeg",
+    "-framerate",
+    "20",
+    "-video_size",
+    "1280x720",
+    "-i",
+    "/dev/video60",
+    "-an",
+    "-sn",
+    "-dn",
+    "-vf",
+    "scale=1280:720:flags=neighbor,format=nv12",
+    "-pix_fmt",
+    "nv12",
+    "-frames:v",
+    "600",
+    "-threads",
+    "1",
+    "-fps_mode",
+    "passthrough",
+    "-f",
+    "rawvideo",
+    "pipe:1"
+  ],
+  "strace_path": "/data/openpilot/.harness-state/sidecam-write-trace-20261115T094317Z/strace-writes.log",
+  "timestamp_semantics": "time.monotonic_ns immediately after full raw NV12 frame read; no V4L2 source PTS used",
+  "unparsed_write_lines": [],
+  "untraced_comparison_reference": {
+    "artifact": "skillset-saves/runs/sidecamerad-mvp-20261113/build/artifacts/reader-poll-blocking-ab-r2.3-r1.json",
+    "blocking_readv_intervals": 1199,
+    "max_ms": 81.590917,
+    "mean_ms": 50.01249750708924,
+    "observer_effect_note": "untraced sequential baseline, not paired; distribution comparison is approximate",
+    "over_60ms": 161,
+    "p95_ms": 66.342798,
+    "p99_ms": 73.215193
+  },
+  "write_end_to_read_complete_lag_ms": {
+    "below_minus_clock_uncertainty": 0,
+    "max": null,
+    "mean": null,
+    "median": null,
+    "min": null,
+    "p95": null
+  }
+}

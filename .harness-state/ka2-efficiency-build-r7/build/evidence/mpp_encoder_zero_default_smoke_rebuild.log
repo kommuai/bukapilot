@@ -1,0 +1,15 @@
+In file included from skillset-saves/runs/loggerd-ka2-efficiency-20261029/build/evidence/mpp_encoder_zero_default_smoke.cc:24:
+In file included from ./system/loggerd/encoder/encoder.h:20:
+./system/loggerd/loggerd.h:129:18: warning: ISO C++ requires field designators to be specified in declaration order; field 'get_settings' will be initialized after field 'frame_width' [-Wreorder-init-list]
+  129 |   .frame_width = 526,
+      |   ~~~~~~~~~~~~~~~^~~
+./system/loggerd/loggerd.h:128:19: note: previous initialization for field 'get_settings' is here
+  128 |   .get_settings = [](int){return EncoderSettings::QcamEncoderSettings();},
+      |                   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+./system/loggerd/loggerd.h:131:20: warning: ISO C++ requires field designators to be specified in declaration order; field 'frame_height' will be initialized after field 'include_audio' [-Wreorder-init-list]
+  131 |   .include_audio = Params().getBool("RecordAudio"),
+      |   ~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+./system/loggerd/loggerd.h:130:19: note: previous initialization for field 'frame_height' is here
+  130 |   .frame_height = 330,
+      |                   ^~~
+2 warnings generated.

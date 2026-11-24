@@ -1,0 +1,52 @@
+---
+submission_id: sidecamerad-mvp-20261113_handoff-2_attempt-1_2026-11-15T08:56:55Z
+revision: "3"
+package_path: skillset-saves/runs/sidecamerad-mvp-20261113/investigation/manifest.json
+submission_status: VERDICT_RECORDED
+verdict: APPROVED
+---
+
+# Cross-stage handoff: investigation review
+
+## Package
+
+- Boundary: `investigation-review` (INVESTIGATE returning to BUILD)
+- Investigation revision: `3`
+- Investigation submission: `sidecamerad-mvp-20261113_investigation-ac4-timing-r3`
+- Manifest: `skillset-saves/runs/sidecamerad-mvp-20261113/investigation/manifest.json`
+- Manifest SHA-256: `3fd6d86266ea12dc338d68c441bfaa3491d5a41c7f69c7aaf99e534f0d5abe5e`
+- Report: `skillset-saves/runs/sidecamerad-mvp-20261113/investigation/reports/investigation-package.md`
+- Report SHA-256: `e83647146bf85fb14b60b44c2aa8c6d209882ded91a2e7f3e5991a9106a1d573`
+- Evidence chain: `skillset-saves/runs/sidecamerad-mvp-20261113/investigation/evidence/evidence-chain-r3.log`
+- Evidence-chain SHA-256: `0210a1d7b7f1643e93408616bc240692c1fa216eae31ea2ecc79d9d7dbc04376`
+- Canonical investigation self-check: passed with zero failures and warnings.
+- Prior r1 and r2 package snapshots remain preserved; the r3 pending handoff is archived at `delivery/reports/handoff_investigation-review-r3-pending.md.archive` (SHA-256 `b6bf99489f64f724d8af2d1ec818f392087d19de948613af134ccf0907e95872`).
+
+## Finding and bounded BUILD path
+
+The accepted five-minute current-source capture still fails AC-4's maximum-gap condition: 6,050 matched frames over 302.506666 seconds, 20.000523 fps mean cadence, 89.163715 ms maximum EOF gap, and 753 of 6,049 gaps above 60 ms. The sequential traced 600-frame output-flush A/B showed a modest but inconclusive difference: read gaps above 60 ms decreased from 122/599 to 107/599 and the maximum decreased from 88.425 ms to 86.679 ms with `-flush_packets 1`; both arms still had substantial long gaps. Sequential order and strace effects mean this does not prove causality or justify a production argument change.
+
+The approved next step is a read-only 600-frame ABBA diagnostic on `/dev/video60`: default output flushing (A), `-flush_packets 1` (B), B, A. Keep all other FFmpeg arguments, mode, queue/thread settings, and reader fixed; apply identical tracing; save no frame payload; make no source change. Compare frame counts, >60 ms read and write-boundary gaps, maxima, and write durations. This is diagnostic only and cannot pass AC-4. Preserve `timestampEof` as host-monotonic time after complete raw-frame read; PTS remain V4L2 SOE, not EOF.
+
+## Cross-stage verdict
+
+- Gate: `gatekeeper-admiral`
+- Verdict: **APPROVED** for `investigation-review` revision `3`.
+- Verdict ID: `345391af333f1b3db0cd42adf14dcb6179b8f33064a5f5780a353098a9a3d1ae`.
+- Durable verdict: `skillset-saves/runs/sidecamerad-mvp-20261113/investigation/verdict_investigation-review.cross-stage.json`, SHA-256 `58598572f5f526c18a712fd5380c897f41592068d01a15772a25e854e1dd24b3`.
+- Judgment: `skillset-saves/runs/sidecamerad-mvp-20261113/investigation/verdict_investigation-review.cross-stage.judgment.json`, SHA-256 `4c20d5647d14d6d1b356268a628b62e0d3038a8735288a64a9a9cba6c4a4bc1d`.
+- Boundary validator: zero failures and warnings; changed evidence was `evidence_chain`, `fix_path`, `mechanism`, and `residual_uncertainty`. The prior r2 verdict was not reused.
+- Delivery shape: zero failures; all revision-bearing artifacts matched revision 3. The conditional final-summary slot was out of scope for this intermediate handoff.
+
+## Open evidence limits
+
+- The output-flush A/B was a single sequential, straced pair; the observed small difference may include order, observer, or run-to-run effects.
+- The ABBA diagnostic cannot identify internal FFmpeg decode/filter/synchronization waits or prove AC-4.
+- Exact DQBUF-to-output frame identity remains unproven because the ioctl trace omitted sequence fields.
+- AC-4 remains failed on the accepted five-minute reproduction. AC-6 reconnect/sibling continuity and AC-8 four-camera soak/CPU headroom remain hardware deferrals; the minor FFmpeg child resource-limit finding remains open.
+
+## Next consumer
+
+Route the approved ABBA diagnostic to `build/build-management`. Keep production argv and source unchanged. AC-4 remains open pending the accepted five-minute criterion after any separately approved source change.
+
+This is an intermediate investigation-to-BUILD handoff; a final delivery package is not in scope.

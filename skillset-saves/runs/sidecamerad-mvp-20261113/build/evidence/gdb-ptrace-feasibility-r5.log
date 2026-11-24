@@ -1,0 +1,136 @@
+GDB / ptrace feasibility check (investigation revision 5)
+
+Run revision at inspection: 120
+GDB path: /usr/bin/gdb
+GDB version: GNU gdb (Ubuntu 15.1-1ubuntu1~24.04.1) 15.1 (exit 0)
+Current real/effective UID: 1000/1000; GDB launched without elevation.
+Ptrace policy observations:
+  /proc/sys/kernel/yama/ptrace_scope: unavailable: FileNotFoundError: [Errno 2] No such file or directory: '/proc/sys/kernel/yama/ptrace_scope'
+  /proc/sys/kernel/ptrace_scope: unavailable: FileNotFoundError: [Errno 2] No such file or directory: '/proc/sys/kernel/ptrace_scope'
+  /proc/self/status TracerPid: 0
+  /proc/self/status Uid: 1000	1000	1000	1000
+  /proc/self/status Gid: 1000	1000	1000	1000
+  /proc/self/status CapEff: 0000000000000000
+  /proc/self/status NoNewPrivs: 0
+  /proc/self/status Seccomp: 0
+
+Disposable child PID: 1030953
+Child argv: /usr/local/venv/bin/python3 -u -c 'import os,threading,time; ev=threading.Event(); ts=[threading.Thread(target=ev.wait,name="wait-%d"%i,daemon=True) for i in range(3)]; [t.start() for t in ts]; print("READY pid=%d uid=%d threads=%d"%(os.getpid(),os.getuid(),len(ts)),flush=True); time.sleep(90)'
+Child identity: READY pid=1030953 uid=1000 threads=3; PPID=1030907; UID line=Uid:	1000	1000	1000	1000
+GDB attach argv: /usr/bin/gdb --quiet --batch --nx --pid 1030953 -ex 'set pagination off' -ex 'set confirm off' -ex 'set debuginfod enabled off' -ex 'thread apply all bt' -ex detach -ex quit
+
+Attach result: attached (GDB --pid established the inferior; three New LWP records and libthread_db initialization confirm attach)
+Backtrace usable: True (4 thread headers; 86 frame lines; every thread has frames=True; main-thread unwind ended with GDB warning "previous frame identical")
+Detach result: detached ([Inferior 1 (process 1030953) detached]; child remained alive after GDB)
+Child alive after GDB: True; terminated/reaped by harness: True; child exit=-15
+Overall feasibility: GO
+
+--- gdb stdout ---
+[New LWP 1030957]
+[New LWP 1030956]
+[New LWP 1030955]
+
+This GDB supports auto-downloading debuginfo from the following URLs:
+  <https://debuginfod.ubuntu.com>
+Enable debuginfod for this session? (y or [n]) [answered N; input not from terminal]
+Debuginfod has been disabled.
+To make this setting permanent, add 'set debuginfod enabled off' to .gdbinit.
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/aarch64-linux-gnu/libthread_db.so.1".
+0x0000007fa2b9bd90 in clock_nanosleep () from /lib/aarch64-linux-gnu/libc.so.6
+
+Thread 4 (Thread 0x7fa2439180 (LWP 1030955) "python3"):
+#0  0x0000007fa2b61d6c in ?? () from /lib/aarch64-linux-gnu/libc.so.6
+#1  0x0000007fa2b6e1c0 in ?? () from /lib/aarch64-linux-gnu/libc.so.6
+#2  0x0000007fa30a4ac4 in PyThread_acquire_lock_timed (lock=lock@entry=0x7f9c000ba0, microseconds=microseconds@entry=-1000000, intr_flag=intr_flag@entry=1) at Python/thread_pthread.h:490
+#3  0x0000007fa321d780 in acquire_timed (lock=0x7f9c000ba0, timeout=-1000000000) at ./Modules/_threadmodule.c:99
+#4  0x0000007fa32e08e8 in lock_PyThread_acquire_lock (self=0x7fa25bba00, args=0x7fa439da20 <_PyRuntime+76264>, kwds=0x0) at ./Modules/_threadmodule.c:180
+#5  0x0000007fa325b88c in method_vectorcall_VARARGS_KEYWORDS (func=0x7fa2733a10, args=0x7fa2e0c290, nargsf=<optimized out>, kwnames=<optimized out>) at Objects/descrobject.c:365
+#6  0x0000007fa32214ec in _PyObject_VectorcallTstate (kwnames=<optimized out>, nargsf=<optimized out>, args=<optimized out>, callable=0x7fa2733a10, tstate=0x5590485240) at ./Include/internal/pycore_call.h:92
+#7  PyObject_Vectorcall (callable=0x7fa2733a10, args=<optimized out>, nargsf=<optimized out>, kwnames=<optimized out>) at Objects/call.c:325
+#8  0x0000007fa304db18 in _PyEval_EvalFrameDefault (tstate=<optimized out>, frame=0x7fa2e0c218, throwflag=<optimized out>) at Python/bytecodes.c:2706
+#9  0x0000007fa325a1a4 in _PyObject_VectorcallTstate (kwnames=0x0, nargsf=1, args=0x7fa24385c0, callable=0x7fa2489760, tstate=0x5590485240) at ./Include/internal/pycore_call.h:92
+#10 method_vectorcall (method=<optimized out>, args=0x7fa439da38 <_PyRuntime+76288>, nargsf=<optimized out>, kwnames=0x0) at Objects/classobject.c:69
+#11 0x0000007fa32144ec in _PyVectorcall_Call (kwargs=0x7fa253f0c0, tuple=0x7fa439da20 <_PyRuntime+76264>, callable=0x7fa244bec0, func=0x7fa325a040 <method_vectorcall>, tstate=0x5590485240) at Objects/call.c:271
+#12 _PyObject_Call (tstate=<optimized out>, callable=<optimized out>, args=<optimized out>, kwargs=<optimized out>, kwargs=<optimized out>, args=<optimized out>, callable=<optimized out>, tstate=<optimized out>) at Objects/call.c:354
+#13 0x0000007fa304e9a0 in _PyEval_EvalFrameDefault (tstate=<optimized out>, frame=0x7fa2e0c110, throwflag=<optimized out>) at Python/bytecodes.c:3254
+#14 0x0000007fa325a1a4 in _PyObject_VectorcallTstate (kwnames=0x0, nargsf=1, args=0x7fa2438830, callable=0x7fa248a520, tstate=0x5590485240) at ./Include/internal/pycore_call.h:92
+#15 method_vectorcall (method=<optimized out>, args=0x7fa439da38 <_PyRuntime+76288>, nargsf=<optimized out>, kwnames=0x0) at Objects/classobject.c:69
+#16 0x0000007fa32144ec in _PyVectorcall_Call (kwargs=0x0, tuple=0x7fa439da20 <_PyRuntime+76264>, callable=0x7fa25c4700, func=0x7fa325a040 <method_vectorcall>, tstate=0x5590485240) at Objects/call.c:271
+#17 _PyObject_Call (tstate=<optimized out>, callable=<optimized out>, args=<optimized out>, kwargs=<optimized out>, kwargs=<optimized out>, args=<optimized out>, callable=<optimized out>, tstate=<optimized out>) at Objects/call.c:354
+#18 0x0000007fa33862b8 in thread_run (boot_raw=0x559055d950) at ./Modules/_threadmodule.c:1114
+#19 0x0000007fa305ef34 in pythread_wrapper (arg=<optimized out>) at Python/thread_pthread.h:237
+#20 0x0000007fa2b6582c in ?? () from /lib/aarch64-linux-gnu/libc.so.6
+#21 0x0000007fa2bcba0c in ?? () from /lib/aarch64-linux-gnu/libc.so.6
+
+Thread 3 (Thread 0x7fa1c29180 (LWP 1030956) "python3"):
+#0  0x0000007fa2b61d6c in ?? () from /lib/aarch64-linux-gnu/libc.so.6
+#1  0x0000007fa2b6e1c0 in ?? () from /lib/aarch64-linux-gnu/libc.so.6
+#2  0x0000007fa30a4ac4 in PyThread_acquire_lock_timed (lock=lock@entry=0x7f94000ba0, microseconds=microseconds@entry=-1000000, intr_flag=intr_flag@entry=1) at Python/thread_pthread.h:490
+#3  0x0000007fa321d780 in acquire_timed (lock=0x7f94000ba0, timeout=-1000000000) at ./Modules/_threadmodule.c:99
+#4  0x0000007fa32e08e8 in lock_PyThread_acquire_lock (self=0x7fa2485ac0, args=0x7fa439da20 <_PyRuntime+76264>, kwds=0x0) at ./Modules/_threadmodule.c:180
+#5  0x0000007fa325b88c in method_vectorcall_VARARGS_KEYWORDS (func=0x7fa2733a10, args=0x7fa2e08290, nargsf=<optimized out>, kwnames=<optimized out>) at Objects/descrobject.c:365
+#6  0x0000007fa32214ec in _PyObject_VectorcallTstate (kwnames=<optimized out>, nargsf=<optimized out>, args=<optimized out>, callable=0x7fa2733a10, tstate=0x55904f6880) at ./Include/internal/pycore_call.h:92
+#7  PyObject_Vectorcall (callable=0x7fa2733a10, args=<optimized out>, nargsf=<optimized out>, kwnames=<optimized out>) at Objects/call.c:325
+#8  0x0000007fa304db18 in _PyEval_EvalFrameDefault (tstate=<optimized out>, frame=0x7fa2e08218, throwflag=<optimized out>) at Python/bytecodes.c:2706
+#9  0x0000007fa325a1a4 in _PyObject_VectorcallTstate (kwnames=0x0, nargsf=1, args=0x7fa1c285c0, callable=0x7fa2489760, tstate=0x55904f6880) at ./Include/internal/pycore_call.h:92
+#10 method_vectorcall (method=<optimized out>, args=0x7fa439da38 <_PyRuntime+76288>, nargsf=<optimized out>, kwnames=0x0) at Objects/classobject.c:69
+#11 0x0000007fa32144ec in _PyVectorcall_Call (kwargs=0x7fa25c40c0, tuple=0x7fa439da20 <_PyRuntime+76264>, callable=0x7fa245b9c0, func=0x7fa325a040 <method_vectorcall>, tstate=0x55904f6880) at Objects/call.c:271
+#12 _PyObject_Call (tstate=<optimized out>, callable=<optimized out>, args=<optimized out>, kwargs=<optimized out>, kwargs=<optimized out>, args=<optimized out>, callable=<optimized out>, tstate=<optimized out>) at Objects/call.c:354
+#13 0x0000007fa304e9a0 in _PyEval_EvalFrameDefault (tstate=<optimized out>, frame=0x7fa2e08110, throwflag=<optimized out>) at Python/bytecodes.c:3254
+#14 0x0000007fa325a1a4 in _PyObject_VectorcallTstate (kwnames=0x0, nargsf=1, args=0x7fa1c28830, callable=0x7fa248a520, tstate=0x55904f6880) at ./Include/internal/pycore_call.h:92
+#15 method_vectorcall (method=<optimized out>, args=0x7fa439da38 <_PyRuntime+76288>, nargsf=<optimized out>, kwnames=0x0) at Objects/classobject.c:69
+#16 0x0000007fa32144ec in _PyVectorcall_Call (kwargs=0x0, tuple=0x7fa439da20 <_PyRuntime+76264>, callable=0x7fa25bbc00, func=0x7fa325a040 <method_vectorcall>, tstate=0x55904f6880) at Objects/call.c:271
+#17 _PyObject_Call (tstate=<optimized out>, callable=<optimized out>, args=<optimized out>, kwargs=<optimized out>, kwargs=<optimized out>, args=<optimized out>, callable=<optimized out>, tstate=<optimized out>) at Objects/call.c:354
+#18 0x0000007fa33862b8 in thread_run (boot_raw=0x5590453c90) at ./Modules/_threadmodule.c:1114
+#19 0x0000007fa305ef34 in pythread_wrapper (arg=<optimized out>) at Python/thread_pthread.h:237
+#20 0x0000007fa2b6582c in ?? () from /lib/aarch64-linux-gnu/libc.so.6
+#21 0x0000007fa2bcba0c in ?? () from /lib/aarch64-linux-gnu/libc.so.6
+
+Thread 2 (Thread 0x7fa1419180 (LWP 1030957) "python3"):
+#0  0x0000007fa2b61d6c in ?? () from /lib/aarch64-linux-gnu/libc.so.6
+#1  0x0000007fa2b6e1c0 in ?? () from /lib/aarch64-linux-gnu/libc.so.6
+#2  0x0000007fa30a4ac4 in PyThread_acquire_lock_timed (lock=lock@entry=0x7f98000ba0, microseconds=microseconds@entry=-1000000, intr_flag=intr_flag@entry=1) at Python/thread_pthread.h:490
+#3  0x0000007fa321d780 in acquire_timed (lock=0x7f98000ba0, timeout=-1000000000) at ./Modules/_threadmodule.c:99
+#4  0x0000007fa32e08e8 in lock_PyThread_acquire_lock (self=0x7fa2485c00, args=0x7fa439da20 <_PyRuntime+76264>, kwds=0x0) at ./Modules/_threadmodule.c:180
+#5  0x0000007fa325b88c in method_vectorcall_VARARGS_KEYWORDS (func=0x7fa2733a10, args=0x7fa2e04290, nargsf=<optimized out>, kwnames=<optimized out>) at Objects/descrobject.c:365
+#6  0x0000007fa32214ec in _PyObject_VectorcallTstate (kwnames=<optimized out>, nargsf=<optimized out>, args=<optimized out>, callable=0x7fa2733a10, tstate=0x55904f24e0) at ./Include/internal/pycore_call.h:92
+#7  PyObject_Vectorcall (callable=0x7fa2733a10, args=<optimized out>, nargsf=<optimized out>, kwnames=<optimized out>) at Objects/call.c:325
+#8  0x0000007fa304db18 in _PyEval_EvalFrameDefault (tstate=<optimized out>, frame=0x7fa2e04218, throwflag=<optimized out>) at Python/bytecodes.c:2706
+#9  0x0000007fa325a1a4 in _PyObject_VectorcallTstate (kwnames=0x0, nargsf=1, args=0x7fa14185c0, callable=0x7fa2489760, tstate=0x55904f24e0) at ./Include/internal/pycore_call.h:92
+#10 method_vectorcall (method=<optimized out>, args=0x7fa439da38 <_PyRuntime+76288>, nargsf=<optimized out>, kwnames=0x0) at Objects/classobject.c:69
+#11 0x0000007fa32144ec in _PyVectorcall_Call (kwargs=0x7fa25c4080, tuple=0x7fa439da20 <_PyRuntime+76264>, callable=0x7fa245ac00, func=0x7fa325a040 <method_vectorcall>, tstate=0x55904f24e0) at Objects/call.c:271
+#12 _PyObject_Call (tstate=<optimized out>, callable=<optimized out>, args=<optimized out>, kwargs=<optimized out>, kwargs=<optimized out>, args=<optimized out>, callable=<optimized out>, tstate=<optimized out>) at Objects/call.c:354
+#13 0x0000007fa304e9a0 in _PyEval_EvalFrameDefault (tstate=<optimized out>, frame=0x7fa2e04110, throwflag=<optimized out>) at Python/bytecodes.c:3254
+#14 0x0000007fa325a1a4 in _PyObject_VectorcallTstate (kwnames=0x0, nargsf=1, args=0x7fa1418830, callable=0x7fa248a520, tstate=0x55904f24e0) at ./Include/internal/pycore_call.h:92
+#15 method_vectorcall (method=<optimized out>, args=0x7fa439da38 <_PyRuntime+76288>, nargsf=<optimized out>, kwnames=0x0) at Objects/classobject.c:69
+#16 0x0000007fa32144ec in _PyVectorcall_Call (kwargs=0x0, tuple=0x7fa439da20 <_PyRuntime+76264>, callable=0x7fa2601800, func=0x7fa325a040 <method_vectorcall>, tstate=0x55904f24e0) at Objects/call.c:271
+#17 _PyObject_Call (tstate=<optimized out>, callable=<optimized out>, args=<optimized out>, kwargs=<optimized out>, kwargs=<optimized out>, args=<optimized out>, callable=<optimized out>, tstate=<optimized out>) at Objects/call.c:354
+#18 0x0000007fa33862b8 in thread_run (boot_raw=0x5590438880) at ./Modules/_threadmodule.c:1114
+#19 0x0000007fa305ef34 in pythread_wrapper (arg=<optimized out>) at Python/thread_pthread.h:237
+#20 0x0000007fa2b6582c in ?? () from /lib/aarch64-linux-gnu/libc.so.6
+#21 0x0000007fa2bcba0c in ?? () from /lib/aarch64-linux-gnu/libc.so.6
+
+Thread 1 (Thread 0x7fa4434020 (LWP 1030953) "python3"):
+#0  0x0000007fa2b9bd90 in clock_nanosleep () from /lib/aarch64-linux-gnu/libc.so.6
+#1  0x0000007fa3374acc in pysleep (timeout=<optimized out>) at ./Modules/timemodule.c:2182
+#2  time_sleep (self=<optimized out>, timeout_obj=<optimized out>) at ./Modules/timemodule.c:425
+#3  0x0000007fa31e793c in cfunction_vectorcall_O (func=0x7fa276a7a0, args=0x7fa4439088, nargsf=<optimized out>, kwnames=<optimized out>) at Objects/methodobject.c:509
+#4  0x0000007fa32214ec in _PyObject_VectorcallTstate (kwnames=<optimized out>, nargsf=<optimized out>, args=<optimized out>, callable=0x7fa276a7a0, tstate=0x7fa43fb3d0 <_PyRuntime+459672>) at ./Include/internal/pycore_call.h:92
+#5  PyObject_Vectorcall (callable=0x7fa276a7a0, args=<optimized out>, nargsf=<optimized out>, kwnames=<optimized out>) at Objects/call.c:325
+#6  0x0000007fa304db18 in _PyEval_EvalFrameDefault (tstate=<optimized out>, frame=0x7fa4439020, throwflag=<optimized out>) at Python/bytecodes.c:2706
+#7  0x0000007fa330230c in PyEval_EvalCode (co=co@entry=0x55905296f0, globals=globals@entry=0x7fa2796780, locals=locals@entry=0x7fa2796780) at Python/ceval.c:578
+#8  0x0000007fa338c7a8 in run_eval_code_obj (locals=0x7fa2796780, globals=0x7fa2796780, co=0x55905296f0, tstate=<optimized out>) at Python/pythonrun.c:1722
+#9  run_mod (arena=0x7fa26b7cb0, flags=0x55905296f0, locals=0x7fa2796780, globals=0x7fa2796780, filename=0x7fa4390e98 <_PyRuntime+24160>, mod=<optimized out>) at Python/pythonrun.c:1743
+#10 PyRun_StringFlags (str=str@entry=0x7fa274df30 "import os,threading,time; ev=threading.Event(); ts=[threading.Thread(target=ev.wait,name=\"wait-%d\"%i,daemon=True) for i in range(3)]; [t.start() for t in ts]; print(\"READY pid=%d uid=%d threads=%d\"%(o"..., start=start@entry=257, globals=0x7fa2796780, locals=0x7fa2796780, flags=flags@entry=0x7fc20b3230) at Python/pythonrun.c:1618
+#11 0x0000007fa33a5650 in PyRun_SimpleStringFlags (command=0x7fa274df30 "import os,threading,time; ev=threading.Event(); ts=[threading.Thread(target=ev.wait,name=\"wait-%d\"%i,daemon=True) for i in range(3)]; [t.start() for t in ts]; print(\"READY pid=%d uid=%d threads=%d\"%(o"..., flags=flags@entry=0x7fc20b3230) at Python/pythonrun.c:480
+#12 0x0000007fa33ae384 in pymain_run_command (command=<optimized out>) at Modules/main.c:255
+#13 pymain_run_python (exitcode=0x7fc20b324c) at Modules/main.c:620
+#14 Py_RunMain () at Modules/main.c:709
+#15 0x0000007fa33b5088 in pymain_main (args=0x7fc20b3328) at Modules/main.c:739
+#16 Py_BytesMain (argc=<optimized out>, argv=<optimized out>) at Modules/main.c:763
+#17 0x0000007fa2b084c4 in ?? () from /lib/aarch64-linux-gnu/libc.so.6
+#18 0x0000007fa2b08598 in __libc_start_main () from /lib/aarch64-linux-gnu/libc.so.6
+#19 0x000000556ee508e8 in _start ()
+Backtrace stopped: previous frame identical to this frame (corrupt stack?)
+[Inferior 1 (process 1030953) detached]

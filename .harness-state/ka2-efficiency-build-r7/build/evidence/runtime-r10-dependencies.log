@@ -1,0 +1,9 @@
+   4.936s dependencies present: /dev/dma_heap/system, /dev/mpp_service, /dev/rga
+   4.946s DMA-heap VisionIPC publisher ready: READY streams=road,driver,wideRoad width=1920 height=1200 stride=1920 uv_offset=2304000 buffers=4
+   5.049s startup ready: subscribed reader for roadCameraState
+   5.049s startup ready: subscribed reader for driverCameraState
+   5.049s startup ready: subscribed reader for wideRoadCameraState
+   5.049s startup ready: subscribed reader for rawAudioData
+  10.947s segment 0 artifacts verified: all six files nonempty; qRoad H264+audio decodable; audio_samples=33792
+  11.187s segment 1 artifacts verified: all six files nonempty; qRoad H264+audio decodable; audio_samples=36864
+  11.401s segment 2 artifacts verified: all six files nonempty; qRoad H264+audio decodable; audio_samples=17408

@@ -1,0 +1,2 @@
+command=git diff --check -- assigned implementation paths
+exit_code=0

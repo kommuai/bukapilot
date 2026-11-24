@@ -1,0 +1,102 @@
+{
+  "boundary": "investigation-review",
+  "changed_evidence": [
+    "evidence_chain",
+    "fix_path",
+    "residual_uncertainty"
+  ],
+  "checked_at": "2026-11-15T13:22:36.232343+00:00",
+  "declared_schema_version": 2,
+  "evidence_digests": {
+    "evidence_chain": "39a0e8229c406721b8814a4a0e14026fcd78cc69dd7fdd8478b880c98c52ec58",
+    "fix_path": "626fa569f9c0c02fa35ea888112505d42d38dad6626d392d174d79588c023c2d",
+    "mechanism": "959e16a7a0bba9ca91aa6ef82f73d6d1ecb66b68c4c5293a7b8333f5e2418e3f",
+    "reproduction": "151d77facde428165660530f9a369f06d65cc1771f913fad6ed2ac550fce82ba",
+    "residual_uncertainty": "1757357120417c300bb769932a6d8b13822f495e7f268173505a5b206598b399",
+    "scope": "84380e02e7f1cd911c5c63b48c0aafaf42023e84cd7c5427bd2860245fe5d40b"
+  },
+  "evidence_root": "/data/openpilot/skillset-saves/runs/sidecamerad-mvp-20261113",
+  "evidence_root_kind": "run",
+  "failures": [],
+  "gate_spec_digest": "b2995ffa29a827c2bf101391788bf1228eb38869ad7c0a601a4126734ee6c7c1",
+  "gate_spec_is_shipped": true,
+  "idempotency_drift": false,
+  "judgment": {
+    "by_owner": {},
+    "escalation": null,
+    "findings": [
+      {
+        "basis": {
+          "kind": "contract",
+          "ref": "Deterministic Pre-Check (two validators)",
+          "source": "gatekeeper-admiral/SKILL.md"
+        },
+        "evidence": [
+          "manifest:evidence.scope",
+          "manifest:evidence.fix_path",
+          "manifest:evidence.residual_uncertainty"
+        ],
+        "expected": "An investigation handoff identifies its scoped issue, bounded path, residual uncertainty, and BUILD consumer. A separate delivery summary is needed only when the boundary packages final delivery content.",
+        "id": "INFO-DELIVERY-SUMMARY-CONDITIONAL-RESOLVED-INVESTIGATION-R7",
+        "key": null,
+        "observed": "The revision-7 handoff returns the integrity-repaired investigation to BUILD, specifies the bounded GDB sampling diagnostic, and states final delivery is out of scope. The delivery-shape validator reports zero failures, coherent revision 7, and only the conditional summary slot unchecked.",
+        "owner": "investigate",
+        "remediation": "No separate delivery summary is required for this intermediate investigation-to-BUILD handoff.",
+        "severity": "Info",
+        "statement": "The conditional delivery-summary slot is out of scope because this boundary returns an integrity-repaired investigation package to BUILD; the revision-7 handoff and package identify the consumer, bounded diagnostic, and remaining uncertainty.",
+        "verification": "The canonical investigation-review boundary validator has no failures or warnings; the delivery-shape validator has zero failures and the r7 handoff, package, and manifest lineage agree."
+      }
+    ],
+    "gate": "gatekeeper-admiral",
+    "intake": {
+      "artifact": "../intake/report_grilling.md"
+    },
+    "valid": true,
+    "verdict": "APPROVED"
+  },
+  "judgment_failures": [],
+  "manifest": "manifest.json",
+  "manifest_schema_version": 2,
+  "mechanical_only": false,
+  "missing": [],
+  "mixed_revisions": false,
+  "owner": "investigate",
+  "package_fingerprint": "298bd2ad9abc88e877143bc7bd2c8b518dedb7502d68b58e69410470d8baa51b",
+  "pass": true,
+  "prior_record": {
+    "gate_spec_digest": "b2995ffa29a827c2bf101391788bf1228eb38869ad7c0a601a4126734ee6c7c1",
+    "gate_spec_is_shipped": true,
+    "judgment": {
+      "gate": "gatekeeper-admiral",
+      "valid": true,
+      "verdict": "APPROVED"
+    },
+    "path": "/data/openpilot/skillset-saves/runs/sidecamerad-mvp-20261113/investigation/verdict_investigation-review-r6.cross-stage.json"
+  },
+  "prior_reusable": null,
+  "registry_is_shipped": true,
+  "revise_packet": {
+    "actions_by_owner": {},
+    "by_key": {},
+    "by_owner": {},
+    "judgment_by_owner": {},
+    "unassigned": []
+  },
+  "revision": "7",
+  "revision_cycle": {
+    "boundary_revise_rounds": 0,
+    "consecutive_revise": 0,
+    "gate": "gatekeeper-admiral",
+    "held_for_user": false,
+    "history": "verdict_investigation-review.cycles.json"
+  },
+  "run_id": "sidecamerad-mvp-20261113",
+  "submission_id": "sidecamerad-mvp-20261113_investigation-ac4-timing-r7",
+  "unchanged_evidence": [
+    "mechanism",
+    "reproduction",
+    "scope"
+  ],
+  "verdict_id": "caf01285ddea826a49fe3407ce249d6879a28d218124cd36639e577f929251fe",
+  "warnings": []
+}

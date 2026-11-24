@@ -1,0 +1,24 @@
+2026-11-15T14:13:11.581561+00:00 PRECHECK source_hashes_match=true source_input_count=9 device=/dev/v4l/by-path/platform-xhci-hcd.11.auto-usb-0:1:1.0-video-index0 resolves=/dev/video60 parent_ZMQ_present=False
+2026-11-15T14:13:11.581740+00:00 CONTRACT steady_state_window_at_least_s=300.0; target_matched_frames=6050; interval_mean_fps>=20.0; every_eof_gap_ms<=60; cereal_VisionIPC_frame_ids_must_match; payload_saved=false
+2026-11-15T14:13:11.889771+00:00 SIDECAMERAD_STARTED pid=1311055 entry=/usr/local/venv/bin/python3 system/sidecamerad.py isolated_params=true child_ZMQ=1 assigned_device=/dev/v4l/by-path/platform-xhci-hcd.11.auto-usb-0:1:1.0-video-index0
+2026-11-15T14:13:11.889854+00:00 STARTUP tcp_listeners_9007_9010=[] params=null
+2026-11-15T14:13:12.903124+00:00 READERS_READY cereal=frontLeftCameraState conflate=false; VisionIPC=sidecamerad/VISION_STREAM_SIDE_FRONT_LEFT conflate=false; metadata_only=true
+2026-11-15T14:13:12.952692+00:00 CAPTURE_START first_matching_frame_id=3 cereal_eof_ns=25039177417453 visionipc_eof_ns=25039177417453 params={"backLeftCameraState": false, "backRightCameraState": false, "frontLeftCameraState": true, "frontRightCameraState": false}
+2026-11-15T14:13:42.955200+00:00 PROGRESS elapsed_s=30.003 cereal_unique=604 visionipc_unique=606 matched_unique=604 selected_span_s=30.147921
+2026-11-15T14:14:13.056430+00:00 PROGRESS elapsed_s=60.104 cereal_unique=1207 visionipc_unique=1208 matched_unique=1206 selected_span_s=60.251869
+2026-11-15T14:14:43.112180+00:00 PROGRESS elapsed_s=90.160 cereal_unique=1807 visionipc_unique=1809 matched_unique=1807 selected_span_s=90.310094
+2026-11-15T14:15:13.307171+00:00 PROGRESS elapsed_s=120.355 cereal_unique=2412 visionipc_unique=2413 matched_unique=2411 selected_span_s=120.500301
+2026-11-15T14:15:43.445142+00:00 PROGRESS elapsed_s=150.493 cereal_unique=3015 visionipc_unique=3016 matched_unique=3014 selected_span_s=150.654951
+2026-11-15T14:16:13.511932+00:00 PROGRESS elapsed_s=180.560 cereal_unique=3613 visionipc_unique=3617 matched_unique=3613 selected_span_s=180.604356
+2026-11-15T14:16:43.519793+00:00 PROGRESS elapsed_s=210.567 cereal_unique=4212 visionipc_unique=4217 matched_unique=4212 selected_span_s=210.569332
+2026-11-15T14:17:13.575170+00:00 PROGRESS elapsed_s=240.623 cereal_unique=4813 visionipc_unique=4818 matched_unique=4813 selected_span_s=240.602801
+2026-11-15T14:17:43.668471+00:00 PROGRESS elapsed_s=270.716 cereal_unique=5417 visionipc_unique=5420 matched_unique=5417 selected_span_s=270.819773
+2026-11-15T14:18:13.723180+00:00 PROGRESS elapsed_s=300.771 cereal_unique=6017 visionipc_unique=6021 matched_unique=6017 selected_span_s=300.813612
+2026-11-15T14:18:15.397336+00:00 CAPTURE_STOP matched_unique=6051 selected=6050 elapsed_wall_s=302.444905 reason=target_frames_and_steady_span_reached
+2026-11-15T14:18:16.417001+00:00 PRE_SHUTDOWN child_pids=[(1311083, 'ffmpeg')] tcp_listeners_9007_9010=[] params={"backLeftCameraState": false, "backRightCameraState": false, "frontLeftCameraState": true, "frontRightCameraState": false}
+2026-11-15T14:18:17.919735+00:00 SHUTDOWN sidecamerad_exit=0 child_reaped=True tcp_listeners_after=[] remaining_ffmpeg_pids=[] final_params={"backLeftCameraState": false, "backRightCameraState": false, "frontLeftCameraState": false, "frontRightCameraState": false}
+2026-11-15T14:18:17.922258+00:00 ISOLATED_PARAMS_REMOVED path=/data/openpilot/.harness-state/sidecam-health-ac4-r2.3-jmsr0q9g exists=False
+2026-11-15T14:18:18.055277+00:00 ANALYSIS selected_frames=6050 matched_total=6075 eof_span_s=302.471744064 mean_interval_fps=19.998562241636 max_gap_ms=90.981562 gaps_over_60ms=716 frame_id_gaps=0 timestamp_mismatches=0 functional_pass=False ac4_cadence_pass=False source_hash_drift={}
+2026-11-15T14:18:18.055585+00:00 RAW_INTERVALS path=skillset-saves/runs/sidecamerad-mvp-20261113/build/artifacts/runtime_cadence_intervals-r2.3.json frames=6050 intervals=6049 sha256=626f0881c22814e055d724ce8683c5206d5c3090dd507e582327362202f53696
+2026-11-15T14:18:18.055618+00:00 CAPTURE_ERROR None
+2026-11-15T14:20:35.374933+00:00 POST_CAPTURE_REVIEW: the controller sampled Params before launching sidecamerad as an isolated-root baseline and observed null; the STARTUP line prints this pre-launch sample after Popen, so it is not a runtime startup observation. The same run observed frontLeftCameraState=true before shutdown and all camera states=false after shutdown. This makes the startup all-false snapshot unverified; it does not indicate a frame publication failure. Streaming/cleanup functional result is pass (6050 selected contiguous matched IDs, zero timestamp mismatches, sidecamerad exit 0, no remaining FFmpeg or TCP listeners, isolated Params root removed). Strict AC-4 cadence remains fail. Raw per-frame timestamps and intervals are unchanged.

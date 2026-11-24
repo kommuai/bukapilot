@@ -1,0 +1,27 @@
+2026-11-15T08:15:26.401057+00:00 PRECHECK source_hashes_match=true source_input_count=9 device=/dev/v4l/by-path/platform-xhci-hcd.11.auto-usb-0:1:1.0-video-index0 resolves=/dev/video60 parent_ZMQ=None child_ZMQ=1 params_root=isolated
+2026-11-15T08:15:26.401124+00:00 CONTRACT steady_state_window_at_least_s=300.0; success_requires_matched_frames>=6050; interval_mean_fps>=20.0; every_eof_gap_ms<=60
+2026-11-15T08:15:26.402055+00:00 SIDECAMERAD_STARTED pid=187944 entry=/usr/local/venv/bin/python3 system/sidecamerad.py
+2026-11-15T08:15:26.753967+00:00 VISIONIPC_CONNECTED width=1280 height=720 stride=1280 buffer_len=1382400 buffers=3
+2026-11-15T08:15:26.754890+00:00 STARTUP tcp_listeners_9007_9010=[] params={"backLeftCameraState": false, "backRightCameraState": false, "frontLeftCameraState": false, "frontRightCameraState": false}
+2026-11-15T08:15:27.182346+00:00 CAPTURE_START first_matching_frame_id=1 cereal_eof_ns=3573603664190 visionipc_eof_ns=3573603664190 params={"backLeftCameraState": false, "backRightCameraState": false, "frontLeftCameraState": false, "frontRightCameraState": false}
+2026-11-15T08:15:57.183801+00:00 PROGRESS elapsed_s=30.002 cereal_unique=601 visionipc_unique=601 matched_unique=601
+2026-11-15T08:16:27.191921+00:00 PROGRESS elapsed_s=60.010 cereal_unique=1201 visionipc_unique=1201 matched_unique=1201
+2026-11-15T08:16:57.200129+00:00 PROGRESS elapsed_s=90.018 cereal_unique=1801 visionipc_unique=1801 matched_unique=1801
+2026-11-15T08:17:27.209615+00:00 PROGRESS elapsed_s=120.028 cereal_unique=2401 visionipc_unique=2401 matched_unique=2401
+2026-11-15T08:17:57.211631+00:00 PROGRESS elapsed_s=150.030 cereal_unique=3001 visionipc_unique=3001 matched_unique=3001
+2026-11-15T08:18:27.220862+00:00 PROGRESS elapsed_s=180.039 cereal_unique=3601 visionipc_unique=3601 matched_unique=3601
+2026-11-15T08:18:57.227263+00:00 PROGRESS elapsed_s=210.045 cereal_unique=4201 visionipc_unique=4201 matched_unique=4201
+2026-11-15T08:19:27.233286+00:00 PROGRESS elapsed_s=240.051 cereal_unique=4802 visionipc_unique=4802 matched_unique=4802
+2026-11-15T08:19:57.239386+00:00 PROGRESS elapsed_s=270.058 cereal_unique=5402 visionipc_unique=5402 matched_unique=5402
+2026-11-15T08:20:27.248248+00:00 PROGRESS elapsed_s=300.066 cereal_unique=6002 visionipc_unique=6002 matched_unique=6002
+2026-11-15T08:20:29.688539+00:00 CAPTURE_STOP matched_unique=6051 elapsed_wall_s=302.506666
+2026-11-15T08:20:29.690093+00:00 PRE_SHUTDOWN child_pids=[] tcp_listeners_9007_9010=[] params={"backLeftCameraState": false, "backRightCameraState": false, "frontLeftCameraState": true, "frontRightCameraState": false}
+2026-11-15T08:20:30.960718+00:00 CHILD sidecamerad frontRightCameraState: no device configured (SIDECAM_FRONT_RIGHT); unavailable
+2026-11-15T08:20:30.960890+00:00 CHILD sidecamerad backLeftCameraState: no device configured (SIDECAM_BACK_LEFT); unavailable
+2026-11-15T08:20:30.960951+00:00 CHILD sidecamerad backRightCameraState: no device configured (SIDECAM_BACK_RIGHT); unavailable
+2026-11-15T08:20:30.961500+00:00 SHUTDOWN exit=0 tcp_listeners_9007_9010=[] available_streams=[] remaining_child_pids=[] final_params={"backLeftCameraState": false, "backRightCameraState": false, "frontLeftCameraState": false, "frontRightCameraState": false}
+2026-11-15T08:20:31.261479+00:00 ANALYSIS selected_frames=6050 matched_total=6051 elapsed_s=302.50666603499985 eof_span_s=302.442086351 mean_interval_fps=20.000523316652 frames_per_span_fps=20.003829734790 max_gap_ms=89.163715 gaps_over_60ms=753 frame_id_gaps=0 timestamp_mismatches=0 functional_pass=False ac4_cadence_pass=False source_hash_drift={}
+2026-11-15T08:20:31.261586+00:00 PAYLOAD_SAMPLE {"buffer_len": 1382400, "frame_id": 1, "height": 720, "sample_bytes": 4096, "sample_nonzero_bytes": 4096, "stride": 1280, "width": 1280}
+2026-11-15T08:20:31.261619+00:00 CAPTURE_ERROR None; shutdown_exit=0; listeners_after=[]; final_params={"backLeftCameraState": false, "backRightCameraState": false, "frontLeftCameraState": false, "frontRightCameraState": false}; remaining_child_pids=[]
+2026-11-15T08:20:31.265628+00:00 RAW_INTERVALS path=skillset-saves/runs/sidecamerad-mvp-20261113/build/artifacts/runtime_cadence_intervals-r2.2-round2.json intervals=6049 sha256=e3ed3a3fa3e23261369883714b9e5637b7ed14d0a3fd97a83d98783aad57df22
+POST_CAPTURE_REVIEW: The controller checked Params immediately on the first matched frame pair, before Availability.set(True) had completed; the startup snapshot was all-false and this immediate sample was also all-false. The pre-shutdown snapshot after the capture showed front-left=true and the other feeds=false; after SIGTERM all four were false. Runtime functional publication/availability/cleanup therefore passes. AC-4 cadence remains failed on 753 of 6,049 gaps above 60 ms, with 89.163715 ms maximum; this correction does not change raw timestamps or interval calculations.

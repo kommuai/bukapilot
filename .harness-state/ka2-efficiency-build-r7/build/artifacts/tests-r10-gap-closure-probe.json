@@ -1,0 +1,62 @@
+{
+  "artifacts": [
+    "evidence/tests-r10-gap-closure.log",
+    "evidence/tests-r10-run-r229.log"
+  ],
+  "result": {
+    "status": "pass"
+  },
+  "tool": "pytest 9.0.2, SCons LOGGERD_TEST_BUILD helpers, KA2 RGA and MPP test harness",
+  "command": "python3 -m pytest -s -v -n0 -x system/loggerd/tests/test_mpp_encoder.py system/loggerd/tests/test_loggerd_rotation.py system/loggerd/tests/test_encoderd_recovery.py system/loggerd/tests/test_dmabuf_fixture.py system/loggerd/tests/test_loggerd_liveness.py system/loggerd/tests/test_loggerd.py::TestLoggerd::test_rotation system/loggerd/tests/test_loggerd.py::TestLoggerd::test_ka2_deterministic_rotation_alignment; targeted memfd SHM RGA/MPP and full SHM lifecycle probes; -URK3588 loggerd guard helper",
+  "observed_at": "2026-10-31T10:11:43Z",
+  "environment": "Actual KA2/RK3588 aarch64 board; isolated temp roots and Params; synthetic memfd SHM and four-buffer DMA-heap fixtures; no live camera/V4L2 or production roots",
+  "inputs": [
+    {
+      "path": "system/loggerd/tests/test_loggerd_rotation.cc",
+      "sha256": "bf185f8d3b9335182d347e010af35b1a20913b15bdeb8ad35a23b19edf1e7962"
+    },
+    {
+      "path": "system/loggerd/tests/test_loggerd_rotation.py",
+      "sha256": "d40aa6644fc2ccefe952c7310c242c8a950348a2f980b9f3740db458fc50b85f"
+    },
+    {
+      "path": "system/loggerd/tests/test_encoderd_recovery.cc",
+      "sha256": "9c7317eedf4f446507702fb8f9b29ccfe4e161a7d0115c46105e1677f60c080f"
+    },
+    {
+      "path": "system/loggerd/tests/test_encoderd_recovery.py",
+      "sha256": "aa5cddc9ace90969362375873e7d9cfeb225a80ec3cd4ce5bf716ba950f3ffd6"
+    },
+    {
+      "path": "system/loggerd/tests/test_dmabuf_fixture.py",
+      "sha256": "cfc0baf39d00be3871f7e8359083adc86266e29333e3b2dc09cd349e175a7b9c"
+    },
+    {
+      "path": "system/loggerd/tests/test_loggerd_liveness.py",
+      "sha256": "c024ff8fb62baba3a5601dab6cba5198115a5d18397c3f783b29fc5e98480b61"
+    },
+    {
+      "path": "system/loggerd/tests/visionipc_dmabuf_publisher.cc",
+      "sha256": "0994305f86b1c7c1481d3276ee2dd5b5fd81d033847db822a198568941fefad9"
+    }
+  ],
+  "coverage": {
+    "synthetic_shm_to_rga_and_full_lifecycle": {
+      "status": "proven",
+      "detail": "RGA accepted mapped memfd; qRoad submitted/published 12 packets in probe; full SHM loggerd lifecycle rotated segments 0-2 with qRoad video/audio valid and full-resolution DMA-BUF rejections observed."
+    },
+    "ac12_non_ka2_legacy_service_runtime": {
+      "status": "unproven",
+      "detail": "Only a -URK3588 loggerd guard unit helper ran. No genuine non-KA2 host/runtime available; TICI override aborted during actual-board detection before test code."
+    },
+    "live_camera_exporter_and_deployed_mpp_post_eos": {
+      "status": "unproven",
+      "detail": "Synthetic test fixtures do not exercise live V4L2 exporter/fence/reuse or production MPP post-EOS."
+    }
+  },
+  "artifact_hashes": {
+    "evidence/tests-r10-run-r229.log": "3192bac0c9edfff73d584fb81047b585939d0a0a2c74f89756be06603d983c37",
+    "evidence/tests-r10-gap-closure.log": "952c12929edc7fb54f8cfb9f86e64a22e3ade001aa633bb547f30bec1dfe42c9",
+    "evidence/tests-r10-run-r220.log": "fee537cafe812163ed24a2467d0a138f144cfda90c6f06634b6f1f112792a775"
+  }
+}

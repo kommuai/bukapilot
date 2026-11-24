@@ -1,0 +1,7 @@
+class_harness_mode=copy binary_class=MppEncoder dma_heap=system streams=road+qRoad fps=20 frames=100 buffers=24
+rga_api version 1.10.0_[8]
+road_submit_us_median=5892 p95=8182 p99=9829 n=100
+qroad_submit_us_median=3938 p95=5133 p99=6080 n=100
+road_accepted=100 road_failures=0 road_packets=100 road_payload_bytes=1215073 road_stream_bytes=1215239
+qroad_accepted=100 qroad_failures=0 qroad_packets=100 qroad_payload_bytes=105434
+cpu_sample_ns=346605833 wall_total_ms=5030 peak_rss_kb=30800

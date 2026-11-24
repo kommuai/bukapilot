@@ -1,0 +1,58 @@
+bringing up nodes...
+bringing up nodes...
+
+......F                                                                  [100%]
+=================================== FAILURES ===================================
+____________ test_worker_clears_availability_after_capture_failure _____________
+[gw3] linux -- Python 3.12.3 /usr/local/venv/bin/python3
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f9d04dd90>
+
+    def test_worker_clears_availability_after_capture_failure(monkeypatch):
+      params = FakeParams()
+      availability = sidecamerad.Availability(params)
+      availability.set("frontLeftCameraState", True)
+      cloudlog = FakeCloudlog()
+    
+      class FakeEvent:
+        def is_set(self):
+          return False
+    
+        def wait(self, _timeout):
+          return True
+    
+      class FakeDecoder:
+        returncode = 1
+    
+        def poll(self):
+          return self.returncode
+    
+      worker = sidecamerad.CameraWorker(
+        "frontLeftCameraState", "/dev/video60", sidecamerad.CAMERAS[0][2],
+        object(), object(), FakeEvent(), availability,
+      )
+      monkeypatch.setattr(worker, "_start_decoder", lambda: FakeDecoder())
+      monkeypatch.setattr(worker, "_read_frames", lambda _proc: (_ for _ in ()).throw(RuntimeError("injected capture loss")))
+      monkeypatch.setattr(worker, "_stop_decoder", lambda _proc: None)
+      monkeypatch.setattr(sidecamerad, "cloudlog", cloudlog)
+    
+      worker.run()
+    
+>     assert availability.state["frontLeftCameraState"] is False
+E     assert True is False
+
+system/manager/test/test_sidecamerad.py:215: AssertionError
+============================= slowest 10 durations =============================
+1.46s call     system/manager/test/test_sidecamerad.py::test_manager_enables_sidecamerad_by_default_and_keeps_camerad
+0.05s setup    system/manager/test/test_sidecamerad.py::test_params_default_and_json_dict_round_trip
+0.05s setup    system/manager/test/test_sidecamerad.py::test_side_camera_service_stream_and_schema_mapping_is_stable
+0.04s setup    system/manager/test/test_sidecamerad.py::test_no_paths_acknowledges_each_feed_and_waits_for_signal
+0.03s setup    system/manager/test/test_sidecamerad.py::test_explicit_device_paths_resolve_only_to_video_character_nodes
+0.02s setup    system/manager/test/test_sidecamerad.py::test_manager_enables_sidecamerad_by_default_and_keeps_camerad
+0.01s teardown system/manager/test/test_sidecamerad.py::test_params_default_and_json_dict_round_trip
+0.01s teardown system/manager/test/test_sidecamerad.py::test_side_camera_service_stream_and_schema_mapping_is_stable
+0.01s teardown system/manager/test/test_sidecamerad.py::test_no_paths_acknowledges_each_feed_and_waits_for_signal
+0.01s teardown system/manager/test/test_sidecamerad.py::test_availability_writes_only_state_transitions_and_recovers_write_failure
+=========================== short test summary info ============================
+FAILED system/manager/test/test_sidecamerad.py::test_worker_clears_availability_after_capture_failure
+1 failed, 6 passed in 6.04s

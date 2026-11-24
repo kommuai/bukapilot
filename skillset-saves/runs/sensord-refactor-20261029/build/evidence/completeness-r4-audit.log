@@ -1,0 +1,28 @@
+[scoped stale-reference audit (exit 1 means zero matches)] command=['rg', '-n', '-i', '(lsm6ds3|mmc5603|tizi-lsmc|LSM \\+ MMC|sensord.{0,30}(TICI|tizi)|(TICI|tizi).{0,30}sensord)', 'system/sensord', 'system/manager', 'selfdrive/test', 'system/loggerd/tests', 'Jenkinsfile']
+exit_code=1; accepted=True
+[global diff check] command=['git', 'diff', '--check']
+exit_code=0; accepted=True
+[schema and generic build unchanged] command=['git', 'diff', '--quiet', '--', 'cereal/log.capnp', 'system/manager/build.py', 'SConstruct']
+exit_code=0; accepted=True
+[manager gating test restored to base] command=['git', 'diff', '--quiet', '--', 'system/manager/test/test_manager.py']
+exit_code=0; accepted=True
+[obsolete r3 tests absent] command=['bash', '-lc', 'test ! -e system/sensord/tests/test_sensord.py && ! rg -n "test_sensord_enabled_only_for_ka2_and_stays_onroad" system/manager/test/test_manager.py']
+exit_code=0; accepted=True
+[four non-KA2 driver files absent] command=['bash', '-lc', 'test ! -e system/sensord/sensors/lsm6ds3_accel.py && test ! -e system/sensord/sensors/lsm6ds3_gyro.py && test ! -e system/sensord/sensors/lsm6ds3_temp.py && test ! -e system/sensord/sensors/mmc5603nj_magn.py']
+exit_code=0; accepted=True
+[scoped implementation diff] sha256=6c5736af393cea0f0cbaeb5bd9d73538dfb1afdfeeb4fc2e912903e84600d9d4; artifact_sha256=6c5736af393cea0f0cbaeb5bd9d73538dfb1afdfeeb4fc2e912903e84600d9d4; match=True; exit_code=0
+[CI selection evidence, current Jenkins source hash] command=['bash', '-lc', 'sha256sum Jenkinsfile && cat skillset-saves/runs/sensord-refactor-20261029/build/evidence/implementation-ci-audit-ka2-cleanup.log']
+1fc1d75dde2b1c0d111d52094b8ad3c89e1fcbeaa3772129d0588d44801f2cd8  Jenkinsfile
+PASS: dedicated tizi-lsmc sensord job removed
+PASS: offline mocked sensord suite is selected by system/sensord/ changes in HW + Unit Tests
+command=python3 Jenkinsfile CI selection assertions
+exit_code=0
+exit_code=0; accepted=True
+[loggerd sensord lifecycle removed, rotation coverage retained] command=['bash', '-lc', '! rg -n "sensord.*(start|stop)|(start|stop).*sensord" system/loggerd/tests/test_encoder.py && rg -n "rotation|rotate|encoder" system/loggerd/tests/test_encoder.py']
+55:  def test_log_rotation(self, record_front):
+59:    managed_processes['encoderd'].start()
+149:      managed_processes['encoderd'].stop()
+exit_code=0; accepted=True
+[onroad CPU budget removal and KA2 test retained] command=['bash', '-lc', '! rg -n "sensord" selfdrive/test/test_onroad.py && test -f selfdrive/test/test_ka2_onroad.py']
+exit_code=0; accepted=True
+OVERALL=True; checks=10; failed=0

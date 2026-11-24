@@ -1,0 +1,442 @@
+{
+  "artifact_hashes": {
+    "../design/manifest.json": "b090c5d4952b97d66f9577f0778a8ef5c2581d2399c97bd745eb49d4dd24c837",
+    "../design/reports/delivery-plan-r2.md": "0ef16ba626a8fb8cd117b710375d63d5d46e677cae4925abe2af919eb22eeffc",
+    "../design/reports/implementation-spec-r2.md": "447269713326cd2a99224014d2c145a5b49d9b13dd51eb145fac7193dd00126b",
+    "../design/verdict_design-to-build.cross-stage.json": "c918ff4c9f44d6fea1f450f4dfef7498eef03f3fb922186d1ff3a337cd442038",
+    "../intake/report_grilling.md": "84a7e874f86ba50a6e4c5b3e3938e4a534099e518c4dea8c9ba8a8f4f2d97a0b",
+    "../intake/report_scope-change.md": "5ab1e0b6bc31e2158f8a9126a27d9f25ed132b776528f522ac7015ebcb1ffb39",
+    "artifacts/implementation-recovery-r2.2.json": "4da275a592a8901f3da0d168ff006fb35904e5e755fbe2faa28492f9f6b48a35",
+    "artifacts/runtime_probe-r2-pre-zmq.json": "cc553e8ec1e85dda396fdfba4b27dd3053f7120f1eb6ef0a53c15e7611e5cfcc",
+    "artifacts/runtime_probe-r2.1-post-merge.json": "2da84e766bcebabbcdd3b45d26025eb321f2cd4da6a87f3742d7c9b5ffcb40d7",
+    "artifacts/runtime_probe.json": "45d3e9c681702264d54db257ff96b4d54994dc56a64c23f0e567d9cb5cf5fcd7",
+    "artifacts/security_evidence.json": "218259045da268b160ec7be24f60be302abbcb8558a049a2ea77dec846830688",
+    "artifacts/tests_probe-r2-pre-zmq.json": "183b259e34c2d3036ae9fee2dbfed5dd4746710c4b9aff8d5153de373cc006c6",
+    "artifacts/tests_probe-r2.1-quiet.json": "34480e67361e7f1a0c4275499d641e47b9655375210733a91dfdb73780b0efbc",
+    "artifacts/tests_probe-r2.2.json": "9ce5fe481793099cb044aa4fd08825b1f2b33e64d8704f971b8bc2dbffef11fe",
+    "artifacts/tests_probe.json": "1ec1a06d84ab1a33b427d2e631e94ed1c83c9a4fd1e8c07fc7deb63c15b13712",
+    "evidence/ffmpeg-filter-ab-r2.log": "abe3e708aa12eebb82dc0a05e2db58d0a93c5f9d02a77968eb61ce239d094877",
+    "evidence/impl-diff-check-final.log": "454ec192458a24d5e77d622244462c695bcdf1cd1b6ec5e29588ce9697f13067",
+    "evidence/impl-params-default-check.log": "90a88c6fde650a715171000a3ae1d6904ba12674d6337950ed44a60928cb29c5",
+    "evidence/impl-syntax-sidecamerad-final.log": "db7860bcaf62fe6fa461b01e585c5e6b95931484265a1a7beea45de9590dbec2",
+    "evidence/implementation-r2.diff": "db65f571ad198b2bce9c2296de06f62e145e1cd964770decc9afe6fdf91bbee4",
+    "evidence/implementation-recovery-r2.2.diff": "caa56a37320eb173be0d108ed995e9a3b543e750b5d3be821e8091d18f2b36ed",
+    "evidence/native-binding-build-r2.log": "476fa98acb97951dfc9fe89d7cb315552cd73d4703d7acc0f563f3d2753f9a09",
+    "evidence/native-binding-build.log": "c31dcf9ee8a1dd29baeb0ef4406cef400b4013df8ba0c065636c4fe72221c96d",
+    "evidence/runtime-no-path-zmq-r2-final.log": "e32c356b9440dcb86d0fa1cc09f1b9984c8c2c15cc16004265ee0384b6801971",
+    "evidence/runtime-smoke-r2.1-post-merge-harness-failure.log": "21f7bb5aa08a602a3880080ec8796f355ae39d3d7f3072fbbc4ff749961ac7a9",
+    "evidence/runtime-smoke-r2.1-post-merge.log": "f8a67011b9499ad47ab0b4b90f867ef9790eeeee92395c9c50abeda2cd9351e8",
+    "evidence/runtime-smoke-zmq-r2-final.log": "899ff2ff4758ce4647b03d90436866a6ea5eebc95cbca65b8de57872b32930dd",
+    "evidence/runtime-smoke-zmq-r2.log": "e40f585892e443c346d2ffb13edb7f2aa193109a2032464764163ed0f0b16f66",
+    "evidence/security-scan.json": "077684993c9cc2bc57ec7619773b1278f9cde319f6d1e06a99faddb49a16d4a5",
+    "evidence/security-scan.stderr.txt": "02131f7ca56ee11dfb0dfc0fa581d973e52894fd4e38207b6d29b2905d62f81a",
+    "evidence/security-scan.stdout.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "evidence/tests-pytest-initial-failure.log": "2770ca81740ecb71c709c0c23fd7dc07d282e36e8fb3252662d6a08f1e571b8c",
+    "evidence/tests-pytest-r2-pre-zmq.log": "1eb3a3be2d74096c77cd5c14dd2757111dca4e2424deabbb1a0cc2e2938ffa82",
+    "evidence/tests-pytest-r2.1-quiet.log": "d409836d2f76ade319d2e10bffcfbf13984f5332856b9a9798a25e0b00a85ae1",
+    "evidence/tests-pytest-r2.2.log": "6483593c0ab82eaf9e22a0e2ce423a35bf206b7325f94aa8ba37772aa3fff519",
+    "evidence/tests-pytest.log": "07e3923ff525579662c15880adb258bf83a877b54cf20c54f1bc03bed89ca21b",
+    "reports/build-package.md": "98866844cd5700acfc779ce9edd12a241fdc68edf10e9380a76fca278ea7ff41",
+    "reports/report_completeness.md": "a7d68fb1985a65b53b7b96a44dd1b8118bec6276115b656baa30a0275b1d3bef",
+    "reports/report_implementation-r2.md": "6044ac640fcbc65695dbfc7d640580fbe36a1108219726947ba6b672a867fcf0",
+    "reports/report_implementation-recovery-r2.2.md": "e593c8e897b36540f97515e98003c33c1dd8d656ad868ef43dfc546cf7a04a91",
+    "reports/report_runtime_health-r2-pre-zmq.md": "d8416f3a712d98e3ae1c8e7e966dcd3ab79ed34ab83fc071487faa63e98170bb",
+    "reports/report_runtime_health-r2.1-post-merge.md": "1208ece8943691191f10f7f2169b986b9112caadebb043c3321c8ba7302ee367",
+    "reports/report_runtime_health.md": "8d19014eb89c81fe2f42df04e442e3e594e946e1c36836ccf2a5357cb7765d26",
+    "reports/report_security.md": "9285604f91b1e2af64229ed1b4591b0554be7bd70eaa7e1650322c027805b97e",
+    "reports/report_tests-r2-pre-zmq.md": "02093c2317f3359a77e2bca9c6f47b24d5445c758bbb1fba06f928ae38c9cda8",
+    "reports/report_tests-r2.2.md": "86f8e2cf91bea264021760bf1a6ebde67cb5284caf0e55ba1654cf6160313370",
+    "reports/report_tests.md": "88581bdcbdfac88202bc71962f7e04601ef6aa2d5115f4115f5969743855d0ff",
+    "reports/report_runtime_health-ac4-r2.3.md": "2118c1a3a04ab3ca82d8fa1ef38fdd82855537520c528f5a0801d5aa1c3ae8d2",
+    "evidence/runtime-smoke-ac4-r2.3.log": "74722d2c6d4ca799f92529c2b2ce256cf7c6531ecaccbf2d8071d3139c7df19b",
+    "artifacts/runtime_cadence_intervals-r2.3.json": "626f0881c22814e055d724ce8683c5206d5c3090dd507e582327362202f53696",
+    "artifacts/runtime_probe-ac4-r2.3.json": "e018216e41f7f94f0684e45b21f84ca441cfacf2a954a51888ce1def8610cb35",
+    "reports/report_gdb-sampling-r7.md": "d7412919734b279918b23d0ef265f44a1117a2cbabe1904ace84c834565d0fb8",
+    "evidence/gdb-sampling-r7.log": "adb417c4888e65b16e13cb100370a4cb961307469bee7599696580bdf2ce24a9",
+    "artifacts/ffmpeg-gdb-sampling-r7.json": "c059e3000c236a6f05cb336fe9afbdecdadc393228f4b77c7f05ec5e029e4782",
+    "reports/report_gdb-sampling-r7-attempt1.md": "4302a653ae5b14a9a7a6afd194b2e489465c1067033c087ba15c1872880b3dda",
+    "evidence/gdb-sampling-r7-attempt1.log": "825c970caea2cb44ff0ead6a57db25a73b08884067b00dd343b28e41b59f770f",
+    "artifacts/ffmpeg-gdb-sampling-r7-attempt1.json": "449a90ffacefd409befce3f8758b81c3aa522fdab2e0c941eecfc878ae6b5e12",
+    "reports/report_checkpoint-gdb-sampling-r7.md": "41b5b974c2dd621e118eb0d6403e15bd24799e569a714517510fbfcf5c1e5e3c",
+    "reports/report_checkpoint-ac4-healthcheck-result-r2.3.md": "10e51a401e000c3d512e7eeb7e4ac3d32c7c60bbe1b5e076962740ed89c9aa21"
+  },
+  "boundary": "build-to-review",
+  "evidence": {
+    "approved_design_revision": {
+      "revision": "r2",
+      "verdict": "../design/verdict_design-to-build.cross-stage.json"
+    },
+    "implementation": {
+      "artifacts": [
+        "evidence/implementation-recovery-r2.2.diff"
+      ],
+      "changed_files": [
+        {
+          "path": "system/sidecamerad.py",
+          "sha256": "494fb8b88fda8bcf1d8301225019f4f01f4b77a0bb5cb3e69dde47ed96e1309b",
+          "status": "added"
+        },
+        {
+          "path": "system/manager/test/test_sidecamerad.py",
+          "sha256": "cf9fb49f514ac90458d47d825716a30b296b8cb25880167695c6a86a6660a059",
+          "status": "added"
+        },
+        {
+          "path": "system/manager/process_config.py",
+          "sha256": "b7fdfda2878cae1fa6b354ed512bc33ad66f1abe1ed25c90ed980b547a8aa02d",
+          "status": "modified"
+        },
+        {
+          "path": "common/params_keys.h",
+          "sha256": "c2925ebd8f9f26cc04951afb0e3c67ac7cb20a1c370b79aa93a25a4aaef2a031",
+          "status": "modified"
+        },
+        {
+          "path": "common/params_pyx.so",
+          "sha256": "3108e29407f31b9bd86a86ccafc82a4f98a225884412987a24be5c357dbfb586",
+          "status": "modified"
+        },
+        {
+          "path": "cereal/log.capnp",
+          "sha256": "d5c0372d714e65461942874c91c522b205ce208261b382283839ed03b9731f64",
+          "status": "modified"
+        },
+        {
+          "path": "cereal/services.py",
+          "sha256": "cacd4b749d9a0a3e19e3c466784dcf34925f263fdca3c26af72578c47d740a6b",
+          "status": "modified"
+        },
+        {
+          "path": "msgq_repo/msgq/visionipc/visionbuf.h",
+          "sha256": "c971a1afa601f5bb8f560de6fb1dd78c2121cee61ea41c169f00a4154566e870",
+          "status": "modified"
+        },
+        {
+          "path": "msgq_repo/msgq/visionipc/visionipc_pyx.pyx",
+          "sha256": "36247e353901eb80e52735c91f466151b3026e77152dde9ad9e3bcd682c66f32",
+          "status": "modified"
+        },
+        {
+          "path": "msgq_repo/msgq/visionipc/visionipc_server.cc",
+          "sha256": "36b383bfcaf10eaa69f6844a579c86204b4a07464a889208fe059a6c1202d198",
+          "status": "modified"
+        }
+      ]
+    },
+    "runtime": {
+      "artifacts": [
+        "evidence/runtime-smoke-ac4-r2.3.log",
+        "artifacts/runtime_cadence_intervals-r2.3.json"
+      ],
+      "command": "Controller command: /usr/local/venv/bin/python3 .harness-state/sidecam-healthcheck-ac4-r2.3.py; child start argv: ['/usr/local/venv/bin/python3', 'system/sidecamerad.py']; child environment used an isolated temporary PARAMS_ROOT and ZMQ=1 with the assigned front-left by-path device; local cereal/msgq and VisionIPC metadata readers captured matched frame IDs and EOF timestamps, followed by SIGTERM teardown and child cleanup verification.",
+      "dependencies": [
+        {
+          "name": "V4L2 UVC decoder",
+          "signal": "Assigned by-path target resolved to /dev/video60; V4L2 mode was MJPG 1280x720 at 20 fps; 6050 matched frames were observed.",
+          "status": "reachable"
+        },
+        {
+          "name": "FFmpeg",
+          "signal": "sidecamerad published 6050 selected frames; exit=0; remaining child PIDs=[].",
+          "status": "reachable"
+        },
+        {
+          "name": "cereal/msgq",
+          "signal": "6075 unique camera-state records; all 6050 selected frame IDs matched VisionIPC and timestamp fields.",
+          "status": "reachable"
+        },
+        {
+          "name": "VisionIPC",
+          "signal": "6077 unique frames on the sidecamerad front-left stream.",
+          "status": "reachable"
+        },
+        {
+          "name": "Params",
+          "signal": "The isolated-root baseline was sampled before Popen and returned null; the STARTUP line therefore does not establish startup state. Pre-shutdown front-left=true and post-shutdown all-false were observed.",
+          "status": "degraded"
+        },
+        {
+          "name": "local IPC transport",
+          "signal": "Readers connected; ports 9007-9010 after shutdown: []; VisionIPC reader was closed with process teardown.",
+          "status": "reachable"
+        }
+      ],
+      "environment": "Local /data/openpilot host; assigned physical UVC target /dev/v4l/by-path/platform-xhci-hcd.11.auto-usb-0:1:1.0-video-index0 resolved to /dev/video60; Python 3.12.3; isolated temporary PARAMS_ROOT removed after shutdown; no video payload saved or recording created; /data/params untouched; no packages installed; source input drift={}.",
+      "exit_code": 0,
+      "input_revision": 68,
+      "inputs": [
+        {
+          "path": "system/sidecamerad.py",
+          "sha256": "494fb8b88fda8bcf1d8301225019f4f01f4b77a0bb5cb3e69dde47ed96e1309b"
+        },
+        {
+          "path": "system/manager/process_config.py",
+          "sha256": "b7fdfda2878cae1fa6b354ed512bc33ad66f1abe1ed25c90ed980b547a8aa02d"
+        },
+        {
+          "path": "common/params_keys.h",
+          "sha256": "c2925ebd8f9f26cc04951afb0e3c67ac7cb20a1c370b79aa93a25a4aaef2a031"
+        },
+        {
+          "path": "common/params_pyx.so",
+          "sha256": "3108e29407f31b9bd86a86ccafc82a4f98a225884412987a24be5c357dbfb586"
+        },
+        {
+          "path": "cereal/log.capnp",
+          "sha256": "d5c0372d714e65461942874c91c522b205ce208261b382283839ed03b9731f64"
+        },
+        {
+          "path": "cereal/services.py",
+          "sha256": "cacd4b749d9a0a3e19e3c466784dcf34925f263fdca3c26af72578c47d740a6b"
+        },
+        {
+          "path": "msgq_repo/msgq/visionipc/visionbuf.h",
+          "sha256": "c971a1afa601f5bb8f560de6fb1dd78c2121cee61ea41c169f00a4154566e870"
+        },
+        {
+          "path": "msgq_repo/msgq/visionipc/visionipc_pyx.pyx",
+          "sha256": "36247e353901eb80e52735c91f466151b3026e77152dde9ad9e3bcd682c66f32"
+        },
+        {
+          "path": "msgq_repo/msgq/visionipc/visionipc_server.cc",
+          "sha256": "36b383bfcaf10eaa69f6844a579c86204b4a07464a889208fe059a6c1202d198"
+        }
+      ],
+      "observed_at": "2026-11-15T14:18:17.992095+00:00",
+      "result": {
+        "ac4_one_camera_cadence": "fail",
+        "capture_error": null,
+        "controller_param_sampling_correction": "The controller sampled Params before launching sidecamerad as an isolated-root baseline and observed null. The STARTUP log line prints that pre-launch value after Popen, so it does not establish the runtime startup state. The same run observed frontLeftCameraState=true before shutdown and all camera states=false after SIGTERM. Startup all-false remains unverified; frame timing records are unchanged.",
+        "functional_summary": "Sidecamerad started, published 6050 selected contiguous matching IDs to both local readers for over five minutes, exited 0, left no FFmpeg child or TCP listener, and source inputs remained hash-identical. The startup Params snapshot is unobserved; pre-shutdown front-left=true and post-shutdown all-false were observed.",
+        "param_transition_observations": {
+          "all_false_after_shutdown": true,
+          "front_left_true_before_shutdown": true,
+          "shutdown_transition_pass": true,
+          "startup_all_false": null,
+          "startup_snapshot_observed": false
+        },
+        "raw_per_frame_intervals_artifact": "artifacts/runtime_cadence_intervals-r2.3.json",
+        "runtime_functional_status": "pass",
+        "status": "pass",
+        "stop_reason": "target_frames_and_steady_span_reached",
+        "summary": "6050 matching frames over 302.471744064s; mean interval 19.998562241636 fps; maximum EOF gap 90.981562 ms; 716 of 6049 intervals exceeded 60 ms; zero frame-ID gaps and zero timestamp/validity mismatches. Functional publication/cleanup passed; strict AC-4 cadence failed."
+      },
+      "target_revision": "SideCamera implementation source hash checked against r2.2 package inputs",
+      "tool": "Python controller with local cereal/msgq and VisionIPC metadata readers; launched sidecamerad and its configured FFmpeg child",
+      "warnings": [
+        "AC-4 fails: 6050 matched frames over 302.471744s; mean interval rate 19.998562241636 fps; max gap 90.981562ms; 716 of 6049 intervals >60ms.",
+        "The Params baseline was sampled before launching sidecamerad; startup all-false is unverified. Pre-shutdown true and post-shutdown all-false were observed.",
+        "AC-6 physical reconnect/sibling continuity remains unverified; only one USB decoder is attached.",
+        "AC-8 four-camera 30-minute soak and CPU/resource headroom remain unverified; the FFmpeg resource-cap residual remains open.",
+        "No image payload was retained; the capture stores only frame IDs, timestamps, receive timestamps, Params and cleanup observations."
+      ]
+    },
+    "security_evidence": {
+      "items": [
+        {
+          "id": "SEC-SIDEIPC-001",
+          "reason": "The r2.1 sidecamerad entry point removes inherited ZMQ before Params, VisionIPC, or PubMaster construction. The focused regression test passed with ZMQ=1 and verified all three constructors saw it absent. The final live probe ran five minutes with child_ZMQ=1, connected the local VisionIPC socket, received 6000 matching cereal/VisionIPC frame IDs, observed no TCP listener on 9007-9010 after startup/during capture/before shutdown/after exit, reset Params, removed the local socket, and exited 0. See build/evidence/runtime-smoke-zmq-r2-final.log SHA-256 899ff2ff4758ce4647b03d90436866a6ea5eebc95cbca65b8de57872b32930dd. This closes the sidecar-to-local-ipc control for sidecamerad. A supplemental no-path run with child ZMQ=1 stayed alive 62.041 seconds, kept all-false availability, created no local socket or TCP listener, and exited 0 on SIGTERM; see build/evidence/runtime-no-path-zmq-r2-final.log SHA-256 e32c356b9440dcb86d0fa1cc09f1b9984c8c2c15cc16004265ee0384b6801971.",
+          "severity": "Major",
+          "status": "verified"
+        },
+        {
+          "id": "SEC-FFMPEG-RESOURCE-001",
+          "owner": "build/security owner",
+          "reason": "Current service cgroup exposes only memory and pids, memory.max is unlimited, no CPU controller is available, cgroup.subtree_control is empty and the cgroup is not writable by this process. No safe per-child cgroup limit is available here. The code caps sidecar workers/threads and application buffers, but FFmpeg internal CPU/memory consumption remains unbounded for malformed MJPEG.",
+          "reopen_trigger": "Before AC-8/four-camera performance sign-off or production use, establish a target-supported child CPU/memory limit or record explicit residual-risk acceptance with the security owner.",
+          "severity": "Minor",
+          "status": "open"
+        }
+      ]
+    },
+    "tests": {
+      "artifacts": [
+        "evidence/tests-pytest-r2.2.log"
+      ],
+      "command": "python3 -m pytest -vv system/manager/test/test_sidecamerad.py",
+      "exit_code": 0,
+      "inputs": [
+        {
+          "path": "system/manager/test/test_sidecamerad.py",
+          "sha256": "cf9fb49f514ac90458d47d825716a30b296b8cb25880167695c6a86a6660a059"
+        },
+        {
+          "path": "system/sidecamerad.py",
+          "sha256": "494fb8b88fda8bcf1d8301225019f4f01f4b77a0bb5cb3e69dde47ed96e1309b"
+        },
+        {
+          "path": "system/manager/process_config.py",
+          "sha256": "b7fdfda2878cae1fa6b354ed512bc33ad66f1abe1ed25c90ed980b547a8aa02d"
+        },
+        {
+          "path": "common/params_keys.h",
+          "sha256": "c2925ebd8f9f26cc04951afb0e3c67ac7cb20a1c370b79aa93a25a4aaef2a031"
+        },
+        {
+          "path": "common/params_pyx.so",
+          "sha256": "3108e29407f31b9bd86a86ccafc82a4f98a225884412987a24be5c357dbfb586"
+        },
+        {
+          "path": "cereal/services.py",
+          "sha256": "cacd4b749d9a0a3e19e3c466784dcf34925f263fdca3c26af72578c47d740a6b"
+        },
+        {
+          "path": "cereal/log.capnp",
+          "sha256": "d5c0372d714e65461942874c91c522b205ce208261b382283839ed03b9731f64"
+        },
+        {
+          "path": "msgq_repo/msgq/visionipc/visionbuf.h",
+          "sha256": "c971a1afa601f5bb8f560de6fb1dd78c2121cee61ea41c169f00a4154566e870"
+        },
+        {
+          "path": "msgq_repo/msgq/visionipc/visionipc_pyx.pyx",
+          "sha256": "36247e353901eb80e52735c91f466151b3026e77152dde9ad9e3bcd682c66f32"
+        },
+        {
+          "path": "msgq_repo/msgq/visionipc/visionipc_server.cc",
+          "sha256": "36b383bfcaf10eaa69f6844a579c86204b4a07464a889208fe059a6c1202d198"
+        },
+        {
+          "path": "pyproject.toml",
+          "sha256": "bb83839cec34e231fa997920a3db4f00ecdac6fe408c415cedd92b72020ed7ac"
+        }
+      ],
+      "observed_at": "2026-11-13T09:13:40Z",
+      "result": {
+        "status": "pass"
+      },
+      "tool": "python3 -m pytest"
+    },
+    "traceability": {
+      "items": [
+        {
+          "acceptance": "AC-1",
+          "changes": [
+            "system/manager/process_config.py",
+            "system/sidecamerad.py",
+            "system/manager/test/test_sidecamerad.py"
+          ],
+          "status": "proven",
+          "tests": [
+            "test_manager_enables_sidecamerad_by_default_and_keeps_camerad"
+          ]
+        },
+        {
+          "acceptance": "AC-2",
+          "changes": [
+            "system/sidecamerad.py",
+            "common/params_keys.h",
+            "system/manager/test/test_sidecamerad.py"
+          ],
+          "status": "proven",
+          "tests": [
+            "test_no_paths_acknowledges_each_feed_and_waits_for_signal",
+            "test_main_removes_inherited_zmq_before_ipc_and_pubmaster"
+          ]
+        },
+        {
+          "acceptance": "AC-3",
+          "changes": [
+            "system/sidecamerad.py",
+            "common/params_keys.h",
+            "common/params_pyx.so",
+            "cereal/log.capnp",
+            "cereal/services.py",
+            "msgq_repo/msgq/visionipc/visionbuf.h",
+            "msgq_repo/msgq/visionipc/visionipc_pyx.pyx",
+            "system/manager/test/test_sidecamerad.py"
+          ],
+          "status": "proven",
+          "tests": [
+            "test_params_default_and_json_dict_round_trip",
+            "test_availability_writes_only_state_transitions_and_recovers_write_failure",
+            "test_worker_clears_availability_after_capture_failure"
+          ]
+        },
+        {
+          "acceptance": "AC-4",
+          "changes": [
+            "system/sidecamerad.py",
+            "cereal/log.capnp",
+            "cereal/services.py",
+            "msgq_repo/msgq/visionipc/visionbuf.h",
+            "msgq_repo/msgq/visionipc/visionipc_pyx.pyx",
+            "msgq_repo/msgq/visionipc/visionipc_server.cc",
+            "system/manager/test/test_sidecamerad.py"
+          ],
+          "reason": "runtime evidence confirms strict cadence failed; unresolved timing mechanism is routed to Admiral/investigation",
+          "status": "unproven",
+          "tests": [
+            "test_main_removes_inherited_zmq_before_ipc_and_pubmaster",
+            "test_side_camera_service_stream_and_schema_mapping_is_stable"
+          ]
+        },
+        {
+          "acceptance": "AC-5",
+          "changes": [
+            "system/sidecamerad.py",
+            "cereal/log.capnp",
+            "cereal/services.py",
+            "msgq_repo/msgq/visionipc/visionbuf.h",
+            "msgq_repo/msgq/visionipc/visionipc_pyx.pyx",
+            "msgq_repo/msgq/visionipc/visionipc_server.cc",
+            "system/manager/test/test_sidecamerad.py"
+          ],
+          "status": "proven",
+          "tests": [
+            "test_explicit_device_paths_resolve_only_to_video_character_nodes",
+            "test_side_camera_service_stream_and_schema_mapping_is_stable"
+          ]
+        },
+        {
+          "acceptance": "AC-6",
+          "changes": [
+            "system/sidecamerad.py",
+            "system/manager/test/test_sidecamerad.py"
+          ],
+          "reason": "missing-artifact",
+          "status": "unproven",
+          "tests": [
+            "test_worker_clears_availability_after_capture_failure",
+            "test_availability_writes_only_state_transitions_and_recovers_write_failure"
+          ]
+        },
+        {
+          "acceptance": "AC-7",
+          "changes": [
+            "system/sidecamerad.py",
+            "common/params_pyx.so",
+            "msgq_repo/msgq/visionipc/visionbuf.h",
+            "system/manager/test/test_sidecamerad.py"
+          ],
+          "status": "proven",
+          "tests": [
+            "test_side_camera_service_stream_and_schema_mapping_is_stable",
+            "test_worker_clears_availability_after_capture_failure"
+          ]
+        },
+        {
+          "acceptance": "AC-8",
+          "changes": [
+            "system/sidecamerad.py",
+            "msgq_repo/msgq/visionipc/visionbuf.h",
+            "system/manager/test/test_sidecamerad.py"
+          ],
+          "reason": "missing-artifact",
+          "status": "unproven",
+          "tests": [
+            "test_side_camera_service_stream_and_schema_mapping_is_stable"
+          ]
+        }
+      ]
+    }
+  },
+  "owner": "build-management",
+  "revision": "68",
+  "revisions": [
+    "68"
+  ],
+  "run_id": "sidecamerad-mvp-20261113",
+  "schema_version": 2,
+  "submission_id": "sidecamerad-mvp-20261113_build-r2.3-ac4-handoff-c68"
+}

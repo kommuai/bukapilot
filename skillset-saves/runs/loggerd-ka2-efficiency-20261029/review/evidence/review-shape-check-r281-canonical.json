@@ -1,0 +1,111 @@
+{
+  "observed_at": "2026-10-31T14:21:42.469811+00:00",
+  "purpose": "review-to-delivery package-shape self-check on the canonical package",
+  "command": [
+    "/usr/local/uv/python/cpython-3.13.15-linux-aarch64-gnu/bin/python3.13",
+    "/data/kommu/.codex/skills/review/gatekeeper-code/scripts/check.py",
+    "skillset-saves/runs/loggerd-ka2-efficiency-20261029/review",
+    "--json"
+  ],
+  "working_directory": "/data/media/supremeteam/42c6eb550c629191187c",
+  "canonical_package": "/data/media/supremeteam/42c6eb550c629191187c/skillset-saves/runs/loggerd-ka2-efficiency-20261029/review",
+  "exit_code": 0,
+  "result": {
+    "boundary": "review-to-delivery",
+    "package_path": "/data/media/supremeteam/42c6eb550c629191187c/skillset-saves/runs/loggerd-ka2-efficiency-20261029/review",
+    "gate_status": "NEEDS_JUDGMENT",
+    "checks_run": [
+      "package_links",
+      "required_artifacts",
+      "lineage",
+      "skip_records",
+      "blocked_phrases",
+      "idempotency",
+      "harness_doctrine"
+    ],
+    "counts": {
+      "fail": 0,
+      "unchecked": 3,
+      "total": 11
+    },
+    "findings": [
+      {
+        "code": "ARTIFACT_PRESENT",
+        "severity": "info",
+        "status": "PASS",
+        "message": "bug-review lens present.",
+        "location": "reports/deliverable_bug-review.md"
+      },
+      {
+        "code": "ARTIFACT_PRESENT",
+        "severity": "info",
+        "status": "PASS",
+        "message": "code-review lens present.",
+        "location": "reports/deliverable_code-review.md"
+      },
+      {
+        "code": "ARTIFACT_PRESENT",
+        "severity": "info",
+        "status": "PASS",
+        "message": "quality-review lens present.",
+        "location": "reports/deliverable_quality-review.md"
+      },
+      {
+        "code": "ARTIFACT_CONDITIONAL",
+        "severity": "info",
+        "status": "UNCHECKED",
+        "message": "security-review lens not found. pipelines.yaml runs security-review only when \"trust boundary changed\". Confirm that condition was false for this submission, or that a valid _skip-record.md or the sanctioned waiver covers it.",
+        "location": "package"
+      },
+      {
+        "code": "ARTIFACT_CONDITIONAL",
+        "severity": "info",
+        "status": "UNCHECKED",
+        "message": "adversarial / frontier lens not found. pipelines.yaml runs penetration-review only when \"exploitable surface\" and frontend-review only when \"visible behavior changed\". Confirm that condition was false for this submission, or that a valid _skip-record.md or the sanctioned waiver covers it.",
+        "location": "package"
+      },
+      {
+        "code": "ARTIFACT_CONDITIONAL",
+        "severity": "info",
+        "status": "UNCHECKED",
+        "message": "CSO security-leadership lens not found. This artifact is required only when in scope \u2014 confirm whether this submission needs it.",
+        "location": "package"
+      },
+      {
+        "code": "REVISION_COHERENT",
+        "severity": "info",
+        "status": "PASS",
+        "message": "All revision-bearing artifacts agree on revision 282.",
+        "location": "package"
+      },
+      {
+        "code": "NO_SKIP_RECORDS",
+        "severity": "info",
+        "status": "PASS",
+        "message": "No skip records in package (none claimed).",
+        "location": "package"
+      },
+      {
+        "code": "BLOCKED_PHRASE_CLEAN",
+        "severity": "info",
+        "status": "PASS",
+        "message": "No blocked phrases or contamination markers found.",
+        "location": "package"
+      },
+      {
+        "code": "NO_PRIOR_VERDICT",
+        "severity": "info",
+        "status": "PASS",
+        "message": "No prior verdict supplied; treating as a first submission.",
+        "location": "package"
+      },
+      {
+        "code": "NO_RUNTIME_INTERVENTION",
+        "severity": "info",
+        "status": "PASS",
+        "message": "Package does not add or change a cross-cutting runtime intervention; harness-doctrine \u00a75 not engaged.",
+        "location": "package"
+      }
+    ]
+  }
+}

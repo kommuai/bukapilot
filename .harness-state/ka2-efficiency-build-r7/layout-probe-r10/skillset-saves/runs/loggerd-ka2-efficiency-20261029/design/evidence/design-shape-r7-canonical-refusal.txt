@@ -1,0 +1,6 @@
+command: /data/openpilot/.harness-state/test-work/python313/cpython-3.13.15-linux-aarch64-gnu/bin/python3.13 /data/kommu/.codex/skills/design/gatekeeper-design/scripts/check.py /data/openpilot/skillset-saves/runs/loggerd-ka2-efficiency-20261029/design/reports/r7 --json
+exit_code: 2
+stdout:
+
+stderr:
+ERROR: <package-dir> /data/media/supremeteam/42c6eb550c629191187c/skillset-saves/runs/loggerd-ka2-efficiency-20261029/design/reports/r7 is outside the project /data/openpilot; run the gate from the project that holds the package. Refusing to read it.

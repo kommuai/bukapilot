@@ -1,0 +1,25 @@
+{
+  "checked_at": "2026-10-31T06:53:25Z",
+  "commands": [
+    "taste_prefs.py status --scope both",
+    "taste_prefs.py list --scope both",
+    "taste_prefs.py effective --scope both"
+  ],
+  "decided_by": "design/commander",
+  "drift_basis": "Project and global stores remain absent at revision 0 and the effective profile remains empty. The empty snapshot artifact bytes are unchanged. Digests generated for absent stores include read-time metadata and are not stable; compare existence, revision, and effective entries.",
+  "effective_entries": 0,
+  "global": {
+    "exists": false,
+    "revision": 0,
+    "state": "absent"
+  },
+  "project": {
+    "exists": false,
+    "revision": 0,
+    "state": "absent"
+  },
+  "resolution_ok": true,
+  "run_id": "loggerd-ka2-efficiency-20261029",
+  "snapshot_artifact": "artifacts/taste_snapshot_r9.json",
+  "snapshot_sha256": "f88c387118c1b228c529e658c76970d078b17acf66435bc929cde09fb818df97"
+}

@@ -1,0 +1,53 @@
+{
+  "boundary": "build-to-review",
+  "submission_id": "loggerd-ka2-efficiency-20261029-build-r10",
+  "revision": 266,
+  "gate": "gatekeeper-build",
+  "verdict": "APPROVED",
+  "intake": {
+    "artifact": "../intake/report_grilling.md"
+  },
+  "findings": [
+    {
+      "id": "INFO-SECURITY-WAIVER-CONFIRMED",
+      "severity": "Info",
+      "key": "security_evidence",
+      "owner": "security-builder",
+      "statement": "The package-shape check marked a conditional security artifact because there is no standalone security report. The schema-2 manifest carries the sanctioned typed no-trust-boundary applicability record. Inspection of the 18 changed first-party loggerd production, build, and test files confirms no external actor, endpoint, credential, privilege boundary, or cereal schema changed; the waiver is applicable.",
+      "basis": {
+        "kind": "contract",
+        "source": "gates.yaml",
+        "ref": "build-to-review fallback_values and applicability_records for security_evidence"
+      },
+      "evidence": [
+        "manifest:evidence.security_evidence"
+      ]
+    },
+    {
+      "id": "INFO-CURRENT-GATE-VERDICT-SLOT",
+      "severity": "Info",
+      "key": null,
+      "statement": "The package-shape check noted that no gatekeeper-build verdict existed when its precheck ran. This is the current initial submission, and this gate is now writing the required verdict record at the canonical path.",
+      "basis": {
+        "kind": "contract",
+        "source": "build/gatekeeper-build/SKILL.md",
+        "ref": "Save Protocol: gatekeeper-build writes the build-to-review verdict record"
+      },
+      "evidence": []
+    },
+    {
+      "id": "INFO-STALE-TEST-REPORT-REFRESH-NOTE",
+      "severity": "Info",
+      "key": "tests",
+      "owner": "test-builder",
+      "statement": "The test report retains a sentence saying health-check must refresh runtime evidence before build submission. The r269 production smoke, runtime report, and typed runtime probe already provide that refresh and pass on the same source hashes, so this is stale report wording rather than a missing runtime result. The note should be clarified in a future report-only update; it does not require rerunning tests or runtime validation.",
+      "basis": {
+        "kind": "contradiction"
+      },
+      "evidence": [
+        "reports/report_tests_r10.md",
+        "reports/report_runtime_health_r10.md"
+      ]
+    }
+  ]
+}

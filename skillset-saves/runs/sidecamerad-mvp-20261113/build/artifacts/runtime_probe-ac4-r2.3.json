@@ -1,0 +1,121 @@
+{
+  "artifacts": [
+    {
+      "path": "evidence/runtime-smoke-ac4-r2.3.log",
+      "sha256": "74722d2c6d4ca799f92529c2b2ce256cf7c6531ecaccbf2d8071d3139c7df19b"
+    },
+    {
+      "path": "artifacts/runtime_cadence_intervals-r2.3.json",
+      "sha256": "626f0881c22814e055d724ce8683c5206d5c3090dd507e582327362202f53696"
+    }
+  ],
+  "command": "Controller command: /usr/local/venv/bin/python3 .harness-state/sidecam-healthcheck-ac4-r2.3.py; child start argv: ['/usr/local/venv/bin/python3', 'system/sidecamerad.py']; child environment used an isolated temporary PARAMS_ROOT and ZMQ=1 with the assigned front-left by-path device; local cereal/msgq and VisionIPC metadata readers captured matched frame IDs and EOF timestamps, followed by SIGTERM teardown and child cleanup verification.",
+  "dependencies": [
+    {
+      "name": "V4L2 UVC decoder",
+      "signal": "Assigned by-path target resolved to /dev/video60; V4L2 mode was MJPG 1280x720 at 20 fps; 6050 matched frames were observed.",
+      "status": "reachable"
+    },
+    {
+      "name": "FFmpeg",
+      "signal": "sidecamerad published 6050 selected frames; exit=0; remaining child PIDs=[].",
+      "status": "reachable"
+    },
+    {
+      "name": "cereal/msgq",
+      "signal": "6075 unique camera-state records; all 6050 selected frame IDs matched VisionIPC and timestamp fields.",
+      "status": "reachable"
+    },
+    {
+      "name": "VisionIPC",
+      "signal": "6077 unique frames on the sidecamerad front-left stream.",
+      "status": "reachable"
+    },
+    {
+      "name": "Params",
+      "signal": "The isolated-root baseline was sampled before Popen and returned null; the STARTUP line therefore does not establish startup state. Pre-shutdown front-left=true and post-shutdown all-false were observed.",
+      "status": "degraded"
+    },
+    {
+      "name": "local IPC transport",
+      "signal": "Readers connected; ports 9007-9010 after shutdown: []; VisionIPC reader was closed with process teardown.",
+      "status": "reachable"
+    }
+  ],
+  "environment": "Local /data/openpilot host; assigned physical UVC target /dev/v4l/by-path/platform-xhci-hcd.11.auto-usb-0:1:1.0-video-index0 resolved to /dev/video60; Python 3.12.3; isolated temporary PARAMS_ROOT removed after shutdown; no video payload saved or recording created; /data/params untouched; no packages installed; source input drift={}.",
+  "exit_code": 0,
+  "health_check_revision": "build-ac4-r2.3",
+  "health_check_submission_id": "sidecamerad-mvp-20261113_health-check-ac4-r2.3",
+  "input_revision": 68,
+  "inputs": [
+    {
+      "path": "system/sidecamerad.py",
+      "sha256": "494fb8b88fda8bcf1d8301225019f4f01f4b77a0bb5cb3e69dde47ed96e1309b"
+    },
+    {
+      "path": "system/manager/process_config.py",
+      "sha256": "b7fdfda2878cae1fa6b354ed512bc33ad66f1abe1ed25c90ed980b547a8aa02d"
+    },
+    {
+      "path": "common/params_keys.h",
+      "sha256": "c2925ebd8f9f26cc04951afb0e3c67ac7cb20a1c370b79aa93a25a4aaef2a031"
+    },
+    {
+      "path": "common/params_pyx.so",
+      "sha256": "3108e29407f31b9bd86a86ccafc82a4f98a225884412987a24be5c357dbfb586"
+    },
+    {
+      "path": "cereal/log.capnp",
+      "sha256": "d5c0372d714e65461942874c91c522b205ce208261b382283839ed03b9731f64"
+    },
+    {
+      "path": "cereal/services.py",
+      "sha256": "cacd4b749d9a0a3e19e3c466784dcf34925f263fdca3c26af72578c47d740a6b"
+    },
+    {
+      "path": "msgq_repo/msgq/visionipc/visionbuf.h",
+      "sha256": "c971a1afa601f5bb8f560de6fb1dd78c2121cee61ea41c169f00a4154566e870"
+    },
+    {
+      "path": "msgq_repo/msgq/visionipc/visionipc_pyx.pyx",
+      "sha256": "36247e353901eb80e52735c91f466151b3026e77152dde9ad9e3bcd682c66f32"
+    },
+    {
+      "path": "msgq_repo/msgq/visionipc/visionipc_server.cc",
+      "sha256": "36b383bfcaf10eaa69f6844a579c86204b4a07464a889208fe059a6c1202d198"
+    }
+  ],
+  "observed_at": "2026-11-15T14:18:17.992095+00:00",
+  "package_revision": "68",
+  "package_submission_id": "sidecamerad-mvp-20261113_build-r2.3-ac4-handoff-c68",
+  "result": {
+    "ac4_one_camera_cadence": "fail",
+    "capture_error": null,
+    "controller_param_sampling_correction": "The controller sampled Params before launching sidecamerad as an isolated-root baseline and observed null. The STARTUP log line prints that pre-launch value after Popen, so it does not establish the runtime startup state. The same run observed frontLeftCameraState=true before shutdown and all camera states=false after SIGTERM. Startup all-false remains unverified; frame timing records are unchanged.",
+    "functional_summary": "Sidecamerad started, published 6050 selected contiguous matching IDs to both local readers for over five minutes, exited 0, left no FFmpeg child or TCP listener, and source inputs remained hash-identical. The startup Params snapshot is unobserved; pre-shutdown front-left=true and post-shutdown all-false were observed.",
+    "param_transition_observations": {
+      "all_false_after_shutdown": true,
+      "front_left_true_before_shutdown": true,
+      "shutdown_transition_pass": true,
+      "startup_all_false": null,
+      "startup_snapshot_observed": false
+    },
+    "raw_per_frame_intervals_artifact": "artifacts/runtime_cadence_intervals-r2.3.json",
+    "runtime_functional_status": "pass",
+    "status": "pass",
+    "stop_reason": "target_frames_and_steady_span_reached",
+    "summary": "6050 matching frames over 302.471744064s; mean interval 19.998562241636 fps; maximum EOF gap 90.981562 ms; 716 of 6049 intervals exceeded 60 ms; zero frame-ID gaps and zero timestamp/validity mismatches. Functional publication/cleanup passed; strict AC-4 cadence failed."
+  },
+  "revision": "68",
+  "run_id": "sidecamerad-mvp-20261113",
+  "submission_id": "sidecamerad-mvp-20261113_build-r2.3-ac4-handoff-c68",
+  "target_revision": "SideCamera implementation source hash checked against r2.2 package inputs",
+  "tool": "Python controller with local cereal/msgq and VisionIPC metadata readers; launched sidecamerad and its configured FFmpeg child",
+  "warnings": [
+    "AC-4 fails: 6050 matched frames over 302.471744s; mean interval rate 19.998562241636 fps; max gap 90.981562ms; 716 of 6049 intervals >60ms.",
+    "The Params baseline was sampled before launching sidecamerad; startup all-false is unverified. Pre-shutdown true and post-shutdown all-false were observed.",
+    "AC-6 physical reconnect/sibling continuity remains unverified; only one USB decoder is attached.",
+    "AC-8 four-camera 30-minute soak and CPU/resource headroom remain unverified; the FFmpeg resource-cap residual remains open.",
+    "No image payload was retained; the capture stores only frame IDs, timestamps, receive timestamps, Params and cleanup observations."
+  ]
+}

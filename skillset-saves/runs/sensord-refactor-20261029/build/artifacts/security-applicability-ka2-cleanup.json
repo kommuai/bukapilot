@@ -1,0 +1,6 @@
+{
+  "applicable": false,
+  "reason": "no trust-boundary change - security-builder not engaged",
+  "scope": "build-to-review",
+  "decided_by": "build-management"
+}

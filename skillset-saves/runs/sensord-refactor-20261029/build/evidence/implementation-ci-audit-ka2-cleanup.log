@@ -1,0 +1,4 @@
+PASS: dedicated tizi-lsmc sensord job removed
+PASS: offline mocked sensord suite is selected by system/sensord/ changes in HW + Unit Tests
+command=python3 Jenkinsfile CI selection assertions
+exit_code=0

@@ -1,0 +1,89 @@
+FF                                                                       [100%]
+=================================== FAILURES ===================================
+______________ test_sensord_enabled_only_for_ka2_and_stays_onroad ______________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f70a590a0>
+
+    def test_sensord_enabled_only_for_ka2_and_stays_onroad(monkeypatch):
+      from importlib import reload
+      import openpilot.system.hardware as hardware
+      import openpilot.system.manager.process_config as process_config
+    
+      actual_ka2 = hardware.KA2
+      try:
+        for is_ka2 in (False, True):
+          monkeypatch.setattr(hardware, "KA2", is_ka2)
+          process_config = reload(process_config)
+          sensord = process_config.managed_processes["sensord"]
+    
+>         assert sensord.enabled is is_ka2
+E         assert True is False
+E          +  where True = <openpilot.system.manager.process.PythonProcess object at 0x7f70a5a480>.enabled
+
+system/manager/test/test_manager.py:31: AssertionError
+_____ test_non_ka2_fails_before_setup_sensor_access_threads_or_publication _____
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7f70a59790>
+
+    def test_non_ka2_fails_before_setup_sensor_access_threads_or_publication(monkeypatch):
+      calls = []
+    
+      monkeypatch.setattr(sensord, "KA2", False)
+      monkeypatch.setattr(sensord, "config_realtime_process", lambda *args, **kwargs: calls.append("realtime"))
+    
+      sensor_constructors = (
+        "ICM42670_Accel",
+        "ICM42670_Gyro",
+        "ICM42670_Temp",
+        "LIS2MDL_Magn",
+        "LSM6DS3_Accel",
+        "LSM6DS3_Gyro",
+        "LSM6DS3_Temp",
+        "MMC5603NJ_Magn",
+      )
+      for constructor in sensor_constructors:
+        monkeypatch.setattr(
+          sensord,
+          constructor,
+          lambda *args, _name=constructor, **kwargs: (calls.append(f"sensor:{_name}"), Mock())[1],
+        )
+    
+      class StubThread:
+        def __init__(self, *args, **kwargs):
+          calls.append("thread")
+    
+        def start(self):
+          calls.append("thread-start")
+    
+        def is_alive(self):
+          return False
+    
+        def join(self):
+          pass
+    
+      monkeypatch.setattr(sensord, "threading", SimpleNamespace(Event=sensord.threading.Event, Thread=StubThread))
+      monkeypatch.setattr(sensord, "messaging", SimpleNamespace(
+        PubMaster=lambda *args, **kwargs: calls.append("publisher"),
+        new_message=lambda *args, **kwargs: calls.append("message"),
+      ))
+    
+      error = None
+      try:
+        sensord.main()
+      except RuntimeError as exc:
+        error = exc
+    
+>     assert isinstance(error, RuntimeError), f"unsupported platform must fail fast, got {error!r}"
+E     AssertionError: unsupported platform must fail fast, got None
+E     assert False
+E      +  where False = isinstance(None, RuntimeError)
+
+system/sensord/tests/test_sensord.py:55: AssertionError
+============================= slowest 10 durations =============================
+0.01s setup    system/manager/test/test_manager.py::test_sensord_enabled_only_for_ka2_and_stays_onroad
+
+(5 durations < 0.005s hidden.  Use -vv to show these durations.)
+=========================== short test summary info ============================
+FAILED system/manager/test/test_manager.py::test_sensord_enabled_only_for_ka2_and_stays_onroad
+FAILED system/sensord/tests/test_sensord.py::test_non_ka2_fails_before_setup_sensor_access_threads_or_publication
+2 failed in 0.19s

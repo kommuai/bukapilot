@@ -1,0 +1,2 @@
+$ git diff --check -- system/loggerd/loggerd.cc
+exit_code: 0

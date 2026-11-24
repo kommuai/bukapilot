@@ -1,0 +1,239 @@
+{
+  "artifact_hashes": {
+    "../build/artifacts/dqbuf-output-correlation-r2.3-r1.json": "29c587a2bf121c8e35c16481400f621686505cf3ad3afe0f95cb7f0ffab130b2",
+    "../build/artifacts/ffmpeg-flush-abba-r3.json": "db777e8aa2d4b63155e5595cda47cfa863367805885c270f518df3dde7389671",
+    "../build/artifacts/ffmpeg-flush-pacing-ab-r2.3-r1.json": "913a57ae11491fe31ee103884b98a2c1df357b9d8dbc8f8c89c519f0d1786f3c",
+    "../build/artifacts/ffmpeg-stdout-write-trace-r2.3-r1.json": "5dede62fa4529206a576e6241723f9c4c6b5aa4cd55eebbe45d23da3833fe49f",
+    "../build/artifacts/ffmpeg-thread-schedstat-correlation-r4.json": "48d0a6517c05a9b40a377de87a358ee93ac12b70a44a47d04bfdafc44bedfb5a",
+    "../build/artifacts/ffmpeg-thread-syscall-schedstat-r4-final2.json": "b64db8453b48b731dafbec8b33db5d40a0c577ab698ff29d204c2127e176cba8",
+    "../build/artifacts/pts-read-correlation-r2.3-r1.json": "067a4b4d3dee1d3d836490dcaa489d393ae916bda52ebb101da5fcde0c822bba",
+    "../build/artifacts/runtime_cadence_intervals-r2.2-round2.json": "967b422432e1cf8f2f2fc96bbead768574448a850c51245835325de63939f8a5",
+    "../build/artifacts/runtime_probe-ac4-r2.2-round2.json": "8a4a6d1d93b83687630b227c78f16177e3159333dfe97e29fdd5a8410c51b9f4",
+    "../build/evidence/ffmpeg-flush-abba-a1-r3.strace": "e9609a2446d0fe009059919d8f6a363e3f73d3263b35d65b9993b9b9225be0e3",
+    "../build/evidence/ffmpeg-flush-abba-a2-r3.strace": "6d6e937c8fc8c19a889d9311be01416cf0531d3625cf0abe1eabeba1fe784044",
+    "../build/evidence/ffmpeg-flush-abba-b1-r3.strace": "4dac35c98aed5615a9ad45e32748ffd79835ce1231b3191dc3bfc215353c132a",
+    "../build/evidence/ffmpeg-flush-abba-b2-r3.strace": "8e686f905fbf4021ab9b717d469d17d48794922a3c5c74e27e8f0649a0ae0d23",
+    "../build/evidence/ffmpeg-flush-abba-r3.log": "7816977983473254c5fc01747f84a1d33d07b35869b3021a425128363ace0064",
+    "../build/evidence/ffmpeg-flush-default-r2.3-r1.strace": "8de6089eff1a1557e552d325e8dd051774485451d69ad953c40c3ee6be1506fb",
+    "../build/evidence/ffmpeg-flush-pacing-ab-r2.3-r1.log": "510294d1de93851644766d6fd7394f836abd8bdba5b3059d38507b1f5e72717f",
+    "../build/evidence/ffmpeg-flush-packets-1-r2.3-r1.strace": "cfde2108693799f2f87222ff8058a6fededba3c955c4ee09288e973f3ca4bc75",
+    "../build/evidence/ffmpeg-showinfo-dqbuf-correlation-r2.3-r1.log": "1db9bc2ce055045e0b971fc895f95c4b759bf352c7ae7cfdb68141db271ca70e",
+    "../build/evidence/ffmpeg-showinfo-pts-read-correlation-r2.3-r1.log": "848d42a5562f3145222130badeeda8e477a187b0959f614d135b3dcf4a90e183",
+    "../build/evidence/ffmpeg-stdout-write-trace-r2.3-r1.strace": "9878b91cb3fde20172cd524c399a7220f245ee2c6c3561f2e567bf30143a9cc4",
+    "../build/evidence/ffmpeg-thread-schedstat-correlation-r4.log": "d8c1e1602585d14a118a82f49c297778186c6f221142d9ec0d3afced65a0b712",
+    "../build/evidence/ffmpeg-thread-syscall-schedstat-r4-final2.strace": "0de7b3e50ff49d676085ff34e36e6fad8b9fb36bcbd7200d9df251cb0b9e7037",
+    "../build/evidence/gdb-ptrace-feasibility-r5.log": "eb03bdede78cd20e69b7e8dc12241fda9f087a79b2c3220ad10461fa48351732",
+    "../build/evidence/runtime-smoke-ac4-r2.2-round2.log": "de804d35326c6925862d2c8b36708d4a14a10b05120076924f523397976e8c55",
+    "../build/evidence/runtime-smoke-zmq-r2-final.log": "899ff2ff4758ce4647b03d90436866a6ea5eebc95cbca65b8de57872b32930dd",
+    "../build/evidence/v4l2-dqbuf-ffmpeg-output-r2.3-r1.strace": "5eb1ed5f3f73c01d88e6745a2c4c7df170f9d0324319ac374c1f4a84b98fd1b5",
+    "../build/reports/report_dqbuf-output-correlation-r2.3-r1.md": "6d96162d197305e68eb88c8ae29cd8f67f957930c627ce01d4d8932318336c5a",
+    "../build/reports/report_ffmpeg-flush-abba-r3.md": "e904cc3db831e98eb200e7bdd988b333082ccacfa4df4a85daa2410d94259ca2",
+    "../build/reports/report_ffmpeg-flush-pacing-ab-r2.3-r1.md": "f6e9f0a2a172d9401e28627d180823bc806bd1f6c1e1627789a489f513902c06",
+    "../build/reports/report_ffmpeg-stdout-write-trace-r2.3-r1.md": "c0b6822692ce075774854ddcba5996d32e633382659e5767e00efe25fe6a1268",
+    "../build/reports/report_ffmpeg-thread-schedstat-r4.md": "d7ac782c3f6bc118d8db096f18da8d326cba30b862ef732bb2f8ef9608632faa",
+    "../build/reports/report_gdb-ptrace-feasibility-r5.md": "7d58e08a8383fbee735c4b9cd411542801fdbbccf9a441957486304f1c4a481d",
+    "../build/reports/report_pts-read-correlation-r2.3-r1.md": "969228a65ddd220b407f19be0e0b6301be0c02f9e2e90909beac9f4722ee20a3",
+    "../build/reports/report_runtime_health-ac4-r2.2-round2.md": "2200d7460f60c1188a68ffa5d79f53a70a137d7d55d00e5a49d3d66874a088f1",
+    "../design/reports/delivery-plan-r2.md": "0ef16ba626a8fb8cd117b710375d63d5d46e677cae4925abe2af919eb22eeffc",
+    "../intake/report_grilling.md": "84a7e874f86ba50a6e4c5b3e3938e4a534099e518c4dea8c9ba8a8f4f2d97a0b",
+    "artifacts/ffmpeg-futex-wake-pairing-r5.json": "5c69e8b7f52201fef1ec9a4958bbd3e0b485b1a3f9ec58882847e0e1fdfc07f3",
+    "artifacts/ffmpeg-pipe-timing-60s.json": "50a969cb540f1c6abd365f69d0af97934621cdc37849ce48de0c62277738d155",
+    "artifacts/ffmpeg-schedstat-600-r2.json": "e3bea2a7874fdb5e6b98d6aeb7fbaeca65308845feb684883d8491e11b01aa36",
+    "artifacts/manifest-r6.json": "ba51870dd243d7b8469852de74c0ebc15685689648ac1b4159bcf64aadd7a5c7",
+    "evidence/evidence-chain-r2.log": "4f48970cac9f2f18217cbdce31323ae435e59b77294b7c04f91e46ff2459d8ec",
+    "evidence/evidence-chain-r3.log": "0210a1d7b7f1643e93408616bc240692c1fa216eae31ea2ecc79d9d7dbc04376",
+    "evidence/evidence-chain-r4.log": "efd09d6751444a40bdc5d370d0816c2de2061f259cb188201cd5c2df6884ca40",
+    "evidence/evidence-chain-r5.log": "88939d93590a991028c66fa788980cbfef5b572152faac320f32a38f06acdf3c",
+    "evidence/evidence-chain-r6.log": "380e84f2791cc6741d741beb18bbca36209bdcb46a262e3fa6903547f895afc2",
+    "evidence/evidence-chain-r7.log": "332fc786c22f458166b14dccbc4a338b2f9aedf761fbe6a9efa5c7602c700cdc",
+    "evidence/evidence-chain.log": "e6fa572cd107e21422cdb17f9d3bbf8c982cefb148afff8d782185f8842e8905",
+    "evidence/ffmpeg-futex-wake-pairing-r5.log": "b4da13d544b42b0acb8a1b79c2668ad1fa51af68f6bce1460ccb8f015562ceca",
+    "evidence/ffmpeg-pipe-timing-60s.log": "5454846524f28064d3ed5e1ae8aafb39f9e2fb6fbc33a87bdcafe4cacc5c850e",
+    "evidence/ffmpeg-schedstat-600-r2.log": "971a7fc09d7766f30aba668ce1ecc2ea38d2dc687c2359a458abb24fbcaadc2b",
+    "evidence/reproduction.log": "de804d35326c6925862d2c8b36708d4a14a10b05120076924f523397976e8c55",
+    "evidence/v4l2-capture-timestamps-60s.log": "bf3ea3aee6ea62d9b3b7010db2ed89e6c4755a536eb2202c0790ae8f72b21999",
+    "reports/investigation-package-r1.md": "b4afe53167fb5ff722d3b8174f7e339f98d3cc66578d84d420e12acb8e6bc796",
+    "reports/investigation-package-r2.md": "b35b75239d451b80d9cf7015028d4598a821f0e110debd3927213fab67e44cfd",
+    "reports/investigation-package-r3.md": "e83647146bf85fb14b60b44c2aa8c6d209882ded91a2e7f3e5991a9106a1d573",
+    "reports/investigation-package-r4.md": "39f762cc1f8002a5ea694cf59fe638e359a856ac8e206a8b1c52209900da08bc",
+    "reports/investigation-package-r5.md": "e67cd4b4290b38f022bb5f1a164b3285ff0bd2f7db413bdec3024178909c5ac0",
+    "reports/investigation-package-r6.md": "f7ae478899faf608b8b6296a88fc929c285fb3f113f3400165725357ab310bac",
+    "reports/investigation-package.md": "35210e5f097b0ed2dc2b1607bdf9d97ea4b61b53eb5377526a8a0fe9f9181eb4",
+    "reports/report_checkpoint-evidence-chain-r2.md": "9d682e30e3d85f59c7ca2d0fc3db72bb99797aaad97a708110f532111d4d8412",
+    "reports/report_checkpoint-evidence-chain-r3.md": "4c3476964c4290b6010ec3a6591a3a60863194421e2acdeaf52cdd6bf8ee9e38",
+    "reports/report_checkpoint-evidence-chain-r4.md": "fa014b0b745980d700e82a7fc8a1ddc9dca59f96c849ec039782ea1afe5fcba6",
+    "reports/report_checkpoint-evidence-chain-r5.md": "69cff311efcb82938f9e2d8ddc2bdd8bda0af8c220d96c5f06bf33f91ba8d2fd",
+    "reports/report_checkpoint-fix-path-r2.md": "c9125d6f8864e40deb4fc6258f19f51f6f93355e6293c67a05bd1b21d7f15653",
+    "reports/report_checkpoint-fix-path-r3.md": "9609d646939f4a08424d5789231f10c0c6dee9bbbd168f6bbd43b53cf848ecf0",
+    "reports/report_checkpoint-fix-path-r4.md": "d8e90c8e69e5eeba8e34d93d39a564e28ac6673e8da17bdfe0073adc718aa210",
+    "reports/report_checkpoint-mechanism-r2.md": "2de787b1ae23e3e230dcf7c50fcc82821fe42d67b90f0e354bf96a621ad3adb7",
+    "reports/report_checkpoint-mechanism-r3.md": "6940d703654e31b70f9e31719beb27c6c790c14fb0b489ef4ef57a30ed8a36d9",
+    "reports/report_checkpoint-mechanism-r4.md": "75c8e8a4b6043264707afbfed674bb5e1748b557c198c1d73e018b2fa7e1ffa7",
+    "reports/report_checkpoint-schedstat-r2.md": "cd7b163bbf5bb93b108375cce6f6cf41e663b4979e6b585fb8f1dff1d1ef3d37",
+    "verdict_investigation-review-r6.cross-stage.json": "4f9442e3f0432b39e080f7a37cdd603c71ed52ed7a345f8e7f1bde478be713b7"
+  },
+  "boundary": "investigation-review",
+  "evidence": {
+    "evidence_chain": {
+      "artifacts": [
+        "evidence/evidence-chain-r7.log"
+      ],
+      "command": "Integrity audit of the approved r6 package/manifest and immutable r6 verdict archive; remove the stale mutable r5-verdict binding and bind the archived r6 verdict. Technical evidence was not rerun.",
+      "environment": "Saved local SideCamera investigation artifacts; this revision only compares preserved hashes and updates evidence lineage. No capture, test, or source edit.",
+      "exit_code": 0,
+      "inputs": [
+        {
+          "path": "skillset-saves/runs/sidecamerad-mvp-20261113/build/reports/report_pts-read-correlation-r2.3-r1.md",
+          "sha256": "969228a65ddd220b407f19be0e0b6301be0c02f9e2e90909beac9f4722ee20a3"
+        },
+        {
+          "path": "skillset-saves/runs/sidecamerad-mvp-20261113/build/artifacts/pts-read-correlation-r2.3-r1.json",
+          "sha256": "067a4b4d3dee1d3d836490dcaa489d393ae916bda52ebb101da5fcde0c822bba"
+        },
+        {
+          "path": "skillset-saves/runs/sidecamerad-mvp-20261113/build/reports/report_dqbuf-output-correlation-r2.3-r1.md",
+          "sha256": "6d96162d197305e68eb88c8ae29cd8f67f957930c627ce01d4d8932318336c5a"
+        },
+        {
+          "path": "skillset-saves/runs/sidecamerad-mvp-20261113/build/artifacts/dqbuf-output-correlation-r2.3-r1.json",
+          "sha256": "29c587a2bf121c8e35c16481400f621686505cf3ad3afe0f95cb7f0ffab130b2"
+        },
+        {
+          "path": "skillset-saves/runs/sidecamerad-mvp-20261113/build/evidence/v4l2-dqbuf-ffmpeg-output-r2.3-r1.strace",
+          "sha256": "5eb1ed5f3f73c01d88e6745a2c4c7df170f9d0324319ac374c1f4a84b98fd1b5"
+        },
+        {
+          "path": "skillset-saves/runs/sidecamerad-mvp-20261113/build/reports/report_ffmpeg-stdout-write-trace-r2.3-r1.md",
+          "sha256": "c0b6822692ce075774854ddcba5996d32e633382659e5767e00efe25fe6a1268"
+        },
+        {
+          "path": "skillset-saves/runs/sidecamerad-mvp-20261113/build/artifacts/ffmpeg-stdout-write-trace-r2.3-r1.json",
+          "sha256": "5dede62fa4529206a576e6241723f9c4c6b5aa4cd55eebbe45d23da3833fe49f"
+        },
+        {
+          "path": "skillset-saves/runs/sidecamerad-mvp-20261113/investigation/artifacts/ffmpeg-schedstat-600-r2.json",
+          "sha256": "e3bea2a7874fdb5e6b98d6aeb7fbaeca65308845feb684883d8491e11b01aa36"
+        },
+        {
+          "path": "skillset-saves/runs/sidecamerad-mvp-20261113/build/reports/report_ffmpeg-flush-abba-r3.md",
+          "sha256": "e904cc3db831e98eb200e7bdd988b333082ccacfa4df4a85daa2410d94259ca2"
+        },
+        {
+          "path": "skillset-saves/runs/sidecamerad-mvp-20261113/build/artifacts/ffmpeg-flush-abba-r3.json",
+          "sha256": "db777e8aa2d4b63155e5595cda47cfa863367805885c270f518df3dde7389671"
+        },
+        {
+          "path": "skillset-saves/runs/sidecamerad-mvp-20261113/build/evidence/ffmpeg-flush-abba-r3.log",
+          "sha256": "7816977983473254c5fc01747f84a1d33d07b35869b3021a425128363ace0064"
+        },
+        {
+          "path": "skillset-saves/runs/sidecamerad-mvp-20261113/build/evidence/ffmpeg-flush-abba-a1-r3.strace",
+          "sha256": "e9609a2446d0fe009059919d8f6a363e3f73d3263b35d65b9993b9b9225be0e3"
+        },
+        {
+          "path": "skillset-saves/runs/sidecamerad-mvp-20261113/build/evidence/ffmpeg-flush-abba-b1-r3.strace",
+          "sha256": "4dac35c98aed5615a9ad45e32748ffd79835ce1231b3191dc3bfc215353c132a"
+        },
+        {
+          "path": "skillset-saves/runs/sidecamerad-mvp-20261113/build/evidence/ffmpeg-flush-abba-b2-r3.strace",
+          "sha256": "8e686f905fbf4021ab9b717d469d17d48794922a3c5c74e27e8f0649a0ae0d23"
+        },
+        {
+          "path": "skillset-saves/runs/sidecamerad-mvp-20261113/build/evidence/ffmpeg-flush-abba-a2-r3.strace",
+          "sha256": "6d6e937c8fc8c19a889d9311be01416cf0531d3625cf0abe1eabeba1fe784044"
+        },
+        {
+          "path": "system/sidecamerad.py",
+          "sha256": "494fb8b88fda8bcf1d8301225019f4f01f4b77a0bb5cb3e69dde47ed96e1309b"
+        },
+        {
+          "path": "skillset-saves/runs/sidecamerad-mvp-20261113/build/reports/report_ffmpeg-thread-schedstat-r4.md",
+          "sha256": "d7ac782c3f6bc118d8db096f18da8d326cba30b862ef732bb2f8ef9608632faa"
+        },
+        {
+          "path": "skillset-saves/runs/sidecamerad-mvp-20261113/build/artifacts/ffmpeg-thread-schedstat-correlation-r4.json",
+          "sha256": "48d0a6517c05a9b40a377de87a358ee93ac12b70a44a47d04bfdafc44bedfb5a"
+        },
+        {
+          "path": "skillset-saves/runs/sidecamerad-mvp-20261113/build/evidence/ffmpeg-thread-schedstat-correlation-r4.log",
+          "sha256": "d8c1e1602585d14a118a82f49c297778186c6f221142d9ec0d3afced65a0b712"
+        },
+        {
+          "path": "skillset-saves/runs/sidecamerad-mvp-20261113/build/evidence/ffmpeg-thread-syscall-schedstat-r4-final2.strace",
+          "sha256": "0de7b3e50ff49d676085ff34e36e6fad8b9fb36bcbd7200d9df251cb0b9e7037"
+        },
+        {
+          "path": "skillset-saves/runs/sidecamerad-mvp-20261113/build/artifacts/ffmpeg-thread-syscall-schedstat-r4-final2.json",
+          "sha256": "b64db8453b48b731dafbec8b33db5d40a0c577ab698ff29d204c2127e176cba8"
+        },
+        {
+          "path": "skillset-saves/runs/sidecamerad-mvp-20261113/investigation/artifacts/ffmpeg-futex-wake-pairing-r5.json",
+          "sha256": "5c69e8b7f52201fef1ec9a4958bbd3e0b485b1a3f9ec58882847e0e1fdfc07f3"
+        },
+        {
+          "path": "skillset-saves/runs/sidecamerad-mvp-20261113/investigation/evidence/ffmpeg-futex-wake-pairing-r5.log",
+          "sha256": "b4da13d544b42b0acb8a1b79c2668ad1fa51af68f6bce1460ccb8f015562ceca"
+        },
+        {
+          "path": "skillset-saves/runs/sidecamerad-mvp-20261113/build/reports/report_gdb-ptrace-feasibility-r5.md",
+          "sha256": "7d58e08a8383fbee735c4b9cd411542801fdbbccf9a441957486304f1c4a481d"
+        },
+        {
+          "path": "skillset-saves/runs/sidecamerad-mvp-20261113/build/evidence/gdb-ptrace-feasibility-r5.log",
+          "sha256": "eb03bdede78cd20e69b7e8dc12241fda9f087a79b2c3220ad10461fa48351732"
+        },
+        {
+          "path": "skillset-saves/runs/sidecamerad-mvp-20261113/investigation/reports/investigation-package-r6.md",
+          "sha256": "f7ae478899faf608b8b6296a88fc929c285fb3f113f3400165725357ab310bac"
+        },
+        {
+          "path": "skillset-saves/runs/sidecamerad-mvp-20261113/investigation/artifacts/manifest-r6.json",
+          "sha256": "ba51870dd243d7b8469852de74c0ebc15685689648ac1b4159bcf64aadd7a5c7"
+        },
+        {
+          "path": "skillset-saves/runs/sidecamerad-mvp-20261113/investigation/verdict_investigation-review-r6.cross-stage.json",
+          "sha256": "4f9442e3f0432b39e080f7a37cdd603c71ed52ed7a345f8e7f1bde478be713b7"
+        }
+      ],
+      "observed_at": "2026-11-15T13:14:59.258552+00:00",
+      "result": {
+        "status": "pass",
+        "summary": "R6 passed its investigation-review boundary, but its manifest had bound the prior r5 verdict hash to a mutable canonical verdict path. The gate later replaced that path with the approved r6 verdict, making the r6 manifest reference stale. R7 preserves the r6 package and manifest and binds the immutable r6 verdict archive SHA-256 4f9442e3f0432b39e080f7a37cdd603c71ed52ed7a345f8e7f1bde478be713b7 instead. This is an integrity repair only; technical findings and diagnostic plan are unchanged."
+      },
+      "tool": "SHA-256 verification of preserved r6 package, manifest, evidence chain and verdict archive; no technical probe."
+    },
+    "fix_path": "**Owner:** BUILD through `build/build-management`, after the revision-7 integrity-repaired investigation-review boundary is approved. No capture is authorized before that approval.\n\nAfter r7 boundary approval, run one 600-frame diagnostic on the same assigned camera using the fixed FFmpeg executable and unchanged default production argv. Keep the 1280\u00d7720 MJPEG-to-NV12 mode, one decoder thread, one filter thread, queue size 1, and the same camera and reader fixed. Save no frame payload. After startup, arm a one-shot monotonic watchdog for each in-flight full-frame read; if that read remains incomplete beyond 60 ms, trigger at most one snapshot for it. Do not re-arm until that full frame completes, and cap the run at three snapshots total. Verify the target PID is the live FFmpeg child launched by the controller and that its `/proc/<pid>/exe` and command line match the fixed executable and expected argv. For each trigger, record monotonic trigger, attach, detach, and full-read-completion times plus debugger pause duration. Use the bounded batch invocation `gdb --quiet --batch --nx --pid <pid> -ex 'set pagination off' -ex 'set confirm off' -ex 'set debuginfod enabled off' -ex 'info threads' -ex 'thread apply all bt 16' -ex 'detach' -ex 'quit'`; retain its TID/LWP mapping and stacks. Do not use strace or another tracer. Abort and clean up if PID verification, attach, backtrace collection, or detach fails.\n\nGDB stops FFmpeg threads while collecting each snapshot, so these pauses perturb cadence and may extend the triggering read gap. The snapshots are for callsite localization only; their timings cannot measure AC-4 and do not establish causality. Keep the timestamp contract unchanged: `timestampEof` remains host-monotonic at complete raw-frame read, and source PTS remain SOE. A separate accepted five-minute AC-4 run remains the acceptance measure after any future approved product change.",
+    "mechanism": "**Medium confidence:** cadence jitter remains after V4L2 buffer dequeue and inside FFmpeg processing/output before raw-pipe delivery. Futex waits correlate with long gaps, and the output-writer wait intervals have temporal same-address positive wake calls from the FFmpeg leader. This does not identify the awakened waiter or prove that a wake caused a gap. The GDB feasibility check established non-elevated attachment only to a disposable same-UID Python process; it adds no FFmpeg stack or callsite evidence. Reader-side backlog, primary CPU runqueue delay, sustained pipe backpressure, and a repeatable `-flush_packets 1` effect remain unsupported. The exact FFmpeg wait/processing cause remains unresolved.",
+    "reproduction": {
+      "artifacts": [
+        "evidence/reproduction.log"
+      ],
+      "build_input_revision": 68,
+      "command": "Run the assigned single-camera five-minute sidecamerad functional/cadence probe with isolated Params and local cereal/VisionIPC readers; retain per-frame EOF and receive timestamps.",
+      "environment": "Local host, one assigned UVC camera in 1280x720 MJPEG mode at requested 20 fps, isolated temporary Params root, local IPC readers, no recording.",
+      "exit_code": 0,
+      "inputs": [
+        {
+          "path": "skillset-saves/runs/sidecamerad-mvp-20261113/build/artifacts/runtime_probe-ac4-r2.2-round2.json",
+          "sha256": "8a4a6d1d93b83687630b227c78f16177e3159333dfe97e29fdd5a8410c51b9f4"
+        }
+      ],
+      "observed_at": "2026-11-15T08:20:31.265960+00:00",
+      "result": {
+        "status": "pass",
+        "summary": "The failure reproduced: 6050 selected matching IDs over 302.506666 s; mean interval cadence 20.000523 fps; maximum EOF gap 89.163715 ms; 753 of 6049 intervals above 60 ms. Functional publication and cleanup passed; strict AC-4 cadence failed."
+      },
+      "tool": "Python 3.12.3 inline controller, FFmpeg, local cereal/msgq and VisionIPC readers"
+    },
+    "residual_uncertainty": "- The GDB feasibility evidence is limited to a disposable same-UID Python target. It does not prove attach permission to FFmpeg, provide an FFmpeg callsite, or say anything about SideCamera source behavior. Host ptrace sysctl values were unavailable; one Python main-thread unwind produced a warning.\n- Futex wake/wait evidence is temporal same-address association, not kernel-confirmed waiter identity or causal proof. Concurrent same-address waiters may exist, and the output writer may be idle awaiting upstream work. No FFmpeg stacks, instruction pointers, or wchan were captured.\n- Any approved future GDB snapshot pauses FFmpeg threads and perturbs the triggering interval; the maximum-three-snapshot plan is for callsite localization, not AC-4 measurement. It must not run before the repaired r7 boundary is approved.\n- DQBUF counted 602 successful calls for 600 outputs without sequence fields, so exact dequeue-to-output identity remains unproven. FFmpeg PTS are SOE, not EOF; `timestampEof` remains host-monotonic at full raw-frame read completion.\n- The accepted five-minute reproduction still fails AC-4: 753/6,049 EOF intervals exceed 60 ms. AC-6 reconnect/sibling continuity and AC-8 four-camera soak/CPU headroom remain hardware deferrals; the minor FFmpeg child resource-limit finding remains open.",
+    "scope": "Investigate only the reproduced single-camera AC-4 cadence failure in the build phase. AC-6 physical reconnect/sibling continuity and AC-8 four-camera soak/CPU sign-off are excluded; no product source change is made."
+  },
+  "owner": "investigate",
+  "revision": "7",
+  "revisions": [
+    "7"
+  ],
+  "run_id": "sidecamerad-mvp-20261113",
+  "schema_version": 2,
+  "submission_id": "sidecamerad-mvp-20261113_investigation-ac4-timing-r7"
+}

@@ -1,0 +1,53 @@
+---
+submission_id: sidecamerad-mvp-20261113_handoff-design-to-build-r2
+revision: r2
+package_path: skillset-saves/runs/sidecamerad-mvp-20261113/design/manifest.json
+submission_status: VERDICT_RECORDED
+verdict: APPROVED
+---
+
+# Cross-stage handoff: design to build
+
+## Package
+
+- Design revision: `r2`
+- Manifest: `skillset-saves/runs/sidecamerad-mvp-20261113/design/manifest.json`
+- Manifest SHA-256: `b090c5d4952b97d66f9577f0778a8ef5c2581d2399c97bd745eb49d4dd24c837`
+- Submission: `sidecamerad-mvp-20261113_design-revision-2`
+
+The r2 package updates the MVP to default-enable `sidecamerad` under the existing `driverview` lifecycle, retain native `camerad`, publish the four side-specific cereal/VisionIPC feeds, and track all four through one transition-only `SideCameraAvailability` JSON Param. Device paths remain explicit; `/dev/v4l/by-path/...-video-index0` is recommended and `/dev/videoN` remains accepted. No package is added.
+
+## Phase gate and self-checks
+
+- `gatekeeper-design`: **APPROVED** for r2; verdict ID `9694f6d67574c0e68a172a56c07daac6821cd03583d5fc928831a1759fe14329`.
+- Phase verdict: `design/verdict_design-to-build.json`, SHA-256 `becdc9067f9c3ed2529aed1f11649fb320fccf8b31c6f033e58302ab33024046`.
+- Phase judgment: `design/verdict_design-to-build.judgment.json`, SHA-256 `081ea665b5dd9caf4cbdd70e7c291e098c9fb7c11f42efe12209ce767cffa741`; Info finding `DG-I-2` tracks the pending four-camera AC-8 soak.
+- Boundary validator: passed with no failures, missing evidence, mixed revisions, or warnings.
+- Package-shape validator: zero failures; its conditional UI slot is out of scope because this is a backend process/local IPC change with no user-facing screen, as recorded in `ui_evidence`.
+
+The r1 approval applies only to r1. This submission is the r2 design and has its own cross-stage approval below.
+
+## Existing implementation evidence
+
+A prior build attempt in this run is tied to r1 and must not be treated as an r2 implementation. Its report describes opt-in `SIDECAMERAD=1`, has no `SideCameraAvailability` Param or by-path validation, and records no capture, automated tests, runtime smoke, or security sign-off. Build management must reconcile or replace that attempt against the r2 design before seeking build-to-review approval.
+
+## Open verification items
+
+- Current hardware evidence has one decoder. AC-4 requires a new five-minute one-camera capture on r2 code with at least 6,000 frames, 20.0 fps mean, no interval over 60 ms, nonzero 1,382,400-byte payloads, and matching cereal/VisionIPC frame IDs.
+- AC-8 four-camera cadence, CPU headroom, and reconnect recovery remain unproven; AC-8 requires a 30-minute four-camera soak before any performance sign-off.
+- The physical port-to-camera-side assignment remains operator supplied; no side is inferred from USB order.
+- Build/security must establish whether the target can enforce an FFmpeg child resource limit or record residual exposure.
+
+## Cross-stage verdict
+
+- Gate: `gatekeeper-admiral`
+- Verdict: **APPROVED** for `design-to-build` revision r2.
+- Durable verdict: `design/verdict_design-to-build.cross-stage.json`, SHA-256 `c918ff4c9f44d6fea1f450f4dfef7498eef03f3fb922186d1ff3a337cd442038`.
+- Judgment: `design/verdict_design-to-build.cross-stage.judgment.json`, SHA-256 `82110a4d1e7284a013ded8ee920535861f4732a98dffa88400de78cba7e29fdc`.
+- Boundary validator: passed with `prior_reusable=true`, `changed_evidence=[]`, no failures, and no warnings.
+- Delivery-shape validator: zero failures; one optional delivery-summary slot was resolved out of scope for this intermediate handoff. The r2 manifest and implementation specification provide the build contract.
+- The cross-stage review carries the AC-8 Info finding and records that the existing r1 build attempt must be reconciled against r2 before build-to-review.
+
+## Next consumer
+
+Route to `build/build-management` for implementation and validation against `design/reports/implementation-spec-r2.md`. Preserve the native `camerad` process policy, keep source changes within `/data/openpilot`, install no packages, and carry the AC-8 and resource-limit follow-ups.

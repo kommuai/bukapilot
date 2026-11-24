@@ -1,0 +1,5 @@
+record: /data/openpilot/.harness-state/guard-state.json (exists: True)
+frozen:  -
+blocked: -
+read-only runs: -
+allow_dangerous: False
