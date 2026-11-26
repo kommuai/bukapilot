@@ -1,0 +1,9 @@
+Import('env', 'arch', 'device')
+
+if arch != 'larch64' or device != 'KA2':
+  Return()
+
+mpp_decoder_obj = env.Object('mpp_decoder_mpi.c')
+
+env.Program('#build/system/sidecamerad/sidecamerad_decoder', ['mpp_decoder.cc', mpp_decoder_obj],
+            LIBS=['rockchip_mpp', 'pthread'])
